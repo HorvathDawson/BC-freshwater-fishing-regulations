@@ -3,7 +3,8 @@
  * app/conformance/src/regs/header.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
-import { headerOf, partLabels, subtitleOf } from "./header";
+import { headerOf, partLabels, partsOthersOf, subtitleOf } from "./header";
+import { setFailureSink } from "../failure";
 import type { Choice, PartFacts, RegsInputs } from "./inputs";
 import type { Day } from "./model";
 
@@ -28,6 +29,8 @@ function inputs(o: { parts?: (PartFacts | null)[]; choices?: Choice[]; partIx?: 
     place: o.unnamed ? { label: "Region 5", name: "Unnamed stream" } : null,
     // (T517) the release's `display.ends`: what a part's end tokens say
     statics: { ends: ENDS },
+    // a keyed, non-tidal part (the rule key's own fields this file reads)
+    key: { kind: o.kind ?? "stream", tidal: false },
   } as unknown as RegsInputs;
 }
 const today = D(10, 10);
@@ -221,8 +224,27 @@ describe("(T1140) headerOf: the line to the other parts, never a count", () => {
     expect(headerOf(one, { today, status: "open", places: null })).toStrictEqual(before);
     expect(Object.keys(before)).not.toContain("others");
   });
-  it("a page's part the map's places do not hold is a defect, never a guess", () => {
-    expect(() => headerOf(sq(1), { today, status: "open", places: new Map([[0, { differs: true }]]) }))
-      .toThrow("regs header: the map lists no part 1 of gnis:1");
+  it("a KEYED page's part the map's places do not hold: no line, never a throw (it is drawn), and REPORTED once", () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const missing = new Map([[0, { differs: true }]]);
+      expect(headerOf(sq(1), { today, status: "open", places: missing }).others).toBeUndefined();
+      expect(partsOthersOf(sq(1), missing)).toBeNull();                          // the same defect again: reported once
+      expect(got.map(String)).toEqual(["Error: regs header: the map lists no part 1 of gnis:1"]);
+    } finally { undo(); }
+  });
+  it("a TIDAL stretch or a part outside B.C. (never in the map's list): no line, no throw, nothing reported", () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const listed = new Map([[0, { differs: true }]]);
+      const tidal = { ...sq(1), tidalPart: true } as RegsInputs;
+      const tidalKey = { ...sq(1), key: { kind: "stream", tidal: true } } as unknown as RegsInputs;
+      const outside = { ...sq(1), key: null } as RegsInputs;
+      expect([partsOthersOf(tidal, listed), partsOthersOf(tidalKey, listed), partsOthersOf(outside, listed)]).toEqual([null, null, null]);
+      expect(headerOf(tidal, { today, status: "tidal", places: listed }).others).toBeUndefined();
+      expect(got).toEqual([]);
+    } finally { undo(); }
   });
 });

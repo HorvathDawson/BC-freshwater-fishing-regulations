@@ -61,6 +61,31 @@ describe.skipIf(!at.dir)("(T1140) a part of a water of several is named, never n
     expect([co.map, co.h.place?.short]).toEqual(["Side channel, joining 12 km from the mouth", "Side channel, joining 12 km from the mouth"]);
   }, 60_000);
 
+  it("a TAP on a tidal stretch or a part outside B.C. draws its head: no throw, no line (audit of #265)", async () => {
+    // the Capilano and the Coquitlam have tidal lower parts a map tap reaches; province-wide, every such part
+    const ords = (await (await st.water()).all("SELECT item_ord FROM item WHERE shown = 1")).map((r) => Number(r.item_ord));
+    const seen = { tidal: 0, outside: 0 }, bad: string[] = [];
+    for (const ord of ords) {
+      const parts = await st.parts(ord);
+      if (parts.length < 2 || !parts.some((p) => p.tidal || p.akey === null)) continue;
+      const it = await st.item(ord);
+      const key = await salmonKeyOf(loader!, st, it.id as never);
+      const g = mergeNav(await loadRawWaterGroup(st, it.id as never), key);
+      const places = entryPlaces(g, it.id, key);
+      for (const p of parts.filter((x) => x.tidal || x.akey === null)) {
+        const inp = await loadRegsInputs(st, { kind: "part", item: it.id, partIx: p.partIx }, DAY.day, DAY.weekday, DAY.year);
+        try {
+          const h = headerOf(inp, { today: DAY.day, status: p.tidal ? "tidal" : "outside", names: entryNames(g, it.id), places });
+          if (h.others) bad.push(`${it.id} part ${p.partIx}: the line on a piece the map never lists`);
+        } catch (e) { bad.push(`${it.id} part ${p.partIx}: ${String(e)}`); }
+        seen[p.tidal ? "tidal" : "outside"] += 1;
+      }
+    }
+    expect(seen.tidal).toBeGreaterThan(20);          // r-71d09ad82e81: 29 tidal pieces
+    expect(seen.outside).toBeGreaterThan(20);        // and 56 unkeyed parts outside B.C.
+    expect(bad).toEqual([]);
+  }, 600_000);
+
   it("province-wide: no plain link's head numbers a part; the line wherever another part has other rules", async () => {
     const ords = (await (await st.water()).all("SELECT item_ord FROM item WHERE shown = 1")).map((r) => Number(r.item_ord));
     const bad: string[] = [];
