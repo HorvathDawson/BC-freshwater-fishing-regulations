@@ -20,6 +20,7 @@ import { nativeAdapter } from "./adapters/native";
 import { webAdapter } from "./adapters/web";
 import { STYLE_META, colorExpression, resolveTheme, shadeHex, themeNames } from "./style";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 
 const AT = { atlas: "a.pmtiles", basemap: "b.pmtiles" };
 
@@ -137,7 +138,7 @@ describe("setting the lake's mode paints its outline (both adapters, the contrac
 
 describe("the first frame: runtimeStyle paints the outline from the lake's mode", () => {
   const edgeColour = (theme: string, modes: Record<string, string>) =>
-    (runtimeStyle(AT, theme, modes).layers.find((l) => (l as { id: string }).id === "lake__edge") as unknown as
+    (runtimeStyle(AT, theme, modes, PMTILES).layers.find((l) => (l as { id: string }).id === "lake__edge") as unknown as
       { paint: Record<string, unknown> }).paint["line-color"];
 
   it("stocked, depth and plain, light and dark", () => {

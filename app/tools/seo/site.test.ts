@@ -427,7 +427,7 @@ describe("T195 hubs and dated pages", () => {
   it("(T1010) the privacy page names every script the site ships", () => {
     const pv = text(built.build.pages.find((p) => p.path === "/privacy")!.html);
     // a script's published name (`/assets/<name>.<hash>.js`) and the words the policy must carry for it
-    const NAMED: Record<string, RegExp> = { gauge: /river gauge page[^.]*own script/i, join: /Join the test/i, "region-find": /region page[^.]*water search/i };
+    const NAMED: Record<string, RegExp> = { gauge: /river gauge page[^.]*own script/i, "gauge-chart": /river gauge page[^.]*script for its chart/i, join: /Join the test/i, "gauges-find": /river gauges page[^.]*gauge search/i, "region-find": /region page[^.]*water search/i };
     const shipped = new Set<string>();
     for (const p of built.build.pages) for (const m of p.html.matchAll(/<script src="\/assets\/([a-z-]+)\.[0-9a-f]+\.js"/g)) shipped.add(m[1]!);
     // (the fixture has no gauges: its pages ship the region search only) every script shipped is one the policy names

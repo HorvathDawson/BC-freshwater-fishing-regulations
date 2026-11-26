@@ -15,6 +15,7 @@ import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { Colouring, methodInput, statusInput, type LabelTarget, type TileRenderer, type TileSections } from "./colouring";
 import { GEAR_EDGE_PX, GEAR_LAYERS, GEAR_RAMP, GEAR_RAMPS, gearPaint, paintFor, rampAt, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { resolveTheme, NO_VALUES } from "./style";
 
 /** Profile 0 bait ban all year; profile 1 fly only Jan 1 → Jun 30, none after. Sections 100..104 profile 1, 7 profile 0. */
@@ -146,13 +147,13 @@ describe("the gear marks through the engine", () => {
 
 describe("the gear layers in the first frame", () => {
   it("present, hidden, the stream's under its line and over the selection casing; the lake's under the selection ring", () => {
-    const ids = runtimeStyle({ atlas: "a", basemap: "b" } as never, "light").layers.map((l) => l.id);
+    const ids = runtimeStyle({ atlas: "a", basemap: "b" } as never, "light", {}, PMTILES).layers.map((l) => l.id);
     const at = (id: string) => ids.indexOf(id);
     for (const id of [...Object.values(GEAR_LAYERS.stream), ...Object.values(GEAR_LAYERS.lake)]) expect(at(id), id).toBeGreaterThan(-1);
     expect(at(SELECTION_CASING)).toBeLessThan(at(GEAR_LAYERS.stream.fly));
     expect(at(GEAR_LAYERS.stream.bait)).toBeLessThan(at("stream"));
     expect(at(GEAR_LAYERS.lake.bait)).toBeLessThan(at(SELECTION_RINGS.lake));
-    const s = runtimeStyle({ atlas: "a", basemap: "b" } as never, "light");
+    const s = runtimeStyle({ atlas: "a", basemap: "b" } as never, "light", {}, PMTILES);
     for (const id of Object.values(GEAR_LAYERS.stream))
       expect((s.layers.find((l) => l.id === id) as unknown as { paint: Record<string, unknown> }).paint["line-opacity"]).toBe(0);
   });

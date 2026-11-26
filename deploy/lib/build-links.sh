@@ -63,6 +63,9 @@ mln_pinned_aar() {
   echo "$found"
 }
 
+# (T1170) how to get the pinned repo today: the stored build when the lock records it as published, else a local compile
+MLN_GET="bash app/tools/maplibre-android/build.sh <work dir> (downloads the stored build when maplibre-android.lock.json records it as published; until then it stops: scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh --compile <work dir>)"
+
 # build_links_mln <maven dir>: MLN_AAR = the one AAR there, and only when it is the PINNED upstream build
 # (app/tools/maplibre-android/pin.env, T978): an old lean-patch AAR or an experiment is refused, never shipped quietly
 build_links_mln() {
@@ -72,7 +75,7 @@ build_links_mln() {
   source "$BUILD_LINKS_DIR/../../app/tools/maplibre-android/pin.env"
   if [[ ! -d $dir ]]; then
     bad "no pinned MapLibre repo at $dir (T978, upstream ${MLN_COMMIT:0:9}): $(build_fix "${dir#"$BUILD_HERE"/}" \
-      "scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>")"
+      "$MLN_GET")"
     return 0
   fi
   found=$(find -L "$dir" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
@@ -82,9 +85,9 @@ build_links_mln() {
   if [[ -z $found || $(grep -c . <<<"$found") -ne 1 ]]; then
     bad "$dir must hold exactly one android-sdk-vulkan AAR (found: ${found:-none}; app/tools/maplibre-android/README.md)"
   elif [[ $(basename "$found") != "android-sdk-vulkan-$MLN_VERSION.aar" ]]; then
-    bad "$found is not the pinned MapLibre ($MLN_VERSION, app/tools/maplibre-android/pin.env): point MLN_LOCAL_MAVEN at cache/maplibre/$MLN_VERSION (unset it for the default), or build it: scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>"
+    bad "$found is not the pinned MapLibre ($MLN_VERSION, app/tools/maplibre-android/pin.env): point MLN_LOCAL_MAVEN at cache/maplibre/$MLN_VERSION (unset it for the default), or get it: $MLN_GET"
   elif [[ $src_commit != "$MLN_COMMIT" ]]; then
-    bad "$dir/SOURCE.txt names ${src_commit:-no commit}, not the pinned $MLN_COMMIT: not build.sh's build of the pin; rebuild it: scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>"
+    bad "$dir/SOURCE.txt names ${src_commit:-no commit}, not the pinned $MLN_COMMIT: not build.sh's build of the pin; get it again: $MLN_GET"
   else MLN_AAR=$(mln_pinned_aar "$dir"); ok "pinned MapLibre AAR $MLN_AAR (upstream ${MLN_COMMIT:0:9}, no patch)"; fi
 }
 
