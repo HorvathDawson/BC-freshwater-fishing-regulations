@@ -32,16 +32,35 @@ STEM = [(0, 1000, LineString([(0, 0), (1000, 0)])), (1000, 2000, LineString([(10
 
 def test_the_join_is_the_main_lines_nearest_point_to_the_channels_nearer_end():
     ch = [LineString([(400, 30), (600, 500)])]                 # its end at x 400 lies 30 m off the main line
-    m, snap, k = sc.join_measure(ch, STEM)
-    assert (round(m), round(snap), k) == (400, 30, 0)
+    m, snap, k, which = sc.join_measure(ch, STEM)
+    assert (round(m), round(snap), k, which) == (400, 30, 0, "nearer")
 
 
 def test_the_flow_pointer_says_which_end_is_downstream():
-    ch = [LineString([(400, 30), (1500, 100)])]                # nearer end at x 400; the flow leaves at x 1500
-    down = LineString([(1500, 100), (1500, 0)])
-    m, snap, _ = sc.join_measure(ch, STEM, down)
-    assert (round(m), round(snap)) == (1500, 100)
+    ch = [LineString([(400, 70), (1500, 100)])]                # both ends off the main line, beyond the snap limit
+    down = LineString([(1500, 100), (1500, 0)])                # the flow leaves at x 1500
+    m, snap, _, which = sc.join_measure(ch, STEM, down)
+    assert (round(m), round(snap), which) == (1500, 100, "downstream")
     assert round(sc.join_measure(ch, STEM)[0]) == 400          # with no pointer: the nearer end
+
+
+def test_a_channel_whose_downstream_end_lies_away_is_measured_where_it_leaves():
+    # (T1172, owner 2026-11-26: "Fix the measure in this PR") the flow leaves the channel at x 1500, 100 m off the main
+    # line; its other end lies 30 m off it: the channel LEAVES the main line there, and is measured there
+    ch = [LineString([(400, 30), (1500, 100)])]
+    down = LineString([(1500, 100), (1500, 200)])
+    m, snap, _, which = sc.join_measure(ch, STEM, down)
+    assert (round(m), round(snap), which) == (400, 30, "leaves")
+    # at the limit it is still on the line; one metre beyond it, no end is: the downstream end, as before
+    edge = [LineString([(400, sc.MAX_SNAP_M), (1500, 100)])]
+    assert sc.join_measure(edge, STEM, down)[3] == "leaves"
+    off = [LineString([(400, sc.MAX_SNAP_M + 1), (1500, 100)])]
+    assert sc.join_measure(off, STEM, down)[3] == "downstream"
+    # its downstream end on the line itself: that end, however near the other
+    on = [LineString([(400, 10), (1500, 20)])]
+    assert sc.join_measure(on, STEM, LineString([(1500, 20), (1500, 200)]))[:2] == (1500, 20.0)
+    # an end given (it touches a water body of the river): always that end
+    assert sc.join_measure(ch, STEM, down, end=ch[0].interpolate(1.0, normalized=True))[3] == "given"
 
 
 def test_the_measure_runs_from_the_mouth_whichever_way_a_section_is_drawn():
@@ -161,6 +180,15 @@ def test_a_one_section_main_line_is_held_to_its_junctions_fwa_measures():
     geo[1] = LineString([(1000, 0), (0, 0)])         # the same line drawn from its top: the junction 800 m from its start
     with pytest.raises(sc.SideChannelError, match=r"gnis:1 \(One River\) section 1: drawn backwards — 1 junction"):
         sc.check_stem_order(db, geo, ok, log=lambda *_: None)
+
+
+def test_one_backwards_junction_stops_it_however_many_read_forwards():
+    # (review L2) two junctions read from the first vertex, one from the last: stopped — a majority rule could let a
+    # turned section through on coincidental readings
+    db, geo = _one_stem_db()
+    mixed = {1: [(200.0, 800.0, 200.0, 0.0), (300.0, 700.0, 300.0, 0.0), (100.0, 900.0, 900.0, 0.0)]}
+    with pytest.raises(sc.SideChannelError, match=r"drawn backwards — 1 junction\(s\) .* \(2 from its first\)"):
+        sc.check_stem_order(db, geo, mixed, log=lambda *_: None)
 
 
 def test_a_junction_that_cannot_tell_the_two_ways_apart_says_nothing():
@@ -456,9 +484,27 @@ def test_a_membership_only_area_names_a_reviewed_part_only(tmp_path):
     assert _inside(tmp_path, CH, [WMA], iid="gnis:1", candidates=got, log=log) == []      # nobody has looked at it
     assert got == [("gnis:1", 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 1.0, "inside")]
     assert any("INSIDE candidate: gnis:1 part 1" in x and "not offered" in x for x in log)
-    # a park the same: Thelwood Creek in Strathcona-Westmin Park waits for its look
+    # a park the same: Thelwood Creek in Strathcona-Westmin Park, reviewed (owner 2026-11-26: "yes name it"); the same
+    # park for a water nobody looked at waits
     park = ("STRATHCONA - WESTMIN PARK", "park", box(0, 0, 100, 100), False)
-    assert _inside(tmp_path, CH, [park], iid="gnis:21681") == []
+    assert _inside(tmp_path, CH, [park], iid="gnis:21681") == [(1, 1, "STRATHCONA - WESTMIN PARK", 1.0, "inside")]
+    assert _inside(tmp_path, CH, [park], iid="gnis:1") == []
+
+
+def test_thelwood_creek_is_said_inside_its_park():
+    W = _water([MAIN, LOOSE], iid="gnis:21681", name="Thelwood Creek")
+    assert _said(W, {("gnis:21681", "inside", 1): ("STRATHCONA - WESTMIN PARK", "inside")})[1] == \
+        "Thelwood Creek inside Strathcona - Westmin Park"
+
+
+def test_two_rows_of_one_area_are_one_area(tmp_path):
+    # (review L3) an area the catalogue keeps in two rows of one name is ONE area, said by its best row; two names stay two
+    a = ("CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "wma", box(0, 0, 100, 100), False)
+    b = ("CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "wma", box(-10, -10, 200, 200), False)
+    assert _inside(tmp_path, CH, [a, b], iid="gnis:2123") == \
+        [(1, 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 1.0, "inside")]
+    other = ("BAYNES ISLAND ECOLOGICAL RESERVE", "ecological_reserves", box(-10, -10, 200, 200))
+    assert _inside(tmp_path, CH, [a, b, other], iid="gnis:2123") == []
 
 
 def test_indigenous_land_and_other_membership_kinds_never_name_a_part(tmp_path, monkeypatch):
@@ -524,8 +570,10 @@ def test_the_old_kootenay_river_channel_is_measured_and_named_by_its_area(tmp_pa
     sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed={}, marks=marks)
     assert not any("NO JOIN" in x for x in log)
     joins = dict(db.execute("SELECT sid, m FROM section_join"))
-    # channel 2 at its leave point, 379 m from p0; channel 1 at the main line's nearest point to its lake end
-    assert (joins[4], _how(db, 4)) == (379, "join") and (joins[3], joins[6], _how(db, 3)) == (520, 520, "nearest")
+    # both channels where they leave the main line: channel 2 at 379 m from p0; channel 1 at 588 m — its downstream end
+    # lies 1,763 m away in Leach Lake (never the main line's nearest point to that end: 520 m, "nearest")
+    assert (joins[4], _how(db, 4)) == (379, "join") and (joins[3], joins[6], _how(db, 3)) == (588, 588, "join")
+    assert any("sections 3…(2): joins at 0.6 km, snap 0 m where it leaves the main line" in x for x in log)
     assert any("1 with none below agree with their junctions' FWA measures" in x for x in log)
     assert db.execute("SELECT ord, part_ix, area, how FROM part_inside").fetchall() == \
         [(1, 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside")]
@@ -538,10 +586,15 @@ def test_the_old_kootenay_river_channel_is_measured_and_named_by_its_area(tmp_pa
     db.backup(disk)
     disk.close()
     cr = _crossings(str(p))
-    W = _water([MAIN, [_run("source", "mouth", 0.5, 0.5, branch=True), _run("source", "mouth", 0.4, 0.4, branch=True)]],
+    assert ("gnis:2123", "nearest", 1) not in cr
+    W = _water([MAIN, [_run("source", "mouth", joins[3] / 1000, joins[3] / 1000, branch=True),
+                       _run("source", "mouth", joins[4] / 1000, joins[4] / 1000, branch=True)]],
                iid="gnis:2123", name="Old Kootenay River Channel")
     W.doc["waters"]["gnis:3"] = {"name": "Leach Lake", "kind": "lake", "parts": []}
     assert _said(W, cr)[1] == "Old Kootenay River Channel inside Creston Valley Wildlife Management Area"
+    # its label (the Regulations subtitle): both channels where they meet the main line
+    from pipeline.deliver.answers.display.part import runs_label
+    assert runs_label(W.doc, W.parts[1]) == "2 side channels, joining 0.4–0.6 km from the mouth"
 
 
 def test_the_old_kootenay_river_channel_unreviewed_goes_to_the_next_rung(tmp_path, monkeypatch):

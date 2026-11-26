@@ -15,9 +15,16 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    pieces by `down_m`, `cutting.merge_ordered` never reverses one, and the graph's flow is read from that order,
    `cutting.blk_endpoints`) — never a flow pointer (`section_down` is the gauges' route pointer and lands mid-line: the
    Old Kootenay River Channel's at 588 m); one drawn in pieces that do not join has no first vertex to say it: NO
-   JOIN). THE ORDER IS CHECKED ON EVERY BUILD, never trusted (`check_stem_order`): every stem section with a stem
-   section below it starts at that section, and a stem section with none below it agrees with the FWA measures of the
-   tributaries the graph joins to it (`stem_marks`); either drawn backwards stops the build, named.
+   JOIN). THE ATLAS'S ORDER IS CHECKED ON EVERY BUILD (`check_stem_order`): every stem section with a stem section
+   below it starts at that section, and a stem section with none below it agrees with the FWA measures of the
+   tributaries the graph joins to it (`stem_marks`); either drawn backwards stops the build, named. What this catches
+   is the ATLAS turning a section round (a merge, a cut); it cannot catch FWA itself drawing a blue line from its
+   source, since the graph's junctions are read from the same vertex order. A section with no junction that tells the
+   two readings apart is TRUSTED, counted in the log, never stopped (2026-11-26: 2,509 lowest pieces; of the
+   one-section main lines with side channels, 5 — none measured by this module today). (T1172, owner 2026-11-26: "Fix
+   the measure in this PR") a channel whose downstream end lies beyond `MAX_SNAP_M` of its main line while another end
+   lies on it LEAVES the main line there, and is measured there (`join_measure`, "leaves"; said "joining", the words a
+   shipped app already shows).
    (T1140 proposal, coordinator 2026-11-25, "a consistent way to handle this") A channel whose downstream end
    TOUCHES a water body of its own river joins the river AT it: a named lake its main line runs through names the
    channel's lower end (only where its flow pointer says that end is the downstream one: never a lake it leaves) (`section_span.lo` = `lake_inlet:<lake>`: "side channel into <Lake>"); its own polygon (a wide
@@ -256,7 +263,10 @@ def check_stem_order(db: sqlite3.Connection, geo: Dict[int, object], marks: Dict
                     bwd += 1
                 else:
                     n["odd"] = n.get("odd", 0) + 1    # off its own measure either way: it says nothing (counted)
-            if bwd:
+            # ANY junction read backwards stops it, however many read forwards: a majority rule could let a truly
+            # turned section through on coincidental forward readings (a junction near the middle, a second line meeting
+            # it at a mirrored point), and on 2026-11-26 no section of the province has even one backwards reading
+            if bwd > 0:
                 bad.append(f"{iid} ({name}) section {s}: drawn backwards — {bwd} junction(s) lie where their FWA measure "
                            f"puts them counted from its LAST vertex ({fwd} from its first)")
             elif fwd:
@@ -274,20 +284,31 @@ def check_stem_order(db: sqlite3.Connection, geo: Dict[int, object], marks: Dict
 
 
 def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
-                 down: Optional[object] = None, end: Optional[object] = None) -> Tuple[float, float, int]:
-    """(the join's metres from the mouth along the main line, the snap in metres, the stem section it lands on) for a
-    channel (its sections' shapes) against its water's main line (`stem`: [(lo_m, hi_m, shape)] of its stem sections).
-    The end of the channel nearer the main line, snapped to the nearest stem section, placed between that section's
-    measures from the end its downstream neighbour (else upstream neighbour) touches; (T1172) a main line of ONE
-    section from its first vertex, FWA's measure 0 (`check_stem_order` checks that order on every build); one of
-    pieces that do not join into one line has no first vertex to say it: `SideChannelError` (NO JOIN). Ties go to the
-    lower measure. `down`: the shape the channel's flow leaves it for — its end nearest that is its downstream end, the
-    one snapped; `end`: the end to snap, given (the end that touches a water body of the river)."""
+                 down: Optional[object] = None, end: Optional[object] = None) -> Tuple[float, float, int, str]:
+    """(the join's metres from the mouth along the main line, the snap in metres, the stem section it lands on, which
+    end was snapped: "given" | "downstream" | "leaves" | "nearer") for a channel (its sections' shapes) against its
+    water's main line (`stem`: [(lo_m, hi_m, shape)] of its stem sections). The end of the channel nearer the main
+    line, snapped to the nearest stem section, placed between that section's measures from the end its downstream
+    neighbour (else upstream neighbour) touches; (T1172) a main line of ONE section from its first vertex, FWA's
+    measure 0 (`check_stem_order` checks that order on every build); one of pieces that do not join into one line has
+    no first vertex to say it: `SideChannelError` (NO JOIN). Ties go to the lower measure. `down`: the shape the
+    channel's flow leaves it for — its end nearest that is its downstream end, the one snapped — unless (T1172, owner
+    2026-11-26: "Fix the measure in this PR") that end lies beyond `MAX_SNAP_M` of the main line while another end lies
+    within it: the channel LEAVES the main line there (a distributary: the Old Kootenay River Channel's into Leach
+    Lake, off the line at 588 m), and that end is the one measured ("leaves"); `end`: the end to snap, given (the end
+    that touches a water body of the river)."""
     from shapely.ops import nearest_points
     best = None
     ends = [end] if end is not None else _ends(channel)
+    which = "given" if end is not None else "nearer"
     if end is None and down is not None and len(ends) > 1:
-        ends = [min(ends, key=lambda p: (round(p.distance(down), 3), p.x, p.y))]
+        low = min(ends, key=lambda p: (round(p.distance(down), 3), p.x, p.y))
+        off = lambda p: min(g.distance(p) for _lo, _hi, g in stem)          # noqa: E731
+        on_line = [p for p in ends if p is not low and off(p) <= MAX_SNAP_M]
+        if off(low) > MAX_SNAP_M and on_line:
+            ends, which = on_line, "leaves"
+        else:
+            ends, which = [low], "downstream"
     for e in ends:
         for k, (lo, hi, g) in enumerate(stem):
             d = e.distance(g)
@@ -321,7 +342,7 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
         down0 = True                    # FWA draws a blue line from its mouth: the first vertex is measure 0
     t = line.project(on) / line.length if line.length else 0.0
     frac = t if down0 else 1.0 - t
-    return lo + (hi - lo) * frac, float(e.distance(g)), k
+    return lo + (hi - lo) * frac, float(e.distance(g)), k, which
 
 
 def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, *, log=print,
@@ -442,13 +463,16 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
                 log(f"     side channel: {iid} {name} sections {comp[0]}…({len(comp)}): flows into {hit[1]} (touches it)")
                 continue
             try:
-                m, snap, _k = join_measure(shapes, stem, dn, hit[2] if hit else None)
+                m, snap, _k, which = join_measure(shapes, stem, dn, hit[2] if hit else None)
             except SideChannelError as e:
                 stop(f"{e} ({iid} {name}, sections {comp})")
                 continue
+            # (T1172) a channel measured where it LEAVES the main line keeps the words "joining": it meets its river
+            # there, and the words stay those a shipped app already shows (the label is release text)
             how = (f"touching {'its own polygon' if hit[0] == 'own' else 'an unnamed lake on its main line'} {hit[1]}"
                    if hit else
-                   f"from its {'downstream' if len(leave) == 1 else 'nearer'} end")
+                   "where it leaves the main line (its downstream end lies away from it)" if which == "leaves" else
+                   f"from its {which} end")
             log(f"     side channel: {iid} {name} sections {comp[0]}…({len(comp)}): joins at {m / 1000:.1f} km, "
                 f"snap {snap:.0f} m {how}")
             how = "join"
@@ -590,6 +614,13 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
                     candidates.append((iid_of[o], p, name, round(share_l, 4), how))
                 continue
             hits.append((round(share_l, 4), name, how))
-        if len(hits) == 1:
-            out.append((o, p, hits[0][1], hits[0][0], hits[0][2]))
+        # (T1172, review L3) ONE AREA is one name: two catalogue rows of one name (an area kept in pieces) are one area
+        # — its best row says it ("inside" before "at", then the larger share); two names are two areas, and no row
+        by_name: Dict[str, tuple] = {}
+        for h in hits:
+            if h[1] not in by_name or (h[2] == "inside", h[0]) > (by_name[h[1]][2] == "inside", by_name[h[1]][0]):
+                by_name[h[1]] = h
+        if len(by_name) == 1:
+            share, name, how = next(iter(by_name.values()))
+            out.append((o, p, name, share, how))
     return out
