@@ -4,7 +4,7 @@
  * critical part inlined, system fonts. (T269) A WATER'S page is not drawn here: it is the app's own regs pane, prerendered
  * (pane.tsx, prerender.ts); this file gives it only its head (`headOf`).
  */
-import { BOOK_DAYS, MONTHS, regionWords, SYNOPSIS_PDF } from "@app/core";
+import { BOOK_DAYS, IMAGERY_KEPT_PRIVACY, MONTHS, regionWords, SYNOPSIS_PDF } from "@app/core";
 import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
 import type { PartModel, WaterModel } from "./model";
 
@@ -252,7 +252,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `It sets no cookies, stores nothing on your device and records no identifier; Cloudflare sees your IP address as it does for any request. ` +
     `Cloudflare may also run a short bot check on the website to keep automated traffic away.</p>` +
     `<h2>Map and satellite imagery</h2><p>The map is drawn from files on my servers. Its fonts and symbols come from my servers too. When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
-    `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online and is not stored.</p>` +
+    `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online. ${IMAGERY_KEPT_PRIVACY}</p>` +
     `<h2>Sharing and directions</h2><p>Share makes a link to the water you are viewing (the water, the view, the place on the map and the day) and hands it to the app you pick. Directions opens Apple Maps on an iPhone, and Google Maps on Android and the web, with a spot’s parking point. Both happen only when you tap them, and what the other app does with what it receives follows that app’s own policy.</p>` +
     `<h2>Reporting a problem</h2><p>Sending a report is your choice, and the form shows exactly what will go. A report holds:</p><ul>` +
     `<li>the kind of problem and the words you wrote;</li>` +
@@ -299,7 +299,7 @@ export function privacyBody(site: Site, asOf: string): string {
     // (T1098 g) owner 2026-11-25: option 2, built by T1116 (PR #194): the page may go live only with or after the 0.9.1 app and the feeds worker deploy of T1116.
     `From version 0.10.0, the app sends the token only while this phone lets it show notifications and at least one is on; if you turn notifications off for the app in the phone’s settings, the app tells my server to delete the token the next time you open it. A token the app has not sent again for 30 days is deleted (the app sends it again about once a week when you open it), and it is not used after those 30 days. ` +
     `It is not linked to you or to an account and is not backed up.</p>` +
-    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no advertising or tracking scripts; the scripts it runs are these: the visit counter described above (Cloudflare Web Analytics); on a river gauge page, the page’s own script, which reads that gauge’s latest flow and the weather forecast when the page opens, and the “Join the test” card’s script; and on a region page, a script for its water search, which reads that region’s list of water names from this website when you start typing. None of them sets a cookie or sends what you type or where you are; if one of them fails, a short error record (never what you typed) may be sent to my server, handled as the app’s error records described above. ` +
+    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no advertising or tracking scripts; the scripts it runs are these: the visit counter described above (Cloudflare Web Analytics); on a river gauge page, the page’s own script, which reads that gauge’s latest flow and the weather forecast when the page opens, the script for its chart, which reads that gauge’s readings from my server, and the “Join the test” card’s script; on the river gauges page, a script for its gauge search, which reads the list of gauges from this website and the gauges’ latest readings from my server; and on a region page, a script for its water search, which reads that region’s list of water names from this website when you start typing. None of them sets a cookie or sends what you type or where you are; if one of them fails, a short error record (never what you typed) may be sent to my server, handled as the app’s error records described above. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
     `<h2>No selling, no sharing</h2><p>I do not sell your information, and I do not share it for advertising. ` +
     `The services named above (Cloudflare, Open-Meteo, Esri, Apple for push and for the App Store version check, and Google Play for its update check) receive only the requests described here.</p>` +

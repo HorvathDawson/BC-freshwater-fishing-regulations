@@ -7,16 +7,19 @@
  * ONE LOAD PATH (T369): the check runs from here only — on opening, on each return to the app (`resume`), when the phone
  * comes back online, and when a new-version notification is tapped (`ask`); the bell, its badge and its label all read
  * this one state. (2026-11-05: a once-a-day cap here is why 0.6.0 did not notice 0.6.1.)
- * FAILURES (T368): a check or a start that fails is said in the section and reported; the environment's (offline, a
+ * FAILURES (T368): a start that fails is said in the section and reported, and so is a check of the staging APK's own file
+ * (T1073: a failed STORE check shows nothing, only the report; the strong prompt says no more than is known); the environment's (offline, a
  * dropped line) and a phone with no Play service (T595) are said and never reported, and an offline check says nothing at all.
  * (T888) THE POPUP ON OPENING reads the same state (`@app/core` `updatePopupVM`): `held` while the first-run notice, the
  * walkthrough or any sheet or page is up (the Shell says), only for a version above the installed one (`port.installed`),
  * once per version — Not now (`dismiss`), a started update, or the bell's sheet shown while it is due (`bell`: the reader
  * has read it there) keeps the version in the same file (`popped`), so it does not come back; the bell keeps the update.
- * A kept check naming a version that is not above the installed one (the app was updated since) is dropped on opening.
+ * A kept "available" check asked by another app version than the installed one (the app was updated since, by the bell, the
+ * store, or the Play Store app) is dropped on opening (T1073: the file keeps `installed`). The strong prompt's popup (T1073)
+ * waits for the store's answer on a store channel; Not now before an offer never hides the popup that comes with one.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { appUpdateVM, compareSemver, isEnvironment, isNoPlayService, NEEDED_KEY, now, parseSemver, readAppUpdateSaved,
+import { appUpdateVM, isEnvironment, isNoPlayService, isNeededKey, now, readAppUpdateSaved,
          reportFailure, shouldCheckAppUpdate, updatePopupVM, wallIso, type AppUpdateChannel, type AppUpdateCheck, type AppUpdateSaved, type AppUpdateStart,
          type AppUpdateVM, type UpdatePopupVM } from "@app/core";
 
@@ -63,12 +66,13 @@ function asCheck(s: AppUpdateSaved | null): AppUpdateCheck {
     : { state: "current" };
 }
 
-/** (T888) The kept check as it stands on this install: one naming a version not above the installed one is from before
- *  an update (the bell's Update, the store's own) — dropped (unknown until asked again), so neither the bell nor the popup
- *  says it. Its answered version (`popped`) stays kept. */
+/** (T888, T1073) The kept check as it stands on this install: an "available" answer is kept with the app version that
+ *  asked (`installed`); one asked by another version (the app was updated since: the bell's Update, the store's own, the
+ *  Play Store app) is dropped (unknown until asked again), so neither the bell nor the popup says it. A file with no
+ *  version in it (older) is dropped the same way. Its answered version (`popped`) stays kept. */
 function stillNewer(s: AppUpdateSaved | null, installed: string | null): AppUpdateSaved | null {
-  if (!s?.available || !s.version || !installed || !parseSemver(s.version) || !parseSemver(installed)) return s;
-  return compareSemver(s.version, installed) > 0 ? s : null;
+  if (!s?.available || !installed) return s;
+  return s.installed === installed ? s : null;
 }
 
 export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore | null,
@@ -97,7 +101,7 @@ export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore |
     asking.current = true;
     port.check().then((r) => {
       const next: AppUpdateSaved = { day: today, available: r.available, version: r.version, notes: r.notes ?? null,
-                                     popped: popped.current };
+                                     popped: popped.current, installed: port.installed };
       kept.current = next;
       try { store?.write(JSON.stringify(next)); } catch (e) { reportFailure(e); }   // asked again next opening
       setCheck(asCheck(next));
@@ -114,7 +118,7 @@ export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore |
   /** (T888) a popup answered: its key for this run, and a version kept in the file (the strong prompt's never is) */
   const answer = useCallback((key: string) => {
     setDismissed(key);
-    if (key === NEEDED_KEY || popped.current === key) return;
+    if (isNeededKey(key) || popped.current === key) return;
     popped.current = key;
     // a popup comes only from a check, kept in the file (`kept`), so there is always a file to write it into
     if (!kept.current) return;

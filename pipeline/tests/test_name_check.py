@@ -55,15 +55,14 @@ def test_the_python_composer_says_what_the_app_says():
     (ends.parity.test.ts) and this module's composer must give every case the same name."""
     import json
     from pipeline.common.curated import REPO_ROOT
-    from pipeline.deliver.answers.display.name_check import words
+    from pipeline.deliver.answers.display.name_check import near_name, words
     fx = json.loads((REPO_ROOT / "app/packages/core/src/ends.parity.json").read_text())
     for c in fx["cases"]:
         hi = c.get("last_hi") or c["hi"]
         if c["lo"] is None:
             got = c["water"]
         elif c["lo"] == hi and c["lo"].startswith("near:"):
-            w = words(fx["ends"], hi, "hi")
-            got = f"{c['water']} {w[:1].lower() + w[1:]}"
+            got = near_name(c["water"], words(fx["ends"], hi, "hi"))
         else:
             got = f"{words(fx['ends'], c['lo'], 'lo')} → {words(fx['ends'], hi, 'hi')}"
         assert got == c["name"], c

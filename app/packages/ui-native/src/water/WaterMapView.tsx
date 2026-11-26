@@ -51,7 +51,7 @@ const stepHeight = (scale: number) => 2 * TYPE.bodyStrong.lineHeight * scale + 2
 const EXIT_SLOT = 44;
 
 export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
-                               onCross, onPart, whole = false, onWhole, day = null }: {
+                               onCross, onPart, whole = false, onWhole, day = null, listOpen = false }: {
   loader: ReleaseLoader | null;
   item: ItemId;
   /** The frame's part (null: the part the Regulations view opens for `tapSid`). */
@@ -75,13 +75,15 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   onWhole?: () => void;
   /** (T520) THE day (the Shell's map day; null = today): the in-season changes outlined are those in force then */
   day?: Date | null;
+  /** (T1140) opened from a head's line to the list of parts (`WaterFrame.parts`): the list starts open */
+  listOpen?: boolean;
 }) {
   const split = useWaterMapSplit();
   const report = useSplitReport();
   const store = useRegsStore(loader);
   // (T228, T517) parts of one run join only where salmon (the live DFO feed over the release) reads them alike
   const salmonKey = useSalmonKey(loader, store.value ?? null, item);
-  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, onWhole, loader);
+  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, onWhole, loader, listOpen);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
   // (T518) the provincial in-season changes on this water today, outlined on exactly their sections (the banner's own
@@ -223,7 +225,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
             {/* (T214 item 4) two lines are kept for the name at every part: a name that wraps in one part and not in the
                 next must not move the steps when the reader steps between them (a longer name is cut; its full words are the label) */}
             <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, minHeight: 46, color: palette.ink, marginTop: 2 }}
-                  testID="water-map-name" numberOfLines={2} accessibilityLabel={dv.current.name}>{dv.current.name}</Text>
+                  testID="water-map-name" numberOfLines={2} accessibilityLabel={dv.current.name}>{dv.shown}</Text>
             {!split && steps(dv)}
             <Pressable ref={regsRing} onPress={() => onShowRegs(dv.regs.item as ItemId, dv.regs.partIx)} accessibilityRole="button"
                        accessibilityLabel={dv.regs.label} testID="water-map-regs"

@@ -37,6 +37,11 @@ echo "Filesystem 1024-blocks Used Available Capacity Mounted on"
 echo "/dev/stub1 999999999 1 \$a 1% /System/Volumes/Data"
 echo "/dev/stub2 999999999 1 \$b 1% /private/tmp-vol"
 EOF
+# (T1161) a fake `caffeinate`: records its arguments, holds nothing (the real one would hold this Mac awake)
+cat > "$T/bin/caffeinate" <<EOF
+#!/bin/bash
+echo "\$*" >> "$T/caffeinate.args"
+EOF
 # job.sh <name> [stubborn]: records its pid (= its process group), logs start/end, holds a child sleeping
 cat > "$T/job.sh" <<EOF
 #!/bin/bash
@@ -65,11 +70,28 @@ ok() { echo "  ok   $1"; }
 bad() { echo "  FAIL $1"; fails=$((fails + 1)); }
 check() { local name=$1; shift; if "$@"; then ok "$name"; else bad "$name"; fi; }
 alive() { kill -0 "$1" 2>/dev/null; }
-reset() { rm -rf "$T"/heavy-job*.lock* "$T"/*.pid "$T/events" "$T"/*.out "$T/disk_tmp"; echo 80 > "$T/free"; echo 1000 > "$T/fp"
+reset() { rm -rf "$T"/heavy-job*.lock* "$T"/*.pid "$T/events" "$T"/*.out "$T/disk_tmp" "$T/caffeinate.args"; echo 80 > "$T/free"; echo 1000 > "$T/fp"
           echo $((100 * 1048576)) > "$T/disk"; }
 L=$T/heavy-job.lock
 
 echo "heavy.sh test: $HEAVY"
+
+echo "0. (T1161) the Mac is kept awake while the job runs: caffeinate -i -s -w <the job's pid>; the job's exit code stays"
+reset
+if [[ $(uname -s) != Darwin ]]; then
+  echo "  skip (printed): not macOS; heavy.sh holds nothing awake there"
+else
+  cat > "$T/rc7.sh" <<EOF
+#!/bin/bash
+echo \$\$ > "$T/rc7.pid"; sleep 1; exit 7
+EOF
+  chmod +x "$T/rc7.sh"
+  "$T/H" awake 10 -- "$T/rc7.sh" > "$T/aw.out" 2>&1; rc=$?
+  j=$(cat "$T/rc7.pid")
+  check "caffeinate gets -i -s -w <job pid>" [ "$(cat "$T/caffeinate.args")" = "-i -s -w $j" ]
+  check "says so in the output" grep -q 'keeping the Mac awake while the job runs' "$T/aw.out"
+  check "the job's exit code is unchanged (7)" [ $rc = 7 ]
+fi
 
 echo "1. stop mid-job (TERM to the wrapper): job gone, lock gone"
 reset

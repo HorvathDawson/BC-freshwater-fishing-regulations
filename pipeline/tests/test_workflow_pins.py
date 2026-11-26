@@ -63,6 +63,14 @@ def test_ci_jobs_have_timeouts_and_the_ci_workflows_cancel_superseded_runs():
     assert pipe["jobs"]["check"]["timeout-minutes"] == 30
     # the slowest tests are printed, so a slow run names its tests (a 2x slower runner and a slow test look alike)
     assert any("--durations=" in (st.get("run") or "") for st in pipe["jobs"]["check"]["steps"])
+    # (T1144) the no-data tier on every core, one test FILE per worker: `--dist loadfile` keeps a file's tests in order
+    # in one process (its module fixtures made once). `--dist load` splits a file across workers and breaks the
+    # order-dependent ones, so a switch is a deliberate change here too. Mutation: drop `-n auto`, or say `--dist load`
+    # (or add a second `--dist` after it) -> fails.
+    tests = [st["run"] for st in pipe["jobs"]["check"]["steps"] if st.get("name") == "Tests"]
+    assert len(tests) == 1, tests
+    assert re.findall(r"(?:^|\s)(?:-n|--numprocesses)[\s=](\S+)", tests[0]) == ["auto"], tests[0]
+    assert re.findall(r"--dist[\s=](\S+)", tests[0]) == ["loadfile"], tests[0]
     for name in ("app-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml"):
         assert _load(name)["concurrency"]["cancel-in-progress"] is True, name
     for f in sorted(WF.glob("*.yml")):
@@ -151,6 +159,23 @@ def test_no_register_only_push_trigger_and_actions_are_off_node_20():
     bad = [f"{p.name}:{n}" for p in [*WF.glob("*.yml"), *ACTIONS.glob("*/action.yml")]
            for n, line in enumerate(p.read_text().splitlines(), 1) if old.search(line) and not line.lstrip().startswith("#")]
     assert not bad, bad
+
+
+def test_the_maplibre_library_workflow_is_hand_started_and_only_publish_writes():
+    """(T1170) the stored MapLibre build: started by hand only (it adds nothing to a PR); `build` runs the Mac's own
+    build.sh --compile and never writes; `publish` alone has contents: write, and runs only on the `publish` input when
+    the key's asset is missing. Mutations: a push / pull_request trigger, write access on build, publish without its
+    condition, a forked build command -> fails."""
+    doc = _load("maplibre-android.yml")
+    assert list(_on(doc)) == ["workflow_dispatch"]
+    assert _on(doc)["workflow_dispatch"]["inputs"]["publish"]["default"] is False
+    build, publish = doc["jobs"]["build"], doc["jobs"]["publish"]
+    assert set(doc["jobs"]) == {"build", "publish"} and "permissions" not in build
+    assert any(s.get("run", "").strip().splitlines()[1:2] == ['bash app/tools/maplibre-android/build.sh --compile "$WORK"']
+               for s in build["steps"])
+    assert publish["permissions"] == {"contents": "write"} and publish["needs"] == "build"
+    # (T1170 review) main only: a branch's altered build.sh must not take main's key's release
+    assert publish["if"] == "github.ref == 'refs/heads/main' && inputs.publish && needs.build.outputs.stored == 'false'"
 
 
 def test_hydat_checks_its_key_before_it_fetches_anything():

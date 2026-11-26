@@ -7,6 +7,7 @@
 import { agoWords } from "../freshness";
 import { isoDayWords } from "./freshness";
 import { byCadence } from "../staleness";
+import { NOT_AFFILIATED } from "./words";
 
 export const LEGAL_WORDS = {
   /** the Regulations page's foot, every page */
@@ -19,7 +20,7 @@ export const LEGAL_WORDS = {
     points: [
       { title: "Not the official regulations",
         body: "This app reads the B.C. Freshwater Fishing Regulations Synopsis, the Province's in-season changes and DFO's "
-          + "salmon notices onto a map. It is not legal advice." },
+          + "salmon notices onto a map. It is not legal advice. " + NOT_AFFILIATED },
       { title: "The official sources decide",
         body: "The synopsis, the Province's in-season changes and DFO's notices are the authority. Check them before you fish." },
       { title: "Regulations change in season",

@@ -148,13 +148,15 @@ export interface RegsScreenProps {
    * a start link is not landed while it is, however still the page looks (the host's `salmonExpected` and still loading).
    */
   coming?: boolean;
+  /** (T1140) the header's line to the other parts pressed: the water's Map, its list of parts open (`RegsHeader`) */
+  onParts?: () => void;
 }
 
 export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources, troutSources, salmonCard = null,
-                             coming = false }: RegsScreenProps) {
+                             coming = false, onParts }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
@@ -326,7 +328,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // (T1167) the Keep tab's word of the notices (core): the pointer while one is in force and where, the year bars' marks
   const inSeasonKeep = useMemo(() => inSeasonKeepOf(page.keep, inSeason), [page.keep, inSeason]);
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(OPEN.terms([id]))}
-                           side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
+                           side={layout === "desktop"} nameSource={nameSource} sun={sun} onParts={onParts} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;
     if (!node) return null;
