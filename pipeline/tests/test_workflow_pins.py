@@ -174,7 +174,8 @@ def test_the_maplibre_library_workflow_is_hand_started_and_only_publish_writes()
     assert any(s.get("run", "").strip().splitlines()[1:2] == ['bash app/tools/maplibre-android/build.sh --compile "$WORK"']
                for s in build["steps"])
     assert publish["permissions"] == {"contents": "write"} and publish["needs"] == "build"
-    assert publish["if"] == "inputs.publish && needs.build.outputs.stored == 'false'"
+    # (T1170 review) main only: a branch's altered build.sh must not take main's key's release
+    assert publish["if"] == "github.ref == 'refs/heads/main' && inputs.publish && needs.build.outputs.stored == 'false'"
 
 
 def test_hydat_checks_its_key_before_it_fetches_anything():

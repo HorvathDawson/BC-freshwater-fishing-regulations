@@ -9,7 +9,7 @@ name: maplibre android library
 #            there (said in the summary). Else: app/tools/maplibre-android/build.sh --compile, the SAME script and
 #            settings the Mac uses; its maven folder packed as one deterministic tar (stored.py pack); sha256 + size
 #            printed; the tar and its lock record uploaded as a workflow artifact (7 days: a look, never the store).
-#   publish  only when the input `publish` is true AND the key's asset is still missing: attaches the tar to the GitHub
+#   publish  only from main, when the input `publish` is true AND the key's asset is missing: attaches the tar to the GitHub
 #            Release `maplibre-android-<key 16>` (never a v* tag: those are the app's). The only job with write access.
 #            Then a person commits the record (the artifact's maplibre-android.lock.json, "published": true) beside
 #            pin.env; build.sh downloads and verifies the file from then on.
@@ -141,7 +141,9 @@ jobs:
 
   publish:
     needs: build
-    if: inputs.publish && needs.build.outputs.stored == 'false'
+    # main only: a dispatch from another branch (an altered build.sh, main's key) must never take the key's release,
+    # which publish never replaces
+    if: github.ref == 'refs/heads/main' && inputs.publish && needs.build.outputs.stored == 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

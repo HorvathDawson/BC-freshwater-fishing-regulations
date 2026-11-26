@@ -30,8 +30,10 @@ function readPin(file = PIN) {
 
 /** null when the build carries the pin, else { refuse: bool, message }. `version` = the local repo's (null: none set). */
 function maplibreProblem({ production, repo, version, pin }) {
-  const fix = `set MLN_LOCAL_MAVEN=<repo>/cache/maplibre/${pin.MLN_VERSION} (build-apk.sh does; build it with `
-    + "scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>)";
+  const fix = `set MLN_LOCAL_MAVEN=<repo>/cache/maplibre/${pin.MLN_VERSION} (build-apk.sh does; get it with `
+    + "bash app/tools/maplibre-android/build.sh <work dir>, which downloads the stored build when "
+    + "maplibre-android.lock.json records it as published; until then: "
+    + "scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh --compile <work dir>)";
   if (!repo) {
     return { refuse: production, message: `this Android build would use the STOCK MapLibre from Maven Central, not the pinned `
       + `upstream ${pin.MLN_VERSION} (T978): ${fix}` };
