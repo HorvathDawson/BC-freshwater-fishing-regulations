@@ -51,10 +51,8 @@ bash scripts/heavy.sh tier 30 -- bash scripts/pytest-chunked.sh -- -q -m "$marke
 ```
 
 `scripts/before_pr.sh` runs the last two at once on two heavy lanes, and is what to run before opening a PR. Tests that
-need a file outside git fail naming it (a data release for the ones marked `needs_bundle`). The book is
-`data/source/fishing_synopsis.pdf`; validate against nothing else. The nine region PDFs in `data/source/official/` are
-pinned reference copies that nothing reads; fetch them with `.venv/bin/python -m data.fetch_region_pdfs` (checked
-against `data/source/region_pdfs.pins.json`; a changed checksum is a stop, `--repin NAME.pdf` accepts it).
+need a file outside git fail naming it (a data release for `needs_bundle`). The book is `data/source/fishing_synopsis.pdf`;
+validate against nothing else. Region PDFs (pinned reference copies, nothing reads them): `.venv/bin/python -m data.fetch_region_pdfs`.
 
 ## 4. The web app
 
