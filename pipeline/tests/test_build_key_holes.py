@@ -361,7 +361,9 @@ def test_hole2_a_missing_tool_is_said_and_a_broken_one_stops(tmp_path, monkeypat
     bin_ = tmp_path / "bin"
     _fake_tools(bin_, "tippecanoe v2.79.0")
     (bin_ / "tile-join").unlink()
-    monkeypatch.setenv("PATH", f"{bin_}{os.pathsep}/usr/bin{os.pathsep}/bin")
+    # ONLY the fakes on $PATH: a runner with tippecanoe installed has a real tile-join in /usr/bin (CI on #286); the
+    # fakes are `#!/bin/sh` scripts using builtins only, so they need nothing else on it
+    monkeypatch.setenv("PATH", str(bin_))
     assert B.tool_versions()["tile-join"] == "missing"        # the stage runs; the preflight refuses it by name
     (bin_ / "tippecanoe").write_text("#!/bin/sh\nexit 3\n")
     with pytest.raises(SystemExit, match="tippecanoe --version` failed"):
