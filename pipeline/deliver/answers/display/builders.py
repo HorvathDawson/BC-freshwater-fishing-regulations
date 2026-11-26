@@ -389,8 +389,7 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
 def said_nearest(label: str, part: dict, nearest: bool) -> str:
     """(Coordinator's proposal 2026-11-25) a part of ONE side channel said at its main line's nearest point, not where it
     joins: "Side channel, 5.7 km from the mouth", never "joining" (several channels: the range includes it, as is)."""
-    side = [r for r in part.get("runs") or [] if r.get("branch")]
-    if nearest and len(side) == 1 and all(r.get("branch") for r in part.get("runs") or []):
+    if nearest and all(r.get("branch") for r in part.get("runs") or []):
         return label.replace("Side channel, joining ", "Side channel, ", 1)
     return label
 
