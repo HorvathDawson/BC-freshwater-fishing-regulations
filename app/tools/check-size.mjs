@@ -81,7 +81,7 @@ export const PAGE_LONG = {
   "handoff/PLAN/runbooks/release-by-hand.md": 493,
   "handoff/PLAN/runbooks/release-gates-explained.md": 366,
   "handoff/PLAN/runbooks/release.md": 216,
-  // a ticket working page still in use (WORKING_PAGES; the T1140 one is in MARKDOWN_LONG)
+  // long files in an open ticket's folder (the T1140 one is in MARKDOWN_LONG)
   "handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md": 272,
   "handoff/PLAN/app-integration/T1108-files/handoff-2026-11-25-offline-satellite-and-reversible-engine.md": 209,
 };
@@ -103,12 +103,13 @@ const isLookup = (p) => LOOKUP.some((l) => (l.endsWith("/") ? p.startsWith(l) : 
 
 /** A page named for a day (…-2026-11-15.md) is a record of that day: history, which git keeps. */
 const DATED_NAME = /(^|[-_./])20\d\d-\d\d-\d\d[^/]*(\/|\.md$)/;
-/** A ticket's working page outside the tickets folder (Tnnn-findings.md, Tnnn-shots/notes.md): path -> why it stays. */
+/** A ticket's file in ITS folder (Tnnn-files/, Tnnn-shots/) is that ticket's: it is held to the page budget, counted in the
+ *  reading total and deleted with the folder when the ticket closes (below). What is refused is a ticket-keyed page that
+ *  is NOT in such a folder (Tnnn-findings.md loose in a docs folder, a folder named t796-…): it outlives its ticket.
+ *  path -> why it stays, for the rare one that must. */
 export const WORKING_PAGES = {
-  "handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md": "T1053's open owner line asks him to read it",
-  "handoff/PLAN/app-integration/T1108-files/handoff-2026-11-25-offline-satellite-and-reversible-engine.md": "the owner's pasted research for T1108, kept whole (planning chat 2026-11-25)",
-  "handoff/PLAN/app-integration/T1140-files/multi-part-waters.md": "T1140 is being built from it (PR 265, 0.10.0)",
 };
+const TICKET_FOLDER = /(^|\/)T\d+[a-z]?(-\d+)?-(files|shots)\//;
 const TICKET_KEYED = /(^|\/)T\d+[a-z]?-[^/]*(\/|\.md$)/i;
 
 const PICTURE = /\.(png|jpe?g|webp|gif)$/i;
@@ -206,9 +207,11 @@ export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = R
       if (f.lines > max) problems.push(over(f.path, f.lines, "lines", max, why("page")));
     }
     if (!under(f.path, DOCS_DIR)) continue;
-    if (DATED_NAME.test(f.path.slice(DOCS_DIR.length)) && !workingPages[f.path]) problems.push(`${f.path}: a page named for a day is history: fold what still holds into its subject's page and delete it (git keeps it)`);
-    if (TICKET_KEYED.test(f.path.slice(DOCS_DIR.length + 1)) && !workingPages[f.path])
-      problems.push(`${f.path}: a ticket's working page outside the tickets folder: what is still open goes into the ticket, then delete it (or list it in WORKING_PAGES with why it stays)`);
+    const rel = f.path.slice(DOCS_DIR.length + 1);
+    if (TICKET_FOLDER.test(rel)) continue;   // a ticket's own file, in its folder
+    if (DATED_NAME.test(`/${rel}`) && !workingPages[f.path]) problems.push(`${f.path}: a page named for a day is history: fold what still holds into its subject's page and delete it (git keeps it)`);
+    if (TICKET_KEYED.test(rel) && !workingPages[f.path])
+      problems.push(`${f.path}: a ticket's page outside its ticket's folder: put it in Tnnn-files/ (it goes when the ticket closes), fold it into the ticket, or list it in WORKING_PAGES with why it stays`);
   }
   for (const [p, max] of Object.entries(pageLong)) {
     if (!byPath.has(p)) problems.push(`PAGE_LONG lists ${p}, which is not tracked: take it off the list`);

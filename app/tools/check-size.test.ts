@@ -168,16 +168,16 @@ describe("the page standards outside the tickets folder (the second cut)", () =>
     expect(run([...lean(), md(`${TICKETS_DIR}/T9-files/notes-2026-11-15.md`)])).toEqual([]);
     expect(run([...lean(), md(`${DOCS_DIR}/research/2026-11-15/notes.md`)]).join("\n")).toContain("a page named for a day is history");
   });
-  it("a ticket's working page outside the tickets folder fails unless listed with its reason", () => {
+  it("a ticket's page outside its ticket's folder fails unless listed; in the folder it is the ticket's (held to the page budget)", () => {
     const loose = `${DOCS_DIR}/app-integration/T9-findings.md`, inFolder = `${DOCS_DIR}/app-integration/T9-shots/before-after.md`;
-    expect(run([...lean(), md(loose)]).join("\n")).toContain(`${loose}: a ticket's working page outside the tickets folder`);
-    expect(run([...lean(), md(inFolder)]).join("\n")).toContain(`${inFolder}: a ticket's working page outside the tickets folder`);
-    expect(run([...lean(), md(inFolder)], { workingPages: { [inFolder]: "the owner reads it" } })).toEqual([]);
-    const dated = `${DOCS_DIR}/app-integration/T9-files/pasted-2026-11-25.md`;
-    expect(run([...lean(), md(dated)], { workingPages: { [dated]: "the owner's pasted research" } })).toEqual([]);
-    expect(run(lean(), { workingPages: { [inFolder]: "gone" } }).join("\n")).toContain(`WORKING_PAGES lists ${inFolder}, which is not tracked`);
+    expect(run([...lean(), md(loose)]).join("\n")).toContain(`${loose}: a ticket's page outside its ticket's folder`);
+    expect(run([...lean(), md(loose)], { workingPages: { [loose]: "the owner reads it" } })).toEqual([]);
+    expect(run(lean(), { workingPages: { [loose]: "gone" } }).join("\n")).toContain(`WORKING_PAGES lists ${loose}, which is not tracked`);
+    expect(run([...lean(), md(inFolder), md(`${DOCS_DIR}/app-integration/T9-files/pasted-2026-11-25.md`)])).toEqual([]);
+    says(run([...lean(), md(inFolder, max("page") + 1)]), inFolder, max("page") + 1, max("page"));
     expect(run([...lean(), { path: `${DOCS_DIR}/app-integration/T9-shots/a.png`, bytes: 10 }])).toEqual([]);
-    expect(run([...lean(), md(`${DOCS_DIR}/research/t9-hard-cases/NOTES.md`)]).join("\n")).toContain("a ticket's working page outside the tickets folder");
+    // a folder keyed to a ticket but not named as a ticket's folder outlives the ticket
+    expect(run([...lean(), md(`${DOCS_DIR}/research/t9-hard-cases/NOTES.md`)]).join("\n")).toContain("a ticket's page outside its ticket's folder");
   });
   it("the reading total: every markdown line outside tickets and look-up files, at the budget passes, one over fails", () => {
     const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
