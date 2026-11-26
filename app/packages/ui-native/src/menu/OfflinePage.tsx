@@ -2,7 +2,7 @@
  * (T238, owner 2026-10-29) MORE → OFFLINE MAPS: storage used; the fixed first row "Regulations: all of B.C." (always
  * available offline — no action, ever); the map (one province-wide file today) and the regions listed as parts of it
  * until the map is split by region (T85/T202); on a phone the release download (progress, Resume now) and the Wi-Fi-only
- * setting. Draws `offlineVM` (core offline.ts) through `useOfflineMaps` (@app/ui); decides nothing. Every press is named
+ * setting; (T1154) the satellite imagery kept by region, only when the device lists one. Draws `offlineVM` (core offline.ts) through `useOfflineMaps` (@app/ui); decides nothing. Every press is named
  * and reaches 44 × 44.
  */
 import { View } from "react-native";
@@ -85,6 +85,15 @@ export function OfflinePage({ c, palette }: { c: OfflineControls; palette: Palet
           {v.regions.map((r, i) => <Row key={r.k} r={r} palette={palette} first={i === 0} />)}
         </View>
       </View>
+      {/* (T1154) the satellite imagery kept by region: only when one is listed (none can be today) */}
+      {v.imagery && (
+        <View testID="offline-imagery" style={{ gap: SPACE.s1 }}>
+          <Kicker palette={palette}>{v.imagery.head}</Kicker>
+          <View>
+            {v.imagery.rows.map((r, i) => <Row key={r.k} r={r} palette={palette} first={i === 0} />)}
+          </View>
+        </View>
+      )}
       {v.wifi && (
         <Pressable testID="offline-wifi" onPress={() => c.setWifiOnly(!v.wifi!.on)} accessibilityRole="switch"
                    aria-checked={v.wifi.on} accessibilityLabel={v.wifi.label} accessibilityHint={v.wifi.hint}
