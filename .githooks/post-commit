@@ -1,6 +1,6 @@
 #!/bin/sh
-# (T1041) REBUILD THE LEDGER AND OWNER TO-DO VIEWS after a commit:
-# handoff/PLAN/views/LEDGER.md, DONE.md and OWNER-TODO.md, git-ignored, built from one file per row / item by
+# (T1041) REBUILD THE LEDGER AND OWNER VIEWS after a commit:
+# handoff/PLAN/views/LEDGER.md, DONE.md and OWNER.md, git-ignored, built from each ticket's row and `## Owner` block by
 # app/tools/ledger.mjs. A branch from before T1041 has no tool and no views: nothing to build there.
 root=$(git rev-parse --show-toplevel) || exit 0
 [ -f "$root/app/tools/ledger.mjs" ] || exit 0

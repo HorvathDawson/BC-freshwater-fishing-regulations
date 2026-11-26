@@ -50,7 +50,7 @@ after it was last seen (`workers/feeds/src/crashes.ts:21`, `:44`); test reports 
 
 **Do you provide a way for users to request that their data is deleted?** Yes. There is no account. Users write to
 privacy@canifishthis.ca, and reports and crash kinds are also deleted on their own (see retention above). URL:
-https://canifishthis.ca/privacy. **OWNER:** the mailbox has to exist (OWNER-TODO).
+https://canifishthis.ca/privacy. **OWNER:** the mailbox has to exist (an owner step).
 
 ### Data types
 For each type Play asks: collected? shared? processed ephemerally? required or optional? purposes?

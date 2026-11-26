@@ -30,3 +30,7 @@ Release: 0.9.2, first Opus lane (the list); fixes as the owner accepts them. Mod
 ## First pass 2026-11-25 (0.9.1 chat, in PR #166)
 98 bindings whose note or target names another management unit; the list is the file mu-mismatch-bindings.md in the
 T1118-shots folder of that PR. No verdict per row yet: that is this ticket's first lane.
+
+## Owner
+
+- [ ] 2026-11-25 — Review the proposals of the cross-unit name-binding audit when its first lane lands them (0.10.1).

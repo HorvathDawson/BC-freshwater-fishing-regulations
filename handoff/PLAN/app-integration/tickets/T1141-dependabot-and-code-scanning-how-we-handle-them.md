@@ -36,3 +36,7 @@ him (the repo switch). CodeQL default setup was forced by the ORG security confi
 `canifishthis-org-config-1` (id 303766), not a repo switch; with his "you can change it" the repo-move chat set
 its `code_scanning_default_setup` to disabled at 15:43. Back on after 0.10.0: that one field to enabled, and the
 repo switch for Dependabot security updates (an owner item, 2026-11-25 afternoon). PRs #250, #252 and #254 were closed.
+
+## Owner
+
+- [x] 2026-11-25 — Dependabot security updates and CodeQL → "I turned them on, keep" (2026-11-25, repo-move chat); Dependabot PR #250 (vite 5 to 8) is held until 0.10.0 is out.

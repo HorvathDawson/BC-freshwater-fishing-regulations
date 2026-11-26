@@ -33,3 +33,7 @@ No "may need" note is left in the app or the data. The CO's answer is quoted in 
 against the T973 build is in this ticket. The tests pin the settled rule.
 
 Depends: T973 (built), a CO's answer (owner). Size: M. Owner: yes (contact a CO). Default: keep the "may need" note.
+
+## Owner
+
+- [ ] 2026-11-20 — Ask a Conservation Officer (Q181): is a tributary with its own no-unit row (Grave Creek under the Elk, Gosnell under the Morice, the Endako under the Stellako) inside the river's Classified Waters "[Includes Tributaries]"? Until then the app shows a "may need" note. Your words: "we want to ticket cleaning this up once we get contact with a CO".

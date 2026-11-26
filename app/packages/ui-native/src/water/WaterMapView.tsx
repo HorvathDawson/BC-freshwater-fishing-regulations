@@ -339,7 +339,7 @@ function PartsList({ list, palette, act, tall, place }: {
   list: NonNullable<WaterMapVM["list"]>; palette: Palette; act: (a: WaterMapAction) => void; tall: boolean;
   place: { marginTop: number; marginBottom?: number };
 }) {
-  // back closes the open list before it leaves the water (app/HANDOFF-ui.md "Back, everywhere")
+  // back closes the open list before it leaves the water (app/BACK.md "Back, everywhere")
   useBackLayer(list.open, () => act({ type: "list" }));
   // a pick closes the list, so the row that had focus is gone: focus goes back to the toggle (still drawn), not to the
   // top of the page — a keyboard or screen-reader reader stays where they were (T150 review)
@@ -435,7 +435,7 @@ function Head({ title, close, palette, onClose }: {
 /** A boundary mark, open: its words, the parts above it, the part below it (the prototype's `markPop`). */
 function MarkPop({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: (a: WaterMapAction) => void }) {
   const pop = vm.pop!;
-  // back closes the open mark before it leaves the water (app/HANDOFF-ui.md "Back, everywhere")
+  // back closes the open mark before it leaves the water (app/BACK.md "Back, everywhere")
   useBackLayer(true, () => act({ type: "mark", ix: null }));
   const side = (lab: string, parts: readonly WaterMapPartVM[]) => (
     <View style={{ paddingTop: 6, paddingBottom: 2, borderTopWidth: 1, borderTopColor: palette.line }}>

@@ -152,3 +152,11 @@ and deliver about 33 minutes, follows about 45; accepts mechanical (golden pages
 part is named from its area cut in deliver; the Map bar shows the part's real name; outside-B.C. parts read
 "<water> outside B.C."; the gate that holds the page until the water's parts are read and the single-part pin
 stay (branch `fix/T1140-part-label`). T1146 runs first. The owner sees pictures before anything merges.
+
+## Owner
+
+- [x] 2026-11-25 — Say yes to the label's words ("Part N of M", "other parts have different rules") from pictures → superseded: "itshould have the real name. there should be no partt x of n nameas anywhewre in the app. that is a fault. instead it will say eco reserve here etc all types will have a name" and "Hold 0.10.0 for the reserve name" (2026-11-25 about 16:55).
+- [x] 2026-11-25 — Where a multi-part water's link lands → "A: Map with the parts"; move now → "Yes, move now, re-cut 0.10.0 after"; "web first right after repo move and make repo move happen asdap" (2026-11-25 15:14).
+- [x] 2026-11-25 — The Map bar with the count gone → "The part's real name (Recommended)"; parts outside B.C. → "\"<water> outside B.C.\" (Recommended)"; the 15 rule-gap channels → "Fix the binding in 0.10.0" (T1146) (2026-11-25).
+- [ ] 2026-11-25 — A name for the parts that stay nameless: "outside strathcona park sounds bad maybe a different name could be worked in?" Pictures come from the 0.10.0 chat once T1146 says which parts remain; the proposal is the label the data already holds, e.g. "Side channel, joining 12 km from the mouth".
+- [ ] 2026-11-25 — Look at the pictures before the naming merges (Squamish, Gordon, two nameless parts, Capilano for the bar colour), then say go. Nothing merges before you have seen them.

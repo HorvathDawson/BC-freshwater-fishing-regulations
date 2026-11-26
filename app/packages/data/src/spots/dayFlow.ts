@@ -14,7 +14,7 @@
  *
  * Ranked against the SAME envelope the app ranks every reading with (the series' band for that day of the year, core
  * `percentileInBand` — the feed's `percentile_of`). DISCHARGE ONLY: a station that measures no flow, or a day whose
- * record holds a level and no flow, gives NO flow — a level never stands in (decisions.md "NEVER MIX QUANTITIES").
+ * record holds a level and no flow, gives NO flow — a level never stands in (decisions.md, "Gauges and flow").
  *
  * ONE READ: `flowOnDay` is the only function that asks either source for a past day's flow; the refresh and the
  * spot's "Get the flow for that day" both go through `fillDayFlow`, which asks it. A reading taken ON the visit day is

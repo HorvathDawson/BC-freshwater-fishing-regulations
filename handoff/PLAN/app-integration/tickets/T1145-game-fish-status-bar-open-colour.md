@@ -18,3 +18,7 @@ other place a second open colour is defined (a search for the blue token) and li
 
 Acceptance: a test that fails when two species groups resolve "open" to different colours (mutation-proven);
 Capilano before/after pictures to the owner. Severity: low. Model: Sonnet. Size: S. Owner: sees the pictures.
+
+## Owner
+
+- [x] 2026-11-25 — "also the calendar bar colors still do not match for open" (2026-11-25 about 16:55, the T1140 conversation).

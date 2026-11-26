@@ -1,6 +1,6 @@
 """KITIMAT RIVER (gnis:3225, Region 6): the river's hatchery steelhead quota lifts Region 6's
 "1 over 50 cm" for hatchery steelhead only (ticket "add test", owner 2026-10-20; F9 found the lift
-in handoff/PLAN/app-data/F9-72-rows.md and nothing tested it).
+in the F9 72-rows note (cut in T1081) and nothing tested it).
 
 THE TEXT (synopsis 2025-2027; PRINTED pages, the repo PDF is not byte-identical: printed = PDF-6
 after p.40).

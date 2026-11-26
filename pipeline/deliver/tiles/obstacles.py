@@ -11,7 +11,7 @@ Two sources, both BC Data Catalogue, both **Open Government Licence – British 
 * **PSCIS** — Provincial Stream Crossing Inventory System, `WHSE_FISH.PSCIS_ASSESSMENT_SVW` (catalogue
   7ecfafa6-5e18-48cd-8d9b-eae5b5ea2881 "PSCIS Assessments"): 19,905 assessed road crossings, one row per crossing, each
   with its CURRENT barrier result. The catalogue shows "Access Only"; the owner treats it as OGL-BC (2026-10-28, Q165,
-  decisions.md) — it is in the BC Data Catalogue on the open WFS.
+  decisions.md, "Map, colour and chrome") — it is in the BC Data Catalogue on the open WFS.
 
 What is kept (`fiss_type`, `KEEP_DAM`):
 

@@ -10,7 +10,13 @@ Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, ever
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.
 
-## Today
+## Done
+- Item 2 (cc50a2379): `paint_sync` takes `access.MOSTLY_INSIDE_PERMILLE` and reads the status half with `status_index.Index`; a test pins the threshold to the build's.
+- Item 6: Python half (63a3e6173) `manifest.live(root)` (LATEST required, must name a folder with a manifest, no mtime fallback), eight readers moved, `test_release_latest.py` refuses a new hand read; `pipeline release`'s own `read_pointer` unchanged. JS half (ff787ac34, T601 item 2): `conformance/src/latestRelease.mjs`.
+- Item 3 (0b23c1403): `common.utils.wsc.code_owner` is the one answer for names.py and `registry.build._wsc_gnis_map`; first-met == owner on all 11,580 codes (9 multi-gnis).
+- Item 5 (0b23c1403): `common.tolerances.meets_at` (`SAME_PLACE_M`) at all three sites; the area slug is one function, `common.split_ids.readable_slug` (area_catalog, registry, review split_use). Built in `full_next`, no section/boundary/sidecar change; tests `pipeline/tests/test_next_atlas_items.py`.
+
+## Left (items 1, 4, 7, 8)
 ### 1. Pipeline has six private copies of the id slug rule (and none folds accents)
 Severity 2, duplication, confirmed; area app-logic-parity.
 - Evidence: Same regex re.sub(r"[^a-z0-9]+", "_", s.lower()).strip("_") in: pipeline/common/split_ids.py:20 (slug, cut to 60), pipeline/atlas/registry/build.py:31 (_slug), pipeline/atlas/splits/area_catalog.py:25 (_slug, builds area:{kind}:{slug} ids at :29-31), pipeline/regs/parsing/batch_exporter.py:37 (adds `or "row"`), pipeline/regs/parsing/catalogue_parts/licensing.py:220, pipeline/deliver/answers/glossary.py:510; hyphen variant in pipeline/regs/review/tickets.py:42. Only review/proposals.py:72 delegates to split_ids. None uses pipeline/common/names.py:54 fold (NFKD), unlike the app's slugOf (core/src/gaugePage.ts:12-15).
@@ -18,38 +24,12 @@ Severity 2, duplication, confirmed; area app-logic-parity.
 - Second opinion: Undercounted: at least ten copies, and the cited lines are each one too low. The accent loss is already in curated data, not hypothetical: data/curated/regulations/synopsis/region-6.json:2525 has entry_id "r6:fran_ois_lake@6-4" and :8160 split "stellako_river__fran_ois_lake", while data/curated/waters/cuts.json:8238 has "..._francois_lake_road_bridge" and :9685 "trepanier_river__hwy_97c_bridge". So the same lake is spelled two ways across stored ids. These ids are internal and stored; I found no wrong binding from it, and any fold change needs an id migration (entry_id encodes the name).
 - Proposed fix: One pipeline/common slug (fold then regex), the others import it; a test that greps for the regex outside that module. Check existing curated ids before changing fold behaviour (ids are stored).
 
-### 2. The parts-vs-paint checker carries its own copy of the no-access threshold and of the status-index layout
-Severity 2, duplication, partly; area deliver-contract.
-- Evidence: pipeline/deliver/bundle/access.py:280 `MOSTLY_INSIDE_PERMILLE = 500` is the build's rule, pinned to the app's `MOSTLY_INSIDE` by pipeline/tests/test_section_access.py:159-163. pipeline/deliver/release/paint_sync.py:39 re-types `NO_ACCESS_PERMILLE = 500` and uses it at 145; nothing pins it to access.py. paint_sync.py:46-73 `status_profiles` also hand-parses the BCSI v2 header (skip 5+8+8, profiles, three columns) instead of a decoder owned by pipeline/deliver/status_index.py, whose docstring is the only definition of the layout.
-- Second opinion: The duplicated threshold is confirmed and unpinned (grep finds no test naming NO_ACCESS_PERMILLE). The layout half is overstated: status_profiles refuses any status half that is not BCSI version 2 (line 48-49), so a version bump stops the gate loudly; only a layout change made without bumping VERSION would be misread. The added point is that its only test builds the bytes by hand, so it never meets the real encoder. Release-gate tooling only: it cannot change what an angler sees by itself.
-- Proposed fix: paint_sync imports `MOSTLY_INSIDE_PERMILLE` from access.py; add `status_index.decode(bytes)` beside `encode` (round-trip tested) and have paint_sync and paint.decode call it.
-
-### 3. Which river owns a shared watershed code is decided twice: highest magnitude in the graph names, first-seen in the registry
-Severity 2, divergence, partly; area atlas.
-- Evidence: pipeline/atlas/graph/names.py:186-192: an unnamed channel inherits from `max(siblings, key=_mag)` on its code, and only when that sibling is strictly bigger. pipeline/atlas/registry/build.py:35-42 `_wsc_gnis_map` answers the same question with `m.setdefault(trim_wsc(n.wsc), n.gnis_id)`, the first gnis met in `graph.nodes` order. `_effective_gnis` (45-53) and `item_id` (56-65) use it for every node that has no gnis and no inherited tuple. No test names `_wsc_gnis_map`.
-- Example: Live registry: 9 watershed codes are shared by more than one gnis stream item. wsc:100 is shared by the Fraser River (gnis:39325) and 13 other gnis items (Nicomen Slough, Annacis Channel, Maria Slough, ...); wsc:300-625474 by the Kootenay River and two named channels.
-- Second opinion: Two rules for one question is real. Impact is overstated: the registry's first-seen rule is only a last fallback, reached by a no-gnis node with no inherited tuple, i.e. mainly an unnamed chain at least as big as every named sibling on its code. Ordinary unnamed Fraser side channels inherit by magnitude and never reach it. The finder showed no node that actually takes the fallback on a multi-gnis code, and node order is stable for the same inputs (T65), so 'Fraser pieces move into a slough' is unproven. I did not re-count the 9 shared codes (registry is over the size limit to load).
-- Proposed fix: Give one function the job (highest magnitude, tie broken by lowest blk) and have both names.py and the registry call it. Add a test on a two-gnis code, and have the build report any code where the two rules would disagree.
-
 ### 4. Name keys and id slugs still exist in several hand copies after T61 2.8 (one key)
 Severity 1, duplication, partly; area static-layers. Related ticket: T61 (DONE; copies remain).
 - Evidence: THE key is pipeline/common/names.py:59 (accent fold, apostrophes deleted). ASCII-only copies that do NOT fold accents: pipeline/regs/review/names.py:76-78 (builds candidate ids stored in found_name_calls.json and marks), handoff/PLAN/curation-review/name-variants/mine.py:63-67 (same name `key`, but also folds mt->mount, st->saint), pipeline/tools/audit/tidal_preverify.py:70, tidal_candidates.py:189, curation-review/backend/app.py:1269 and 1276. The area slug is three byte-identical copies: pipeline/atlas/splits/area_catalog.py:25, pipeline/atlas/registry/build.py:31, pipeline/regs/review/split_use.py:31 (its docstring says it mirrors area_catalog._slug). The split slug has one home (common/split_ids.py:20) but pipeline/regs/dfo_salmon/splitwork.py:394 re-spells it.
 - Example: "Barrière Lake": names.key -> "barriere lake"; the ASCII copies -> "barri re lake". mine.py key("St. Mary") = "saint mary" while review/names.py key = "st mary", though the second builds the ids for the first's rows.
 - Second opinion: Copies exist as cited, but impact is overstated. review/names.key only forms the id suffix from the row's own `proposed` text and is never joined against mine.py's key, so the St./saint difference breaks no join. The app.py copies are a local prefix match of row-box water names for a page image; the two audit tools are by-hand reports. splitwork.py:394 `_short` strips a water prefix for display, it does not mint a split id. The one copy set with real drift risk is the three area slugs, since split_use.area_slug must reproduce registry area ids.
-- Proposed fix: Import common.names.key in the audit tools and app.py. Move the area slug to one function in common (like split_ids) imported by all three. Keep review/names.key as the frozen id function but rename it (e.g. candidate_slug) and pin it with a test over the existing ids; make mine.py import it.
-
-### 5. The 'two pieces meet at this cut' test is written three times with two tolerances; the area slug is written twice
-Severity 1, duplication, partly; area atlas.
-- Evidence: Severed-at-a-cut predicate: pipeline/atlas/reach/extent.py:356-362 (`_across_the_cut`) and 680-691 (`_severed`) use 0.001 m; pipeline/atlas/splits/braid_sweep.py:969-974 (`severed`) uses 1e-6 and omits the principal-line exclusion. pipeline/common/tolerances.py declares SAME_PLACE_M = 1e-6 for exactly this and none of the three imports it. Area id slug: pipeline/atlas/registry/build.py:31-32 `_slug` (mints `area:{slug}` in the area-items pass) and pipeline/atlas/splits/area_catalog.py:25-26 `_slug` (mints `area:{kind}:{slug}`) are byte-identical copies.
-- Second opinion: The duplication is there; the impact is overstated. Both sides of a cut get their measure from the same split point, so a join 1e-6 to 0.001 m apart is not something the finder showed can occur. The two slugs mint different id families (`area:{slug}` at build.py:438, which passes any ready-made `area:` id through unchanged, versus `area:{kind}:{slug}` in the catalog), so one drifting would not by itself split catalog ids from registry ids. This is tidiness with low risk, no example from data.
-- Proposed fix: Put one `meets_at(graph, a, b)` beside tolerances.py and use it at all three sites. Import one slug (common/split_ids or a shared area_id) in both area sites.
-
-### 6. 'Which release is live' is read seven ways; some fall back to newest mtime, some skip the manifest check
-Severity 1, duplication, partly; area cross-duplicates.
-- Evidence: Canonical: pipeline/deliver/release/manifest.py:88-101 latest() (checks the named folder has a manifest; falls back to newest mtime when LATEST is absent). Copies: pipeline/release.py:103 read_pointer; pipeline/regs/inseason/resolve.py:58-62 release_dir; pipeline/regs/inseason/publish.py:130; pipeline/deliver/answers/display/name_check.py:230; pipeline/runtiming/feed/base.py:309 and feed/release.py:90 (raw read_text, no manifest check); app/tools/serve-tiles.mjs:84-88 (own mtime fallback, RELEASE env override); app/tools/regs-recut/sync.mjs:20.
-- Example: LATEST naming a pruned or half-copied folder: latest() stops with 'names X, which has no manifest'; runtiming base.py:309 and inseason resolve.py:62 go on with the bare path and fail later or read a partial release.
-- Second opinion: The copies exist, but the divergence is overstated. Only latest() and serve-tiles.mjs fall back to mtime, and only when LATEST is absent; in that case every raw Python reader raises on read_text, so they cannot quietly act on a different release. The real gap is the missing manifest check in the raw readers, which then fail later on a missing file rather than read wrong data. inseason publish.py:131 also refuses when the matches name another release. Developer-side only.
-- Proposed fix: All Python readers call manifest.latest(); remove the mtime fallback outside tests (make it an explicit argument); serve-tiles.mjs errors when LATEST is missing instead of picking by mtime.
+- Proposed fix (the area-slug half is done: `readable_slug`, item 5): Import common.names.key in the audit tools and app.py. Move the area slug to one function in common (like split_ids) imported by all three. Keep review/names.key as the frozen id function but rename it (e.g. candidate_slug) and pin it with a test over the existing ids; make mine.py import it.
 
 ### 7. Atomic write is re-implemented in six places and some curated/published writers skip it
 Severity 1, fragility, partly; area cross-duplicates.
@@ -66,38 +46,12 @@ Severity 1, duplication, confirmed; area cross-duplicates.
 - Proposed fix: Import SLIVER_M in anchors.py/braid_sweep.py; put SAME_CUT_M and the 25 m reuse distance in tolerances.py with one sentence each on why they differ; rename the two clashing local constants.
 
 ## Work
-Fix the items above in severity order, one commit per item where they are separable. Anything found and not done becomes a new ticket.
+Fix items 1, 4, 7, 8 in severity order, one commit per item where separable. Item 1 is stored ids: needs a migration map. Anything found and not done becomes a new ticket.
 
 ## Acceptance
 One slug function in pipeline/common used by all ten sites (accent folding decided once; existing ids such as fran_ois_lake kept by an explicit map, no id changes). One release reader with the manifest check. One atomic-write helper. Tolerances read from tolerances.py; a guard test fails on a new private copy.
 
 Depends: —. Size: M. Owner: no.
-
-## Done 2026-11-12 (pipeline lane)
-- Item 2 (cc50a2379): `paint_sync` takes `access.MOSTLY_INSIDE_PERMILLE` and reads the status half with
-  `status_index.Index` (the encoder's twin); its test builds the bytes with `status_index.encode` and refuses another
-  version and trailing bytes. A test pins the threshold to the build's.
-- Item 6, Python half (63a3e6173): `pipeline.deliver.release.manifest.live(root)` — LATEST required, it must name a folder
-  with a manifest, no modified-time fallback. Eight hand readers moved onto it (inseason resolve + publish, name_check,
-  runtiming base + release, dfo_salmon live, bathymetry propose + contours); `test_release_latest.py` refuses a new hand
-  read of the pointer anywhere under `pipeline/`. `pipeline release`'s own `read_pointer` is unchanged (it handles a
-  missing pointer as a stop). JS half (serve-tiles.mjs mtime fallback, regs-recut/sync.mjs) left for the app wave.
-- Not done, by size: item 1 (slug + accent fold: stored ids, needs a migration map), item 3 (one wsc owner: changes the
-  atlas, measure on the next rebuild), items 4, 5, 7, 8 (severity 1 tidiness; item 5's tolerance unification can move a
-  cut decision, so it goes with an atlas rebuild).
-
-## 2026-11-12 (app wave)
-Item 6's JS half is done and was already in the tree (ff787ac34, see T601 item 2): `serve-tiles.mjs`, `regs-recut/sync.mjs` and `label-shots.mjs` read `LATEST` through `conformance/src/latestRelease.mjs` (no modified-time fallback; a pointer to a folder without a manifest throws). Left: items 1, 3, 4, 5, 7, 8 (Python / pipeline).
-
-## Items 3 and 5 done 2026-11-12 (next-atlas lane, 0b23c1403)
-- Item 3: `common.utils.wsc.code_owner` (highest (magnitude, order), lowest blk on a tie) is the one answer; the graph's
-  side-channel naming (`graph.names.resolve_names`) and the registry's last-resort grouping (`registry.build._wsc_gnis_map`)
-  ask it. Measured on the live graph: first-met == owner on every one of 11,580 codes (9 multi-gnis), no top tie.
-- Item 5: `common.tolerances.meets_at` (`SAME_PLACE_M`) replaces the reach's two 0.001 m tests (`extent._severed`,
-  `_across_the_cut`) and the braid sweep's 1e-6 m one. Measured: every pair of adjacent pieces on one line meets at
-  exactly 0 m. The area slug is one function, `common.split_ids.readable_slug` (area_catalog, registry, review split_use).
-- Atlas `full_next` built with both: no section, boundary or sidecar change from them (see T606 item 2 for the only
-  differences). Tests: `pipeline/tests/test_next_atlas_items.py`.
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
 item 2 (paint sync reads the encoder's twin + the build's threshold), item 6 Python half (`manifest.live`, 8 readers); items 3 (`wsc.code_owner`) and 5 (`tolerances.meets_at`, one area slug) built in `full_next` 2026-11-12, no binding change

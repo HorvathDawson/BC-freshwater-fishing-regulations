@@ -3,7 +3,7 @@
  * spots today" (rules of parts the map can't draw), "⚠ On one side of the channel only", "⚠ Closed to some anglers",
  * "⚠ At certain times" and "? Check: rules for parts of this water that couldn’t be placed on the map".
  *
- * Owner rule 2026-10-21 (decisions.md): every answer here is the PIPELINE's — the undrawn-part rules and whether each is
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every answer here is the PIPELINE's — the undrawn-part rules and whether each is
  * in force today are the stored ladder verdicts (`not_yet_mapped`, T07 `settled.inpart`), the one-side and angler
  * closures are the stored `beside` / `speaks` lists (T07 `settled.side` / `anglerclosed`), each moment's open/closed and
  * its closures are the stored display frames (`status`, decided `closing`), each fish's answer per moment is the stored

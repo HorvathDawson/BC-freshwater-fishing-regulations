@@ -1,10 +1,10 @@
 # T1146 — Side channels with no main stem that the river's own rule does not reach become nameless parts
 
-Status: DONE — 9f0856154 (the mechanical cause; the curation groups C/D/E stay open below, for T1140 / the planning chat)
+Status: DONE — 9f0856154, 312e728d0 (the mechanical cause; the curation groups C/D/E stay open below and in OWNER-UNFILED.md, for T1140 / the planning chat)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1146 | Side channels with no main stem that the river's own rule does not reach become nameless parts | DONE | 9f0856154 | needs the reach + tiles + deliver rerun; groups C/D/E (curation) to T1140 / the owner |
+| T1146 | Side channels with no main stem that the river's own rule does not reach become nameless parts | DONE | 9f0856154, 312e728d0 | — |
 
 Source: the 0.10.0 chat's read-only investigation for T1140, 2026-11-25, on the candidate r-71d09ad82e81. Of 1,476 parts
 over the 478 multi-part waters, 26 have no name and show the bare water name; all 26 are side channels with no
@@ -30,6 +30,11 @@ Acceptance: the count of bare-name parts before and after, by cause; the binding
 the tiles and bundle of one vintage (rule: tiles and bundle share a vintage). Severity: high (a part with the
 wrong rule set, the Squamish case's family). Model: Opus. Size: S if mechanical, otherwise unknown. Owner: the
 marks if step 3.
+
+## Owner
+
+- [x] 2026-11-25 — The 15 rule-gap channels → "Fix the binding in 0.10.0" (2026-11-25).
+- [x] 2026-11-25 — The fix's diff is wider than predicted (34 feeder creeks, Manson's two stubs through its lakes, the Old Kootenay River Channel's last piece): accept, they are tributaries / stop at the channel / show me the list first → "Accept: they are tributaries (Recommended)" (2026-11-25)
 
 ## Finding and fix (L30, 2026-11-25)
 
@@ -120,7 +125,7 @@ second code commit:
   (30 edges): each is the channel's own code or a code under it, so the guard skips none of them. MacMillan's channel
   drains INTO Diana Lake, which is in another basin. That is an outflow, not an inflow, so the channel stays seeded.
 
-**Open notes for the owner.**
+**Open notes for the owner** (their looks are lines in `OWNER-UNFILED.md`, "T1146 follow-ups").
 - The MacMillan Creek channel that drains into Diana Lake (360244113:889, 815 m) now carries the Skeena bait ban,
   because FWA and the registry call it MacMillan Creek. Its water leaves the Skeena basin for Diana Lake.
 - In-season notices (`pipeline/regs/inseason/points.py`) walk through the same `expand`, but the binding diff does

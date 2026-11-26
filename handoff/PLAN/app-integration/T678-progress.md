@@ -265,7 +265,7 @@ Next commands:
 - Store shots: `node app/tools/store-shots.mjs --only play-phone,play-tablet7,play-tablet10` shoots the STAGING WEB site
   (headless Chrome), not the APK, so they show whatever release the staging site serves (still r-483b295de57c until the
   site deploy). Copied to bcfish-session-backup-2026-11-12/store-077/ (the repo's store/ and raw/ dirs are gitignored).
-- Owner to-do: row "Phone check of build 29 (app 0.7.7)" in handoff/PLAN/OWNER-TODO.md (not yet added to the Owner To-Do page).
+- Owner to-do: row "Phone check of build 29 (app 0.7.7)" in the retired OWNER-TODO.md (in git history at 03be2862e).
 
 ## App wave 2026-11-12 (night): ledger tickets, smoke rerun, store shots, owner to-do
 - Done: T603 items 5-6 (46afd5ad1: an emulator run on a non-production build reports as `test`; the `/data/local/tmp`
@@ -286,7 +286,7 @@ Next commands:
   `bcfish-session-backup-2026-11-12/store-077/`. The `appstore-*` folders there are the OLD set (not re-shot). "Nov 11" on the
   Vedder shot: the old shots were taken from the site built on Nov 11 (the site still served r-483b); the site build uses the
   B.C. clock (`bcNow`, T551) and now says "Today, Nov 12". No defect found; no ticket.
-- Owner to-do: 8 rows added to the Owner To-Do page (`todos`, group "Look and pick", orders 6-13) and OWNER-TODO.md;
+- Owner to-do: 8 rows added to the retired Owner To-Do page (`todos`, group "Look and pick", orders 6-13) and OWNER-TODO.md (in git history at 03be2862e);
   the build 29 row now says Vedder is T687.
 
 ## T689 lane 2026-11-12 (night): regs-open lake step

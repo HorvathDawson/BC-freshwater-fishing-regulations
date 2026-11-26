@@ -26,7 +26,7 @@
  *   ink               every status against body ink — a sixth meaning on the card — at the one-meaning floor in normal
  *                     vision and the chrome floor in every vision, so a release word or a restricted pill never reads as
  *                     plain text (the first D's near-black restricted was 18.3 / 10.9 from ink, 1.08:1).
- * Palette D (handoff/PLAN/app-data/status-colours/T47-colours.md, part 2) was searched to maximise exactly these minima;
+ * Palette D (T47-colours.md part 2, cut in T1081; git history) was searched to maximise exactly these minima;
  * the floors below are what D reaches, rounded down to 0.5, so the palette may move only to something at least as
  * distinct. Where a floor sits under the ticket's 20 it is because no palette inside the house rules reaches 20 there
  * (search-d.mjs proves it; T47-colours.md part 2 says which pair binds).

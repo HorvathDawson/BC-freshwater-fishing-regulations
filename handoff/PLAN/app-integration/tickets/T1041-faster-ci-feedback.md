@@ -1,10 +1,10 @@
 # T1041 — A red CI run or a review finding stops costing an hour or two
 
-Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0), 3d06be883 (review lows, 0.9.1), 43cec978d, 1583fe40c, e4004679f (one file per ledger row / owner item, 0.9.1: PR open, merges after release/0.9.0 is back on main); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule; left (Claude): `node app/tools/ledger.mjs --merge origin/main` on chore/T1041-one-file-per-row once release/0.9.0 has merged back, then merge it
+Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0), 3d06be883 (review lows, 0.9.1), 43cec978d, 1583fe40c, e4004679f (one file per ledger row / owner item, 0.9.1: PR open, merges after release/0.9.0 is back on main); owner: see ## Owner (after 0.9.0), then Claude: the slug flip and the merge-queue rule; left (Claude): `node app/tools/ledger.mjs --merge origin/main` on chore/T1041-one-file-per-row once release/0.9.0 has merged back, then merge it
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1041 | A red CI run or a review finding stops costing an hour or two: related tests on push, `scripts/before_pr.sh`, a report-only mutation job, merge-queue-ready workflows; the org move after 0.9.0 | PARTIAL — owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0); then the slug flip + merge-queue rule | 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695, 3d06be883, 43cec978d, 1583fe40c, e4004679f | owner 2026-11-23; one-file-per-row PR: `ledger.mjs --merge origin/main` after release/0.9.0 merges back |
+| T1041 | A red CI run or a review finding stops costing an hour or two: related tests on push, `scripts/before_pr.sh`, a report-only mutation job, merge-queue-ready workflows; the org move after 0.9.0 | PARTIAL — owner: see ## Owner (after 0.9.0); then the slug flip + merge-queue rule | 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695, 3d06be883, 43cec978d, 1583fe40c, e4004679f | owner 2026-11-23; one-file-per-row PR: `ledger.mjs --merge origin/main` after release/0.9.0 merges back |
 
 Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in review cost an hour or two each.
 
@@ -95,7 +95,7 @@ Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in 
    settings for `github.com-personal` have `serveraliveinterval 0`. Built: the hook passes its push URL
    (`--remote-url "$2"`) and WARNS (never fails) when neither git's ssh command nor ssh's settings for that host keep
    the connection alive, printing the one-line fix; `before_push.py --hook` prints it too. Setting it is the owner's
-   (his clone's config): OWNER-TODO. Until then a lane pushes with
+   (his clone's config): old owner to-do. Until then a lane pushes with
    `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_personal -o ServerAliveInterval=15 -o ServerAliveCountMax=8" git push`
    (no config changed; this PR's third push did so: 193 s hook, pushed).
    Also: related tests and scripts. A changed scripts/*.py or *.sh (loaded by path or run, never imported) reaches the
@@ -212,9 +212,9 @@ What names the owner or the repo, or depends on the personal account:
 
 ## One file per ledger row and per owner item (0.9.1, roadmap row 2; branch `chore/T1041-one-file-per-row`)
 
-Owner 2026-11-24: "One file per ledger row and per OWNER-TODO item, with README/OWNER-TODO built from them." Why: on
+Owner 2026-11-24: "One file per ledger row and per old owner to-do item, with README/old owner to-do built from them." Why: on
 2026-11-23/24 a dozen lanes each edited the same three files (the ledger table in `tickets/README.md`, `tickets/DONE.md`,
-the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and had to merge main and re-run its checks.
+the 3,500-line the old owner to-do page); nearly every PR hit a merge conflict there and had to merge main and re-run its checks.
 
 ### Design (decided before the migration)
 1. **A ledger row lives in its ticket file**, as a one-row table right under the Status paragraph: the old table's
@@ -222,7 +222,7 @@ the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and 
    ticket: the row and the Status line are closed together (T437), so one file keeps that in one diff; the table form
    reads as the ledger always did and needs no new parser (the same cell split). Every one of the 983 rows had a ticket
    file (the guard already required it): no file had to be made.
-2. **An owner item is one file** in `handoff/PLAN/owner-todo/`: line 1 `order: <number>` (higher = nearer the top; a
+2. **An owner item is one file** in `the old owner to-do folder (deleted 2026-11-25, T1081)`: line 1 `order: <number>` (higher = nearer the top; a
    tie goes by file name, so two PRs that both add a top item still never conflict), a blank line, then the item. An
    item is one `## ` section of the old page, word for word (its pictures and references are in its text);
    `_head.md` holds the page's head. The done state stays where it is kept today, on the Owner To-Do page (collection
@@ -232,17 +232,17 @@ the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and 
    rewording. A section is what one lane
    or one answer round writes, so per-section files remove the conflict seen (every lane adding a section at the top).
 3. **The views are built, never committed** (option a): `node app/tools/ledger.mjs` writes
-   `handoff/PLAN/views/LEDGER.md` (rows not DONE / DROPPED), `views/DONE.md` (DONE / DROPPED) and `views/OWNER-TODO.md`,
+   `handoff/PLAN/views/LEDGER.md` (rows not DONE / DROPPED), `views/DONE.md` (DONE / DROPPED) and `views/OWNER.md`,
    git-ignored; `.githooks/post-checkout` and `post-merge` rebuild them. A committed view conflicts on every merge, and
    a merge driver needs per-clone config that GitHub's merge button does not have. The view a row lands in follows its
    status keyword: T540's "DONE.md holds only DONE / DROPPED" holds by construction, and a row never moves by hand.
    `tickets/README.md` keeps how the system works and the owner questions; its `## Ledger` section is a pointer.
-   `OWNER-TODO.md` is a pointer page (how to read and add items).
+   the old owner to-do page is a pointer page (how to read and add items).
 4. **Every reader works from the new source, no guard loosened.** `check-tickets.mjs` reads each file's row (Status
    keyword agreement, DONE hashes, IN REVIEW / PARTIAL steps, the 240-character cap, the commit-subject rule) and the
-   owner items (a step's `owner: OWNER-TODO "<text>"` must be in one; the dead-path guard covers the items and the
+   owner items (a step's `owner: see ## Owner` must be in one; the dead-path guard covers the items and the
    pointer page), plus new refusals: a row in its file twice or another ticket's row, a row typed into README.md, a
-   `tickets/DONE.md`, a `## ` section in OWNER-TODO.md, a malformed item file. `ledgerIds` (the commit-scope check,
+   `tickets/DONE.md`, a `## ` section in the old owner to-do page, a malformed item file. `ledgerIds` (the commit-scope check,
    commitlint) reads the files. `pipeline reports` already read the ticket files (the row is in them now). docs-ci,
    `scripts/ci_paths.py` (docs area), `before_push.py` (docs tests) and `test_workflow_pins.py` name `ledger.mjs` and
    its test. Each check's test was re-pointed and mutation-checked (below).
@@ -262,7 +262,7 @@ the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and 
   as they stood at be4df3d6a (from git history), so it keeps proving it after the old files are gone.
 
 ### Recipes
-- **A branch that still edits README.md / DONE.md / OWNER-TODO.md the old way** (`release/0.9.0`, any open PR):
+- **A branch that still edits README.md / DONE.md / the old owner to-do page the old way** (`release/0.9.0`, any open PR):
   `git merge origin/main`, then `node app/tools/ledger.mjs --resolve` (then `node app/tools/check-tickets.mjs` and
   `git commit`; a new ticket on such a branch gets its number's claim from the carry). The carry is 3-way against the merge base: the branch's changed rows, ticket text, added / edited /
   removed sections and its README text (outside the ledger) land in the files; a clash (both sides changed one row or
@@ -275,7 +275,7 @@ the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and 
 - `ledger.test.ts`, 14 mutants of `ledger.mjs`, all killed: closed-row placement, the strip's blank line, the carry's
   row precedence and text side, the round trip's dropped-row and owner-line reports, duplicate headings, a new top
   item's order, id order, the index marking of a clash, README text, DONE.md removal, a removed item, two row tables.
-- `check-tickets.test.ts`, 10 mutants of `check-tickets.mjs`, all killed: the README / DONE.md / OWNER-TODO.md
+- `check-tickets.test.ts`, 10 mutants of `check-tickets.mjs`, all killed: the README / DONE.md / the old owner to-do page
   refusals, owner-file problems, a file's row problems, the keyword agreement, the owner-text step, the pointer page's
   dead paths, the cap, the commit-subject rule.
 
@@ -293,7 +293,7 @@ the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and 
    too). Two PRs that take one number add the same path with different text: an add/add conflict at merge time, proved
    by a two-branch test (a different number merges cleanly). The guard: every ticket has its claim, every claim names a
    ticket of its number; a carried old-side ticket whose number the new side took is a conflict on the claim.
-4. **The pointer pages are exact.** OWNER-TODO.md must equal `OWNER_PAGE_TEXT` and README's `## Ledger` section
+4. **The pointer pages are exact.** the old owner to-do page must equal `OWNER_PAGE_TEXT` and README's `## Ledger` section
    `LEDGER_POINTER` (a bullet appended the old way fails). The pointer page now says how to read `_head.md`'s pre-T1041
    wording (the head itself is kept word for word). RESTART-091 (the 0.9.1 questions item) and
    `play-production-access/README.md` point at item files.
@@ -309,6 +309,16 @@ killed; 14 of `check-tickets.mjs`, all killed. Round trip re-run on today's main
 ### Not done
 - Merging: not before `release/0.9.0` has merged back into main (that chat cherry-picks ledger fixes between the two;
   restructuring main under it mid-release would hurt it). Then the `--merge origin/main` command above, on this branch.
-- `handoff/PLAN/owner-todo/_head.md` keeps the old page's head word for word, which still says "this file keeps the
+- `the old owner to-do's head file` keeps the old page's head word for word, which still says "this file keeps the
   long text" and "README.md is the ledger": its wording is the owner's page, left for the planning chat.
-- The RESTART-091 page's row for this item and the memory notes that name OWNER-TODO.md are the orchestrator's.
+- The RESTART-091 page's row for this item and the memory notes that name the old owner to-do page are the orchestrator's.
+
+## Owner
+
+- [x] 2026-11-25 — Repo move to `canifishthis/canifishthis` (org made 2026-11-25 13:11) → done by you, the transfer and the rename at about 15:15, before the staging run ended (repo-move chat's 15:25 report); the new `GITHUB_DISPATCH_TOKEN` is set on both workers and staging answers ok.
+- [ ] 2026-11-25 — Tell the repo-move chat the production worker's check result with the new token (still owed since 15:25), and revoke the old token.
+- [ ] 2026-11-25 — The worker token `GITHUB_DISPATCH_TOKEN` expires 2027-11-25 (you: "365 days away is expiry"; your token page says 1 year): re-issue it on the org and put it on both workers before then; the planning chat reminds you two weeks before.
+- [x] 2026-11-25 — After the move: your OK on the merge-queue ruleset change → "Queue + restore bypass" (your pick in the dialog; the merge queue is ON, the main ruleset's admin bypass put back, 2026-11-25 about 15:24).
+- [ ] 2026-11-23 — Keep the push connection alive: in the main checkout `git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_personal -o ServerAliveInterval=15 -o ServerAliveCountMax=8"` (or `ServerAliveInterval 15` under `Host github.com-personal` in ~/.ssh/config).
+- [x] 2026-11-25 — Rename the repo too → "Rename now (Recommended)" (2026-11-25); second collaborator account → "Drop it"; org settings → "I set them as listed".
+- [x] 2026-11-25 — When to move → "Yes, move now, re-cut 0.10.0 after" (2026-11-25 15:14). Earlier (2026-11-23): merge queue "Merge queue (Recommended)", free org "Move to a free org (Recommended)", "i think we should do repo move after m0.9.0".

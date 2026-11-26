@@ -382,7 +382,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--no-border", action="store_true",
                     help="force-skip the border stage even under --full (the bc_outline WMU union + "
                          "cross-border split is slow; irrelevant to registry item names/MUs)")
-    ap.add_argument("--name-variants", help="path to a compiled name_variants.json (docs/13)")
+    ap.add_argument("--name-variants", help="path to a compiled name_variants.json")
     ap.add_argument("--added-streams", default=None,
                     help="path to a frozen added_streams.build.json (default: the packaged one)")
     ap.add_argument("--write-gpkg", action="store_true",

@@ -207,7 +207,7 @@ The app credits each source under More → Sources and licences.
 | Salmon run timing (PSF, NuSEDS) | permission, and Open Government Licence, Canada |
 | OpenStreetMap, Protomaps basemap | ODbL |
 | Open-Meteo weather | CC BY 4.0 |
-| Esri World Imagery (Satellite only) | Esri Master Agreement; credit drawn on the map. The app uses the public tile address with no key or account. Whether that fits Esri's terms is YOURS (`handoff/PLAN/app-data/satellite/esri/README.md`). |
+| Esri World Imagery (Satellite only) | Esri Master Agreement; credit drawn on the map. The app uses the public tile address with no key or account. Whether that fits Esri's terms is YOURS (the Esri terms are in the header of `app/packages/core/src/imagery.ts`). |
 | Lucide icons | ISC |
 
 Not credited in the app (open-source notices, not an Apple rule; sent to the planning chat): MapLibre, the three

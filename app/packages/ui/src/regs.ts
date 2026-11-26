@@ -8,7 +8,7 @@
  * replaces `useRegsStore(source, regsUrl, openDb)` and no `openRegsDb` prop is threaded through Shell/App. The pairing
  * is the store's own (`openRegsStore`: the tiles drawn, then each file against water), not `BundleInfo` digests.
  *
- * THE OWNER RULE (decisions.md 2026-10-21): nothing here decides a regulation. The store answers; these hooks only say
+ * THE OWNER RULE (decisions.md, "The backend answers; the app only reads"): nothing here decides a regulation. The store answers; these hooks only say
  * which day and which target to ask about, and hand the answer on.
  *
  * THE T09 SEAM: `loadRegsInputs` (tap → `RegsInputs`) and `targetFor` (tapped section → part) are T09's, in
@@ -445,7 +445,7 @@ export function mapDayOf(day: Day, calendarYear: number, now: Date = bcNow()): D
 
 // ── who is fishing ───────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** The default angler: a B.C. resident, 16 or older (decisions.md D8). */
+/** The default angler: a B.C. resident, 16 or older (decisions.md, "Showing the rules"). */
 export const DEFAULT_WHO: Who = Object.freeze({ age: "adult", residency: "resident" });
 
 let who: Who = DEFAULT_WHO;

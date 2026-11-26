@@ -9,5 +9,5 @@
 | `word_reads.json` | accepted (machine-made, then accepted) | `python -m pipeline.atlas.reach.word_reads --run <reach run> --out …` after reading the moves | reach run: a listed printed-word read that stops matching stops the run (T679 D4) |
 | `under_closure_calls.json` | authored (the owner's rulings) | hand | the UI export: a dated water release (`release`) or a water row's quota (`quota`) that speaks / is silenced under a blanket closure is refused unless listed here with why (T679 #12; was `closures.*_UNDER_CLOSURE_KNOWN`) |
 
-Back up `synopsis/region-*.json` before any write (AGENTS rule 2). The files in `synopsis/` and `reference/` are
+Back up `synopsis/region-*.json` before any write (AGENTS A2). The files in `synopsis/` and `reference/` are
 globbed by their readers, so the folders hold nothing else (no README inside them).

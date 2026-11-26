@@ -53,5 +53,5 @@ python -m pipeline.tools.audit.check_curated --waters   # the hand-edited waters
 ## Writing here
 
 The review app's saves land as marks (`review/marks.jsonl`, append-only) and write through to the final file of their
-domain (`pipeline.regs.review.apply`). By hand: back up first (AGENTS rule 2) and write region files through
+domain (`pipeline.regs.review.apply`). By hand: back up first (AGENTS A2) and write region files through
 `pipeline.regs.parsing.io.write_entryfile`, which validates the whole file.

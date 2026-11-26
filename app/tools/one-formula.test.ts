@@ -123,7 +123,7 @@ describe.skipIf(!has)("one formula, two languages", () => {
 });
 
 /*
- * ONE COMBINE (T125 item 7). The handoff evaluation scripts (handoff/PLAN/app-data/<topic>/scripts) each ported `estimate`
+ * ONE COMBINE (T125 item 7). The handoff evaluation scripts (the app-data topic scripts, cut in T1081) each ported `estimate`
  * by hand — one with the row error where the app interpolates, one with no lead share, none with the reserve — so a
  * measurement taken for an owner decision was not the app's answer. They now import `answering` from panel.py, and this
  * runs it beside the app's `answering` over the same panels: every refusal, the lead, the reserve standing back.

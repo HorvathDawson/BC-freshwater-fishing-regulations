@@ -93,3 +93,8 @@ that, only totals per app version."
 
 **Risks:** few users make noisy percentiles and narrow buckets; iOS process-start reading and the web's
 `timeOrigin` are unverified; the monitor must not slow what it measures; the Play form click is the owner's.
+
+## Owner
+
+- [x] 2026-11-25 — Design picks → scope "Fullest"; switch "Join the crash switch (Recommended)" ("Send crash and speed reports", on by default); raw retention "30 days (Recommended)"; device detail "Memory band + CPU cores"; Performance Data on the App Store label "Not linked (Recommended)" (2026-11-25).
+- [ ] 2026-11-25 — Clear the privacy page words (the proposal in the Scoped section) and click the Play Data safety form when the app and the worker ship. Until then the App Store label is one data type ahead of the app.

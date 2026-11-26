@@ -45,11 +45,6 @@ that state is.
 The same setup step is what the iOS run (T709 step 2) will need; write it so the scene list and the fixed data are
 shared and only the device driving differs.
 
-## Owner answer 2026-11-20 01:56
-
-Postponed with T709 (owner 2026-11-20).
-
-Status line before this answer: OPEN (after closed testing (owner 2026-11-13: "these are after closed"); before the next time the video is regenerated for a store upload)
-
-## Owner 2026-11-21 12:47
-Asked for the 0.8.5 batch: "No, stay postponed".
+Owner 2026-11-20 01:56: postponed with T709 (was OPEN: after closed testing, owner 2026-11-13: "these are after
+closed"; before the next time the video is regenerated for a store upload). Owner 2026-11-21 12:47, asked for the 0.8.5
+batch: "No, stay postponed".

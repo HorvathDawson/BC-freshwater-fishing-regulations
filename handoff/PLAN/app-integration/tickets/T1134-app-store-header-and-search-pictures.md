@@ -65,3 +65,7 @@ Not confirmed: the map comes from staging, which shows the released app; a PNG c
   new `listing.json` line "BC fishing rules and conditions, by the water".
 - PR #238 (T1072, the native 6.3" set) is open with auto-merge off; frame 3's re-crop was not confirmed finished.
   The owner looks at frame 3, then merge or redo; T1131's workflow regenerates these sets anyway.
+
+## Owner
+
+- [x] 2026-11-25 — The Header and Search Results stills and the two 8 s videos → "yes i uploaded them to the ios" (2026-11-25).

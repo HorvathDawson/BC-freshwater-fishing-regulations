@@ -1,6 +1,6 @@
 """TIDE AND BACKWATER ON A LEVEL GAUGE (T78, audit N20).
 
-OWNER 2026-10-22 ("a water's own gauge comes first", handoff/PLAN/app-integration/decisions.md): "In the Level view,
+OWNER 2026-10-22 ("a water's own gauge comes first", handoff/PLAN/app-integration/decisions.md, "Gauges and flow"): "In the Level view,
 check and disclose tidal or backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser
 backwater)." The own-gauge rule made the lower Fraser's Level answer lead with the gauges at Whonock, Mission and Port
 Mann, and the Pitt's with 08MH035 — every one of them a stage that rises and falls with the tide, or with the Fraser

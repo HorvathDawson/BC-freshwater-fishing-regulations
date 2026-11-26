@@ -1,4 +1,4 @@
-"""Name-variation application to the graph (docs/13). Synthetic, no gpkg.
+"""Name-variation application to the graph (pipeline/atlas/README.md). Synthetic, no gpkg.
 
 Fixture: mainstem X (gnis 'Big River') threading lake W over [100,200], so it splits into a
 lower piece X:0 and an upper piece X:200, plus lake:W. A separate wetland wbk 'WET' rides on

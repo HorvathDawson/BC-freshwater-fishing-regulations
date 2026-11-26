@@ -1,6 +1,6 @@
 # T404 — One switch to production, and the prod release runbook
 
-Status: IN PROGRESS — 124f5257c, 4f4b5c827, d63416d48; owner part done; --bucket on runtiming publish/base merged; left (owner): uncomment the workflow production option + add the PROD_R2 secrets. (Earlier note: IN PROGRESS — 124f5257c (merged 2026-11-07). The owner's part is done: Q171–Q175 answered (tickets/README; Q172 in OWNER-TODO batch 13) and production was run from PRODUCTION.md on 2026-11-18/19 (OWNER-TODO record 2026-11-18 22:13; STATUS 2026-11-19 evening); the prod prune landed with T865 (4f4b5c827). `--bucket` on `runtiming/feed/publish.py` + `base.py` built by lane L3 2026-11-20 (d63416d48; the workflow's production option stays commented). left (Claude): main chat review + merge; then the owner uncomments the workflow's production option and adds the PROD_R2 secrets. Earlier: IN REVIEW — built 2026-11-07 (b8d4bec0b) on branch worktree-agent-add737f1e347ca347 (not merged); proof pending: the owner reads handoff/PLAN/release/PRODUCTION.md and answers Q171–Q175; nothing production was run.)
+Status: IN PROGRESS — 124f5257c, 4f4b5c827, d63416d48; owner part done; --bucket on runtiming publish/base merged; left (owner): uncomment the workflow production option + add the PROD_R2 secrets. (Earlier note: IN PROGRESS — 124f5257c (merged 2026-11-07). The owner's part is done: Q171–Q175 answered (tickets/README; Q172 in old owner to-do batch 13) and production was run from PRODUCTION.md on 2026-11-18/19 (old owner to-do record 2026-11-18 22:13; STATUS 2026-11-19 evening); the prod prune landed with T865 (4f4b5c827). `--bucket` on `runtiming/feed/publish.py` + `base.py` built by lane L3 2026-11-20 (d63416d48; the workflow's production option stays commented). left (Claude): main chat review + merge; then the owner uncomments the workflow's production option and adds the PROD_R2 secrets. Earlier: IN REVIEW — built 2026-11-07 (b8d4bec0b) on branch worktree-agent-add737f1e347ca347 (not merged); proof pending: the owner reads handoff/PLAN/release/PRODUCTION.md and answers Q171–Q175; nothing production was run.)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -10,112 +10,48 @@ Source: owner 2026-11-05, on `play.json` living on staging until prod: "can we h
 production later and having data access update everywhere etc... with a doc on how we will release to prod etc. like we
 need a workflow for the transition. we dont need this yet but will need it eventually".
 
-## Work
-1. **One switch.** A single build-time setting (e.g. `APP_ENV=staging|production`) from which EVERY origin derives: data
-   release + manifest + map assets/tiles, feeds (gauges, DFO, in-season, run timing), crash + problem reports, the app
-   version file (`latest.json` / `play.json`), the synopsis PDF, the web site and SEO canonicals, test-bed defaults.
-   Today "staging" is spelt in ~25 files (core/appUpdate, data/update/*, data/report/outbox, ui/crashReport,
-   map/endpoints, ui-native Shell/menu, tools, deploy/staging/*). One module owns the origins; a guard test fails on a
-   staging/production host spelt anywhere else. The app shows which environment it is in (About), so a tester never
-   wonders.
-2. **Deploy scripts per environment.** deploy/staging/* gains a production twin driven by the same switch (upload,
-   feeds worker + its cron, site, build-apk `--play`), production steps stay HUMAN-ONLY (they print or ask, never run
-   unattended by Claude).
-3. **The runbook** (`handoff/PLAN/release/PRODUCTION.md`): the first transition (accounts, buckets, DNS, secrets, run
-   token, Play production track, Search Console) and then every release: build → staging → owner checks → promote the
-   same release id to prod R2 → feeds worker → `play.json` → Play rollout % → watch crash digest → rollback steps
-   (previous release id, previous worker version, halt rollout). Which steps Claude may do, which are the owner's.
-4. **A dry run** of the transition against a scratch "prod-like" bucket before the real one.
+## What
+A single build-time setting from which EVERY origin derives (data release + manifest + map assets/tiles, feeds, crash +
+problem reports, the app version file, the synopsis PDF, the web site and SEO canonicals, test-bed defaults), per-
+environment deploy scripts (production steps HUMAN-ONLY: they print or ask, never run unattended by Claude), and the
+runbook `handoff/PLAN/release/PRODUCTION.md` (first transition, every release, rollback, the www fix).
 
-## Launch steps the runbook must carry (first transition)
-- **www.canifishthis.ca redirect drops the path** (owner 2026-11-05: do it at the prod release). Checked 11-05:
-  `www.canifishthis.ca/water/vedder-river` → 301 `https://canifishthis.ca/` (home); the .com and www.com rules already
-  keep the path. Fix: Cloudflare → canifishthis.ca → Rules → Redirect Rules → the www rule → Dynamic
-  `concat("https://canifishthis.ca", http.request.uri.path)`, 301, preserve query string — or deploy the generated host
-  worker (`deploy/prod/host.wrangler.toml`). Check after: the curl above lands on `/water/vedder-river`.
-- The SEO launch steps (prod site deploy, managed robots.txt off, Search Console + Bing, outreach) — OWNER-TODO
-  "SEO / domain" and T198.
+Done: runbook + switch + guard (124f5257c, 2026-11-07); prod run from PRODUCTION.md 2026-11-18/19; prod prune with T865
+(4f4b5c827); `--bucket` on `runtiming/feed/publish.py` + `base.py` (d63416d48, L3 2026-11-20; production bucket needs
+`CONFIRM_PROD=canifishthis.ca`, shared `publish.checked_bucket`; tests `test_t404_publish_honours_the_bucket`,
+`test_t404_the_production_bucket_needs_confirm_prod`). Q171–Q175 answered (Q171 prod report/crash endpoint
+`bc-fishing-feeds.horvath-dawson.workers.dev/report`; Q172 prod backup bucket `bc-fishing-regulations-backup`).
+
+Where it lives: origins in `apps/mobile/src/env.ts` and `packages/core/src/share.ts` only; guard
+`app/tools/no-env-hosts.test.ts` (fails on a host in app/apps or app/packages .ts/.tsx/.js/.mjs/.cjs elsewhere; excepted
+exactly: `*.test.*` files, `test/` and `__tests__/` folders, docs (.md, not walked), `android/`, `ios/`,
+`node_modules/`, `dist/`, dot-folders; email addresses are not hosts). Feeds worker twin `app/workers/feeds/wrangler.prod.toml`
+(`test/config.test.ts` holds it to staging's; only names differ). `deploy/prod/`: `feeds-placeholder.*`,
+`host.wrangler.toml`, `site.*`, `upload.sh`, `sync-inputs.sh`, `rollback.sh`, `feeds.sh`, `build-apk.sh`,
+`data.wrangler.toml`; every one refuses without CONFIRM_PROD (exit 2). `release.py --prod` runs `deploy/prod/upload.sh`.
+
+## Work (left)
+1. **The owner's edits** (also in the `feeds-runtiming.yml` header): (1) uncomment `- production` in the `target`
+   options; (2) swap the two `AWS_*` env lines for the two commented prod lines; (3) add the secrets
+   `PROD_R2_ACCESS_KEY_ID` / `PROD_R2_SECRET_ACCESS_KEY` (an R2 token scoped to `bc-fishing-regulations`). A production
+   run also needs the production release live and its binding base at
+   `bc-fishing-regulations/private/runtiming/base/<handles>.json.gz` (`deploy/prod/upload.sh` puts it there). The
+   workflow already derives the guard, `DATA` (production: `https://data.canifishthis.ca`) and `CONFIRM_PROD` from `target`.
+2. NOT rehearsed: `deploy/prod/site.sh --dry-run` (needs the prod web export + SEO build, heavy), once the prod builds
+   exist; the dry run against a scratch prod-like R2 bucket only if the owner wants one.
+3. Launch steps the runbook carries (first transition): **www.canifishthis.ca redirect drops the path** (owner
+   2026-11-05: do it at the prod release). Checked 11-05: `www.canifishthis.ca/water/vedder-river` → 301
+   `https://canifishthis.ca/` (home); the .com and www.com rules already keep the path. Fix: Cloudflare →
+   canifishthis.ca → Rules → Redirect Rules → the www rule → Dynamic `concat("https://canifishthis.ca",
+   http.request.uri.path)`, 301, preserve query string — or deploy the generated host worker
+   (`deploy/prod/host.wrangler.toml`). Check after: the curl above lands on `/water/vedder-river`. The SEO launch steps
+   (prod site deploy, managed robots.txt off, Search Console + Bing, outreach) — T198.
 
 Links: T86 (production hosting + ship config), T240 (launch checklist), T198 (.com → .ca, Search Console), T371 (Play
 closed testing), T234/T390 (`play.json`).
 Size: M.
 
-## Prep 2026-11-05 (owner): the prod feeds worker exists early, with its secrets
-`deploy/prod/feeds-placeholder.sh` (the OWNER runs it: `CONFIRM_PROD=bc-fishing-feeds`) deploys `bc-fishing-feeds` as a
-503 placeholder (no bindings, no crons) and prompts for GITHUB_DISPATCH_TOKEN, RUN_TOKEN, REPORT_SALT, NOTIFY_EMAIL_TO
-(new values for the two random ones). At the switch: a production wrangler config for app/workers/feeds with
-`name = "bc-fishing-feeds"` (prod bucket, email, crons, FEEDS_ENV=production) deployed over it; the secrets stay.
+## Owner
 
-## Built 2026-11-07 (IN REVIEW)
-The runbook: `handoff/PLAN/release/PRODUCTION.md` (first transition, every release, rollback, the www fix).
-
-**Audit — where an environment's host / origin / bucket / worker name is spelt** (grep `canifishthis.(ca|com)`,
-`*.workers.dev`, `bc-fishing-*`; 76 files before this change: 71 under app/, deploy/, pipeline/ + 5 workflows):
-- **App code (app/apps, app/packages, non-test):** `apps/mobile/src/env.ts` (owner: data origins, report/crash URLs),
-  `core/src/share.ts` (owner: the public site), `core/src/menu/about.ts` (PRIVACY_URL spelt + two comments → now
-  `${SITE_ORIGIN}/privacy`, comments generic), `map/src/endpoints.ts` (`OUR_ASSETS` = STAGING's data host as the map's
-  default → removed; `releaseTiles` / `releaseMapInput` now REQUIRE the environment's assets folder; no-assets = a bare
-  path naming no host). Email addresses only (not hosts): `app.config.js`, `eas.json`, `package.json`. A comment:
-  `map/src/controls.css` (v1's site). The ticket's list (core/appUpdate, data/update/*, data/report/outbox,
-  ui/crashReport, ui-native Shell/menu) says the WORD staging, never a host: those all read env.ts's values.
-- **Tests (excepted from the guard):** `env.test.ts`, `core/menu.test.ts`, `ui-native/DeveloperCard.test.tsx`,
-  `ui-native/menu/Menu.test.tsx`, `ui/crashReport.test.ts`, `map/runtime-style.test.ts`.
-- **Feeds worker (app/workers/feeds):** `wrangler.toml` (staging names), `src/email.ts` (`wrangler tail
-  bc-fishing-feeds-staging` in every health email → `WORKER_NAME` var), `src/index.ts` + `src/backup.ts` (the backup
-  bucket and manifest `source` spelt staging → `BUCKET_NAME` / `BACKUP_BUCKET_NAME` vars), `src/dispatch.ts` +
-  `src/runtiming.ts` (User-Agent only), `src/gauges/forecast.ts` (User-Agent: the public site). New twin:
-  `wrangler.prod.toml`; `test/config.test.ts` holds it to staging's (crons, bindings, limits, vars; only names differ).
-  A production worker's workflow starts ask `target: production` (`dispatch.ts`), never staging's bucket.
-- **Tools (app/tools, dev-only, not app code):** `smoke-staging.mjs` (now `--production` too), `bad-net.mjs`,
-  `build-icons.mjs`, `play-shots.mjs`, `seo/{favicon,hosting,html,legacy-crosswalk}.*` + 2 tests (the public site and
-  its redirects: production by design), `testbed/lib/{channel,device}.mjs`, `testbed/scenarios/report.mjs` (staging).
-- **deploy/staging (16):** every script hardcodes staging (`upload`, `sync-inputs`, `feeds`, `site`, `build-apk`,
-  `build-ios-*`, `backup`, `restore-test`, `rotate-run-token`, `check-public`, `data-worker.js` + its toml,
-  `flood-test`, `test-updates`, `site.wrangler.toml`). `build-apk.sh` gained `--production` (Play only, CONFIRM_PROD).
-- **deploy/prod (6 before → 11):** `feeds-placeholder.*`, `host.wrangler.toml`, `site.*` + new `upload.sh`,
-  `sync-inputs.sh`, `rollback.sh`, `feeds.sh`, `build-apk.sh`, `data.wrangler.toml`.
-- **Pipeline:** `release.py` (`--prod` now runs `deploy/prod/upload.sh`, the one prod upload; publish.py no longer
-  in that path), `runtiming/feed/{publish,base}.py` (BUCKET staging-only — left: see below), `runtiming/feed/diff.py`
-  (staging URL in usage), User-Agents in `gauges/feed/forecast.py`, `runtiming/fetch/*`, `deliver/tiles/basemap_source.py`,
-  `atlas/waters/added_streams/fetch_osm.py`, `tools/{source_pins,audit/tidal_triage}.py`; `tests/test_staging_scripts_fail_safe.py`.
-- **Workflows:** `feeds-hydat/runtiming/sync-inputs.yml` (production option commented out, owner enables),
-  `staging-security.yml`, `staging-smoke.yml`.
-
-**Guard:** `app/tools/no-env-hosts.test.ts` fails on a host in app/apps or app/packages (.ts/.tsx/.js/.mjs/.cjs) outside
-`apps/mobile/src/env.ts` and `packages/core/src/share.ts`. Excepted exactly: `*.test.*` files, `test/` and `__tests__/`
-folders, docs (.md, not walked), `android/`, `ios/`, `node_modules/`, `dist/`, dot-folders. Email addresses are not hosts.
-
-**App:** production reports + crashes → `https://bc-fishing-feeds.horvath-dawson.workers.dev/report` (`/crash`), was
-none (Q171). The version file is already per environment (`<data origin>/app/android/play.json`; `build-apk.sh
---production` writes it to the prod bucket). About already shows the environment (T232).
-
-**Rehearsed (nothing written to production):** every prod script refuses without CONFIRM_PROD (exit 2: upload,
-sync-inputs, rollback, feeds, site, build-apk, feeds-placeholder); `deploy/prod/upload.sh --bucket
-bc-fishing-regulations-staging --dry-run` end to end (r-f56b90ad2540: manifest identical to staging's, run timing,
-files, seeds, sync-inputs 12 objects, pointer; 0 copied); `deploy/prod/rollback.sh` for real on a LOCAL fake bucket
-(rclone's local backend: rolls back; refuses a second time and a previous release with a missing file); on staging
-it refuses (no previous pointer yet); `deploy/prod/feeds.sh --dry-run` (220 worker tests + bundle with prod bindings);
-`wrangler deploy --dry-run` of `deploy/prod/data.wrangler.toml`; `deploy/prod/build-apk.sh --dry-run` (production
-env, no switch/lab, track internal, play.json → prod bucket) and staging's `--play --dry-run` unchanged. NOT rehearsed:
-`deploy/prod/site.sh --dry-run` (needs the prod web export + SEO build, heavy).
-
-**Left:** a prune for old prod releases (a promote clears nothing; by hand until then); `pipeline/runtiming/feed/publish.py`
-takes no `--bucket` (feeds-runtiming.yml can't publish to prod; upload.sh copies staging's for the same tiles);
-`site.sh --dry-run` once the prod builds exist; the dry run against a scratch prod-like R2 bucket (item 4) if the
-owner wants one beyond the above.
-
-**Owner questions (README table, built with the default):** Q171 prod report/crash endpoint
-(`bc-fishing-feeds.horvath-dawson.workers.dev/report`, staging's pattern); Q172 prod backup bucket
-(`bc-fishing-regulations-backup`, staging's lifecycle); Q173 after the switch every Play build reads production,
-staging stays on the sideload APK page (yes); Q174 the prod data worker replaces v1's `bc-fishing-r2` in place (yes,
-check its name first); Q175 share links + privacy page are `canifishthis.ca` for every environment (yes).
-
-## L3 2026-11-20: `--bucket` (d63416d48, branch lane/l3-tools)
-`pipeline/runtiming/feed/publish.py` takes `--bucket` (default the staging bucket; only the staging and production bucket names are accepted, anything else exits); `base.py --upload` takes the same. `feeds-runtiming.yml` step 7 passes `--bucket "$BUCKET"`, the value the workflow already computes from `target`. The workflow's production option and the PROD_R2 secrets block stay COMMENTED: the owner uncomments both. Test `test_t404_publish_honours_the_bucket`. Nothing uploaded or dispatched.
-
-## L3 2026-11-20, after the independent review
-- The production bucket needs `CONFIRM_PROD=canifishthis.ca` in `publish.py` and `base.py` (shared `publish.checked_bucket`: bare lower-cased name, plan or send alike; same value as `deploy/lib/bucket.sh` users). Test `test_t404_the_production_bucket_needs_confirm_prod`.
-- The workflow derives the guard, `DATA` (production: `https://data.canifishthis.ca`, staging: data-staging) and `CONFIRM_PROD` from `target`; before, the guard refused every non-staging bucket and `DATA` was staging's, so a production run would have diffed against staging's feed. The production option itself is still commented.
-- THE OWNER'S EDITS (also in the workflow header): (1) uncomment `- production` in the `target` options; (2) swap the two `AWS_*` env lines for the two commented prod lines; (3) add the secrets `PROD_R2_ACCESS_KEY_ID` / `PROD_R2_SECRET_ACCESS_KEY` (an R2 token scoped to `bc-fishing-regulations`). A production run also needs the production release live and its binding base at `bc-fishing-regulations/private/runtiming/base/<handles>.json.gz` (`deploy/prod/upload.sh` puts it there).
-- Stale comments fixed in `base.py` and `runtiming/feed/__init__.py`.
-
+- [ ] 2026-11-20 — Add the `PROD_R2_*` secrets in GitHub and uncomment the production option of the run-timing workflow (the owner part left of this switch).
+- [x] 2026-11-08 — After the switch every Play build reads production; share links and the privacy page are `canifishthis.ca` in every environment; the prod data worker replaces v1's in place → "yes" to each (Q173-Q175, 2026-11-08).

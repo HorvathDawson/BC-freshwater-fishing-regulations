@@ -20,37 +20,14 @@ all class `defect`; none of their messages appears in `handoff/PLAN`. The larges
   lines could not be read`; `dfo feed: no feed read, so no checked time`; `Unable to open URL`; `The source image could
   not be decoded`; `AsyncRequireError: Loading module … failed`; a gauge page `cards/08GA043.json: HTTP 404`.
 
-## Work
-1. Per kind: read its sample (stack, route kind, pane, release), reproduce or explain; group kinds with one cause.
-2. Each real defect → its own ticket (or folds into an open one); expected ones → T595's classes so they stop arriving
-   as defects. Record the triage here, kind by kind.
-
-Depends: T595 (classes). Size: M. Owner: no.
-
-## Hashes (read 2026-11-22 18:15, `GET /crashes?since=2026-11-21`, production unless said)
-`3d5ded1b72ff865f` (77, HTTP 404), `c920e3c59673b7ec` (47, PMTiles magic number, 0.8.1 → 0.8.5, still arriving
-22:11Z), `2c766955748940d9` + `77d7b2f24fd83f8a` (24 + 18, in-season matched waters 404), `f6d0af3f051de23a` (20,
-AJAXError 404), `bb863fcb6535d696` (6, outside mask 404), `1bd22eea73a9dfb8` (5, non-Error object), `b5804f0e35787dbe`
-(4, AJAXError 404), `804e01a3d7d4fd97` (3, Android 0.8.4 c1f14c1, `HTTP 404 for …`), `be0617731470214c` (3, tile parse
-type 3), `c77d892e10eefbd1` (1, 0.8.5, null property), `f9bf618550381745` (1, in-season section lines),
-`5588b32d5eacc9e3` (1, update JSON end), `f529f96593774436` (1, expression.evaluate). STAGING `a10bd70844e3fa61` (1,
-Android 0.8.3 (41)): "an exit record was refused by the crash server: HTTP 429" — the app's own exit record hit the
-worker's rate limit; triage with the rest (a 429 on our own record should be retried later, not reported as a crash).
-
 ## Triage (lane L4, 2026-11-22, read `GET /crashes?since=2026-11-15` and `?class=network,expected` on production)
 
-**The finding that explains most of it: one install, `a916f6f81cd61f75`, is a search engine's page renderer, not a
-reader.** It sent 11 of the 20 defect kinds (202 of their 220 reports) and most of the network / expected ones
-(`Failed to fetch` ×212, three "release r-… is not one this app reads" kinds ×35). Evidence, all from the stored
-samples: (1) every one of its reports is `created` at 00:00:00–00:00:04 UTC of its day (a pinned clock), while every
-other install's `created` is within 2 s of the worker's receive time; (2) one install id across 4 days and every web
-version 0.8.1 → 0.8.5 (tests of Googlebot's renderer since 2018 report `Math.random()` as a fixed sequence, so `installId` would draw the same id on
-every fresh render); (3) on 2026-11-22 01:07–23:43 UTC the 0.8.5 production bundle (`index-76f27ada…`, the one the
-site serves) booted manifests naming r-fc137c4040fa and r-6258ffded676, which neither `release/manifest.json` nor
-`manifest.previous.json` had named for a day or more (both 404 on R2 now): its resources come from its own cache, not
-our pointer (the renderer caches fetched resources and does not honour `no-cache`); (4) it lands on `/water/` pages
-(gnis:9657, gnis:16359, gnis:19207, gnis:7776, view regs), the SEO pages. A real browser would have to hold an old tab
-and a fixed clock at once. Not proven by a user agent (the worker keeps none), hence the L5 item 1 below.
+**One install, `a916f6f81cd61f75`, is a search engine's page renderer, not a reader.** It sent 11 of the 20 defect
+kinds (202 of their 220 reports) and most of the network / expected ones (`Failed to fetch` ×212, three "release r-… is
+not one this app reads" kinds ×35). Evidence from the stored samples: every report `created` at 00:00:00–00:00:04 UTC
+(a pinned clock); one install id across 4 days and every web version 0.8.1 → 0.8.5; on 2026-11-22 it booted manifests
+naming r-fc137c4040fa and r-6258ffded676, no longer named by our pointer (its own cache, not honouring `no-cache`); it
+lands on the SEO `/water/` pages. Not proven by a user agent (the worker keeps none).
 
 | kind(s) | count / installs | cause | action |
 |---|---|---|---|
@@ -67,33 +44,23 @@ and a fixed clock at once. Not proven by a user agent (the worker keeps none), h
 | `f529f96593774436` `this.expression.evaluate is not a function` (1), `7db2e9aa9ab7dbbc` iOS "Unable to open URL" on Runs (1) | one each | not located from the minified stack / the scrubbed URL | new ticket T1017 (locate with the source maps T1008 serves) |
 | STAGING `a10bd70844e3fa61` "an exit record was refused by the crash server: HTTP 429" (1) | Android 0.8.3 | the app reported its own rate-limited send as a new error kind | FIXED 127296a64 + fe477309b: the day limit's 429 is kept and sent again at the next start, said in the log line, not reported; sends are spaced ≥ 1.1 s (the worker's 1 s gap), exit records go oldest first and the mark passes only stored ones; a gap 429 is reported |
 
-### What the worker needs (lane L5, `app/workers/feeds/src/crashes.ts`; not edited here)
-1. **A `crawler` class (or `expected`)** for (a) `platform` starting `web (crawler)` or `web (automated)` (the app from
-   127296a64 on) and (b) a POST `/crash` whose request `User-Agent` matches
-   `/Googlebot|Google-InspectionTool|GoogleOther|bingbot|Chrome-Lighthouse|crawler|spider/i` (older builds; store the
-   verdict on the sample, e.g. `agent: "crawler"`, never the UA itself). `GET /crashes` keeps them out of the default
-   list and counts them in the one line, as T595's classes. The 11 a916 kinds above already stored: classed by hand
-   once (a list of these hashes) or left to age out; they are not readers.
-2. **EXPECTED** += `/Failed to initialize WebGL/` (and the name `MapUnavailable`): the browser has no WebGL; the map
-   says so.
-3. **NETWORK** += `/no whole file in \d+ ms/` (the resilient download's stall timeout), `/^update: .*Unexpected end of
-   JSON input/` (a cut body), `/The source image could not be decoded/`.
-4. **EXPECTED** += `/was refused by the crash server: HTTP 429 \(too many (reports|new error kinds) today\)/` only (the day
-   limit, from builds before 127296a64). The GAP's 429 ("too many reports; try again in a minute") stays a `defect`: it
-   is a client sending too fast. Since fe477309b the app spaces every send ≥ 1.1 s and reports a gap 429 (review of #36:
-   back-to-back exit records were refused at every start and the stored newest one resent).
-5. Keep as `defect`: `HTTP 404 for …/app/android/play/` (T1014 until fixed).
-
-**Built by lane L5 (PR #39: 3452aae26, dc338949b):** items 1–5 as listed. The crawler verdict is a per-kind count
-(`crawler` beside `count`), so a kind is class `crawler` only when every report of it came from one; a kind a reader also
-hit stays a defect. Accepted at review: kinds stored before this keep their old class (from their sample) until they
-age out (90 days), the 11 a916 kinds included.
-
-## State 2026-11-22 (stopped for credits, lane L5)
-Worker side done on PR #39 (`fix/T996-apns-check`, head 3c186213a); staging runs 9b90767a4 (has the crawler class + 429 rule). Left: nothing on the worker side.
+## Done
+- App fixes 127296a64, fe477309b (see the table).
+- Worker classes, lane L5 PR #39 (3452aae26, dc338949b; `app/workers/feeds/src/crashes.ts`): a `crawler` class (platform
+  `web (crawler)` / `web (automated)`, or a crawler `User-Agent` stored only as a verdict; a per-kind count, so a kind is
+  `crawler` only when every report came from one); EXPECTED += `/Failed to initialize WebGL/` (`MapUnavailable`) and the
+  day limit's 429; NETWORK += `/no whole file in \d+ ms/`, `/^update: .*Unexpected end of JSON input/`, `/The source image
+  could not be decoded/`; the gap 429 and `HTTP 404 for …/app/android/play/` (T1014) stay `defect`. Kinds stored before
+  keep their old class until they age out (90 days), the 11 a916 kinds included. Staging runs 9b90767a4.
 
 ## New kind (read 2026-11-22 23:00)
 `9621cbcdb5053a66` (1, web 0.8.5, route map): `SyntaxError: Unexpected end of JSON input` at `JSON.parse` inside a
 `Promise.all` of the boot reads — a cut response body, the same cause as `5588b32d5eacc9e3` but without the `update:`
 prefix, so the worker's NETWORK pattern (`/^update: .*Unexpected end of JSON input/`) misses it. Decide: the app names
 the file in the message (no bare JSON.parse error), and the worker classes it network.
+
+## Left
+- The new kind above (app names the file; worker classes it network).
+- Then a `GET /crashes` read that lists only T1014/T1016/T1017's kinds.
+
+Depends: T595 (classes). Size: M. Owner: no.

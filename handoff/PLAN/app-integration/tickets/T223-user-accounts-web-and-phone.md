@@ -11,7 +11,7 @@ Source: owner 2026-10-28: one account a person can use in both the web app and t
 ## Default plan (owner 2026-10-28)
 - **Sign-in: a free hosted auth provider does all account work** (passwords/email links, Apple/Google, resets, abuse).
   Default Firebase Auth (free tier; web + native SDKs); Supabase Auth or Clerk are alternatives. Cloudflare has no
-  public-user auth (Cloudflare Access is for staff, 50-seat free tier) — not used.
+  public-user auth (Cloudflare Access is for staff) — not used.
 - **Our side: one Cloudflare Worker + R2, no database.** The Worker verifies the provider's ID token and reads/writes
   only `users/<uid>/` in R2: `data.json` (spots, settings) and `photos/` beside it.
 - **Delete / export:** delete removes `users/<uid>/` and the provider account (Apple's in-app deletion rule);
@@ -19,30 +19,23 @@ Source: owner 2026-10-28: one account a person can use in both the web app and t
 - Accounts optional; local-first stays; this replaces the Q-T223a default (Worker + D1).
 
 ## Today (what an account would replace)
-- No accounts and no server state. The app is static files plus R2 (release, gauge feed, DFO feed).
-- Spots are the only data a person writes. They live on the device: a file on the phone (`packages/data/src/spots/store.native.ts`)
-  and local storage in the browser (`store.web.ts`, which calls itself "NOT durable"). Spot photos are stored the same way
-  (`photoStore.*`). `spots/model.ts` records "No cross-device sync (decided)", with export/import as the backup. **This
-  ticket reverses that decision.**
-- Other per-device state: the layers-sheet switches (one local key), the angler profile (D8: in memory per session,
-  B.C. resident 16+ by default), and the regs pins.
+- No accounts, no server state. Spots (and their photos, `photoStore.*`) are the only data a person writes, on the
+  device: `packages/data/src/spots/store.native.ts` (phone file), `store.web.ts` (local storage, "NOT durable").
+  `spots/model.ts` records "No cross-device sync (decided)", with export/import as the backup. **This ticket reverses
+  that decision.** Other per-device state: layers-sheet switches, the angler profile (D8), the regs pins.
 
 ## Work (once the owner answers)
-1. Sign-in on both platforms with one identity: the same account in a browser and in the Expo app. Signing out leaves
-   the device's local copy readable.
+1. Sign-in on both platforms with one identity (browser and Expo app). Signing out leaves the local copy readable.
 2. What syncs, in order of value: spots (notes, captured conditions, `item_id` binding), then spot photos (large; may
    need their own store and quota), saved waters / pins, settings (layers, angler profile: age band, residency).
-   Never synced: the release, tiles and feeds (public, already on R2).
-3. Offline first: the phone keeps working with no signal (the app's main use case). Writes queue locally and merge
-   on reconnect. A spot is a record, so merging is mostly union by id; an edit made on two devices needs a rule.
+   Never synced: the release, tiles and feeds.
+3. Offline first: writes queue locally and merge on reconnect; union by id, an edit made on two devices needs a rule.
 4. Migration: on first sign-in, offer to upload the spots already on the device. Nothing is lost if they decline.
-5. Account deletion and export (a person's notes are theirs; `model.ts` already requires export).
+5. Account deletion and export (`model.ts` already requires export).
 
 ## Open questions for the owner
-- **Q-T223a Auth provider.** Options: Cloudflare (Access is not consumer sign-in, so pair Workers + D1/KV with a
-  library such as Lucia or Better Auth), Supabase Auth + Postgres, Firebase Auth + Firestore, Clerk. Sign-in methods:
-  email magic link, Apple (required on iOS when any other social sign-in is offered), Google. Default: a Cloudflare
-  Worker + D1, alongside the R2 hosting (T86); email magic link plus Sign in with Apple.
+- **Q-T223a Auth provider.** Superseded by the default plan above (Firebase Auth); sign-in methods: email magic link,
+  Apple (required on iOS when any other social sign-in is offered), Google.
 - **Q-T223b What syncs.** Spots only, or spots + photos + pins + settings? Photos drive storage cost. Default: spots +
   pins + settings first; photos later.
 - **Q-T223c Privacy.** Spots are exact fishing locations, which anglers guard. Private by default with no sharing?

@@ -5,7 +5,7 @@
  *
  *   node tools/build-icons.mjs                     -> writes apps/mobile/assets/icon/*.png (committed)
  *   node tools/build-icons.mjs --import <dir>      first copies a proposal's SVGs into apps/mobile/assets/icon/, then builds
- *     (e.g. --import ../handoff/PLAN/app-integration/icon-proposals/round4/1-pin-leap)
+ *     (a folder of SVGs; the old proposal sets are in git history)
  *
  * The app never reads the proposals folder: these copies in assets/icon/ are the sources.
  *   icon.svg          the full icon, ground included (view box = the visible 72 of the 108 adaptive canvas)

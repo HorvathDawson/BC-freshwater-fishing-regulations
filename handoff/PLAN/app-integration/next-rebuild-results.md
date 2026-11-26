@@ -1,5 +1,7 @@
 # Next rebuild: results of the side build (T664 + T665 + the nine DFO cuts)
 
+> (T1081) The `T664-pending/` patch folder went with its closed ticket: `git show 03be2862e:handoff/PLAN/app-integration/T664-pending/<name>` reads one.
+
 2026-11-11, the rebuild lane. Runbook: `next-rebuild.md`. **The side build is done and measured. Nothing is promoted.**
 
 | | |
@@ -255,9 +257,9 @@ Promote is runbook steps 7 to 9, run without `CURATED_ROOT`:
 SIDE=$PWD/data/generated/side/next-rebuild
 mkdir -p $SC/backup && cp data/curated/regulations/synopsis/region-*.json data/curated/inseason/notice_waters.json \
     data/curated/waters/cuts.json data/curated/waters/name_variants.json $SC/backup/
-git apply handoff/PLAN/app-integration/T664-pending/nine-cuts.cuts.json.patch
-git apply handoff/PLAN/app-integration/T664-pending/oxbow-still-water.name_variants.patch
-git apply handoff/PLAN/app-integration/T664-pending/t664-references.patch
+git apply T664-pending/nine-cuts.cuts.json.patch
+git apply T664-pending/oxbow-still-water.name_variants.patch
+git apply T664-pending/t664-references.patch
 diff -r data/curated $SIDE/curated                                            # must print nothing
 .venv/bin/python -m pipeline.atlas.inputs --build $SIDE/atlas/full_next       # current with its 10 inputs
 .venv/bin/python -m pipeline.atlas.promote $SIDE/atlas/full_next --dry-run    # section 1's numbers; no dead or absorbed id

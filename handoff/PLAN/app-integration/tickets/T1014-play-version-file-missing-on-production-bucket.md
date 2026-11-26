@@ -27,3 +27,7 @@ environment): `data-staging.canifishthis.ca/app/android/play/43.json` is 200, `d
 3. A test (or the script's dry run) that names both destinations.
 
 Depends: none. Size: S. Owner: item 1 (production R2).
+
+## Owner
+
+- [ ] 2026-11-22 — Copy the Play version file this ticket names from the staging bucket to production R2 (CONFIRM_PROD): 3 production phones get a 404 on their update check. Skip if it was done with the 0.10.0 production commands.

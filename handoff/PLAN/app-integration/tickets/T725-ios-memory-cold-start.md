@@ -1,106 +1,46 @@
 # T725 — iOS: memory table and cold start re-measured on 0.7.9 (IOS-8)
 
-Status: IN REVIEW — measured on 0.7.9 (68bf25229); lane L6: the memory-warning trim proven on the simulator (83653e704: the warning now reaches the app, `[trim]` 14 databases, 263 → 257 MB); owner: OWNER-TODO "oldest iPhone / iPad" (the oldest supported iPhone)
+Status: IN REVIEW — measured on 0.7.9 (68bf25229); lane L6: the memory-warning trim proven on the simulator (83653e704: the warning now reaches the app, `[trim]` 14 databases, 263 → 257 MB); owner: see ## Owner (the oldest supported iPhone)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | IN REVIEW (lane L6: the memory-warning trim proven on the simulator, 263 → 257 MB); owner: OWNER-TODO "oldest iPhone / iPad" | 68bf25229, 83653e704 | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-8 in handoff/PLAN/ios/START-HERE-ios.md |
+| T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | IN REVIEW (lane L6: the memory-warning trim proven on the simulator, 263 → 257 MB); owner: see ## Owner | 68bf25229, 83653e704 | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-8 in handoff/PLAN/ios/START-HERE-ios.md |
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-8 in
 `handoff/PLAN/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
 
-## Work
-**IOS-8. Memory and cold start on a real-class device.** Goal: the footprint table re-run on 0.7.9; the memory-warning
-trim measured; cold start to map. Acceptance: table in T363 shape; a verdict on the oldest supported iPhone (needs the
-minimum-version decision and, ideally, a real older phone). Size: S-M.
-  Sub-steps: re-run `memory.mjs` on 0.7.9 and diff with T363; confirm the `memoryWarning` trim (`simctl` memory warning) frees
-  what it claims; cold start x3 via `perf`; record minimum-iOS number; no device claims. Mirrors: `memory`, `perf`,
-  T360 table.
+## What
+**IOS-8. Memory and cold start on a real-class device.** The footprint table re-run on 0.7.9 (T363 shape; method: `footprint`
+of the simulator process, `run-ios.mjs memory perf`; graphics reads 0 on the simulator, CPU-side numbers only); the
+memory-warning trim measured; cold start to map; a verdict on the oldest supported iPhone.
+
+Done (measured, simulator, iPhone 17, iOS 26.5):
+- 0.7.9 (8ba815a23): peak footprint 274 MB against 290 MB on 0.5.0; two runs differ by up to 40 MB on one step (read a
+  single step as about ±30 MB); JS heap 16-28 MB above 0.5.0 throughout. The rule book does not leak (open 271, closed 222,
+  again 222). Cold start → map drawn 597 / 583 / 595 ms (0.5.0 ~0.61 s); map tap → page first frame 123 ms cold, 54 / 64
+  warm; pan: JS lag max 18 ms, 0 stalls > 50 ms, RSS peak 591 MB. Minimum iOS: 16.4 (T718).
+- After T717 (081d93f90, ad-hoc signed, every change since 8ba815a23, not like for like): water page 279 MB (+49 to +66);
+  peak 389 MB (the rule book's second open). **New, to look at:** with the page up, closing the rule book frees only
+  10 MB (348 → 338; 389 → 343) where the baseline freed about 50 MB; malloc stays about 150 MB against 54; once the page is
+  left the footprint drops to 158 MB. About 180 MB is held while a page is up and the book has been opened; the test bed
+  cannot split it between PDFKit and the kept map, Instruments (Allocations) on the simulator would.
+- Memory-warning trim proven (lane L6, 83653e704, 2026-11-20): `app/tools/testbed/lib/sim-memory-warning.js` calls
+  CoreSimulator's `-[SimDevice simulateMemoryWarning]` by UDID (JXA; the old `simctl spawn … notifyutil` never reached the
+  app; System Events is not authorised, `-1743`); `device-ios.mjs` `memoryWarning()` uses it; the `memory` scenario's
+  warning step now FAILS without the app's `[trim]` line. Run on iPhone 17e: `[trim] iOS memory warning, 14 database(s)
+  shrunk, 0 idle closed`; footprint 263 → 257 MB, malloc 86.3 → 78.3, JS external 60.9 → 33.3 (JS heap 124 unchanged).
+  The rule book steps failed in that bench (its `scroll-to` did not find the link on this build): no PDF numbers.
+
+## Work (left)
+- The verdict on the oldest supported iPhone (owner, decision 2; the simulator says nothing about a phone's memory limit;
+  ideally a real older phone). No device claims.
 
 ## Acceptance
 table in T363 shape; a verdict on the oldest supported iPhone (needs the minimum-version decision and, ideally, a real older phone).
 
 Depends: T718. Size: S-M. Owner: yes (decision 2: minimum iOS). Default: what Expo SDK 58 gives, number recorded.
 
-## Results
+## Owner
 
-### 2026-11-14, iOS test-bed lane: 0.7.9 on the simulator (build 8ba815a23 `--testbed`, iPhone 17, iOS 26.5)
-Run `ios-rest` (`run-ios.mjs memory perf`), the T363 method (`footprint` of the simulator process, MB; JS from `[heap]`).
-Simulator = the Mac's CPU/GPU: graphics reads 0 here (the Mac's GPU), so these are the CPU-side numbers only.
-
-Two runs of 8ba815a23, `ios-rest` (12:27) and `ios-benches` (13:20), MB, shown as rest / benches.
-
-| step | footprint 0.5.0 (T363) | footprint 0.7.9 | malloc 0.7.9 | RSS 0.7.9 | JS heap 0.5.0 → 0.7.9 | JS external |
-|---|---|---|---|---|---|---|
-| boot | 147 | 164 / 135 | 76 / 45 | 402 / 481 | 40 → 60 / 56 | 47 / 44 |
-| 8 pans | 170 | 194 / 154 | 83 / 48 | 478 / 521 | 44 → 60 / 64 | 53 / 51 |
-| satellite on, 4 pans | 178 | 205 / 164 | 85 / 49 | 520 / 546 | 52 → 72 / 72 | 61 / 59 |
-| water page (Cultus) | 232 | 230 / 213 | 67 / 48 | 626 / 654 | 108 → 116 / 120 | 33 / 33 |
-| rule book open / closed | 290 / 241 | - ; 271 / 222 | - ; 110 / 54 | - ; 854 / 839 | 108 → 120 | 33 |
-| rule book 2nd open / closed | 238 / 241 | - ; 218 / 222 | - ; 56 / 53 | - ; 867 / 851 | 108 → 120 | 33 |
-| Conditions | 265 | 242 / 230 | 71 / 53 | 652 / 869 | 108 → 132 / 132 | 44 / 44 |
-| Map tab after Conditions | 270 | 243 / 273 | 67 / 95 | 657 / 771 | 116 → 136 / 132 | 31 / 32 |
-| Salmon | 273 | 248 / 274 | 67 / 94 | 662 / 781 | 116 → 136 / 132 | 33 / 33 |
-| after a memory warning | 273 | 248 / 271 | 68 / 92 | 662 / 780 | 116 → 136 / 132 | 33 / 34 |
-
-- **Peak footprint 274 MB on 0.7.9, against 290 MB on 0.5.0** (0.5.0's peak was the rule book open). The two 0.7.9 runs
-  differ by up to 40 MB on the same step (boot 164 vs 135), so read a single step as about ±30 MB. The JS heap is 16-28 MB
-  above 0.5.0 throughout: more release data is held since 0.6.x.
-- **The rule book does not leak:** open 271, closed 222; a second open and close ends at 222 again (0.5.0: 241 / 241).
-- **The memory-warning trim is NOT tested.** `simctl spawn <udid> notifyutil -p UISimulatedMemoryWarningNotification`
-  (the scenario's way) did not reach the app: no `[trim]` line in the app log in either run (`memoryTrim.native.ts` logs one per
-  warning), and nothing was freed. The Simulator's Debug → Simulate Memory Warning is a GUI menu item; the headless
-  simulator the test bed boots has no window to send it to. No command-line way was found. A phone (or a Simulator
-  window driven by hand) is the check.
-- **Cold start → map drawn (`perf`, 3 runs): 597 / 583 / 595 ms** (screenshot polling, ±0.3 s). 0.5.0: ~0.61 s warm.
-  RSS 444-447 MB.
-- Map tap → page first frame (`perf`, Hope Slough at the start view): 123 ms cold, 54 / 64 ms warm (sql 13 / 3 / 3).
-- Pan (8 swipes): JS lag max 18 ms, 0 stalls > 50 ms, RSS peak 591 MB (0.5.0: lag 17 ms, 0 stalls, peak 609-613 MB).
-- Minimum iOS: 16.4 (T718). No device verdict: simulator only.
-
-### After T717 (browse map kept under a page): `ios-mem`, build 081d93f90, iPhone 17, 2026-11-14 22:33
-The same scenario and the same device as the baseline. **Still not fully like for like:** this build is ad-hoc signed
-(495c9d490) and carries every change since 8ba815a23, not only T717. And the two baseline runs already differed by up
-to 40 MB on the same step.
-
-| step | baseline 8ba815a23 (rest / benches) | 081d93f90 | malloc now |
-|---|---|---|---|
-| boot | 164 / 135 | 134 | 41 |
-| 8 pans | 194 / 154 | 217 | 107 |
-| satellite on, 4 pans | 205 / 164 | 192 | 77 |
-| **water page (Cultus)** | **230 / 213** | **279** | 95 |
-| rule book open / closed | - ; 271 / 222 | 348 / **338** | 166 / 148 |
-| rule book 2nd open / closed | - ; 218 / 222 | **389** / 343 | 206 / 150 |
-| Conditions (page left) | 242 / 230 | 158 | 45 |
-| Map tab after Conditions | 243 / 273 | 160 | 43 |
-| Salmon | 248 / 274 | 218 | 95 |
-| after a memory warning | 248 / 271 | 215 | 91 |
-
-- **Water page: 279 MB, +49 to +66 MB on the baseline** (Android after T717: 332-411 MB with a page up, the kept map
-  estimated at 10-25 MB there).
-- **Peak 389 MB** (the rule book's second open), against the baseline's 274.
-- **New, to look at:** with the page up, closing the rule book now frees only 10 MB (348 → 338; second time 389 → 343),
-  where the baseline freed about 50 MB (271 → 222). malloc stays at about 150 MB, against 54 before. Once the page is
-  left (Conditions), the footprint drops to 158 MB. So about 180 MB is held while a page is up and the book has been
-  opened. The test bed cannot split that between PDFKit and the kept map; Instruments (Allocations) on the simulator
-  would.
-- The memory warning freed nothing measurable (218 → 215), and still no `[trim]` line in the log.
-
-## The memory-warning trim, proven on the simulator (lane L6, 2026-11-20; commit 83653e704)
-- **How the warning now reaches the app.** Simulator's Debug → Simulate Memory Warning calls CoreSimulator's
-  `-[SimDevice simulateMemoryWarning]` (read in the framework's symbols). `app/tools/testbed/lib/sim-memory-warning.js`
-  (JXA through Foundation's bridge, no Apple events) calls the same method on the device named by its UDID;
-  `device-ios.mjs` `memoryWarning()` uses it. The old `simctl spawn … notifyutil` never reached the app, and System
-  Events is not authorised for a script on this Mac (`-1743`), so the menu could not be driven. The `memory` scenario's
-  warning step now FAILS without the app's `[trim]` line.
-- **Run** (build of 83653e704 `--testbed`, iPhone 17e, iOS 26.5, `run-ios.mjs memory`, 2026-11-20 08:09):
-  `sent: simulateMemoryWarning to iPhone 17e …; [trim] iOS memory warning, 14 database(s) shrunk, 0 idle closed`.
-  Footprint 263 → 257 MB, malloc 86.3 → 78.3 MB, JS external 60.9 → 33.3 MB (JS heap 124 unchanged). The trim fires
-  and frees what it claims (the release's page caches); nothing idle was closed (every database had been read within
-  the minute).
-- The same run's table (MB, footprint / malloc / JS heap): boot 145 / 45 / 64; 8 pans 166 / 49 / 68; satellite 224 / 93 /
-  84; Cultus Lake's page 295 / 102 / 124; Conditions 272 / 88 / 124; Map tab 262 / 85 / 124; Salmon 263 / 86 / 124.
-  The rule book steps failed in the bench (its `scroll-to` did not find the link on this build): no PDF numbers.
-- Left: the verdict on the oldest supported iPhone (owner, decision 2; the simulator says nothing about a phone's
-  memory limit).
+- [ ] 2026-11-14 — The oldest iPhone / iPad the app supports: today's build needs iOS 16.4+, iPhone only. Keep, or widen? Default: keep.

@@ -21,7 +21,7 @@ ticket.
 7. **Salmon card (T372):** a water with a DFO place that isn't on the map (Kitimat River). The "differs in some spots"
    fold lists it with DFO's words.
 
-## Standing checks (from OWNER-TODO "Phone testing")
+## Standing checks (from the old owner to-do, "Phone testing")
 - Back: edge swipe and the back button through sheets, views and tabs; sideways view swipe on a water.
 - Colouring: no water grey before its colour while panning; the five hatches; "At my location".
 - Nothing under the status bar or the gesture bar; a font-size change keeps the open water.

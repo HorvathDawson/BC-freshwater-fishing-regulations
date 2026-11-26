@@ -215,7 +215,7 @@ export function aboutBody(site: Site, asOf: string): string {
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
 }
 
-/** where privacy questions go: a placeholder until the owner sets the mailbox up (OWNER-TODO) */
+/** where privacy questions go: a placeholder until the owner sets the mailbox up (an owner ask in its ticket) */
 export const PRIVACY_EMAIL = "privacy@canifishthis.ca";
 export const PRIVACY_EFFECTIVE = "2026-11-19";
 

@@ -9,7 +9,7 @@
  *
  * STATION AGAINST STATION. The visit's flow is the spot's own gauge's DISCHARGE percentile that day (its row in the
  * frozen donor panel, which was asked in discharge; else its reading when that reading was a discharge only), and
- * each coming day's is the same station's. A level is never read here (decisions.md "NEVER MIX QUANTITIES").
+ * each coming day's is the same station's. A level is never read here (decisions.md, "Gauges and flow").
  *
  * EVERY FORECAST DAY HAS ITS OWN FLOW (T171). The feed ranks each of the next ten days (`aheadDays`: the day's mean,
  * the model per day by the publisher's one rule), so +2 and +4 carry flow like the rest. A day NO model reaches has no

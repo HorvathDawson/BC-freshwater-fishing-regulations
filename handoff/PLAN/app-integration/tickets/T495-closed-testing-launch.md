@@ -26,19 +26,17 @@ resumes as soon as closed testing starts (Play first, iOS right after).
 4. **A clean first run.** Fresh install → walkthrough → map → tap → regs, also on a bad connection, with no stale or
    dead control: T478, T423, T466, T456, T428 (and the IN REVIEW looks the owner has not confirmed).
 
-## Order
-1. **Close what is IN REVIEW** (owner looks, batched into one phone check): T443 T449 T451 T454 T456 T459 T475 T479 T480
-   T482 T483 T484 T423 T424 T428 T315 T354. What fails goes back on this list.
-2. **Gates 2–4 work** (Claude, ticket by ticket): T478, T351/T360, T494, T493 + T489 (one tiles rebuild), T488, T466,
-   T401/T448, T461.
-3. **Audit + review:** T462 (gate 1; owner 2026-11-08: runs AFTER the DFO extents (T164) are in), T463 (owner runs `/code-review ultra`, Claude triages), T496 cleanup sweep.
-4. **Production cut-over, prepared** (Claude preps, owner runs): T404 (one switch to prod, every origin from one
-   setting, prod runbook), T240 (launch checklist: map assets, HYDAT, report purge, SEO build, privacy page), T198/T409
-   (.com → .ca 301, HSTS, Search Console), T86 (prod hosting), the prod feeds worker (placeholder exists). Dry-run every
-   prod script against staging first; nothing prod runs without `CONFIRM_PROD` (human).
-5. **Store:** T244 (listing, privacy labels), T319 (store screenshots; owner 2026-11-11), T371 (promote the gated build to closed testing), T390 (in-app update
-   prompt, so testers get fixes), T514 (share page "Open in the app" → the store listing). Then iOS: T88 (TestFlight).
-6. **Salmon:** T164 lands whenever the owner's review is done; a release after it (T461, T453 ride along).
+## Order (what is left; the tickets closed since are listed once below)
+1. IN REVIEW looks: all closed.
+2. Gates 2–4 (Claude): T360 (memory, PARTIAL), T401 (PARTIAL; owner: not urgent), T461 (PARTIAL).
+3. Audit + review: T463 (owner runs `/code-review ultra`, Claude triages), T496 cleanup sweep (PARTIAL).
+4. Production cut-over (Claude preps, owner runs): T404 (one switch to prod, every origin from one setting, prod
+   runbook), T240 (launch checklist: map assets, HYDAT, report purge, SEO build, privacy page), T409 (.com → .ca 301,
+   HSTS, Search Console). Dry-run every prod script against staging first; nothing prod runs without `CONFIRM_PROD` (human).
+5. **Store:** T319 (store screenshots; owner 2026-11-11), T371 (promote the gated build to closed testing), T390 (in-app
+   update prompt, so testers get fixes), T514 (share page "Open in the app" → the store listing).
+Closed since: T443 T449 T451 T454 T456 T459 T475 T479 T480 T482 T483 T484 T423 T424 T428 T315 T354 (looks); T478,
+T351, T494, T493, T489, T488, T466, T448 (gates); T462 (gate 1); T244, T88; T164 (salmon); T198, T86, T453 DROPPED.
 
 Not for this goal (stay POSTPONED): T200 T201 T218 T219 T223 T234 T281 T389 T447 T487 T492, and T261/T310 beyond
 what ships.
