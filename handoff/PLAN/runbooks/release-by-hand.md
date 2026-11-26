@@ -383,7 +383,11 @@ that time").
 8. **The data worker** **[you]**, only when `deploy/staging/data-worker.js` changed:
    `npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml`.
 9. **The phones** **[you]**: Play Production (Step 6, Android 5) and the App Store (Step 6, iPhone 3). Before you
-   update the Play listing, **[Claude]** re-shoots the store pictures from a store-shots web build of the checkout (the
+   update the Play listing, **[Claude]** re-shoots the store pictures with the **store shots** workflow (Actions, Run workflow;
+   `.github/workflows/store-shots.yml`, T1131: every Play and App Store size from one store-shots web export; `open_pr` false
+   = artifact only, true = a PR from branch `chore/store-shots-<run id>`, whose checks start only after you close and reopen
+   it or push an empty commit, because a PR opened with the workflow's token starts no other workflow). The local fallback,
+   from a store-shots web build of the checkout (the
    tool builds and serves its own; staging is not used): `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots/run.mjs`
    (it fails, naming the scene, when a shot is missing its content, and stops at once when pointed at a site that is not a
    store-shots build; details in `handoff/PLAN/release/PRODUCTION.md`).
