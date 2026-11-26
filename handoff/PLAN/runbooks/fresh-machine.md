@@ -51,8 +51,8 @@ bash scripts/heavy.sh tier 30 -- bash scripts/pytest-chunked.sh -- -q -m "$marke
 ```
 
 `scripts/before_pr.sh --title "<the PR title>"` checks the title with its ` (#N)` suffix, then runs the last two at once on two heavy lanes, and is what to run before opening a PR. Tests that
-need a file outside git skip with a message naming it (`data/source/official/` region PDFs for the quota print checks; a
-data release for the ones marked `needs_bundle`).
+need a data release are marked `needs_bundle`. The region PDFs are not kept: the book is
+`data/source/fishing_synopsis.pdf`; validate against nothing else.
 
 ## 4. The web app
 
@@ -70,14 +70,14 @@ or for the app), makes `.venv`, then fetches:
 | `bc_fisheries_data.gpkg` (FWA 2024 + live layers as of the Mac's fetch) | `build.canifishthis.ca/source/<sha16>/` | 10.2 GB | sha256 in `data/source/pins.json` |
 | `hydat.sqlite3` (HYDAT 20261019) | same bucket | 1.3 GB | sha256 |
 | `fish_obstacles/fish_obstacles.gpkg` | same bucket | 33 MB | sha256 |
-| `bc.pmtiles` (basemap, Protomaps 2026-03-05, pruned upstream) | `data.canifishthis.ca/bc.pmtiles` | 4.4 GB | sha256 |
+| `bc.pmtiles` (the raw basemap, Protomaps 2026-03-05, pruned upstream; only a basemap rebuild, the tidal audit tools and the manifest's basemap date read it) | `data.canifishthis.ca/bc.pmtiles`: **404 since 2026-11-25, so the fetch exits 1 here** (T1120 find; copy the file from a machine that has it until its ticket lands) | 4.4 GB | sha256 |
 | `basemap.pmtiles` (the RELEASED basemap, basemap-6960ed933a82: the live release's ground) | `build.canifishthis.ca/source/<sha16>/` | 225 MB | sha256; bootstrap then releases it (`pipeline.deliver.tiles.basemap --release-only`) |
 | `generated/regs/extraction/{synopsis_raw_data,row_boxes}.json` (the synopsis extraction and its row boxes: the PDF highlight of every rule) | `build.canifishthis.ca/source/<sha16>/` | 0.8 MB | sha256 (the old `extraction/` backup was stale; a release without the row boxes is refused) |
 | DFO salmon pages, typed | DFO's live pages (`pipeline.regs.dfo_salmon.live`) | small | today's pages |
-| `data/source/fwa_coast.gpkg` (the atlas's coast cut, `config.yaml` `coast_gpkg_path`) | NOT pinned or fetched by bootstrap: `PYTHONPATH=. .venv/bin/python data/fetch_data.py --missing-only` makes it (the `fwa_rivers` and `fwa_land` layers) | 0.6 GB | none |
+| `fwa_coast.gpkg` (the atlas's coast cut, `config.yaml` `coast_gpkg_path`; without it the atlas fails in one second) | same bucket (pinned 2026-11-26; upstream: `data/fetch_data.py` layers `fwa_rivers`, `fwa_land`) | 0.6 GB | sha256 |
 
-Downloads resume (`curl -C -`); rerun the script after a drop. A file whose sha256 differs is deleted and the run fails.
-About 7 minutes at ~24 MB/s; a rerun with everything present takes seconds.
+Downloads resume (`curl -C -`); rerun the script after a drop (the message says "rerun to resume" for a 404 too). A file whose sha256 differs is deleted and the run fails.
+About 7 minutes at ~24 MB/s; on 2026-11-25 (3-8 MB/s, a shared link) the 10 GB file dropped three times and took four runs.
 
 Everything else the build reads is in git (curated data, places, stations, the synopsis PDF, municipal layers, DFO
 tidal pages, run-timing parse). Map fonts and sprites are fetched by the tiles stage itself, pinned to a commit.
@@ -106,7 +106,7 @@ The pins are the exact bytes the live release was built from. To move to newer u
 between fetches, so a refreshed gpkg gives a slightly different release: a data update, reviewed through the binding diff.
 
 Not mirrored on purpose: `data/source/steelhead/` (6.6 GB; only `known_waters` reads it, to propose the curated list),
-`data/source/official/` (region PDFs; only the quota print tests read them, and they skip naming the file),
+the region PDFs (no longer kept; nothing reads them),
 `data/source/runtiming/cu_tiles/` (the run-timing workflow fetches its own), `bathymetry_pdfs/` (served from R2).
 
 ## 8. Android debug build (heavy; prerequisites written from the scripts, T1120)
@@ -116,9 +116,9 @@ Not mirrored on purpose: `data/source/steelhead/` (6.6 GB; only `known_waters` r
 | JDK | `deploy/staging/build-apk.sh` precheck (`JAVA_HOME`, default Android Studio's JBR) | install Android Studio |
 | Android SDK (`ANDROID_HOME`, default `~/Library/Android/sdk`) with platforms, build-tools, and NDK 27.x for the app's Gradle build | the precheck | Android Studio, SDK Manager; Gradle fetches what the app asks |
 | NDK 28.2.13676358 + CMake 3.31.6 | `app/tools/maplibre-android/README.md` | `sdkmanager --install "ndk;28.2.13676358" "cmake;3.31.6"` (JAVA_HOME set as in that README) |
-| the pinned MapLibre AAR in `cache/maplibre/<MLN_VERSION>/` (git-ignored; built, not fetched) | the precheck, `pin.env` | `bash scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir outside the repo>` (12 min) |
+| the pinned MapLibre AAR in `cache/maplibre/<MLN_VERSION>/` (git-ignored; built, not fetched) | the precheck, `pin.env` | `bash scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir outside the repo>` (12 min; 33 on 2026-11-26, 20 of them the clone and its submodules) |
 | `llvm-readelf` | the precheck (under the SDK's `ndk/`) | comes with the NDK |
-| `android/app/debug.keystore` (git-ignored) | secrets.md | made by `expo prebuild` (Expo's standard one); a new one means each phone uninstalls the staging app once |
+| `app/apps/mobile/android/app/debug.keystore` (git-ignored) | the precheck; secrets.md | restored from the owner's backup, never a fresh key (the build refuses to sign with one): an update would not install over the last APK |
 | `app/workers/feeds/.run-token` | `build-apk.sh` emails with it; `--no-email` skips | `deploy/staging/rotate-run-token.sh` (rotates the STAGING worker's token: the owner's) |
 | Cloudflare login | uploading builds | `npx --prefix app wrangler login`; `--no-upload` skips |
 
