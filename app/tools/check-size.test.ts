@@ -171,6 +171,8 @@ describe("the page standards outside the tickets folder (the second cut)", () =>
     expect(run([...lean(), md(loose)]).join("\n")).toContain(`${loose}: a ticket's working page outside the tickets folder`);
     expect(run([...lean(), md(inFolder)]).join("\n")).toContain(`${inFolder}: a ticket's working page outside the tickets folder`);
     expect(run([...lean(), md(inFolder)], { workingPages: { [inFolder]: "the owner reads it" } })).toEqual([]);
+    const dated = `${DOCS_DIR}/app-integration/T9-files/pasted-2026-11-25.md`;
+    expect(run([...lean(), md(dated)], { workingPages: { [dated]: "the owner's pasted research" } })).toEqual([]);
     expect(run(lean(), { workingPages: { [inFolder]: "gone" } }).join("\n")).toContain(`WORKING_PAGES lists ${inFolder}, which is not tracked`);
     expect(run([...lean(), { path: `${DOCS_DIR}/app-integration/T9-shots/a.png`, bytes: 10 }])).toEqual([]);
     expect(run([...lean(), md(`${DOCS_DIR}/research/t9-hard-cases/NOTES.md`)]).join("\n")).toContain("a ticket's working page outside the tickets folder");
