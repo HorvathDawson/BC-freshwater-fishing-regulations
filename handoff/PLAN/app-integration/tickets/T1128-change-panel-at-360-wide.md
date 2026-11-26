@@ -29,3 +29,6 @@ closes it tells the planning chat and the chat that holds the picture tool.
 The reshoot (store chat, 2026-11-25, as it closed): the ready store-shots export was in a worktree that is gone, and
 this ticket changes the app, so build a fresh export, without `--reuse`:
 `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light --scenes <nn> --only play-phone`.
+
+## 2026-11-25
+The clipped day column is also on the appstore-6.3 set, frame 3 (store content chat, before it closed; PR #238).

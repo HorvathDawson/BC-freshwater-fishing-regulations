@@ -72,3 +72,16 @@ at the old one). Actions minutes: a public repo is not counted, in an org as on 
 - At the click, in this order: the 0.10.0 chat sets the main checkout's remote (one line, no working file); you
   make the new token; the repo-move chat puts it on staging, you run the production secret line; it compares the
   snapshot and re-checks auto-merge on open PRs. About 20 minutes, you present.
+
+**15:24: the repo is moved (you did the transfer and rename yourself at about 15:15, before the staging run ended).**
+It is canifishthis/canifishthis; the old address redirects. From the repo-move chat's interim report (15:25):
+- Same as before the move: 3 rulesets, the 4 required checks, the 4 Actions secrets, every branch and tag, the
+  Actions permissions. Lost in the transfer and put back with your OK: the main ruleset's admin bypass.
+- The merge queue is ON (your pick in its dialog: "Queue + restore bypass"); `gh pr merge --merge --auto` now
+  enqueues. The slug-flip PR #217 is its first entry.
+- New token: you set it on both workers; staging answers ok. **Still owed by you: the production worker's check
+  result, and the token's expiry date** (written here as a dated reminder when the chat has it).
+- You turned on Dependabot security updates and CodeQL ("I turned them on, keep"); Dependabot opened PR #250 (vite
+  5 to 8), held until 0.10.0 is out. Ticket T1141 says how these are handled.
+- Still open: #217 merged, and a worker-started workflow proven once staging is free. The clean-up chat's prompt
+  goes to you when the planning chat has the final "checks done".

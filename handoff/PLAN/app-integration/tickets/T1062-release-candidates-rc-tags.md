@@ -1,10 +1,10 @@
 # T1062 — Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes
 
-Status: IN PROGRESS — step 2 built on `feat/T1062-rc-tags` (2026-11-25); left (Claude): the independent review, the merge, then one release with rc tags and no moved tag.
+Status: IN PROGRESS — the build is on main (PR #257, 7139d1ae2); done when 0.10.0 has shipped through an rc with no moved tag
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1062 | Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes | IN PROGRESS — built 2026-11-25 (`feat/T1062-rc-tags`) | 5ac3d67f3 | left (Claude): independent review, merge, cherry-pick onto release/0.10.0, one release with rc tags; the tag ruleset after it (owner pick 4a) |
+| T1062 | Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes | IN PROGRESS — the build is on main (PR #257, 7139d1ae2); done when 0.10.0 has shipped through an rc with no moved tag | 5ac3d67f3 | flip to DONE with the commits after 0.10.0; two review finds are T1147 |
 
 Source: owner idea during the 0.9.0 release, relayed by the 0.9.0 chat 2026-11-24: 0.9.0's tag had to move after late fixes (T1027, T1034, T1049 cherry-picks).
 
@@ -48,3 +48,12 @@ staging ship (Recommended)"; who runs `release --final`: "Claude, on your word (
   (`BUILD_PRECHECK_SHA`, `build-links.sh build_same_head`).
 - 0.10.0: origin had no `v0.10.0` on 2026-11-25, so its next staging ship (this change cherry-picked) tags
   `v0.10.0-rc.1`. Had the old code made `v0.10.0` first: no rc is made, production takes the old rule.
+
+## 2026-11-25: built (repo-move chat, PR #257)
+On main through the merge queue as 7139d1ae2; commits 5ac3d67f3 (`build(T1062)`: code and tests) and fad6911e8
+(runbooks), cherry-picked onto `release/0.10.0` after a85dec393 (the repo's new name). What changed:
+`release --staging --push` tags `v<x.y.z>-rc.N` (a rerun at a new HEAD is the next rc; a HEAD that differs from
+the newest rc only by `versionCode` / `buildNumber` tags nothing); both phone build scripts refuse a tree that
+is not the newest rc; `python -m pipeline release --final <version>` (Claude, on the owner's word) puts
+`v<x.y.z>` on the newest rc; `--prod` refuses until that tag is there. One independent review; its four finds
+fixed with real-git tests (235 passed, 20 mutations killed); two more are T1147.
