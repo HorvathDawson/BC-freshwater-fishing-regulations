@@ -34,9 +34,9 @@ export const BUDGETS = {
   ticket:       [150, "an open ticket: the ask, the plan, the owner block; a long history is cut into closed.tsv's archive"],
   anyMarkdown:  [700, "past this no one reads a markdown file whole (generated / reference files are listed below)"],
   // the docs tree (handoff/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
-  treeLines:    [41836, "tracked markdown lines in the docs tree"],
-  treeFiles:    [1676, "tracked files in the docs tree"],
-  treePictureBytes: [174437113, "bytes of tracked png/jpg/webp/gif in the docs tree (pictures live in git forever)"],
+  treeLines:    [31403, "tracked markdown lines in the docs tree"],
+  treeFiles:    [1479, "tracked files in the docs tree"],
+  treePictureBytes: [152328535, "bytes of tracked png/jpg/webp/gif in the docs tree (pictures live in git forever)"],
 };
 
 /** README.md files under app/ or pipeline/ allowed to pass BUDGETS.subReadme: path -> its own budget (today's size + 10%). */
@@ -55,28 +55,10 @@ export const README_LONG = {
  *  cut (T1081) takes them off this list as it shortens them; an entry that is gone or under the cap fails ("take it off"). */
 export const TICKET_OVER = {
   "T1029-one-bank-stripe.md": 399,
-  "T1031-sources-inline-species-tabs.md": 151,
-  "T1039-gauge-page-app-chart.md": 164,
-  "T1041-faster-ci-feedback.md": 322,
+  "T1041-faster-ci-feedback.md": 324,
   "T1053-walk-stops-at-head-lake.md": 306,
-  "T1072-store-screenshots-and-marketing-content.md": 158,
-  "T234-push-notifications.md": 216,
-  "T240-production-launch-checklist.md": 242,
-  "T319-store-screenshots-auto.md": 190,
-  "T360-app-memory-footprint.md": 226,
-  "T634-lake-tab-depth-and-stocking.md": 256,
-  "T667-tests-that-grow.md": 456,
-  "T678-tidal-in-the-build.md": 243,
-  "T679-decisions-in-their-own-stage.md": 322,
-  "T708-missing-cuts-audit-fixes.md": 337,
-  "T723-ios-screens-since-1105.md": 242,
-  "T737-web-first-tap-waits-for-prefetch.md": 318,
-  "T739-push-wake-ups.md": 536,
-  "T741-faster-lighter-both-platforms.md": 353,
-  "T746-applying-new-data-shows-progress.md": 179,
-  "T760-first-install-waits-on-a-system-download-that-never-moves.md": 255,
-  "T810-trout-table-build-from-the-pipeline-to-the-screen.md": 587,
-  "T993-smoother-release-run.md": 276,
+  "T1072-store-screenshots-and-marketing-content.md": 165,
+  "T1140-water-link-opens-one-part-without-saying-so.md": 162,
 };
 
 /** Markdown files allowed over BUDGETS.anyMarkdown: path -> its own budget (today's size + 10%). */
