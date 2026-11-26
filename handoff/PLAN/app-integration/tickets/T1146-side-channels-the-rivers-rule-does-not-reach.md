@@ -106,3 +106,22 @@ measure: FWA lines against the polygon; approximate). Rees Creek carries it on 9
 owner cuts the park (curated, atlas rebuild ~32 min, all 365 sections change), the lower main stems of Burman,
 Bedwell and Rees, and probably Comox, lose the rule and the channels merge into them. Thelwood stays apart unless
 "Strathcona Park waters" includes Strathcona-Westmin."
+
+**Review round (independent review of #264).** No HIGH or MED findings. One LOW and two test gaps, all fixed in the
+second code commit:
+- A channel that another water flows into is never seeded. "Another water" means an inflow, stream or lake, whose
+  watershed code is neither the channel's nor under it, or is missing. Without this guard, the walk climbing on from
+  a channel refused as `bigger_river` could enter a different water feeding it. There are 26 such inflow edges in
+  the province (the Fraser's Maria and Annacis sloughs with the Williamson; the Pitt into Widgeon Slough; the
+  Columbia's Baldy and Hotsprings channels; the Squamish Powerhouse Channel). None of them fired in the side run.
+- New tests cover a channel touching a walked-past piece and a channel whose downstream end rejoins an unwalked
+  piece.
+- The binding diff is unchanged. I checked every inflow of the 22 seeded channel pieces behind the 56 sections
+  (30 edges): each is the channel's own code or a code under it, so the guard skips none of them. MacMillan's channel
+  drains INTO Diana Lake, which is in another basin. That is an outflow, not an inflow, so the channel stays seeded.
+
+**Open notes for the owner.**
+- The MacMillan Creek channel that drains into Diana Lake (360244113:889, 815 m) now carries the Skeena bait ban,
+  because FWA and the registry call it MacMillan Creek. Its water leaves the Skeena basin for Diana Lake.
+- In-season notices (`pipeline/regs/inseason/points.py`) walk through the same `expand`, but the binding diff does
+  not cover them. Their change is not measured.
