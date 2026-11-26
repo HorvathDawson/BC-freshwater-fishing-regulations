@@ -25,6 +25,7 @@ The RULINGS T4, T14 and T18 amendments (T1053; the all-year part is proposed unt
 ## Questions the owner will put to BC Fish and Wildlife
 
 The questions (the book read two ways; the app is built on the stricter reading) are `pipeline/docs/BOOK-QUESTIONS.md`.
+The printed errors are `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`.
 
 ## Harrison Lake's lake trout show "hatchery only" (a bare "trout" line covers char)
 
@@ -70,11 +71,53 @@ the entry id keeps the printed MU (`r4:mackenzie_creek@4-21`). Do not "correct" 
 errata: **Mackenzie Creek MU 4-21 -> 4-31.** Not found and not errata (`not_found` overrides): Frog Lake (MU 5-6),
 Redfern Lake (MU 5-15), Squirrel Lake (MU 6-1).
 
-## Two rows the province's newer book lost (Little Qualicum River, Lizard Lake), T1168
+## Two rows the province's newer book lost (Little Qualicum River, Lizard Lake): dropped, T1168, T1179
 
 Our copy (2025-11-18) prints LITTLE QUALICUM RIVER (1-6) and LIZARD LAKE (1-3); the gov.bc.ca copy edited 2026-08-25
-does not (rendered pp. 18-20; no notice says why) and prints PUNTLEDGE RIVER twice (pp. 19, 20). We keep both rows: a
-re-parse of the new copy must not drop them or make a second Puntledge. Sent to the province with the other questions.
+does not (rendered pp. 18-20; no notice says why) and prints PUNTLEDGE RIVER twice (pp. 19, 20). Owner, 2026-11-26: adopt
+the new book by hand, "drop the dropped rows by adding a drop boolean to the entries witrh a note why". So the two
+entries stay in the corpus with `drop: true` and a note (when the row was last printed, which book lost it); nothing
+deletes them and a re-read must not mint a second Puntledge. Until T1179 lands they are still live. The Province is
+asked in `BOOK-ERRORS-FOR-THE-PROVINCE.md` (entry 16).
+
+## Book errors we found, for the Province
+
+Every printed error or loose print is one entry of `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md` (region, row, page,
+what is printed, what is wrong, what we do meanwhile, evidence, date, status). Add one there first; the entries below
+say how the DATA treats the ones that look like a bug.
+
+## Stellako River opens May 15 (its dates replace the spring closure), P7a
+
+The row prints "No Fishing Nov 15-May 14"; the neighbours print "Nov 15-June 30", so May 14 is read as a replacement
+for the spring closure. Owner: "yes to open since it seems to be a replacement closure time to the springf closure."
+The Fraser-watershed (Region 6) and Zone A (7A) closures lift from May 15. Built in T1177; check the lift on both parts.
+
+## Hevenor, Station and Two Mile creeks: trout 1 all year, and the Nov 1-Jun 30 release stays (P7c)
+
+"Open all year; trout daily quota = 1 (no minimum size)" sits under Region 6's "release trout from streams Nov 1-Jun 30".
+On Jan 1 both "keep 1" and "release all" speak. Owner: "keep release add to gotchas". The release holds Nov 1-Jun 30.
+
+## Goat River "catch and release (mainstem only) Leadville Creek Cameron Creek" is garbled (O10, OPEN)
+
+Printed (Region 4) with no punctuation: a list, or a stretch? Built: catch and release on the whole river, none on the
+two creeks. Owner: "could it be boundaries? maybe it means between 2 confluences? we need to decide on best
+interpretation." Do not "fix" it until he picks; the Province is asked (BOOK-ERRORS entry 11).
+
+## Hay River basin keeps the stricter rule against the p.63 map (O12)
+
+The Region 7B Liard row says "see map p.63", and that map puts the Hay basin (Kotcho Lake, the Hay, Kotcho and Shekilie
+rivers) in the "Liard River Watershed". Data uses the true river basin, so all bull trout are released there. Owner: "we
+will not add hay basin in for now. leave it stricter". Not an error in the data.
+
+## Two Maka creeks, one rule on both (O14)
+
+"No trout under 25 cm" (Region 3) is bound to both Maka creeks, which are in the same MU. The curated "most likely" is
+the Spius Creek one. Owner: "keep on both because they are same MU and everything". Do not remove it from the other.
+
+## Nanaimo River's struck-through "15" (O17)
+
+The row prints "Sept 1-Oct ~~15~~" with the 15 struck through and nothing in its place. Data: Oct 15. Owner: "it is
+probably a format issue and is okay". A real end date from the Province would replace it.
 
 ## A water's undated hatchery-steelhead quota does not lift the zone's Nov-Jun release (the Kitimat)
 

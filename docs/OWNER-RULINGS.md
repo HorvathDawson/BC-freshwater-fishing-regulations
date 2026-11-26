@@ -80,6 +80,123 @@ unit ever. (region sometimes is like with the fraser)"
 ### P4: tributaries of excepted rivers (the Squamish), 2026-11-26
 "Keep it as now".
 
+## Audit rulings, batch 2 (2026-11-26, T1177)
+
+His words, verbatim. The data change is the line after "Build:"; all of it rides the one audit data build inside the
+0.10.0 re-cut (T1177), with an answers diff per change. His answer to "when": "Inside the 0.10.0 re-cut".
+
+### Principles that came out of the audit
+- **The walk continues through lakes** (P1, above); an upstream row replaces an inherited rule only if it targets the
+  same item; orthogonal rules stack (P1 follow-up: "Yes, the ruling stands").
+- **The printed MU identifies, it does not authorise** (P3, above). A row is never limited to its unit; a region
+  limits a row only sometimes (the Fraser).
+- **Fixes go in at the extent level, no special cases** (P5, P6b, O13): a change to an extent op, never a code path
+  for one water.
+- **An MU-boundary river is in both units** (Campbell River, above; D1 of the audit).
+- **One tributary logic across the board, book and DFO**: "unless you have exact dfo words saying what they mean by
+  tributaries we should have a single tributary logic that is the saame across the board." Build: DFO places climb
+  head lakes like the book's rows, unless DFO's own written definition says otherwise (look for DFO's exact words first).
+
+### P5: a tributary at a row's boundary point
+"yes to leave out x unless including is what i want but we need to implement it in the extent level like by having
+changes to op maybe? need it to be low level". Build: X (and its tributaries) is left out of "upstream / downstream of X"
+unless the row says "including"; an extent op, not a special case (16 cases).
+
+### P6a, P6b: notes and spot rules stop walking
+P6a: "Facilities and 'please note' lines (Recommended)". Build: they stop inheriting the tributaries mark.
+P6b: "yes to recommended but please only change extents to make it happen". Build: the 4 spot closures and the Bulkley
+method rule stay inside the spot; boat rules keep walking; extents only.
+
+### P7a: Stellako opens May 15
+"yes to open since it seems to be a replacement closure time to the springf closure. add to gotcha too and make sure it
+if lifted properly". Build: the row's Nov 15-May 14 replaces the spring closures; open May 15; GOTCHAS entry; verify the lift.
+
+### P7c: Hevenor, Station, Two Mile
+"keep release add to gotchas". Build: the Nov 1-Jun 30 trout release stays; GOTCHAS entry.
+
+### P8: steelhead on lakes
+"Rows + the region box + Tenas (Recommended)". Build: the lake copies bind to lakes whose rows mention steelhead, the
+lakes a region's steelhead box names, and Tenas.
+
+### P9: marshes are lakes
+"Treat marshes as lakes". Build: the 16 marsh and swamp waters of 7A (and any other region's) take the lake rules.
+
+### P10: the seven out-of-unit bindings stay
+First: "we should have an agent audit these and build evidence in all directiosn and look for alternatives then i will
+review". After the evidence: "i agree with the 7 items can you add all the info to the notes? so we dont have to
+refined it. also could add to gotchas in a way that if we wanted to compile errors we found to send to gov it was easy."
+Done: the seven overrides (Lynx, Chubb, Bridal, Hiawatha, Emerald, Nation River, Ellison) keep their bindings and carry
+the evidence in their notes; the errors are listed in `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`.
+P10b, the cross-unit check: "Yes, report only (Recommended)" (per row-and-water pair, an exceptions file, report only
+until the rebinds land).
+
+### P11: the August 2026 book
+"adopt it eexcept we dont need a parser run you can run a subagent to produce the changes then youi can audit it and
+make sure it parsed it right. drop the dropped rows by adding a drop boolean to the entries witrh a note why. also can
+we add gotchas for them being dropped with info." Build (T1179): no parser run; a sub-agent applies the changes by
+hand, the planning chat audits; Little Qualicum River and Lizard Lake are dropped with `drop` plus a note; GOTCHAS entry.
+
+### DFO tributaries at head lakes
+See the principle above (one tributary logic). Build: T1177.
+
+### T1084: creeks with no bank in the data
+"Record the method, build nothing (Recommended)". The 98 %-accurate geometry method is kept for the day a case appears.
+
+### Lake zones: direction (picks OPEN)
+"yes to app fix and draw the ones we can but the closed p[arts we need to handle properly. like i dont think we should
+split up lakes super tiny for example the babine circles of closure and juyst visual and have a text reference saying to
+look at map or whatever. could we look into this more to make sure it is cvlean". Direction: the app fix yes (year bar and
+"Closed from"); draw what we can; small closures as an overlay plus words, never tiny cuts. The design's seven picks
+(overlay, Babine, timing, off-day, sign-only zones, Shuswap map A, search words) are NOT ruled (T1180).
+
+### Side-channel labels
+"all of them now. also we need to make sure th ui still says if it is in an area in the subtitle in the app so a user
+knows eco reserve or park or whatever in those cases. (like how sections use start and end to create subtitle. we need
+this to be universal and cleanly produced the same wat the a to b labels are". Also: "we want consistent naming for
+anyhting so have consistent rules"; "No verb for a leaving channel (Recommended)"; on a unique channel: "most seperate
+ruled side channel shouldnt need addition differentiation". Read as: a distance only when the water has more than one
+such part; the area (park, eco reserve, WMA) shows in the app subtitle for every part inside one, built by the same path
+as the A-to-B labels. Server side: PR #312. App side: T1181. Old Kootenay: "Shorter: '... inside Creston Valley WMA'";
+Thelwood: "yes name it but this is something we need to fix generally."; channels take the river's rules: "Yes, after the
+park-rule fix (Recommended)" (T1149).
+
+### The one-offs, "One by one, with the book's words (Recommended)"
+- **O1 Little River:** "Row dates replace the spring closure (Recommended)". Build: both rules bind the whole river.
+- **O2 Upper Chehalis River:** "close it and check pattern. we need to think about this because tributaries have a
+  closure so in this case it needs to override." Build: closed; a lake-tributary closure overrides.
+- **O3 Lost Lake near Whistler:** "Move it to the Whistler lake (Recommended)". Build: the electric-motor rule moves.
+- **O4 Hatton Creek:** "Add fly-only to Hatton Creek (Recommended)". Build: fly only Sep 1-Jul 14.
+- **O5 Gwillim, Muncho:** "Keep the zone limit (Recommended)". Build: none.
+- **O6 McRae Creek:** "that is the real falls location". Build: none; the cut stays at 2.05 km; the book's "about 4 km" is on the Province list.
+- **O7 Connor Lake's tributaries:** "it needs to apply to all tributaries of the lake need to make sure this is true for
+  all items like this". Build: every "X Lake's tributaries" row binds ALL the lake's inflows; a province-wide sweep.
+- **O8 Robb Lake:** "Keep the zone dates (Recommended)". Build: none.
+- **O9 Okanagan River Oxbows:** "Keep both exempt, list it for the Province (Recommended)". Build: none; on the Province list.
+- **O12 Hay River basin:** "is this the basin alogn the alberta boarder on the right side of liard river watershed? im
+  not sure here this should be added to gotchas I think and we will not add hay basin in for now. leave it stricter".
+  Build: none (the true basin, all bull trout released); GOTCHAS and the Province list.
+- **O13 Healy Lake outlet:** "yes to bleow the lake but make sure you use global extent for this not rule level".
+  Build: the closure is cut below Healy Lake as a global extent on the water.
+- **O14 Maka Creek:** "keep on both because they are same MU and everything make sure the gotcha is there for this". Build: none; GOTCHAS.
+- **O15 Tamihi Creek:** "Our cut is the falls". Build: none (0.66 km stays); on the Province list.
+- **O16 Shuswap above Sugar Lake:** "it is a better more cautious reading to limit it so that it is not exempoting the
+  whole river so exempt here". Read as: the spring-closure exemption is limited to Mara Bridge-Sugar Lake and catch and
+  release stays on the whole river. This reading is Claude's: confirm.
+- **O17 Nanaimo River:** "it is probably a format issue and is okay add to gotchas." Build: none (Oct 15 stays); GOTCHAS.
+
+### OPEN, not ruled
+- **P7b, Region 5 "other streams listed in the tables":** "it should lift the stream global scoep so the scope fromt
+  hrename + locator in the name not the scope in the regs itself. unless it means only ones in the region that say open
+  all year or exempt from? bercause the example that line in the synopsis gives is the fraser which lisats mainstem as
+  open all year? can you think about it?" His lean: a listed row lifts the closure on the stream as its name and locator
+  scope it; not park rows; not the tributaries of those rows. The audit (`P7b`): whole stream names (opens Chimney above
+  Brunson Lake, 26.1 km) against only the stretch described (closes upper Moffat, Blue Lead, Mitchell). Asked, not answered.
+- **O10 Goat River:** "add to gotchas and could it be boundaries? maybe it means between 2 confluences? we need to decide
+  on best interpretation". An agent checks where Leadville and Cameron creeks join the Goat. Until he decides: as built.
+- **O11 Mine Lake:** "Show me the map first".
+- **The Oxbows label:** "Other" (no text given); asked again.
+- **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
+
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".
 - Waters whose rules bind nowhere (Squirrel Lake 6-1, Frog, Redfern) are the known unfound waters.

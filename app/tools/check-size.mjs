@@ -38,7 +38,7 @@ export const BUDGETS = {
   // (T1144, 2026-11-26; the owner confirms) the restart pages are NOT in this total: each live chat adds one, so with about
   // 112 lines of room the third chat to save its state failed docs-ci and its push the night credits ran short. They keep
   // their own cap (`restart`, 60 lines each) and are deleted when their chat ends.
-  readingLines: [11129, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],
+  readingLines: [11150, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],
   // the docs tree (docs/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
   treeLines:    [23000, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],
   treeFiles:    [1600, "tracked files in the docs tree"],
@@ -75,6 +75,8 @@ export const MARKDOWN_LONG = {
  *  leaves the list when it is cut; a NEW long page needs an entry here, in its PR, with the reason beside it. */
 export const PAGE_LONG = {
   "pipeline/docs/RULINGS.md": 452,                                         // the owner's rulings on how the book is read: his words, never shortened
+  "docs/OWNER-RULINGS.md": 206,                                    // his standing rulings, in his words, never shortened (T1177: audit batch 2); like RULINGS.md
+  "pipeline/docs/GOTCHAS.md": 193,                                 // the gotchas (T1177: the audit rulings' entries); the Province's list is its own page
   "docs/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
   "docs/play-production-access/questionnaire-draft.md": 173,       // the Play production access record
   "docs/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends
