@@ -1285,5 +1285,10 @@ CREATE TABLE part_inside (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area T
 -- one name, not the water's: that name (`added_streams.json` `streams[].name` by blk) and the words of its source (the
 -- water's `name_source.label` for that name). `answers.display` names it "<water> — <name> (<label>)": Noons Creek's
 -- part that is the City of Port Moody's Turner Creek, filed with it until the refile.
+-- (T1140) WHERE A SIDE CHANNEL JOINS ITS RIVER, measured on the shapes where the flow does not say it
+-- (`side_channels.write`): `m` the main stem's measure from the mouth (both ends of the section, as `section_span` holds a
+-- side channel's), `lo` a named lake its lower end flows into (`lake_inlet:<item>`). Read by the export's runs only
+-- (`export.read.with_joins`); `section_span` keeps the flow's own measures, which number the parts in river order.
+CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT) WITHOUT ROWID;
 CREATE TABLE part_own_name (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, name TEXT NOT NULL, label TEXT NOT NULL,
                             PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;

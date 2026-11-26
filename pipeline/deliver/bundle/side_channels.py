@@ -16,9 +16,11 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    reach) or an unnamed lake its main line runs through is measured at the main line's point nearest the touch,
    whatever the distance
    — the snap limit holds only where the end touches NO water body of its river. A channel failing one gets NO join (never a guessed distance), logged here; a part whose NAME then lacks a
-   distance stops the build at the answers step, named (`answers.display.builders._names`). Written into
-   `section_span.lo_m = hi_m` of every section of that channel: the export then says "joining N km from the mouth" by
-   its one rule (`display.part.runs_label`).
+   distance stops the build at the answers step, named (`answers.display.builders._names`). Written as the
+   join of every section of that channel (`section_join`): the export then says "joining N km from the mouth" by its
+   one rule (`display.part.runs_label`). Never into `section_span`: the parts were
+   numbered in river order from the flow's own measures (`derived.part_rows`, asserted by `topology.part_geo`), and only
+   the export's runs read the join (`export.read.with_joins`).
 2. WHICH AREA A PART LIES INSIDE, OR AT (`part_inside`): a part with no main stem whose every section is measured and
    at least `INSIDE_SHARE` of it lies in one cut area of the atlas's catalogue (`area_catalog.gpkg`, `cut` = 1: the
    areas the atlas cuts streams at — reserves, national parks, restricted land; never a region, an MU group or a sign
@@ -234,7 +236,6 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
     if un_keys:
         from shapely.strtree import STRtree
         un_tree = STRtree([unnamed[k] for k in un_keys])
-    eid = dict((t, e) for e, t in db.execute("SELECT eid, token FROM span_end"))
     for o in sorted(secs):
         iid, name, kind = item[o]
         if kind != "stream":
@@ -271,12 +272,8 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             hit = touched(downstream_ends(shapes, dn), [x for x in own if x[0] not in inside], lakes, on_stem)
             if hit and hit[0] == "lake":
                 # into a named lake on its river's main line: that is its lower end (rule A names it)
-                tok = f"lake_inlet:{hit[1]}"
-                if tok not in eid:
-                    eid[tok] = (max(eid.values()) + 1) if eid else 1
-                    db.execute("INSERT INTO span_end (eid, token) VALUES (?, ?)", (eid[tok], tok))
-                low = min(comp, key=lambda s: (geo[s].distance(hit[2]), s))
-                db.execute("UPDATE section_span SET lo = ? WHERE sid = ?", (eid[tok], low))
+                # on the channel's lowest piece, whose lower end its run says (`spans.compose_runs`)
+                db.execute("INSERT INTO section_join (sid, m, lo) VALUES (?, NULL, ?)", (comp[0], f"lake_inlet:{hit[1]}"))
                 log(f"     side channel: {iid} {name} sections {comp[0]}…({len(comp)}): flows into {hit[1]} (touches it)")
                 continue
             try:
@@ -293,8 +290,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
                 stop(f"side channel: {iid} ({name}) sections {comp}: its joining end is {snap:.0f} m from "
                      f"the main line, beyond {MAX_SNAP_M:.0f} m — no join to say (T1140: never a guess)")
                 continue
-            db.executemany("UPDATE section_span SET lo_m = ?, hi_m = ? WHERE sid = ?",
-                           [(round(m), round(m), s) for s in comp])
+            db.executemany("INSERT INTO section_join (sid, m, lo) VALUES (?, ?, NULL)", [(s, round(m)) for s in comp])
             filled += len(comp)
     log(f"     side channel: {filled} sections given the join their flow does not say")
     # 2. inside an area

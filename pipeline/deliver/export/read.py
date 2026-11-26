@@ -792,6 +792,8 @@ def read(bundle: Path) -> dict:
         "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem, s.shape FROM section_span s "
         "JOIN part_section ps ON ps.sid = s.sid "
         "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
+    # (T1140) where a side channel joins its river, measured where the flow does not say it (`bundle.side_channels`)
+    span = with_joins(span, db.execute("SELECT sid, m, lo FROM section_join"))
     touch_of: dict[int, set[int]] = defaultdict(set)
     for a, b in db.execute("SELECT a, b FROM section_touch"):
         touch_of[a].add(b)
@@ -951,6 +953,17 @@ def group_runs(parts: list[dict]) -> list[list[dict]] | None:
             if not r.get("branch"):
                 stem = len(joined) - 1
         out.append([r for _, r in joined])
+    return out
+
+
+def with_joins(span: dict, joins) -> dict:
+    """(T1140) `span` with the bundle's measured joins laid over it (`section_join`: sid, m, lo): a side-channel section's
+    measure at both its ends, and a named lake as its lower end. A section of no part read here is left out."""
+    out = dict(span)
+    for sid, m, lo in joins:
+        if sid in out:
+            a, b, lo0, hi, off, shape = out[sid]
+            out[sid] = (m if m is not None else a, m if m is not None else b, lo or lo0, hi, off, shape)
     return out
 
 
