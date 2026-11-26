@@ -8,7 +8,7 @@ Status: OPEN — production went live 2026-11-18/19 (old owner to-do record 2026
 
 Source: owner 2026-10-28 — approved proposal P6 in proposed-tickets-2026-10-28.md (in git history at 03be2862e) ("approved ALL 16").
 Pulls together what T86 (hosting), T198 (SEO redirects / Search Console), T225 (feeds), T232 (environments),
-handoff/PLAN/seo/staging.md "Findings (owner / prod)" and the old owner to-do page say prod needs.
+handoff/PLAN/seo/MEASURE.md "Findings for production" and the old owner to-do page say prod needs.
 Scope, owner 2026-11-04 (superseded by the 11-18/19 launch): "we could work on a checklist but we arent going to
 production beyond a closed testing."
 

@@ -11,7 +11,7 @@ Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, ever
 ## Owner 2026-11-09 (Q179)
 "sure": shorten / purge the backups to match the privacy page. Owner: no.
 
-## Done (cfcdf7e07 W2, fb5f387a3 W6; `handoff/PLAN/app-integration/T608C-findings.md` W2 / W6)
+## Done (cfcdf7e07 W2, fb5f387a3 W6; the T608 part C audit in git history: T608C-findings.md, W2 / W6)
 - Backups (`app/workers/feeds/src/backup.ts`): personal records (`private/reports/`, `private/crashes/`) daily-only
   within the privacy page's dates, never monthly; prune + POST /run/forget-report; deploys check daily/ ≤ 30 d. The page
   (app/tools/seo/html.ts) says reports are deleted 180 days after receipt 'including any email', error records 90 days

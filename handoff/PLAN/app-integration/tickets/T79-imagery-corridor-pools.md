@@ -6,7 +6,7 @@ Status: POSTPONED (owner 2026-10-28: parked; defaults stand — no offline image
 |---|---|---|---|---|
 | T79 | imagery corridor P0 + pools validation | POSTPONED | — | parked by owner 2026-10-28; defaults stand |
 
-Source: owner 2026-10-21: "No offline 10 m base (10m is useless)" — stream-imagery/SPEC.md still offers the 10 m T1
+Source: owner 2026-10-21: "No offline 10 m base (10m is useless)" — research/satellite/README.md still offers the 10 m T1
 tier and §12 has 8 open questions (10 m pack, buffer, sources, Province licence, server option, caps).
 pools/README.md: "not validated yet … needs about 10 hand-checked pools". The Layers sheet shows Corridors, Pools and
 runs, Relief as "coming soon" with no build ticket.

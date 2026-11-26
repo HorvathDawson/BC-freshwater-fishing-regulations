@@ -246,7 +246,8 @@ def test_the_real_archive_cites_what_its_tickets_cited_before_they_were_archived
     assert tsv.exists(), f"{tsv} is missing: the closed tickets' index is committed (ledger.mjs --archive writes it)"
     texts = R.ticket_texts(tickets)
     full: dict[str, str] = {}
-    for gz in sorted((tickets / "archive").glob("*.tar.gz")):
+    # the closed tickets' archives only: the folder also holds other compressed notes (night-notes-*.tar.gz)
+    for gz in sorted((tickets / "archive").glob("closed-*.tar.gz")):
         with tarfile.open(gz) as tf:
             for m in tf.getmembers():
                 tid = re.match(r"T\d+[a-z]?", m.name).group(0)

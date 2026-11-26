@@ -1,10 +1,7 @@
 # Google Play: store listing (fact sheet, T371)
 
-2026-11-13. Nothing has been submitted. The listing text started in T244's
-`handoff/PLAN/app-integration/store/listing-draft.md` (2026-10-29), which still holds the name, keywords, categories,
-support URLs, rating answers and the shot list. **The short and the full description are now TO BE WRITTEN by the
-owner**, by hand, from the facts below (owner 2026-11-13). The polished draft that was here is in git: last version at
-commit `0d54f7189` (`git show 0d54f7189:handoff/PLAN/play/listing.md`). It is the same text for the App Store.
+The fact sheet the store words are checked against (`app/tools/store-video/checks.mjs` captions rest on it). The words
+themselves live in `app/store-listing/listing.json`.
 
 Limits: Play short description 80 characters max; full description 4000 max; app name 30 max.
 
@@ -15,8 +12,8 @@ name, the in-app name (`core/src/menu/words.ts`), the permission prompts, the fe
 already matches. Play allows 30 characters.
 
 ## Fact sheet (checked against the code and release data, 2026-11-13)
-"Build 29" = version 0.7.7, versionCode 29, the build on Play internal (`app/apps/mobile/app.json`). Items marked
-**(next build)** are in the repo but not in build 29. Paths are under `app/packages/` unless stated.
+Paths are under `app/packages/` unless stated. Items marked **(next build)** were in the repo but not in the build the
+sheet was checked against (0.7.7, versionCode 29).
 
 ### What the app is
 - A map of BC freshwater fishing regulations: tap a stream or a lake and it shows what the regulations allow there on the day chosen, beside what the water is doing (`core/src/menu/words.ts` `about.what`).
@@ -103,23 +100,6 @@ already matches. Play allows 30 characters.
 ### Platform and limits
 - Android now (Play internal testing, build 29). iOS not yet (benched, owner 2026-11-06). Web at canifishthis.ca.
 - Data sources: BC Freshwater Fishing Regulations Synopsis, DFO notices (salmon), BC in-season changes, Water Survey of Canada / ECCC gauges and HYDAT, BC River Forecast Centre forecasts, BC Freshwater Atlas (dated 2024-03-26), OpenStreetMap and Protomaps basemap, Open-Meteo weather, Esri imagery.
-
-### Disagreements: the old listing text vs the code
-- Old: "Salmon notices and in-season changes ... when DFO publishes them." Wrong: in-season changes are the Province's; DFO is the salmon feed only.
-- Old: "refresh when you are on Wi-Fi" (More -> Data). The setting is now Settings -> "Download over mobile data" (Always / Ask / Wi-Fi only); it governs large downloads, not a refresh.
-- Old: "your location is only used to show the map where you are", true, but a saved spot pinned from GPS has its position sent (rounded) to Open-Meteo, and the report carries the map centre.
-- Old: "a problem report ... two things only": the staging-env build also sends install id and map centre (listed above).
-- data-safety.md vs code: it says crash switch is "More -> Data"; in the code it is Settings -> Privacy (More -> Settings, T703). Its text predates T703. Its Open-Meteo rounding to 0.01 degrees is the owner's answer (2026-11-04); not re-read in `weather.ts` here (see Not verified).
-
-### Not verified
-- Search by an old name or a nearby town (the old text said so); only the name search was seen in code.
-- Counts of waters, named waters and regions: not cheaply readable from the release manifest; left out.
-- The 0.01 degree rounding of Open-Meteo coordinates in `weather.ts`, and the file:line evidence in data-safety.md (not re-checked).
-- Run timing and salmon details beyond the map modes named above (what species, which regions).
-- The Play AAB's environment (staging: reports on) is as data-safety.md says; production builds send no reports.
-- Whether the store build is built with the "Colour-blind" and the web-only low-bandwidth settings as described is from the code; not run on a device.
-- Phone-only: that the first install is "about 500 MB" is the setting's own hint text, not a measurement.
-- Whether Settings is reachable as the first row of More on build 29 (T703 is after build 29; build 29 has the controls on the More tab per the T703 header).
 
 ## Graphics (already made by T244; nothing new drawn here)
 All files are in `handoff/PLAN/app-integration/store/graphics/`.
