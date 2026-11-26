@@ -1,6 +1,6 @@
 # T1092 — Web: "Database deleted by request of the user" arrives as a crash report
 
-Status: IN REVIEW — fix built; proof: crash kind `790ae7cc172f9424` no longer arriving from web builds that carry it (the old kind stays classed `expected`).
+Status: IN REVIEW — proof: kind `790ae7cc172f9424` stops arriving from web builds that carry the fix; left (Claude): a real-browser clear of site data under an open tab.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
