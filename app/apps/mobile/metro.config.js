@@ -7,6 +7,10 @@ const { getDefaultConfig } = require("expo/metro-config");
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, "../.."); // app/
 
+// (T1154) the phone map's engine, one per build (map-engine.js: EXPO_PUBLIC_MAP_ENGINE, unset = maplibre): an engine this
+// app does not have stops every bundle here (web, Android, iOS), named, never a fallback to maplibre
+require("./map-engine").mapEngine();
+
 // (T251) the app's version, build number, commit and build day, inlined into the bundle as EXPO_PUBLIC_* (version-stamp.js)
 require("./version-stamp").stampVersion(projectRoot);
 

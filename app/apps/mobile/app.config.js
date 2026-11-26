@@ -27,6 +27,10 @@ if (production && process.env.EXPO_PUBLIC_MAP_LAB) {
   throw new Error("app.config.js: EXPO_PUBLIC_MAP_LAB is for staging and test-bed builds only; unset it for production");
 }
 
+// (T1154) the phone map's engine, one per build (map-engine.js: EXPO_PUBLIC_MAP_ENGINE, unset = maplibre): an engine this
+// app does not have stops the config here, named, never a fallback to maplibre
+require("./map-engine").mapEngine();
+
 // (T420, T893, T978) every Android build carries a locally built MapLibre, production too: the pinned upstream commit with
 // no patch (app/tools/maplibre-android/pin.env, owner 2026-11-22); build-apk.sh refuses any other AAR and checks the
 // APK/AAB carries its build id; plugins/with-pinned-maplibre.js refuses a production Android config without it

@@ -13,6 +13,9 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 
+// @ts-expect-error -- plain CommonJS, read by Expo's and Metro's configs (no types)
+import engines from "../apps/mobile/map-engine.js";
+
 const APP = resolve(__dirname, "..");
 const MOBILE = resolve(APP, "apps/mobile");
 const read = (p: string) => readFileSync(resolve(APP, p), "utf8");
@@ -93,5 +96,34 @@ describe("the resolved Expo config is today's", () => {
   });
   it("an EAS production profile (the iPhone's): production, no local MapLibre", () => {
     expect(resolvedConfig({ ...CONTACT, EAS_BUILD_PROFILE: "production" })).toEqual(today({ production: true, local: null }));
+  });
+  it("the default engine named outright (EXPO_PUBLIC_MAP_ENGINE=maplibre) is the same config", () => {
+    expect(engines.DEFAULT_MAP_ENGINE).toBe("maplibre");
+    expect(resolvedConfig({ EXPO_PUBLIC_MAP_ENGINE: "maplibre" })).toEqual(today({ production: false, local: null }));
+    expect(resolvedConfig({ EXPO_PUBLIC_MAP_ENGINE: "maplibre", MLN_LOCAL_MAVEN: repoOf(PINNED) }))
+      .toEqual(today({ production: false, local: PINNED }));
+  });
+});
+
+describe("EXPO_PUBLIC_MAP_ENGINE: one engine per build, an unknown one fails by name (W46)", () => {
+  const refusal = (value: string) => `Error: EXPO_PUBLIC_MAP_ENGINE="${value}" is not a map engine of this app; the engines `
+    + `are: ${engines.MAP_ENGINES.join(", ")} (app/apps/mobile/map-engine.js, T1154)`;
+  it("unset is the default engine; each engine this app has is itself", () => {
+    expect(engines.mapEngine({})).toBe(engines.DEFAULT_MAP_ENGINE);
+    expect(engines.MAP_ENGINES).toContain(engines.DEFAULT_MAP_ENGINE);
+    for (const e of engines.MAP_ENGINES) expect(engines.mapEngine({ EXPO_PUBLIC_MAP_ENGINE: e })).toBe(e);
+  });
+  it.each(["nope", "", "MapLibre", " maplibre"])("%j is refused, never read as maplibre", (value) => {
+    expect(() => engines.mapEngine({ EXPO_PUBLIC_MAP_ENGINE: value })).toThrow(refusal(value).slice("Error: ".length));
+  });
+  it("the Expo config stops on it, naming the value and the engines", () => {
+    const r = inNode(CONFIG, { EXPO_PUBLIC_MAP_ENGINE: "nope" });
+    expect([r.status, r.stdout]).toEqual([1, ""]);
+    expect(r.stderr).toContain(`\n${refusal("nope")}\n`);
+  });
+  it("Metro's config stops on it (every bundle: web, Android, iOS), naming the value and the engines", () => {
+    const r = inNode("require('./metro.config.js')", { EXPO_PUBLIC_MAP_ENGINE: "nope" });
+    expect([r.status, r.stdout]).toEqual([1, ""]);
+    expect(r.stderr).toContain(`\n${refusal("nope")}\n`);
   });
 });
