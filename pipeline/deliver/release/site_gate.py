@@ -41,7 +41,7 @@ def site_name(site: str) -> str:
 def redeploy_steps(rid: str | None, site: str = STAGING_SITE) -> str:
     del rid     # (T544) the one command builds on LATEST, which is the release about to be uploaded
     if site.rstrip("/") == PROD_SITE:
-        return ("deploy the production site first (handoff/PLAN/runbooks/release-by-hand.md Step 7 item 5: the web export "
+        return ("deploy the production site first (docs/runbooks/release-by-hand.md Step 7 item 5: the web export "
                 "and SEO pages on this release, then CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh), then promote again")
     return ("redeploy the staging site first (export, SEO pages on LATEST, deploy, smoke), then upload again:\n"
             "    deploy/staging/site-all.sh")

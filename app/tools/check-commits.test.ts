@@ -35,7 +35,7 @@ describe("the acceptance messages (T998)", () => {
     expect(await lintMessage("fix(T994): x")).toEqual({ valid: true, errors: [], warnings: [] });
     const bad = await lintMessage("fix(T9999): x");
     expect(bad.valid).toBe(false);
-    expect(bad.errors).toEqual(["T9999 has no ledger row (the row table in its file, handoff/PLAN/app-integration/tickets/Tnnn-*.md, T1041): " +
+    expect(bad.errors).toEqual(["T9999 has no ledger row (the row table in its file, tickets/Tnnn-*.md, T1041): " +
       "add the ticket file and its row first, or fix the id [tickets-in-ledger]"]);
     // a ticket named in the subject counts too (the ledger guard reads subjects the same way)
     expect((await lintMessage("docs(handoff): T9999 notes")).errors.join()).toContain("T9999 has no ledger row");

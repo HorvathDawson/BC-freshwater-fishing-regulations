@@ -49,7 +49,7 @@ And one guard, because a re-parse replaces an entry wholesale and there is no `l
   THE LEDGER'S DIGEST IS `io.entry_digest` (T628), the one the reach run, the bundle and the review vintage hold for
   an entry, and the file says so (`{"digest": "io.entry_digest", "entries": {...}}`). A ledger written before that (a
   flat `entry_id -> sha256`) cannot be compared: its entries read as never seen — every one KEPT — and each run says
-  so until the re-seed, which belongs to the annual run (`handoff/PLAN/runbooks/annual-synopsis.md` step 9), not
+  so until the re-seed, which belongs to the annual run (`docs/runbooks/annual-synopsis.md` step 9), not
   before: seeding declares every edit made since the last seed to be ingest's own write.
 """
 
@@ -457,7 +457,7 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
     if ledger_is_legacy(ledger):
         print(f"NOTE {ledger} was written before the ledger's digest became {LEDGER_DIGEST} (T628): none of its "
               f"records can be compared, so every entry already on disk is KEPT. The re-seed belongs to the annual "
-              f"run (handoff/PLAN/runbooks/annual-synopsis.md step 9), not before.")
+              f"run (docs/runbooks/annual-synopsis.md step 9), not before.")
     if marks_path is None:
         from pipeline.common.curated import CURATED
         marks_path = CURATED.review.marks

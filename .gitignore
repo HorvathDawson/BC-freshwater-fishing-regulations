@@ -79,4 +79,4 @@ data/source/runtiming/fetched.json
 
 # (T1041) the ledger and owner VIEWS, built from each ticket's row and `## Owner` block by `node app/tools/ledger.mjs` (the
 # post-checkout and post-merge hooks run it): a committed view would conflict on every merge, which is what they ended
-handoff/PLAN/views/
+docs/views/

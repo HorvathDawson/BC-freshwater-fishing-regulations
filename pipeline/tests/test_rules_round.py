@@ -1,4 +1,4 @@
-"""RULES round (2026-10-07): the user's answers to handoff/QUESTIONS.md and the audit's FIX BATCH.
+"""RULES round (2026-10-07): the user's answers to docs/QUESTIONS.md and the audit's FIX BATCH.
 
 One test (or a few) per ruling or fix class, on real waters, read the way a consumer reads them:
 the catalogue for what the book says, the reader (`read.effective_rules`) for who speaks, and a

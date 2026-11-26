@@ -7,7 +7,7 @@
 # Re-runnable: each step skips what is already done (the pinned downloads resume). It never fetches the live sources:
 # `data/source/pins.json` names the exact bytes the live release was built from. Refreshing from upstream is a separate
 # choice (`python data/fetch_data.py`, then `python -m pipeline.tools.source_pins pin …`). Runbook:
-# handoff/PLAN/runbooks/fresh-machine.md.
+# docs/runbooks/fresh-machine.md.
 #
 # Secrets are not needed to build. To upload: rclone remote `r2:` (R2 S3 token) and wrangler login (staging deploys).
 set -euo pipefail

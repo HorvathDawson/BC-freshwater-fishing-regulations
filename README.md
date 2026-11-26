@@ -17,7 +17,8 @@ looks answers up. Not affiliated with the Government of British Columbia: always
 | `curation-review/` | the owner's review tool (FastAPI backend + Vite frontend); writes the owner's marks |
 | `deploy/` | staging and production uploads, site and worker deploys, store builds |
 | `scripts/` | dev and CI helpers: `heavy.sh`, `before_push.py`, the test tiers, bootstrap |
-| `handoff/` | the work: tickets and their ledger, runbooks, plans, the owners' asks (each ticket's `## Owner` block) |
+| `docs/` | the plans, runbooks, restart pages and decisions |
+| `tickets/` | the open tickets, and the index of the closed ones |
 | `.github/`, `.githooks/` | the seven workflows (four are required checks); the commit-msg and pre-push hooks |
 
 Each folder, pipeline stage and app package has its own `README.md`.
@@ -27,7 +28,7 @@ Each folder, pipeline stage and app package has its own `README.md`.
 - Data side: [`pipeline/docs/MAP.md`](pipeline/docs/MAP.md) (stages, inputs, outputs), then `pipeline/build.py` (one rebuild) and
   `pipeline/deliver/__main__.py` (the release steps). How the book is read: [`pipeline/docs/RULINGS.md`](pipeline/docs/RULINGS.md), which wins over any other note.
 - App side: [`app/MAP.md`](app/MAP.md), then `app/apps/mobile/src/App.tsx` (the one shell) and `app/packages/ui-native/src/Shell.tsx`.
-- Rules for working here: [`AGENTS.md`](AGENTS.md); read the rule you are about to touch. Work lives in tickets (AGENTS W49): `handoff/PLAN/app-integration/tickets/README.md`.
+- Rules for working here: [`AGENTS.md`](AGENTS.md); read the rule you are about to touch. Work lives in tickets (AGENTS W49): `tickets/README.md`.
 
 ## The three everyday things
 
@@ -51,7 +52,7 @@ python scripts/before_push.py         # what a PR's required checks ask, for thi
 ```
 
 Tools: Python 3.13, Node (`app/.nvmrc`) with pnpm 9, and tippecanoe + pmtiles for tiles. The whole fresh-machine path is
-`handoff/PLAN/runbooks/fresh-machine.md`; a release is `python -m pipeline release --staging` (`handoff/PLAN/runbooks/release.md`; production is the owner's).
+`docs/runbooks/fresh-machine.md`; a release is `python -m pipeline release --staging` (`docs/runbooks/release.md`; production is the owner's).
 The synopsis parse spends credits: **a person runs it**, never an agent (AGENTS A1; `pipeline/regs/parsing/README.md`).
 
 ## Contributing

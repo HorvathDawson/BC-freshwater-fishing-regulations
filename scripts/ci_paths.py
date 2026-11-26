@@ -48,7 +48,7 @@ _SHARED = [".github/actions/changes/**", "scripts/ci_paths.py"]
 
 #: area -> the paths it watches, in GitHub's glob syntax (`*` stops at `/`, `**` crosses it)
 AREAS: dict[str, list[str]] = {
-    "docs": ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md",
+    "docs": ["docs/**", "tickets/**", "AGENTS.md", ".github/copilot-instructions.md",
              "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
              # (T1041) the guard reads the rows and owner items through the ledger tool
              "app/tools/ledger.mjs", "app/tools/ledger.test.ts",
@@ -63,8 +63,8 @@ AREAS: dict[str, list[str]] = {
             ".github/workflows/feeds-worker-ci.yml", "data/LICENSE-ODbL.md",
             "deploy/staging/build-apk.sh", "deploy/staging/build-ios-sim.sh", "deploy/staging/build-ios-testflight.sh",
             "deploy/staging/feeds.sh", "deploy/lib/build-links.sh", "scripts/fast-fail.sh", "scripts/heavy.sh",
-            "handoff/PLAN/runbooks/release.md",
-            "handoff/PLAN/ios/APP-STORE-SUBMISSION.md",   # (T1099) app/tools/privacy-manifest.test.ts compares the manifest with its labels
+            "docs/runbooks/release.md",
+            "docs/ios/APP-STORE-SUBMISSION.md",   # (T1099) app/tools/privacy-manifest.test.ts compares the manifest with its labels
             "pipeline/deliver/tiles/basemap.py", "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
             "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
             "pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/publish.py", "scripts/test-full.sh",
@@ -90,8 +90,8 @@ AREAS: dict[str, list[str]] = {
                  # app (generated copies, fixtures, goldens, the tree scanners), the README, the pytest setup, two
                  # handoff folders. Derived by test_workflow_pins.py, which fails when a test reads a path this misses.
                  ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md", "pytest.ini", "conftest.py",
-                 ".gitignore", "handoff/PLAN/runbooks/**",
-                  "handoff/PLAN/app-integration/store/graphics/store/light/**",   # (T1127) test_store_push_pictures reads the committed set
+                 ".gitignore", "docs/runbooks/**",
+                  "docs/app-integration/store/graphics/store/light/**",   # (T1127) test_store_push_pictures reads the committed set
                   *_SHARED],
 }
 

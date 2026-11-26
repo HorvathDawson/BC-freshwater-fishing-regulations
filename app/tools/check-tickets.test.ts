@@ -99,7 +99,7 @@ describe("the guard fires (mutation)", () => {
     const input = { ...noGit, tickets: [...real.tickets, { name: "T84-another-slug.md", text: t84.text }] };
     // the list is sorted by its text, and that text starts with a folder name the rename changes: compare as a set (T1081)
     expect(new Set(checkLedger(input))).toEqual(new Set([
-      'T84: handoff/PLAN/app-integration/tickets/ids/T84 claims "T84-ticket-ledger-guard.md", but the ticket file is T84-another-slug.md: one number, one ticket',
+      'T84: tickets/ids/T84 claims "T84-ticket-ledger-guard.md", but the ticket file is T84-another-slug.md: one number, one ticket',
       "T84: more than one ticket file (T84-another-slug.md, T84-ticket-ledger-guard.md)",
     ]));
   });
@@ -121,7 +121,7 @@ describe("the guard fires (mutation)", () => {
   it("on a ticket file removed while commits still name it", () => {
     const input = { ...real, tickets: real.tickets.filter((t) => idOfFile(t.name) !== "T84") };
     expect(checkLedger(input)).toEqual(["T84: named in a commit subject but missing from the ledger",
-      'handoff/PLAN/app-integration/tickets/ids/T84: claims "T84-ticket-ledger-guard.md", which is not a ticket file of that number']);
+      'tickets/ids/T84: claims "T84-ticket-ledger-guard.md", which is not a ticket file of that number']);
   });
 
   it("(T1041) on a row twice in one file, a row of another ticket, a block with no row", () => {
@@ -172,21 +172,21 @@ describe("T1081 archived tickets", () => {
   });
   it("a number is used once: an id in closed.tsv with a file or a claim still here fails", () => {
     expect(checkLedger({ ...noGit, closed: [line("T84")] })).toEqual([
-      "T84: T84-ticket-ledger-guard.md is still here but T84 is in handoff/PLAN/app-integration/tickets/closed.tsv: a number is used once",
-      "handoff/PLAN/app-integration/tickets/ids/T84: T84 is in handoff/PLAN/app-integration/tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
+      "T84: T84-ticket-ledger-guard.md is still here but T84 is in tickets/closed.tsv: a number is used once",
+      "tickets/ids/T84: T84 is in tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
     const claimOnly = { ...gone("T84"), claims: noGit.claims };
     expect(checkLedger({ ...claimOnly, closed: [line("T84")] })).toEqual([
-      "handoff/PLAN/app-integration/tickets/ids/T84: T84 is in handoff/PLAN/app-integration/tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
+      "tickets/ids/T84: T84 is in tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
   });
   it("a closed.tsv line is held to the closed rules: DONE / DROPPED only, a hash on DONE, a short last cell", () => {
     const input = gone("T84");
     expect(checkLedger({ ...input, closed: [line("T84", { status: "OPEN" })] })).toEqual([
-      'T84: handoff/PLAN/app-integration/tickets/closed.tsv holds it as "OPEN": only DONE / DROPPED tickets are archived']);
+      'T84: tickets/closed.tsv holds it as "OPEN": only DONE / DROPPED tickets are archived']);
     expect(checkLedger({ ...input, closed: [line("T84", { commits: "—" })] })).toEqual([
-      "T84: handoff/PLAN/app-integration/tickets/closed.tsv row is DONE with no commit hash"]);
+      "T84: tickets/closed.tsv row is DONE with no commit hash"]);
     expect(checkLedger({ ...input, closed: [line("T84", { status: "DROPPED", commits: "—" })] })).toEqual([]);
     expect(checkLedger({ ...input, closed: [line("T84", { left: "x".repeat(LEFT_CELL_MAX + 1) })] })).toEqual([
-      `T84: handoff/PLAN/app-integration/tickets/closed.tsv row's last cell is ${LEFT_CELL_MAX + 1} characters (max ${LEFT_CELL_MAX})`]);
+      `T84: tickets/closed.tsv row's last cell is ${LEFT_CELL_MAX + 1} characters (max ${LEFT_CELL_MAX})`]);
   });
   it("the closed lines must be given, never read as 'nothing archived'", () => {
     const { closed: _none, ...without } = noGit;
@@ -234,28 +234,28 @@ describe("T1041 the old places hold no row and no item", () => {
   it("a row typed into README.md the old way fails, naming the way to carry it", () => {
     const readme = real.legacy.readme.replace(LEDGER_POINTER.trim(), `## Ledger\n\n${ROW_HEADER}\n${ROW_SEP}\n${rowOf(noGit, "T84")}`);
     expect(checkLedger({ ...noGit, legacy: { ...noGit.legacy, readme } })).toEqual([
-      "handoff/PLAN/app-integration/tickets/README.md holds 1 ledger row(s) (T84…): a row lives in its ticket file under the Status line (T1041); " +
+      "tickets/README.md holds 1 ledger row(s) (T84…): a row lives in its ticket file under the Status line (T1041); " +
       "move each row into its ticket file by hand (the one-row table under the Status line), then empty this table"]);
   });
   it("a DONE.md that comes back fails, even an empty one", () => {
-    expect(checkLedger({ ...noGit, legacy: { ...noGit.legacy, doneLedger: "" } })[0]).toMatch(/^handoff\/PLAN\/app-integration\/tickets\/DONE\.md exists/);
+    expect(checkLedger({ ...noGit, legacy: { ...noGit.legacy, doneLedger: "" } })[0]).toMatch(/^tickets\/DONE\.md exists/);
   });
   it("(T1081) the retired owner to-do page or folder coming back fails, naming the Owner block", () => {
-    const out = checkLedger({ ...noGit, legacy: { ...noGit.legacy, retired: ["handoff/PLAN/OWNER-TODO.md", "handoff/PLAN/owner-todo"] } });
+    const out = checkLedger({ ...noGit, legacy: { ...noGit.legacy, retired: ["docs/OWNER-TODO.md", "docs/owner-todo"] } });
     expect(out).toHaveLength(2);
-    expect(out[0]).toMatch(/^handoff\/PLAN\/OWNER-TODO\.md exists: it was retired \(T1081\): an owner ask is a line of the "## Owner" block/);
-    expect(out[1]).toMatch(/^handoff\/PLAN\/owner-todo exists: it was retired/);
+    expect(out[0]).toMatch(/^docs\/OWNER-TODO\.md exists: it was retired \(T1081\): an owner ask is a line of the "## Owner" block/);
+    expect(out[1]).toMatch(/^docs\/owner-todo exists: it was retired/);
     expect(() => checkLedger({ ...noGit, legacy: { ...noGit.legacy, retired: undefined as unknown as string[] } })).toThrow(/needs legacy/);
   });
   it("a line added to README's ledger section fails", () => {
     const readme = real.legacy.readme.replace(LEDGER_POINTER.trim(), `${LEDGER_POINTER.trim()}\n- T1099 is next (typed here the old way)`);
     expect(checkLedger({ ...noGit, legacy: { ...noGit.legacy, readme } })).toEqual([
-      'handoff/PLAN/app-integration/tickets/README.md: its "## Ledger" section is not the pointer text (ledger.mjs LEDGER_POINTER): a row lives in its ticket file (T1041), nothing is written there']);
+      'tickets/README.md: its "## Ledger" section is not the pointer text (ledger.mjs LEDGER_POINTER): a row lives in its ticket file (T1041), nothing is written there']);
   });
   it("(T1041) every ticket claims its number in tickets/ids/, and the claims must be given", () => {
     expect(real.claims.length).toBe(real.tickets.length);
     expect(checkLedger({ ...noGit, claims: real.claims.filter((c) => c.name !== "T84") })).toEqual([
-      "T84: no number claim handoff/PLAN/app-integration/tickets/ids/T84 (node app/tools/ledger.mjs --claim writes it): two PRs that take one number must collide there"]);
+      "T84: no number claim tickets/ids/T84 (node app/tools/ledger.mjs --claim writes it): two PRs that take one number must collide there"]);
     const { claims: _none, ...without } = noGit;
     expect(() => checkLedger(without as Input)).toThrow(/needs claims/);
   });
@@ -338,7 +338,7 @@ describe("T539 the docs guard", () => {
     expect(checkDocs(docs)).toEqual([]);
     expect(docs.restartPages.map((r: { name: string }) => r.name)).toContain("cleanup.md");
     expect(docs.restartFiles).toEqual(expect.arrayContaining(LEGACY_RESTART));
-    expect(citedPaths(docs.startHere)).toContain("handoff/PLAN/app-integration/tickets/README.md");
+    expect(citedPaths(docs.startHere)).toContain("tickets/README.md");
     expect(ruleIds(docs.agents).length).toBeGreaterThan(60);
   });
   it("(T1081) the restart pages must be given, never read as 'no restart pages'", () => {
@@ -379,9 +379,9 @@ describe("T539 the docs guard", () => {
   });
   it("(T1081) a restart page outside restart/ fails unless it is one of the four named legacy pages", () => {
     expect(LEGACY_RESTART).toHaveLength(4);
-    expect(checkDocs({ ...live(), restartFiles: [...docs.restartFiles, "handoff/PLAN/RESTART-new-chat.md"] })).toEqual([
-      "handoff/PLAN/RESTART-new-chat.md is a restart page outside handoff/PLAN/restart/ (T1081): move it there, link it from START-HERE.md (LEGACY_RESTART names the only ones left where they are)"]);
-    expect(checkDocs({ ...live(), restartFiles: [...docs.restartFiles, "handoff/PLAN/NEXT-SESSION-2026-11-25-x.md"] })[0]).toMatch(/NEXT-SESSION-2026-11-25-x\.md is a restart page outside/);
+    expect(checkDocs({ ...live(), restartFiles: [...docs.restartFiles, "docs/RESTART-new-chat.md"] })).toEqual([
+      "docs/RESTART-new-chat.md is a restart page outside docs/restart/ (T1081): move it there, link it from START-HERE.md (LEGACY_RESTART names the only ones left where they are)"]);
+    expect(checkDocs({ ...live(), restartFiles: [...docs.restartFiles, "docs/NEXT-SESSION-2026-11-25-x.md"] })[0]).toMatch(/NEXT-SESSION-2026-11-25-x\.md is a restart page outside/);
     expect(checkDocs({ ...live(), restartFiles: [...LEGACY_RESTART] })).toEqual([]);
   });
   it("fails on a repeated AGENTS rule id", () => {
@@ -407,9 +407,9 @@ describe("T628 the docs guard covers the runbooks", () => {
   });
   it("fails on a dead path in a command block (the T553 case: a renamed curated folder) and in backticks", () => {
     const block = checkDocs(withAnnual(`${annual().text}\n\`\`\`bash\nOLD=data/curated/regulations/entries/catalogue\ncp $W/book/region-*.json $OLD/\n\`\`\`\n`));
-    expect(block).toEqual(["handoff/PLAN/runbooks/annual-synopsis.md cites data/curated/regulations/entries/catalogue, which does not exist"]);
+    expect(block).toEqual(["docs/runbooks/annual-synopsis.md cites data/curated/regulations/entries/catalogue, which does not exist"]);
     const tick = checkDocs(withAnnual(`${annual().text}\n see \`pipeline/tools/does-not-exist.py\``));
-    expect(tick).toEqual(["handoff/PLAN/runbooks/annual-synopsis.md cites pipeline/tools/does-not-exist.py, which does not exist"]);
+    expect(tick).toEqual(["docs/runbooks/annual-synopsis.md cites pipeline/tools/does-not-exist.py, which does not exist"]);
   });
   it("a variable, glob or placeholder in a command is not a path", () => {
     expect(runbookPaths("```bash\ncp $W/book/region-*.json data/release/<r-id>/x app/tools/check-tickets.mjs:12\n```")).toEqual(["app/tools/check-tickets.mjs"]);

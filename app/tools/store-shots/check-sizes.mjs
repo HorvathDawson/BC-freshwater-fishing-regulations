@@ -20,7 +20,7 @@ export function sizeProblems(root, { shots, targets }, only = null) {
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === new URL(import.meta.url).pathname) {
   const a = process.argv.slice(2), val = (k, d) => (a.includes(k) ? a[a.indexOf(k) + 1] : d);
-  const graphics = path.resolve(val('--dir', path.resolve(APP, '../handoff/PLAN/app-integration/store/graphics')));
+  const graphics = path.resolve(val('--dir', path.resolve(APP, '../docs/app-integration/store/graphics')));
   const cfg = JSON.parse(fs.readFileSync(path.join(APP, 'tools/store-shots.json'), 'utf8'));
   const p = sizeProblems(path.join(graphics, 'store', val('--theme', 'light')), cfg, val('--only', null)?.split(','));
   if (p.length) { console.error(`store-shots sizes: ${p.length} problem(s)\n  ${p.join('\n  ')}`); process.exit(1); }

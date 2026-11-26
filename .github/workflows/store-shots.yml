@@ -44,7 +44,7 @@ permissions:
 
 env:
   TZ: America/Vancouver
-  GRAPHICS: handoff/PLAN/app-integration/store/graphics
+  GRAPHICS: docs/app-integration/store/graphics
 
 jobs:
   shoot:

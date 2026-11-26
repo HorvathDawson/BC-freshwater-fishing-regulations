@@ -32,7 +32,7 @@ from typing import Iterable, List, Optional, Sequence, Tuple
 
 #: (T679 #8, owner 2026-11-20 09:59 "Ranking's rule, list first") THE OWN-GAUGE FLAG (`flow-own`): OFF until the owner
 #: has seen the list of gauges that move between "ON THIS WATER" and "ESTIMATING FROM OTHER WATERS"
-#: (handoff/PLAN/app-integration/T679-shots/own-gauge-moves.csv) and said ship it — ON: the owner saw the list and said
+#: (docs/app-integration/T679-shots/own-gauge-moves.csv) and said ship it — ON: the owner saw the list and said
 #: "Ship it" (2026-11-20 10:45). An optional file: an app before 0.8.4 does not know it and keeps its own rule; 0.8.4
 #: reads the flag where the release carries it.
 SHIP_OWN_GAUGE_FLAG = True

@@ -3,7 +3,7 @@
  * T46 — the owner's pictures of the fish sheets (not a test: skipped unless `T46_SHOTS=1`). Each sp: sheet is core's
  * own (`fishSheet`, the fish manifest's pictures and captions), drawn by the real SheetHost with the app's picture
  * files, laid out and photographed by headless Chrome (`wide-measure.mjs`) at 390 (phone), 1024 (tablet) and 1440
- * (desktop), into handoff/PLAN/app-integration/T46-shots/. A harness, because no water's page offers every one of these
+ * (desktop), into docs/app-integration/T46-shots/. A harness, because no water's page offers every one of these
  * fish (sockeye, coho and chinook appear on no fixture page); the steelhead / rainbow / kokanee sheets were also shot in
  * the live app (see the README there).
  *
@@ -26,7 +26,7 @@ import { DARK, LIGHT } from "../packages/ui-native/src/theme";
 import { snapshot } from "./wide-snapshot";
 
 const ON = process.env.T46_SHOTS === "1";
-const OUT = join(process.cwd(), "..", "handoff", "PLAN", "app-integration", "T46-shots");
+const OUT = join(process.cwd(), "..", "docs", "app-integration", "T46-shots");
 const ASSETS = join(process.cwd(), "apps", "mobile", "assets", "fish");
 const FISH_IMAGES = Object.fromEntries(Object.entries(FISH).map(([code, pics]) =>
   [code, pics.map((p) => ({ thumb: { uri: pathToFileURL(join(ASSETS, "thumbs", p.file)).href }, full: { uri: pathToFileURL(join(ASSETS, p.file)).href } }))]));

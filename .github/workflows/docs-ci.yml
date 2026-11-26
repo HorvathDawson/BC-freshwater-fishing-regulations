@@ -8,7 +8,7 @@ name: docs
 # tree's totals, closed tickets' picture folders). A ledger fix alone must run it, or a red run on a ledger
 # edit stays the newest and blocks the release's CI check (scripts/ci_status.py reads this workflow too).
 #
-# It used to run inside app-ci for every push under handoff/: 210 docs-only pushes, 1,578 minutes in 30 days, to run
+# It used to run inside app-ci for every push under docs/: 210 docs-only pushes, 1,578 minutes in 30 days, to run
 # a check that takes seconds. Here a docs push costs the install and two small test files.
 
 on:
@@ -16,7 +16,7 @@ on:
   # scripts/ci_paths.py AREAS["docs"], word for word (test_workflow_pins.py); lanes get CI through their PR
   push:
     branches: [main, "release/**"]
-    paths: ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md", "app/tools/check-tickets.mjs",
+    paths: ["docs/**", "tickets/**", "AGENTS.md", ".github/copilot-instructions.md", "app/tools/check-tickets.mjs",
             "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts", "app/tools/ledger.mjs",
             "app/tools/ledger.test.ts", "app/tools/check-size.mjs", "app/tools/check-size.test.ts",
             # (T1081) the size guard reads every markdown file's length and each package's README / manifest

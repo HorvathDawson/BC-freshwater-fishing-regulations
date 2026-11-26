@@ -8,10 +8,10 @@ name: app
 #   vitest   `pnpm run test`         the app's whole test suite (the second half of `pnpm check`)
 #   bundles  web + native bundles    each step runs whether or not the other failed
 # The feeds worker's own suites (T431) are a separate workflow, feeds-worker-ci.yml, with its own path filter; the
-# ticket ledger / handoff docs guard is docs-ci.yml, on handoff/** (a docs-only push used to run this whole workflow for
+# ticket ledger / handoff docs guard is docs-ci.yml, on docs/** (a docs-only push used to run this whole workflow for
 # it: 210 runs, 1,578 minutes in 30 days). `scripts/ci_status.py` reads all of them.
 #
-# NOT here any more: pipeline/regs/dfo_salmon/**, pipeline/gauges/**, requirements.txt, constraints.txt and handoff/**
+# NOT here any more: pipeline/regs/dfo_salmon/**, pipeline/gauges/**, requirements.txt, constraints.txt and docs/**
 # (the worker parity tests that read them moved to feeds-worker-ci.yml; the generated-file gates over the pipeline's
 # code are also pipeline-ci.yml's `emit --check`).
 
@@ -25,7 +25,7 @@ on:
             ".github/workflows/feeds-worker-ci.yml", "data/LICENSE-ODbL.md", "deploy/staging/build-apk.sh",
             "deploy/staging/build-ios-sim.sh", "deploy/staging/build-ios-testflight.sh", "deploy/staging/feeds.sh",
             "deploy/lib/build-links.sh", "scripts/fast-fail.sh", "scripts/heavy.sh",
-            "handoff/PLAN/runbooks/release.md", "handoff/PLAN/ios/APP-STORE-SUBMISSION.md", "pipeline/deliver/tiles/basemap.py",
+            "docs/runbooks/release.md", "docs/ios/APP-STORE-SUBMISSION.md", "pipeline/deliver/tiles/basemap.py",
             "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
             "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
             "pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/publish.py", "scripts/test-full.sh",

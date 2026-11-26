@@ -147,7 +147,7 @@ release (its live `release/manifest.json`, read first, also in the dry run — `
 staging serves); otherwise: it re-uploads the SAME release folder that passed this
 command's checks and reached staging (the ledger says so, and its content fingerprint must be unchanged), through
 `deploy/prod/upload.sh <r-id>` (T404: it promotes what staging serves — the same manifest bytes — and keeps the previous
-pointer for deploy/prod/rollback.sh; handoff/PLAN/runbooks/release-by-hand.md, hosts + rollback in handoff/PLAN/release/PRODUCTION.md). It runs ONLY for a human:
+pointer for deploy/prod/rollback.sh; docs/runbooks/release-by-hand.md, hosts + rollback in docs/release/PRODUCTION.md). It runs ONLY for a human:
 CONFIRM_PROD=<r-id> in the environment, an interactive terminal where the id is typed again, and no agent environment
 (CLAUDECODE / AI_AGENT). Otherwise it prints the exact commands and refuses (exit 2).
 
@@ -2832,8 +2832,8 @@ def prod_instructions(rid: str, r: dict) -> str:
             f"    deploy/prod/upload.sh {rid} --bucket bc-fishing-regulations-staging --dry-run     # rehearse, nothing sent\n"
             f"    CONFIRM_PROD={rid} python -m pipeline release --prod {rid}\n"
             f"which runs (after you type the id again): CONFIRM_PROD=canifishthis.ca {' '.join(prod_cmd(rid))}\n"
-            f"The whole release by hand (site, feeds worker, Play) is handoff/PLAN/runbooks/release-by-hand.md; hosts and rollback "
-            f"are handoff/PLAN/release/PRODUCTION.md.")
+            f"The whole release by hand (site, feeds worker, Play) is docs/runbooks/release-by-hand.md; hosts and rollback "
+            f"are docs/release/PRODUCTION.md.")
 
 
 def tag_problems(rid: str, r: dict) -> list[str]:
@@ -3043,7 +3043,7 @@ def prod(rid: str, ask=input, on_battery: str | None = None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline release", description=__doc__.split("\n")[0],
-                                 epilog="Runbook: handoff/PLAN/runbooks/release.md")
+                                 epilog="Runbook: docs/runbooks/release.md")
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--staging", action="store_true", help="build -> checks -> promote LATEST -> upload staging")
     g.add_argument("--prod", metavar="R-ID", help="HUMAN-ONLY: re-upload this checked, staged release to production")

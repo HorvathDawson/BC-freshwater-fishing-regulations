@@ -53,7 +53,7 @@ function EdgePan({ drag, children }: { drag: EdgeBackDrag; children: React.React
    * re-renders the view only when a native ANIMATION ends). React's copy of the transform kept the drag's offset, and a
    * later commit of this view put it back on screen. iPhone simulator, 2026-11-20: two edge drags that landed on a water
    * page's map were cancelled (each spring home made `x` native), a third went back, and the browse map and its day bar
-   * stood ~75 % to the right, through pans (`handoff/PLAN/ios/shots/t938/`), as the T928 tester's phone did. So every
+   * stood ~75 % to the right, through pans (`docs/ios/shots/t938/`), as the T928 tester's phone did. So every
    * hard home also re-renders this view (`sync`): React reads `x` again (0) and commits it.
    */
   const [, sync] = useReducer((n: number) => n + 1, 0);
