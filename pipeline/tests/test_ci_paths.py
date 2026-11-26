@@ -39,7 +39,9 @@ def test_the_match_is_githubs_glob(path, pattern, hit):
 def test_areas_of_a_change():
     assert CP.areas_of(["handoff/PLAN/STATUS.md"]) == {"docs"}
     assert CP.areas_of(["NOTICE.txt"]) == set()
-    assert CP.areas_of(["README.md"]) == {"pipeline"}                    # (T995 review) test_doc_drift reads it
+    assert CP.areas_of(["README.md"]) == {"docs", "pipeline"}            # (T995 review) test_doc_drift reads it; (T1081) its size budget
+    assert CP.areas_of(["pipeline/regs/README.md"]) >= {"docs"}          # (T1081) any markdown file's length is budgeted
+    assert CP.areas_of(["pipeline/newstage/__init__.py"]) >= {"docs"}    # (T1081) a new package needs its README
     assert CP.areas_of([".github/workflows/feeds-hydat.yml"]) == {"pipeline"}   # test_workflow_pins reads it
     assert CP.areas_of(["deploy/staging/upload.sh"]) >= {"pipeline", "feeds-worker"}
     assert CP.areas_of(["app/workers/feeds/src/index.ts"]) == {"app", "feeds-worker", "pipeline"}

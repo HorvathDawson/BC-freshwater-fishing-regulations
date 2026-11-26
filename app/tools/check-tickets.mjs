@@ -31,12 +31,15 @@
  *      `handoff/PLAN/restart/` (one short page per live chat, at most `RESTART_MAX` lines, deleted when the chat ends) and
  *      nothing missing; a restart page holds no state (no release id, no build number: those live only in the STATUS top
  *      entry); a RESTART-* / NEXT-SESSION-* file anywhere else fails unless named in `LEGACY_RESTART`; AGENTS rule ids are unique.
+ *   8. (T1081) the size guard, `check-size.mjs`: every budget of the docs (required reading, READMEs, open tickets, any markdown file,
+ *      the docs tree's totals, closed tickets' picture folders) fails with the file, its size and the budget.
  *
  * `checkLedger` and `checkDocs` are pure (the test feeds it mutated copies); the CLI below reads the repo and git.
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { BUDGETS, checkRepo as checkSizes } from "./check-size.mjs";
 import { CLAIMS_DIR, CLOSED_TSV, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_UNFILED, README, RETIRED_OWNER_PATHS, claimProblems, ledgerSection,
          ownerAsks, readWorkTree, staleViews, tableRows, ticketRow, unfiledAsks } from "./ledger.mjs";
 
@@ -194,8 +197,9 @@ export function checkLedger({ tickets, subjects, unfiled = "", extraProblems = [
 const RUNBOOKS_DIR = "handoff/PLAN/runbooks";
 /** (T1081) One short page per live chat; START-HERE links each. A page is deleted when its chat ends. */
 export const RESTART_DIR = "handoff/PLAN/restart";
-export const RESTART_MAX = 60;
-export const START_HERE_MAX = 30;
+/** (T1081) the numbers live in check-size.mjs BUDGETS, the one table of limits */
+export const RESTART_MAX = BUDGETS.restart[0];
+export const START_HERE_MAX = BUDGETS.startHere[0];
 /** (T1081) The restart pages of chats that were running when the scheme began; their chats edit them where they are, so
  *  these four paths (and only these) are tolerated until the rename commit moves them into restart/ and this list goes. */
 export const LEGACY_RESTART = [
@@ -365,12 +369,12 @@ const isMain = process.argv[1] && new URL(import.meta.url).pathname === process.
 if (isMain) {
   const repoRoot = new URL("../..", import.meta.url).pathname;
   const problems = checkLedger(readRepo(repoRoot));
-  const docProblems = checkDocs(readDocs(repoRoot));
+  const docProblems = [...checkDocs(readDocs(repoRoot)), ...checkSizes(repoRoot)];   // (T1081) + the size budgets (check-size.mjs)
   if (problems.length) {
     console.error(`✗ the ticket ledger is not whole (the row in each ${TICKETS_DIR}/T*.md, T1041):\n  ` + problems.join("\n  ") +
       "\n\n  Every ticket file needs a Status line and its row under it; DONE needs its commit hashes; IN REVIEW / PARTIAL name their step.");
   }
-  if (docProblems.length) console.error(`✗ the handoff docs are wrong (T539):\n  ` + docProblems.join("\n  "));
+  if (docProblems.length) console.error(`✗ the handoff docs are wrong or over a budget (T539, T1081):\n  ` + docProblems.join("\n  "));
   // (T1041) a stale or missing view is a WARNING, never a failure (CI has no views): the one command that rebuilds them
   const stale = staleViews(repoRoot);
   if (stale.length) console.warn(`⚠ views missing or stale (${stale.join(", ")}): node app/tools/ledger.mjs rebuilds them`);
