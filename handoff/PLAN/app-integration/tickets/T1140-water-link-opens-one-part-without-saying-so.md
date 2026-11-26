@@ -1,10 +1,10 @@
 # T1140 — A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed"
 
-Status: IN PROGRESS — HIGH; the label fix ships IN 0.10.0, built on the new repo (owner 2026-11-25); the landing (A: Map with the parts) is the next patch
+Status: IN PROGRESS — HIGH; 0.10.0 is HELD for it (owner 2026-11-25): no "Part N of M" anywhere, every part named by what it is; the landing (A: Map with the parts) is the next patch
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | IN PROGRESS — HIGH; the label fix ships IN 0.10.0, built on the new repo (owner 2026-11-25); the landing (A: Map with the parts) is the next patch | | owner 2026-11-25 with two pictures; owner picks where a multi-part link lands |
+| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | IN PROGRESS — HIGH; 0.10.0 is HELD for it (owner 2026-11-25): no "Part N of M" anywhere, every part named by what it is; the landing (A: Map with the parts) is the next patch | | 0.10.0 chat: names from area cuts in deliver, counts dropped, T1146 first; the owner sees pictures before merge |
 
 Source: owner 2026-11-25 14:55 (planning chat), with two pictures of the web app on production, verbatim: "big app
 bug we will want to fix asap.. basically if the user searches something liek squamish river regs and clicks the
@@ -115,3 +115,40 @@ waters, unknown until step 1). Release: a patch right after 0.10.0 is on product
 pictures (step 2) can start now beside the release, in a lane that builds nothing in the main checkout. The web
 ships by the site deploy alone; the phone apps follow in the same patch's builds. Model: Opus (page model and
 load paths), Sonnet for the pictures and the search page. Size: M. Owner: yes (picks A, B or C from pictures).
+
+## 2026-11-25 about 16:55: the owner holds 0.10.0 for real names (0.10.0 chat; planning chat dialog)
+
+Shown to him: heads reading "PART 1 OF 2" over the stretch name, with "Other parts of this water have different
+rules" (Squamish before and after, Capilano, Fraser). His answers in the 0.10.0 chat, verbatim:
+- "itshould have the real name. there should be no partt x of n nameas anywhewre in the app. that is a fault.
+  instead it will say eco reserve here etc all types will have a name"
+- "Hold 0.10.0 for the reserve name"
+- "also the calendar bar colors still do not match for open" (T1145).
+
+**The 0.10.0 chat's read-only investigation** (candidate r-71d09ad82e81): 1,476 parts over the 478 multi-part
+waters: 928 have two named ends; 435 end at an area boundary; 2 are named by a nearby place; 26 have no name and
+show the bare water name, all of them side channels with no main stem (3 inside an area closure: Squamish p1,
+Okanagan River Oxbows p1, Gordon p0; 6 where a Strathcona Park rule does not reach the channel; 15 where the
+river's own or regional rule does not reach it; 2 with a rule only on the channel). 29 tidal pieces are never
+listed; 56 unkeyed parts outside B.C. are listed under the water's name. Part numbering is drawn in
+`core/src/waterNav.ts:559` (`partWhere`, the Map bar, `ui-native/src/water/WaterMapView.tsx:222`) and `:569`
+(`partRowAria`). The atlas already cuts the Squamish side channels at `area:BAYNES ISLAND ECOLOGICAL RESERVE`
+(`data/generated/atlas/full/splits.resolved.json`), so a name from the cut needs only the deliver stage
+(`pipeline/deliver/answers/display/builders.py` `_names`): no bundle format change, old apps read it. Squamish
+p1 = Baynes Island Ecological Reserve; Gordon p0 = Pacific Rim National Park Reserve of Canada; Thelwood p0 lies
+in Strathcona - Westmin Park (its closure is the Buttle Lake tributaries rule); Rees p0 and Comox p0 have no
+named area. Not verified: the Gordon and Okanagan Oxbows cuts, the casing of catalogue names. Cost: reach, tiles
+and deliver about 33 minutes, follows about 45; accepts mechanical (golden pages re-cut once).
+
+**Owner's answers (2026-11-25, planning chat dialog):**
+- The 15 rule-gap channels: **"Fix the binding in 0.10.0"** (T1146).
+- The 6 Strathcona parts, to "outside Strathcona Park": "outside strathcona park sounds bad maybe a different
+  name could be worked in?" (open: asked again with pictures once T1146 says which parts remain; the planning
+  chat's proposal is the label the bundle already carries, "Side channel, joining 12 km from the mouth").
+- The Map bar with the count gone: "The part's real name (Recommended)".
+- Parts outside B.C.: "\"<water> outside B.C.\" (Recommended)".
+
+**Scope for 0.10.0, frozen:** no "Part N of M" anywhere (`partWhere`, `partRowAria`, the tests that pin it); a
+part is named from its area cut in deliver; the Map bar shows the part's real name; outside-B.C. parts read
+"<water> outside B.C."; the gate that holds the page until the water's parts are read and the single-part pin
+stay (branch `fix/T1140-part-label`). T1146 runs first. The owner sees pictures before anything merges.
