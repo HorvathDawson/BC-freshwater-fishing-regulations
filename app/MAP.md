@@ -12,7 +12,7 @@ The one current map of `app/`. Why the layers are shaped this way: [`README.md`]
 | `packages/data` | the data seam: release loader and install (`src/release/`), regs store (`src/regs/`), `WaterSource` over the release (`release/source.ts`), SQL drivers (`src/sql/`), spots, gauge/in-season/salmon feeds (`src/feed/`), phone notifications check (`src/notify/`) | core |
 | `packages/ui` | headless React hooks (data, never elements): boot, search, water/regs/route, layout class | core, data, react |
 | `packages/ui-native` | every component and layout (RN primitives, drawn on the web by react-native-web): `Shell.tsx`, `shell/`, water, regs, sheets, panels | core, data, ui |
-| `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`), the generated style (`style/`), the colouring engine | core, ui, the two map SDKs |
+| `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`, the phone's an engine-neutral shell over `src/native/maplibre/`, reached through `src/native/engine.ts`), the generated style (`style/`), the colouring engine | core, ui, the two map SDKs |
 | `apps/mobile` | the one shell for native and web: `src/App.tsx`, config (`config.ts`, `env.ts`: data environment local / staging / production), platform glue, local Expo module `modules/bg-download` | all |
 | `conformance` | suites every `WaterSource` and regs store must pass: fixture releases, the live release, oracle parities | all |
 | `workers/feeds` | the Cloudflare feeds worker (gauges, DFO salmon, in-season, run timing, push, reports); not in the pnpm workspace | `core` (generated policy) |

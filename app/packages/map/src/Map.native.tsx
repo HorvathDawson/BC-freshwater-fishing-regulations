@@ -2,6 +2,10 @@
  * The native map: MapLibre Native through `@maplibre/maplibre-react-native` 11.5.0 (N1 → N2), behind the SAME `<Map>`
  * contract as `Map.web.tsx` (`./Map.d.ts`, `MapProps`).
  *
+ * (T1154) THIS FILE IS THE SHELL: everything that decides. The engine draws, in `native/maplibre/` (the component tree
+ * `View.tsx`, the element refs `handle.ts`, the per-tile event `tiles.ts`, the log, the held label layers, the style
+ * dialect), reached only through `native/engine.ts`; this file names no SDK (`app/tools/check-boundaries.mjs`).
+ *
  * WHAT IS SHARED WITH THE WEB MAP, and therefore cannot drift:
  *   the style        `runtimeStyle()` (via `nativeStyle`): the same layers, paint, tokens and view logic, through the
  *                    same adapter and the same `applyLook` sequence. Only the URLs differ: `pmtiles://file:///…`
