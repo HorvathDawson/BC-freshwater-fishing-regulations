@@ -1,10 +1,10 @@
 # T1167 — In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's
 
-Status: IN REVIEW — owner: see ## Owner (built, code 3a58e77c0 3dc579337; pictures in T1167-shots/: before / inside / after, light and dark)
+Status: IN REVIEW — owner: see ## Owner (built, code 3a58e77c0 3dc579337 01eefbe2a; pictures in T1167-shots/: before / inside / after, light and dark)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1167 | In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's | IN REVIEW | 3a58e77c0 3dc579337 | owner: look at T1167-shots/ (before / inside / after, light and dark); then the PR and an independent review; ships in the first patch after 0.10.0 |
+| T1167 | In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's | IN REVIEW | 3a58e77c0 3dc579337 01eefbe2a | owner: look at T1167-shots/ (before / inside / after, light and dark); then the PR and an independent review; ships in the first patch after 0.10.0 |
 
 Source: T1157's finding and the owner's answers, 2026-11-25 night. Seven provincial in-season closures of
 July 30-Sept 15, 2026 (Salmon River 3-26, Bessette Creek 8-22, Granby River and its tributaries 8-15 from noon to
@@ -31,7 +31,7 @@ Tests for the three states and for an unreadable range, each failing without the
 show nothing today. Severity: medium (an angler could fish a closed water under an "open" answer during a
 window). Model: Sonnet (Opus for the date reading). Size: S–M. Owner: the look.
 
-## Built (3a58e77c0, review fixes 3dc579337)
+## Built (3a58e77c0, review fixes 3dc579337, the warning look 01eefbe2a)
 
 - The rule lives in ONE place per language, pinned by one case file: core `app/packages/core/src/inseasonWindow.ts`
   (`inSeasonDating` / `inSeasonSpan` / `inSeasonOn`; the feeds worker reads it too) and
@@ -43,6 +43,10 @@ window). Model: Sonnet (Opus for the date reading). Size: S–M. Owner: the look
   or a day with its month after it as a range's end. Unreadable (no whole start and end, a same-month range ending
   before it starts, a day the month lacks, no effective day, a range not opening on it) or dates read as no one
   range: shown as undated, told to the owner ONCE per set by the feeds worker (`undatableEvent`); the app reports none.
+- Look (owner 2026-11-26): in force, the banner, its line and the pointer wear the page's warning amber as the
+  no-access block does (`palette.warning` bar, `palette.noAccessBand` ground, words ink: 15.5:1 light, 11.5:1 dark; the
+  bar 3.0:1 / 12.4:1 on the card, pinned in `theme.test.ts`) and the caveat titles' caution mark "⚠", hidden from a
+  screen reader; upcoming stays grey.
 - Words: before "Upcoming in-season change (Jul 30–Sep 15)" (inbox: "Upcoming", its range, never opening the bell by
   itself), inside "In-season change (Jul 30–Sep 15)" with "See the in-season notice above" on the game-fish strip's
   status line, or at the top of the Keep tab on a page with no strip (core `inSeasonKeepOf`); after: nothing. Year
@@ -53,4 +57,7 @@ window). Model: Sonnet (Opus for the date reading). Size: S–M. Owner: the look
 ## Owner
 
 - [x] 2026-11-25 — When a dated notice's banner shows → "2 weeks before to the end (Recommended)"; whether it turns the answer to closed → "Banner only, but louder" (2026-11-25)
+- [x] 2026-11-26 — How loud the banner is inside the window (A amber with a mark / B red / C grey as pictured) → "A: warning amber with a mark (Recommended)" (2026-11-26)
+- [x] 2026-11-26 — How the banner looks in the 14 days before (A grey, as pictured / B amber too) → "A: grey, as pictured (Recommended)" (2026-11-26)
+- [x] 2026-11-26 — A range that starts later than its effective day (A date it when it starts within N days / B never date these) → "B: never date these" (2026-11-26)
 - [ ] 2026-11-25 — Look at the three pictures of the louder banner (before, inside, after the window) when the lane has them.
