@@ -73,6 +73,15 @@ of reserve, and on 156 waters the lead part is open while another is closed. It 
 4. First patch (audit of #265, pipeline): `side_channels.join_measure` orients the main-line section it lands on by the
    NEAREST section below it by distance, not the one its flow pointer says is directly below; adjacent sections touch, so
    every real join measured today lands right, but the flow pointer is the sounder rule.
+5. Left for hardening (the review of #265's last changes, 2026-11-25; one MED, three LOW):
+   - MED: a NAME of several side channels can say "joining" for a channel that does not join (`part.py` `side_words`
+     never reads `section_join.how`); no real name does today, but the range labels do (Manson, Squamish).
+   - LOW: a keyed part missing from the map's places is reported once and the head drops its "other parts" line:
+     nothing shows on screen (`core/src/regs/header.ts`).
+   - LOW: no test runs the real v0.9.0 `spanName`; checked by hand, 0.9.0 reads "Noons Creek : Turner Creek (Port
+     Moody)" with a space before the colon.
+   - LOW: a city stream that also has an OSM or excluded-FWA name gets no own-name row (`side_channels.py`); the
+     build stop still catches an empty name.
 
 ## Acceptance
 From a search result for the Squamish River nobody can read "closed" without also reading that it is the reserve reach,
