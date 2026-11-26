@@ -47,6 +47,10 @@ describe("store listing limits", () => {
     expect(k.every((w) => w.length > 0 && w === w.trim())).toBe(true);
     expect(new Set(k.map((w) => w.toLowerCase())).size).toBe(k.length);
   });
+  it("the creative asset line (T1134) is one short line that extends the subtitle", () => {
+    expect(src.creativeAssetLine.length).toBeLessThanOrEqual(60);
+    expect(src.creativeAssetLine).toContain("by the water");
+  });
   it("the website description is safe in a meta attribute", () => expect(src.websiteHomeDescription).not.toMatch(/["<>&]/));
   it("the URLs are https and the contact is an address", () => {
     for (const u of Object.values<string>(src.urls)) expect(u).toMatch(/^https:\/\/\S+$/);
@@ -56,7 +60,7 @@ describe("store listing limits", () => {
 });
 
 describe("forbidden listing words", () => {
-  const short: [string, string][] = [["name", src.name], ["App Store subtitle", src.appStoreSubtitle],
+  const short: [string, string][] = [["name", src.name], ["App Store subtitle", src.appStoreSubtitle], ["creative asset line", src.creativeAssetLine],
     ["Play short description", src.playShortDescription], ["App Store promotional text", src.appStorePromotionalText],
     ["feature graphic words", src.featureGraphicWords]];
   for (const [what, text] of short) it(`${what}: no ranking, price or call-to-action word (Play metadata policy)`, () => expect(text).not.toMatch(PLAY_FORBIDDEN));
