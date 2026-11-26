@@ -24,7 +24,7 @@ Every branch below is also a local branch of the main checkout's repository (lan
 |---|---|---|
 | T1073, T1163, T1140 test leak, T1156 | merged: #285, #289, #294, #298 | T1073 PARTIAL (TestFlight at run time; his Play Internal check); T1163 open for the 12 steps; T1156 PARTIAL for two setup-page lines (repo-move chat) |
 | T1164 item 1 | `fix/T1164-error-boundary` | #302, auto-merge on; ticket PARTIAL (items 2-5 and the finds in it) |
-| T1167 | `feat/T1167-inseason-banner-window` | reviewed, fixed, his three picks built; PR WITHOUT auto-merge until he has seen `T1167-shots/inside-light.png` / `inside-dark.png` |
+| T1167 | `feat/T1167-inseason-banner-window` | reviewed, fixed, his three picks built; NOT PUSHED: the pre-push hook refused it on four guards the lane never ran (`tools/no-silent-skips`, `one-button` literal radius, `one-day-table` spelled once, `regs-tokens`); fix those, then a PR WITHOUT auto-merge until he has seen `T1167-shots/inside-*.png` |
 | T1166 | `feat/T1166-synopsis-change-feed` | review "fix first"; the lane was stopped part-way through the seven fixes: read its last commits before queueing |
 | T1168 item 1 | `feat/T1168-licence-wording-fwid-wild` | his picks A, A, A built and tested (a doubled full stop in the licensing composer fixed on the way); not reviewed; needs the mini release re-cut; pictures made |
 | T1085, T1096 | `fix/T1085-ice-gear-hook-word`, `fix/T1096-ice-clause-cited` | built, pictures made, not reviewed; need the mini release re-cut; both and T1168 change `answers/gear.py`: land one after another |
