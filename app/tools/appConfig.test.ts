@@ -1,12 +1,15 @@
 // @vitest-environment node
 /** T1163: the app config declares the background modes, usage strings and privacy reasons the built plist is checked for. */
-import { describe, expect, it } from "vitest";
+import { rmSync } from "node:fs";
+import { afterAll, describe, expect, it } from "vitest";
 // @ts-expect-error plain .mjs tool
-import { expectedFromConfig } from "../../../tools/check-built-plist.mjs";
-import app from "../app.json";
+import { bareProject, expectedFromConfig, minimalEnv } from "./check-built-plist.mjs";
+import app from "../apps/mobile/app.json";
 
 describe("the app config", () => {
-  const e = expectedFromConfig() as { modes: string[]; identifiers: string[]; strings: Record<string, string> };
+  const project = bareProject();   // the config as an installed app has it: no ios/ or android/ folder, no build variables
+  afterAll(() => rmSync(project, { recursive: true, force: true }));
+  const e = expectedFromConfig(minimalEnv(), project) as { modes: string[]; identifiers: string[]; strings: Record<string, string> };
   it("declares background fetch, processing and remote notifications, and the task identifier", () => {
     expect([...e.modes].sort()).toEqual(["fetch", "processing", "remote-notification"]);
     expect(e.identifiers).toEqual(["com.expo.modules.backgroundtask.processing"]);

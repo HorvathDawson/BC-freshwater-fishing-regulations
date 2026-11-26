@@ -9,25 +9,63 @@
  * config is not a failure here (the config is the floor), but is printed.
  */
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
+import { mkdtempSync, readFileSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const MOBILE = new URL("../apps/mobile/", import.meta.url);
+const MOBILE = fileURLToPath(new URL("../apps/mobile/", import.meta.url));
 
-/** The Info.plist the app config yields: `{ modes, identifiers, strings: { NSCameraUsageDescription: "..." } }`. */
-export function expectedFromConfig() {
-  const out = execFileSync("npx", ["expo", "config", "--type", "introspect", "--json"],
-    { cwd: MOBILE, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 64 * 1024 * 1024 });
-  const ip = JSON.parse(out)?.ios?.infoPlist;
-  if (!ip || !Array.isArray(ip.UIBackgroundModes)) throw new Error("the app config yields no ios.infoPlist.UIBackgroundModes");
+/**
+ * What the tests (and any caller that must not see the machine) run `expo config` with: only what a process needs to run at
+ * all, never the caller's build variables (`app.config.js` reads many; as `r8-config.test.ts` `envFor`).
+ */
+export function minimalEnv() {
+  const env = {};
+  for (const k of ["PATH", "HOME", "TMPDIR", "LANG", "LC_ALL", "USER", "SHELL"]) if (process.env[k] !== undefined) env[k] = process.env[k];
+  return env;
+}
+
+/**
+ * A project folder holding the app's config (symlinks) and NO `ios/` or `android/` of its own: `expo config` reads an
+ * existing native folder when there is one, and a developer's machine may have one. Returns its path (the caller removes it).
+ */
+export function bareProject() {
+  const dir = mkdtempSync(join(tmpdir(), "t1163-project-"));
+  for (const f of ["app.json", "app.config.js", "package.json", "plugins", "assets", "modules"]) symlinkSync(join(MOBILE, f), join(dir, f));
+  symlinkSync(join(MOBILE, "../../node_modules"), join(dir, "node_modules"));   // the workspace's hoisted plugins
+  return dir;
+}
+
+/**
+ * pure: `{ modes, identifiers, strings }` from the config's `ios.infoPlist`. THROWS when there is nothing to check (no modes,
+ * no usage strings, or `processing` declared without a task identifier): a check with nothing to compare must never pass.
+ */
+export function expectedFromInfoPlist(ip) {
+  if (!ip || !Array.isArray(ip.UIBackgroundModes) || ip.UIBackgroundModes.length === 0) {
+    throw new Error("the app config declares no ios.infoPlist.UIBackgroundModes: nothing to check");
+  }
   const strings = Object.fromEntries(Object.entries(ip).filter(([k, v]) => /UsageDescription$/.test(k) && typeof v === "string"));
-  return { modes: ip.UIBackgroundModes, identifiers: ip.BGTaskSchedulerPermittedIdentifiers ?? [], strings };
+  if (Object.keys(strings).length === 0) throw new Error("the app config declares no usage strings: nothing to check");
+  const identifiers = ip.BGTaskSchedulerPermittedIdentifiers;
+  if (ip.UIBackgroundModes.includes("processing") && (!Array.isArray(identifiers) || identifiers.length === 0)) {
+    throw new Error('the app config declares background mode "processing" but no BGTaskSchedulerPermittedIdentifiers');
+  }
+  return { modes: ip.UIBackgroundModes, identifiers: identifiers ?? [], strings };
+}
+
+/** The Info.plist the app config yields, plugins run (`expo config --type introspect`): see `expectedFromInfoPlist`. */
+export function expectedFromConfig(env = process.env, cwd = MOBILE) {
+  const out = execFileSync(join(MOBILE, "../../node_modules/.bin/expo"), ["config", "--type", "introspect", "--json"],
+    { cwd, env, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"], maxBuffer: 64 * 1024 * 1024 });
+  return expectedFromInfoPlist(JSON.parse(out)?.ios?.infoPlist);
 }
 
 /** Parse an XML plist (dict, array, string, true, false, integer, real) to a JS value. Binary plists go through plutil first. */
 export function parsePlist(text) {
   const tok = /<(\/?)(dict|array|key|string|integer|real|date|data)>|<(true|false)\s*\/>|<(dict|array)\s*\/>|<string\s*\/>|([^<]+)/g;
   const unesc = (s) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+  if (!text.includes("<plist")) throw new Error("not a plist: no <plist> element");
   const body = text.slice(text.indexOf("<plist"));
   const stack = [];
   let root, key = null, cur = null;
@@ -48,6 +86,7 @@ export function parsePlist(text) {
     if (open === "key") key = unesc(buf.trim()); else if (open === "integer" || open === "real") put(Number(buf)); else put(unesc(buf));
     open = null; buf = "";
   }
+  if (root === null || typeof root !== "object" || Array.isArray(root)) throw new Error("not a plist: the top level is not a dict");
   return root;
 }
 
@@ -75,11 +114,16 @@ export function judge(expected, built) {
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const file = process.argv[2];
   if (!file) { console.error("usage: check-built-plist.mjs <built Info.plist>"); process.exit(2); }
-  const expected = expectedFromConfig();
-  const built = readPlist(file);
-  const fails = judge(expected, built);
-  for (const m of (built.UIBackgroundModes ?? [])) if (!expected.modes.includes(m)) console.log(`NOTE built mode "${m}" is not in the app config`);
-  for (const f of fails) console.error(`FAIL ${file}: ${f}`);
-  if (fails.length) process.exit(1);
-  console.log(`built plist ok: modes ${expected.modes.join(", ")}; ${Object.keys(expected.strings).length} usage strings`);
+  try {
+    const expected = expectedFromConfig();
+    const built = readPlist(file);
+    const fails = judge(expected, built);
+    for (const m of (built.UIBackgroundModes ?? [])) if (!expected.modes.includes(m)) console.log(`NOTE built mode "${m}" is not in the app config`);
+    for (const f of fails) console.error(`FAIL ${file}: ${f}`);
+    if (fails.length) process.exit(1);
+    console.log(`built plist ok: modes ${expected.modes.join(", ")}; ${Object.keys(expected.strings).length} usage strings`);
+  } catch (e) {
+    console.error(`FAIL ${file}: ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  }
 }
