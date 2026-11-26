@@ -21,7 +21,9 @@ import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contra
 import { paintFor } from "../packages/map/src/paint";
 import { applyLook } from "../packages/map/src/look";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { MAP_STYLE, STYLE_META, colorExpression, resolveTheme, shownLayers } from "../packages/map/src/style";
 
 const ARROWS = "stream__arrows";
@@ -73,9 +75,9 @@ describe("the flow arrows are the Conditions view's own", () => {
                      gauges: '{"type":"FeatureCollection","features":[]}' };
     const vis = (s: unknown) => ((s as { layers: L[] }).layers.find((l) => l.id === ARROWS)!.layout!.visibility);
     const cond = nativeStyle({ ...common, modes: { stream: "standing" }, hide: ["mu", "region"],
-                               show: shownLayers("conditions") });
+                               show: shownLayers("conditions") }, maplibreDialect);
     // A phone's Map tab colours by the day's `profile`, as the web's does (T74: one engine on both)
-    const map = nativeStyle({ ...common, modes: { stream: "profile" }, hide: [] });
+    const map = nativeStyle({ ...common, modes: { stream: "profile" }, hide: [] }, maplibreDialect);
     expect({ conditions: vis(cond.style), map: vis(map.style), errors: [...cond.errors, ...map.errors] })
       .toEqual({ conditions: "visible", map: "none", errors: [] });
   });
@@ -111,7 +113,7 @@ describe("an arrow points downstream", () => {
 
   it("every arrow on the map — the Conditions arrows, the route overlay's, the highlighted route's — agrees", () => {
     const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", gauges: '{"type":"FeatureCollection","features":[]}' },
-                           "light") as unknown as { layers: L[] };
+                           "light", {}, PMTILES) as unknown as { layers: L[] };
     const arrowsOn = (id: string) => {
       const l = s.layers.find((x) => x.id === id)!.layout!;
       return { arrow: arrowInLineFrame(l), font: l["text-font"], keepUpright: l["text-keep-upright"],

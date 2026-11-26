@@ -56,12 +56,13 @@ async function styles(themes) {
   // the app's TypeScript through the SEO build's loader (vite-node, vitest's own: no new dependency)
   const runner = await makeRunner();
   const { runtimeStyle } = await runner.run(join(APP, "packages/map/src/runtime-style.ts"));
+  const { PMTILES } = await runner.run(join(APP, "packages/map/src/tile-access.ts"));
   await runner.close();
   const AT = { atlas: "http://x/atlas.pmtiles", basemap: "BASEMAP", outside: "http://x/o.geojson",
     gauges: '{"type":"FeatureCollection","features":[]}' };
   const out = {};
   for (const t of themes) {
-    const s = runtimeStyle(AT, t);
+    const s = runtimeStyle(AT, t, {}, PMTILES);
     const layers = s.layers.filter((l) => l.type === "background" || (l.source === "basemap" && l.type !== "symbol"));
     out[t] = { version: 8, sources: { basemap: { ...s.sources.basemap, url: undefined } }, layers };
   }

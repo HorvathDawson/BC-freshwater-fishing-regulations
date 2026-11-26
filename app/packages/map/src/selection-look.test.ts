@@ -8,11 +8,12 @@ import { describe, expect, it } from "vitest";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { casedOnly, casingPaint, glowPaint, SELECTION_CASING, SELECTION_GLOW } from "./paint";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { resolveTheme } from "./style";
 
 const FS = (k: string) => ["boolean", ["feature-state", k], false];
 const ON = ["any", FS("selected"), FS("part")];
-const at = (theme: string) => runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {}).layers as unknown as
+const at = (theme: string) => runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {}, PMTILES).layers as unknown as
   { id: string; paint: Record<string, unknown> }[];
 
 describe("(T735) look C: dark only, through tokens", () => {

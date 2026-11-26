@@ -124,6 +124,84 @@ class Step:
     note: tuple[str, ...] = ()      # (T1041) what the step chose and why, printed above its output
 
 
+def title_limit(number: int | str) -> int:
+    """(T1144) the longest PR title for this PR number: the merge commit `<title> (#N)` must fit `headerMax`."""
+    import json
+    header_max = json.loads((ROOT / "app" / "tools" / "versioning.json").read_text())["headerMax"]
+    return header_max - len(f" (#{number})")
+
+
+class TitleNotChecked(Exception):
+    """(T1144) the title check could not run (no node, a timeout): said as a warning, the push goes on."""
+
+
+def title_verdict(title: str, number: int | str) -> str | None:
+    """(T1144) None when the PR title, as its merge commit `<title> (#N)`, follows Conventional Commits and fits;
+    otherwise what to fix. CI's check, run through the same command (`check-commits.mjs --title --number`)."""
+    try:
+        got = subprocess.run(["node", "app/tools/check-commits.mjs", "--title", title, "--number", str(number)],
+                             cwd=ROOT, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as e:
+        raise TitleNotChecked(f"node could not run the check ({e})") from e
+    if got.returncode == 2:                                   # check-commits: the check could not run
+        raise TitleNotChecked(f"the check could not run ({(got.stderr or got.stdout).strip()[:200]})")
+    if got.returncode == 0:
+        return None
+    limit = title_limit(number)
+    over = len(title) - limit
+    head = (f"the title is {len(title)} characters, {over} over the limit of {limit} for a {len(str(number))}-digit "
+            f"number (its merge commit is \"{title} (#{number})\", at most 100)" if over > 0
+            else f"the title ({len(title)}/{limit}) does not pass the commit check")
+    return f"{head}\n{got.stdout}{got.stderr}".rstrip()
+
+
+def _gh(args: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(["gh", *args], cwd=ROOT, capture_output=True, text=True, timeout=60)
+
+
+def pushed_title_check(lines: list[str], gh=None) -> tuple[int, list[str]]:
+    """(T1144) THE PR TITLE, before the push: CI checks the merge commit `<title> (#N)`, and nothing local did (#266
+    failed five pushes at 96 + 7 = 103). For each pushed branch with an open PR, check its title with its real
+    number. (rc, messages): rc 1 a title to fix (with the `gh pr edit` command); a CONFLICTING PR and an unreachable
+    `gh` are warnings, said, never silent."""
+    import json
+    gh = gh or _gh
+    rc, out = 0, []
+    for ln in lines:
+        parts = ln.split()
+        if len(parts) != 4 or not parts[0].startswith("refs/heads/") or parts[1] == ZERO:
+            continue
+        if not parts[2].startswith("refs/heads/"):
+            continue
+        branch = parts[2][len("refs/heads/"):]                # the REMOTE ref: `git push origin local:other` pushes `other`
+        try:
+            got = gh(["pr", "view", branch, "--json", "number,title,mergeable,state"])
+        except (OSError, subprocess.SubprocessError) as e:
+            out.append(f"WARNING: the PR title was not checked: gh could not run ({e})")
+            continue
+        if got.returncode != 0:
+            if "no pull requests found" in (got.stderr or ""):
+                continue                                      # no PR yet: before_pr.sh --title checks it at opening
+            why = ((got.stderr or got.stdout).strip().splitlines() or [f"rc {got.returncode}"])[0]
+            out.append(f"WARNING: the PR title was not checked: gh could not answer ({why})")
+            continue
+        pr = json.loads(got.stdout)
+        if pr.get("state") != "OPEN":                         # gh pr view also answers a CLOSED or MERGED PR
+            continue
+        if pr.get("mergeable") == "CONFLICTING":
+            out.append(f"WARNING: PR #{pr['number']} conflicts with main (mergeable: CONFLICTING); CI will not run on it")
+        try:
+            bad = title_verdict(pr["title"], pr["number"])
+        except TitleNotChecked as e:
+            out.append(f"WARNING: the PR title was not checked: {e}")
+            continue
+        if bad:
+            rc = 1
+            out.append(f"the title of PR #{pr['number']} fails CI's merge-commit check: {bad}\n  fix it: gh pr edit "
+                       f"{pr['number']} --title \"<a shorter title>\"")
+    return rc, out
+
+
 def py() -> str:
     """The pipeline's interpreter (`scripts/test-env.sh`: PIPELINE_PY, else the repo's .venv)."""
     return os.environ.get("PIPELINE_PY") or str(ROOT / ".venv" / "bin" / "python")
@@ -444,7 +522,7 @@ def run_all(steps: list[Step], runner, parallel: bool) -> dict[str, int]:
     return rcs
 
 
-def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
+def main(argv=None, runner=run_step, stdin=sys.stdin, gh=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--only", default=None, metavar="REGEX")
@@ -477,12 +555,18 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
         if warn:
             print(warn, file=sys.stderr)
     if a.pre_push:
-        said, paths, ranges = pushed(stdin.read().splitlines())
+        stdin_lines = stdin.read().splitlines()
+        said, paths, ranges = pushed(stdin_lines)
         for ln in said:
             print(f"before-push --pre-push: {ln}")
         if not paths and all(("a delete" in x or "a tag" in x) for x in said):
             print("before-push --pre-push: only tags / deletes pushed: nothing to check")
             return 0
+        trc, tsaid = pushed_title_check(stdin_lines, gh)
+        for ln in tsaid:
+            print(f"before-push --pre-push: {ln}", file=sys.stderr)
+        if trc:
+            return 1
         a.changed = True
         areas = CP.areas_of(paths)
         print(f"before-push --pre-push: {len(paths)} path(s) pushed; areas: "

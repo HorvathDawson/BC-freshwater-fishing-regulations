@@ -12,6 +12,7 @@ import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from 
 import type { MapProps } from "../map-props";
 import { GEOMETRY, SHOW_SCALE } from "../chrome";
 import { runtimeStyle } from "../runtime-style";
+import { PMTILES } from "../tile-access";
 import { followSize } from "../size";
 import { sourceTiles, tileIds } from "./tileIds";
 import { atlasTarget, copyTarget, publicSections } from "./handles";
@@ -48,7 +49,7 @@ export function useMapInstance(refs: WebMapRefs,
       // its contents are then replaced imperatively below. Declaring it later would mean
       // rebuilding the whole style every half hour to move a few hundred dots.
       style: runtimeStyle({ ...at, gauges: gauges ?? EMPTY_FC }, theme,
-                          modes) as unknown as maplibregl.StyleSpecification,
+                          modes, PMTILES) as unknown as maplibregl.StyleSpecification,
       center: [initial.lon, initial.lat],
       zoom: initial.zoom,
       // The atlas has nothing below z4 and the basemap is clipped to the province: past

@@ -15,6 +15,7 @@
 import { describe, expect, it } from "vitest";
 import { MAGNITUDE_LADDER, zoomForMagnitude } from "@app/core";
 import { runtimeStyle } from "@app/map";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
@@ -271,7 +272,7 @@ describe("the runtime uses the feature id, not just names it", () => {
   const style = runtimeStyle(
     { atlas: "https://example.invalid/atlas.pmtiles",
       basemap: "https://example.invalid/basemap.pmtiles" },
-    "light",
+    "light", {}, PMTILES,
   ) as unknown as {
     sources: Record<string, { promoteId?: Record<string, string> }>;
     layers: { id: string; "source-layer"?: string; source?: string }[];
@@ -354,7 +355,7 @@ describe("the gauges draw on top of the water", () => {
     { atlas: "https://example.invalid/atlas.pmtiles",
       basemap: "https://example.invalid/basemap.pmtiles",
       gauges: "https://example.invalid/gauges.geojson" },
-    "light",
+    "light", {}, PMTILES,
   ) as unknown as { layers: ({ id: string; filter?: unknown } & Record<string, unknown>)[] };
   const at = (id: string) => style.layers.findIndex((l) => l.id === id);
 

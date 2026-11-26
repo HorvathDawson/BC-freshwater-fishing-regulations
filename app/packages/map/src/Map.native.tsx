@@ -57,7 +57,8 @@ import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
 import { zoomStep } from "./zoom-step";
 import { nativeMapGestures } from "./gestures";
-import { areaLayer, nativeStyle } from "./native-style";
+import { nativeStyle } from "./native-style";
+import { maplibreDialect } from "./native/maplibre/dialect";
 import { NativeLookTracker } from "./look-drawn";
 import { liftFor, type Lift, type LiftAnswer } from "./tapLift";
 import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VISIBLE_LAYERS, visibleSections } from "./sections";
@@ -209,7 +210,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const [sectionData, areaData] = useMemo(() => {
     const sec: Data = {}, area: Data = {};
-    for (const [layerId, values] of Object.entries(spreadSections(data ?? {}))) (areaLayer(layerId) ? area : sec)[layerId] = values;
+    for (const [layerId, values] of Object.entries(spreadSections(data ?? {}))) (maplibreDialect.areaLayer(layerId) ? area : sec)[layerId] = values;
     return [sec, area];
   }, [data]);
   const areaKey = JSON.stringify(areaData);
@@ -251,7 +252,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const look = useMemo(
     () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map", focus: !!focus,
                         gauges: gaugesNow.current ?? EMPTY_FC, tracePins: tracePinsNow.current,
-                        traceLines: traceLinesNow.current, areaData: JSON.parse(areaKey) as Data, values: cv }),
+                        traceLines: traceLinesNow.current, areaData: JSON.parse(areaKey) as Data, values: cv }, maplibreDialect),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
      JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, valuesKey, !!focus]);

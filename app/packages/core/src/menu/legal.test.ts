@@ -46,6 +46,17 @@ describe("the regulations' as-of line (T236)", () => {
     expect(LEGAL_WORDS.firstRun.sources).toBe(MENU_WORDS.items.sources.label);
     expect(MENU_WORDS.about.notOfficial).toContain("Nothing in this app is legal advice.");
   });
+  it("(T1163 G15) the first-run notice says the whole of it, with the non-affiliation sentence in the first point", () => {
+    expect(LEGAL_WORDS.firstRun.points.map((x) => `${x.title}: ${x.body}`)).toEqual([
+      "Not the official regulations: This app reads the B.C. Freshwater Fishing Regulations Synopsis, the Province's "
+        + "in-season changes and DFO's salmon notices onto a map. It is not legal advice. This app is not affiliated "
+        + "with, endorsed by, or sponsored by the Province of British Columbia or Fisheries and Oceans Canada (DFO).",
+      "The official sources decide: The synopsis, the Province's in-season changes and DFO's notices are the authority. "
+        + "Check them before you fish.",
+      "Regulations change in season: Closures and limits can change at short notice, and this app can be out of date. "
+        + "You are responsible for following the regulations where you fish.",
+    ]);
+  });
   it("first run: accepted only by the current version", () => {
     expect(firstRunAccepted(FIRST_RUN_VERSION)).toBe(true);
     expect(firstRunAccepted(null)).toBe(false);
