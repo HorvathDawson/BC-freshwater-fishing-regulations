@@ -3,9 +3,13 @@
 # BEFORE THE PULL REQUEST (T1041, owner 2026-11-23 "Both"): the two suites the pre-push hook leaves to the PR, once,
 # before the PR is opened (and before a push that updates it after a change of substance):
 #
-#   scripts/before_pr.sh        app-ci's whole vitest suite AND pipeline-ci's no-data tier, both through scripts/heavy.sh,
+#   scripts/before_pr.sh --title "<the PR title>" [--number N]
+#                               FIRST (T1144) the title, as its merge commit "<title> (#N)" (what CI checks: at most 100
+#                               characters, Conventional Commits), N = the next PR number (the highest PR/issue number
+#                               `gh` knows + 1; --number overrides; no answer from gh and no --number: it stops, saying
+#                               so). Then app-ci's whole vitest suite AND pipeline-ci's no-data tier, both through scripts/heavy.sh,
 #                               at the same time on two heavy lanes; ends with ONE line:
-#                               before-pr: PASS|FAIL (app suite rc=<n>, pipeline tier rc=<n>, <s> s)
+#                               before-pr: PASS|FAIL (app suite rc=<n>, pipeline tier rc=<n>, <s> s); PASS adds `title <n>/<max> ok`
 #
 # Why: the hook (`.githooks/pre-push`) must stay short (git holds its connection to GitHub open while it runs; a ~10 min
 # tier outlived it, 2026-11-22), so it runs only the tests the change reaches (`before_push.py --changed`, T1041). The
@@ -19,6 +23,35 @@
 # test_before_pr.py proves the verdict line with it; nothing else sets it).
 set -uo pipefail
 cd "$(dirname "$0")/.."
+title="" number=""
+while (( $# )); do
+  case $1 in
+    --title) title=${2:-}; shift $(( $# > 1 ? 2 : 1 )) ;;
+    --number) number=${2:-}; shift $(( $# > 1 ? 2 : 1 )) ;;
+    *) echo "before-pr: unknown argument $1 (usage: before_pr.sh --title \"<the PR title>\" [--number N])" >&2; exit 2 ;;
+  esac
+done
+[[ -n $title ]] || { echo "before-pr: --title \"<the PR title>\" is required: its merge commit \"<title> (#N)\" is checked first (T1144)" >&2; exit 2; }
+if [[ -z $number ]]; then
+  # PRs and issues share one counter: the next PR number is the highest of either, plus one
+  highest() { gh "$1" list --state all --limit 1 --json number --jq '.[0].number // 0'; }
+  pr_n=$(highest pr) && issue_n=$(highest issue) \
+    || { echo "before-pr: gh could not tell the next PR number: pass --number N (the title cannot be checked without it)" >&2; exit 2; }
+  [[ $pr_n =~ ^[0-9]+$ && $issue_n =~ ^[0-9]+$ ]] \
+    || { echo "before-pr: gh answered something that is not a number ($pr_n / $issue_n): pass --number N" >&2; exit 2; }
+  number=$(( (pr_n > issue_n ? pr_n : issue_n) + 1 ))
+fi
+[[ $number =~ ^[0-9]+$ ]] || { echo "before-pr: --number wants a number, not $number" >&2; exit 2; }
+header_max=$(node -e 'console.log(require("./app/tools/versioning.json").headerMax)') \
+  || { echo "before-pr: could not read headerMax from app/tools/versioning.json" >&2; exit 2; }
+suffix=" (#$number)"
+title_max=$(( header_max - ${#suffix} ))
+if ! node app/tools/check-commits.mjs --title "$title" --number "$number"; then
+  over=$(( ${#title} - title_max ))
+  (( over > 0 )) && echo "before-pr: FAIL the title is ${#title} characters, $over over the limit of $title_max for PR #$number ($header_max less \"$suffix\")" >&2
+  echo "before-pr: FAIL (the title: Conventional Commits, at most $title_max characters for #$number; nothing else was run)" >&2
+  exit 1
+fi
 . scripts/test-env.sh   # PY, test_env_pycache, no_data_markers (CI's "Tests" step, the one home of the markers)
 test_env_pycache
 markers=$(no_data_markers) || exit 1
@@ -49,7 +82,7 @@ done
 secs=$((SECONDS - t0))
 if (( app_rc == 0 && tier_rc == 0 )); then
   rm -rf "$logs"
-  echo "before-pr: PASS (app suite rc=0, pipeline tier rc=0, $secs s)"
+  echo "before-pr: PASS (title ${#title}/$title_max ok, app suite rc=0, pipeline tier rc=0, $secs s)"
   exit 0
 fi
 echo "before-pr: FAIL (app suite rc=$app_rc, pipeline tier rc=$tier_rc, $secs s) — logs: $app_log $tier_log" >&2
