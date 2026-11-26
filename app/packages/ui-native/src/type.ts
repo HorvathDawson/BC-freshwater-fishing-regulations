@@ -12,6 +12,13 @@
  * file stays free of platform imports. If a face fails to load, React Native falls back to
  * the system face and the layout still holds, because every style below sets a size and a
  * weight rather than relying on the face's own metrics.
+ *
+ * (T1201) THE ONE RULE FOR TEXT SIZE. Body and reading text follows the system text size in full. A label inside a
+ * fixed-size control (a rail cell, the tab bar, a chip, a badge, a chart tick) follows it only to `LABEL_SCALE` and is
+ * ALWAYS one line, whole: never wrapped, never cut. A control GROWS before its label shrinks: the control takes a
+ * `minWidth` from `labelMinWidth` (a safe over-estimate of the label's width at that scale) and the label sets
+ * `labelProps(scale)` (one line, the cap). `tools/system-text-labels.test.ts` lays the rail and the bar out in Chrome at
+ * 1, 1.15 and 1.3 and fails on a wrapped or cut label. The page's numbers and header keep their own cap, `CAPPED_SCALE`.
  */
 export const FACE = {
   display: "BricolageGrotesque_700Bold",
@@ -150,3 +157,22 @@ export function typeAt<K extends keyof typeof TYPE>(key: K, fontSize: number): T
  * label, the tabs: the fixed rows above the one scroll). Every other Text follows the reader's setting all the way.
  */
 export const CAPPED_SCALE = 2;
+
+/**
+ * (T1201) How far a label in a fixed-size control follows the OS text size (`maxFontSizeMultiplier`): 1.3, what a phone's
+ * own tab bar holds. Past it the label stops growing; below it the control grows to hold it (`labelMinWidth`).
+ */
+export const LABEL_SCALE = 1.3;
+
+/** (T1201) the props every fixed-size-control label spreads: one line, whole, and the cap on its growth */
+export const LABEL_PROPS = { numberOfLines: 1, maxFontSizeMultiplier: LABEL_SCALE } as const;
+
+/**
+ * (T1201) The width a control must give a label so it is not cut or wrapped at `scale` (1 to `LABEL_SCALE`): an UPPERCASE
+ * label's glyphs run to 0.72 em each at the heaviest weight (measured: "CONDITIONS" 0.65, "SALMON" 0.72), plus its letter
+ * spacing (which the OS does not scale), plus the control's own horizontal padding. An over-estimate by design: the
+ * control grows a few px more than the word needs, never less.
+ */
+export function labelMinWidth(text: string, t: { fontSize: number; letterSpacing?: number }, scale: number, padding = 0): number {
+  return Math.ceil(text.length * (0.72 * t.fontSize * scale + (t.letterSpacing ?? 0)) + padding);
+}

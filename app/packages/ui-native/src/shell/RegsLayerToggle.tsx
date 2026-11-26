@@ -18,7 +18,8 @@ import { Pressable } from "../Pressable";
 import { useCoachTarget } from "../CoachMarks";
 import { hitProps } from "../regs/hit";
 import type { FishImages } from "../regs/types";
-import { TYPE } from "../type";
+import { TYPE, LABEL_PROPS, LABEL_SCALE, labelMinWidth } from "../type";
+import { useScaleUpTo } from "../textScale";
 import { CornerStrip } from "../CornerStrip";
 import type { Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
@@ -27,6 +28,8 @@ import { usePainting, type HeldLookStore } from "@app/ui";
 /** the rail's button size (MapRail `SIZE`) */
 const SIZE = 44;
 const HIT = hitProps({ w: SIZE, h: SIZE });
+/** the cell's word: 9 px caps (T425); its width at a larger text size sizes the cell (`labelMinWidth`) */
+const LABEL = { fontSize: 9, lineHeight: 11, letterSpacing: 0.4 } as const;
 
 /**
  * (T856) ON A DESKTOP-WIDTH WINDOW (from 1280) the switch is in the map's top row, directly after the day strip, drawn
@@ -60,6 +63,7 @@ export function RegsLayerToggle({ col, palette, fishImages, look }: {
   const painting = usePainting(look);
   const W = SALMON_WORDS.toggle;
   const target = useCoachTarget("modes");
+  const scale = useScaleUpTo(LABEL_SCALE);
   // (T261) Run timing is no choice here any more: it has its own tab, Runs
   const keys = (["standard", "salmon"] as const).filter((k) => k === "standard" || col.salmonOffered !== false);
   return (
@@ -74,14 +78,16 @@ export function RegsLayerToggle({ col, palette, fishImages, look }: {
         return (
           <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)} accessibilityRole="radio"
                      aria-checked={on} aria-busy={busy} accessibilityLabel={W.said[k]} accessibilityHint={W.hint} {...HIT}
-                     style={{ width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center", gap: 1,
+                     // (T1201) 44 square at the default text size; at a larger one the cell GROWS (the rail is right-aligned, so it
+                     // grows leftwards, both cells alike) before its word wraps or shrinks (type.ts, the one rule)
+                     style={{ minWidth: Math.max(SIZE, ...keys.map((w) => labelMinWidth(W.rail[w], LABEL, scale, 6))), minHeight: SIZE, alignItems: "center", justifyContent: "center", gap: 1,
                               backgroundColor: on ? palette.accent : palette.card,
                               borderTopWidth: i ? 1 : 0, borderTopColor: palette.line }}>
             {busy ? <LoadingState palette={palette} size={15} colour={ink} />
               : art ? <Image source={art} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 32, height: 16 }} />
               : <Icon name="fish" colour={ink} size={16} />}
-            <Text style={{ ...TYPE.micro, fontSize: 9, lineHeight: 11, fontWeight: on ? "800" : "600", letterSpacing: 0.4,
-                           textTransform: "uppercase", color: ink }}>{W.rail[k]}</Text>
+            <Text {...LABEL_PROPS}
+                  style={{ ...TYPE.micro, ...LABEL, fontWeight: on ? "800" : "600", textTransform: "uppercase", color: ink }}>{W.rail[k]}</Text>
           </Pressable>
         );
       })}

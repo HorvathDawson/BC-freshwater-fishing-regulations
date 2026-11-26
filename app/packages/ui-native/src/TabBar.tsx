@@ -25,7 +25,8 @@ import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { BROWSE_TABS } from "@app/core";
 import { Icon, type IconName } from "./icons";
-import { TYPE } from "./type";
+import { TYPE, LABEL_PROPS, LABEL_SCALE, labelMinWidth } from "./type";
+import { useScaleUpTo } from "./textScale";
 import type { Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 
@@ -35,13 +36,12 @@ export const TABS = BROWSE_TABS satisfies readonly { k: IconName; t: string }[];
 export type TabKey = (typeof TABS)[number]["k"];
 
 /** The bar's measures: 20 px icons (22 before T48), 3 px to the label, 5 / 4 px above and below (9 / 10 before). */
-/** (T243) how far a tab's label follows the OS text size (the bar's quarter-width holds no more) */
-const TAB_LABEL_SCALE = 1.3;
 export const TAB_BAR = { icon: 20, gap: 3, padTop: 5, padBottom: 4, minHit: 44 } as const;
 
 export function TabBar({ active, onChange, palette }:
   { active: TabKey; onChange: (k: TabKey) => void; palette: Palette }) {
   const coach = useCoachRefs();   // (T257) the first-run tour points at the tabs (`tab:<key>`)
+  const scale = useScaleUpTo(LABEL_SCALE);
   return (
     <View accessibilityRole="tablist"
           // A HARD RULE, in ink. The bar sat on a pale hairline, which on a white card is
@@ -55,13 +55,16 @@ export function TabBar({ active, onChange, palette }:
           <Pressable {...hitProps({ w: 80, h: TAB_BAR.minHit })} key={k} onPress={() => onChange(k)} ref={coach(`tab:${k}`)}
                      accessibilityRole="tab" aria-selected={on}
                      accessibilityLabel={t}
+                     // (T1201) equal shares, but never narrower than the label at the OS text size: the bar GROWS the tab
+                     // that needs it ("CONDITIONS") before the label is cut (type.ts, the one rule)
                      style={{ flex: 1, alignItems: "center", gap: TAB_BAR.gap, paddingVertical: 2,
+                              minWidth: labelMinWidth(t, TYPE.tab, scale, 4),
                               minHeight: TAB_BAR.minHit, justifyContent: "center" }}>
             <Icon name={k} colour={on ? palette.ink : palette.sub} size={TAB_BAR.icon} />
             {/* the label is always there: an icon alone is a guess */}
-            {/* (T243) the label grows with the OS text size to TAB_LABEL_SCALE, as the platforms' own tab bars hold theirs: a
-                quarter of a phone holds "CONDITIONS" no larger; the tab's name is still said in full by a screen reader */}
-            <Text maxFontSizeMultiplier={TAB_LABEL_SCALE} numberOfLines={1}
+            {/* (T243, T1201) the label grows with the OS text size to LABEL_SCALE, as the platforms' own tab bars hold theirs,
+                one line, whole; its tab grows to hold it (`minWidth` above). A screen reader says the name in full anyway */}
+            <Text {...LABEL_PROPS}
                   style={{ ...TYPE.tab, color: on ? palette.ink : palette.sub }}>{t}</Text>
             {/* THE SELECTED TAB IS UNDERSCORED, not just tinted. Colour alone carries the
                 state nowhere a reader is colour-blind or the screen is in sunlight, and a
