@@ -1,91 +1,55 @@
 # Gauge datum changes: what was moved, why, and how to undo it
 
-A water-level gauge measures height above its own zero (its "datum"). When Environment Canada moves a gauge or resets its
-zero, the live readings jump by a fixed amount, while the 30+ years of history (HYDAT) stay on the old zero. Live and
-history no longer compare, so the app had stopped ranking these levels: under **Level** it drew the live line alone, with
-no normal range, and said "Too new to say if this is high or low." (T550, T1047).
+A water-level gauge measures height above its own zero (its datum). When Environment Canada moves a gauge or resets its
+zero, the live readings jump by a fixed amount while the HYDAT history stays on the old zero, so the two no longer
+compare and the app cannot rank the level (it draws the live line alone: "Too new to say if this is high or low.").
 
-Accepting a change shifts the station's **history** by the stated amount, so the history sits on today's zero. The live
-readings are not touched. Only level is moved; flow (m³/s) is not affected by a gauge's zero and is unchanged.
+Accepting a change shifts the station's **history** by the stated amount onto today's zero. Live readings are never
+touched, and only level moves: flow (m³/s) does not depend on a gauge's zero.
 
-The list of changes: `data/curated/gauges/datum_change_stations.json` (one row per change). Only a row with status
-`accepted` moves anything. Code: `pipeline/gauges/feed/datum.py` (the one reader) and `pipeline/gauges/feed/climatology.py`
-(the one consumer: it builds `clim.json`, which feeds both the bundle's normal range and the live feed's ranking).
+- The list: `data/curated/gauges/datum_change_stations.json`, one row per change. Only a row with status `accepted`
+  moves anything; `proposed` and `rejected` rows move nothing.
+- The code: `pipeline/gauges/feed/datum.py` (the one reader) and `pipeline/gauges/feed/climatology.py` (the one
+  consumer: it builds `clim.json`, which feeds the bundle's normal range and the live feed's ranking). With no accepted
+  row, `clim.json` is byte-identical (`test_datum_changes`).
+- An accepted change moves only that station's level band, its earlier-years line (`recentYears`) and its
+  flow-to-level curve (`ratings`); flow bands, record lengths and every other station stay as they were.
+- A moved gauge is also a new cross-section of the river: the shift lines the zeros up, but the band's shape is still
+  the old site's.
 
-## Accepted 2026-11-24 (owner)
+## Accepted (owner, 2026-11-24)
 
-Asked in plain words whether to shift the history of 08HD006 (5.0 m lower since 2025-06-05) and 08EF001 (2.37 m higher
-since 2025-01-30) so their normal range comes back, the owner answered, verbatim:
+Asked whether to shift the history of 08HD006 and 08EF001 so their normal range comes back, the owner answered:
+"Yes but make sure it is a clean well documented update that happens which is easy to see". The rows' `decision`
+records the question and the words. 07FD001, 08KH019 and 08MH153 stay `proposed`.
 
-> "Yes but make sure it is a clean well documented update that happens which is easy to see"
+| Station | Moved | From | Environment Canada's note (HYDAT `STN_REMARKS`) | After the shift |
+|---|---|---|---|---|
+| 08HD006, Salmon River near Sayward | history 5.0 m down | 2025-06-05 | relocated 1.5 km downstream to the Sayward Road bridge, on the 1956-1981 datum: "a ~5m drop in stage" | all 300 live days of 2026 sit on the record's flow-to-level curve (0 of 300 without it); the reading ranks again |
+| 08EF001, Skeena River at Usk | history 2.37 m up | 2025-01-30 | moved about 1 km upstream, "a 2.370m jump in stage" | all 300 live days sit on the curve (110 of 300 without it); the reading is inside the normal range |
 
-The other three proposed rows (07FD001, 08KH019, 08MH153) were not asked about and stay `proposed`: they move nothing.
-
-### 08HD006, Salmon River near Sayward: history moved 5.0 m down
-
-- **Environment Canada's note** (HYDAT `STN_REMARKS`, verbatim): "The station was relocated on June 5, 2025, 1.5km
-  downstream to the Sayward Road bridge- the original station location from establishment in 1956 to 1981. The datum
-  from that period is preserved, with original benchmark elevations used (converted from feet to meters). This datum was
-  not preserved when the station was relocated in 1981 and again in 2015 to the most recent location. The datum change
-  results in a ~5m drop in stage on the 2025 relocation date."
-- **Date**: 2025-06-05 (every level before this day is shifted).
-- **Offset**: −5.0 m (the history moves DOWN 5.0 m). The note says "~5m", so the size is approximate; with −5.0 m all 300
-  live days of 2026 checked sit on the record's flow-to-level curve (0 of 300 without it).
-- **Before**: under Level, "3.18 m · Too new to say if this is high or low.", the live line alone, key "no normal range
-  (short record)". Today's normal range was 6.74–8.16 m (10th–90th), 5 m above every live reading.
-- **After**: the normal range is back at 1.74–3.16 m (10th–90th) and the reading is ranked: "Far higher than normal ·
-  higher than almost every day on record for the date (ranked on flow)" (the dot follows flow, which leads; the level's
-  own rank is also top-tenth).
-- Pictures (web, 390 px, light; the same live reading of 2026-11-24 07:10 PT, only the history differs):
-  `handoff/PLAN/app-integration/T1047-shots/accepted-08HD006-before.png`, `…/accepted-08HD006-after.png`.
-
-### 08EF001, Skeena River at Usk: history moved 2.37 m up
-
-- **Environment Canada's note** (verbatim): "Station moved approximately 1km upstream of original location on
-  2025-01-30, causing a 2.370m jump in stage due to change in elevation."
-- **Date**: 2025-01-30.
-- **Offset**: +2.37 m (the history moves UP 2.37 m). With it all 300 live days of 2026 checked sit on the record's curve
-  (110 of 300 without it).
-- **Before**: "5.05 m · Too new to say if this is high or low.", the live line alone, "no normal range (short record)".
-  Today's normal range was 2.22–3.43 m, about 2 m under the reading.
-- **After**: normal range 4.59–5.80 m, the reading inside it: "Normal · higher than 6 days in 10 for the date (ranked on
-  flow)" (level's own rank: 46th percentile).
-- Pictures: `handoff/PLAN/app-integration/T1047-shots/accepted-08EF001-before.png`, `…/accepted-08EF001-after.png`.
-
-A moved gauge is also a new cross-section of the river: the shift lines the zeros up, but the band's shape is still the old
-site's. That is the remaining caveat for both.
-
-## What exactly changes in the data (proved 2026-11-24, HYDAT 20261019)
-
-`clim.json` built before and after the acceptance (1,951 stations): only these two stations' entries differ, and in each
-only the **level** band, the earlier-years line (`recentYears`, 2024) and the flow-to-level curve (`ratings`). Flow bands,
-record lengths (`stats`) and every other station are byte-identical. The live feed (both publishers, the Python one and
-the feeds worker, run on one recording, 433 files the same JSON) then puts `level` back in the station's `reports` and
-ranks it; nothing else in the feed moves.
+Pictures (web, 390 px, light; one live reading, only the history differs):
+`handoff/PLAN/app-integration/T1047-shots/accepted-08HD006-before.png`, `…-after.png`,
+`…/accepted-08EF001-before.png`, `…-after.png`.
 
 ## Where it shows up
 
 - The climatology build prints one line per accepted change, e.g.
   `08HD006 level record moved 5.0 m down to the gauge's new zero (Environment Canada note, 2025-06-05)`.
-- The data release's checks (`python -m pipeline release --staging`, stage 4) list every gauge level record the release
-  moves compared with the live release, one line per station, in the output, in
-  `data/generated/release/checks/<r-id>/gauge_records.txt` and on the release's ledger record (`checks.gauge_records`).
-  Undoing an acceptance is listed the same way ("… back on HYDAT's own zero …").
+- The data release's checks (`python -m pipeline release --staging`) list every gauge level record the release moves
+  against the live release: in the output, in `data/generated/release/checks/<r-id>/gauge_records.txt` and on the
+  release's ledger record (`checks.gauge_records`). An undo is listed the same way.
 
 ## How it goes live
 
-No app build is needed. The next data release does it: `pipeline build` reruns its `clim` stage (its key holds the
-accepted rows), which rewrites `clim.json` and the bundle's normal ranges (`gauge_clim`), and the release upload puts
-both on R2; the feeds worker reads the new `clim.json` on its next run and ranks the level. Safe order: merge, the
-staging data release, then the production upload.
+No app build is needed. The next data release reruns the `clim` stage (its key holds the accepted rows), rewrites
+`clim.json` and the bundle's `gauge_clim`, and the upload puts both on R2; the feeds worker ranks the level on its next
+run. Safe order: merge, the staging data release, then the production upload.
 
-**The one early path is STAGING, and nobody has to run it.** `feeds-hydat.yml` has no cron, but the STAGING feeds
-worker starts it by itself, on `main`, with upload, as soon as Environment Canada lists a newer HYDAT
-(`app/workers/feeds/src/index.ts`, the `hydat` maintenance event; `dispatch.ts` `DEFAULT_REF = TRUNK`). If that happens
-after this change is on `main` and before the staging data release, staging's `clim.json` moves first: staging ranks the
-level on today's zero while the staging app still draws the old band (the release's `gauge_clim`), so for these two
-gauges the live line sits metres off the band until the staging data release. Production cannot be reached that way: its
-`clim.json` changes only through `deploy/prod/upload.sh`, which puts `clim.json` and the release up in one run.
+One early path exists, on STAGING only: the staging feeds worker starts `feeds-hydat.yml` on `main` by itself when a
+newer HYDAT is listed (`app/workers/feeds/src/index.ts`, the `hydat` maintenance event). Then staging's `clim.json`
+moves before the staging data release, and for these gauges the live line sits metres off the app's band until that
+release. Production's `clim.json` changes only through `deploy/prod/upload.sh`, together with its release.
 
 ## How to undo it (one command per station)
 
@@ -93,7 +57,7 @@ gauges the live line sits metres off the band until the staging data release. Pr
 CURATED_WRITE_BY="<your name>" .venv/bin/python -m pipeline.gauges.feed.datum --set 08HD006 proposed
 ```
 
-This puts the row back to `proposed` (its decision record is removed; git keeps the history, and every write is backed up
-and logged in `data/generated/curated_writes/`). The next data release then puts that station's history back on HYDAT's
-own zero, and its checks say so. To accept a row:
-`… --set <station> accepted --by owner --on YYYY-MM-DD --asked "<the question>" --words "<the answer, verbatim>"`.
+The row goes back to `proposed` (its decision record removed; every write is backed up and logged in
+`data/generated/curated_writes/`), and the next data release puts that station's history back on HYDAT's own zero. To
+accept a row: `… --set <station> accepted --by owner --on YYYY-MM-DD --asked "<the question>" --words "<the answer,
+verbatim>"`.

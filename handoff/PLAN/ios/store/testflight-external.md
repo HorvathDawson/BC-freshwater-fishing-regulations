@@ -1,7 +1,6 @@
-# TestFlight external testing: what Apple asks for (PROPOSAL, nothing entered)
+# TestFlight external testing: what Apple asks for
 
-Asked by the owner 2026-11-14, verbatim: "could we go straight to external testers too?" Written the same evening,
-after the first upload (0.7.10 build 33, staging data). Only the owner submits this; Claude enters nothing.
+Only the owner submits this. `deploy/staging/testflight-distribute.mjs` does the external group after a build uploads.
 
 ## How it works
 - Internal testers (you, up to 100 people on your team): a build is usable as soon as Apple has processed it. No review.
@@ -17,8 +16,8 @@ after the first upload (0.7.10 build 33, staging data). Only the owner submits t
 | Marketing URL | https://canifishthis.ca | `listing.md` |
 | Privacy Policy URL | https://canifishthis.ca/privacy | `listing.md` |
 | Contact (first name, last name, phone, email) | the owner's | owner |
-| Sign-in required | No (the app has no accounts) | `review-notes.md` |
-| Review notes | take them from `review-notes.md` (no sign-in; the first open downloads about 480 MB, Wi-Fi advised) | `review-notes.md` |
+| Sign-in required | No (the app has no accounts) | `../APP-STORE-SUBMISSION.md` section 6 |
+| Review notes | take them from `../APP-STORE-SUBMISSION.md` section 6 (no sign-in; the first open downloads about 480 MB, Wi-Fi advised) | `../APP-STORE-SUBMISSION.md` section 6 |
 
 ## "What to Test" (per build, shown to testers)
 PROPOSAL: "First iPhone test build. Please try: opening the app and waiting for the first download (about 480 MB,
@@ -29,11 +28,3 @@ More, or reply to the invitation email."
 ## Export compliance
 Already answered in the build: `usesNonExemptEncryption` is `false` in `app/apps/mobile/app.json`, so App Store Connect
 does not ask.
-
-## Before the first external build (my recommendation, the owner decides)
-1. The owner installs build 33 from the internal group first. No iPhone has run this app yet; only the simulator has.
-2. Do not send build 33 itself to outside testers. On it the first-download bar most likely does not move on iPhone,
-   and relaunching the app restarts the 480 MB download. Both are fixed on `ios/t722-install`, not merged.
-3. Build 33 reads staging data. Outside testers on staging data is the same call as Play closed testing; one answer for
-   both platforms.
-4. The next iPhone build (with the iOS branches merged) is the one to submit for Beta App Review.

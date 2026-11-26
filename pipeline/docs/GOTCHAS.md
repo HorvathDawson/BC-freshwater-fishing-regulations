@@ -1,514 +1,144 @@
-# Gotchas — things that look like a bug, a change, or a duplicate, and are not
+# Gotchas: things that look like a bug, a change or a duplicate, and are not
 
-Short entries, newest first. One per trap that has already cost someone an hour. A gotcha earns a
-place here when the *evidence* is misleading: the data says one thing and means another. Things the
-code now handles belong in the code's comments, not here.
+A gotcha earns a place here when the evidence misleads: the data says one thing and means another. What the code
+handles belongs in its comments. Data files and tests cite these headings: keep them.
 
----
+## Which "including tributaries" rule a stream answers to
 
-## Which "including tributaries" rule a stream answers to (T1053, owner 2026-11-24; the all-year part is a PROPOSAL until the owner reads its list)
+The RULINGS T4, T14 and T18 amendments (T1053; the all-year part is proposed until the owner reads its list):
 
-The owner, verbatim: "make sure upstream includes tributarties still overrides lower includes tributtaries that it
-conflicts with. make sense?" and "keep earlier rule of closure always winning unless it is exempt) this does not include
-no fishiong all year rulings tho those will yield in that case. only the dated closures." and "tributary rules dont apply
-to the lake either only streams that is important too". In plain words:
-
-1. **A stream's own row, or the nearer ✱ row, wins on each thing they both speak to** (a quota, a release, gear, bait).
-   The Duncan River's tributaries keep the Duncan's "bull trout daily quota = 2", not Kootenay Lake's tributaries'
-   bull trout release (RULINGS T14); the Granby River's own "trout/char daily quota = 1" beats the Kettle's inherited
-   rainbow release (T4). Code: `read.ladder.OWN_ROW_BEATS_INHERITED`, `NEARER_ROW_BEATS_FARTHER`, `OWN_ROW_REPLACES_INHERITED`.
-2. **A DATED closure inherited from a row further down still closes**, even a stream with its own row, unless that stream
-   is exempt (a printed lift). The Granby River is closed Jul 25-Sept 15 by "Kettle River's tributaries: No Fishing
-   Jul 25-Sept 15" although it has a row of its own (T4).
-3. **An ALL-YEAR inherited "No Fishing" yields** to the stream's own row — a WATER TABLE's row (`r<region>:`), never a
-   zone line, even one ranked as a water (the Skeena/Nass winter stream closure) — or to a nearer ✱ row, and only for the
-   fish that row speaks for (it is decided per fish: Dove Creek reopens for the trout, char, kokanee and steelhead
-   Anderson Lake's ✱ release names, and stays closed for bass, perch, whitefish …). "All year" is the rule's
-   own `when`: no dates, weekdays or hours. Frosst Creek answers by its own "No Fishing Oct 15-Apr 15", not by Sweltzer
-   River's all-year ✱ "No Fishing" reaching it through Cultus Lake; Dick Creek, which has no row, still closes with Eagle
-   Creek's all-year ✱ "No Fishing". Which row counts as "speaking" is still open (a row about keeping or closing, the
-   built default, or any row at all): `read.ladder.ALL_YEAR_INHERITED_CLOSURE_YIELDS`.
-4. **Tributary rules cover streams, never lakes** (RULINGS T1). A walk climbs THROUGH a lake to reach the streams feeding
-   it, and never covers the lake: Dick Lake stays on Region 2's rules while Dick Creek above it takes Eagle Creek's.
-   The ONE exception is a pond the existing process has listed as a PIECE OF A STREAM (it belongs to the stream's
-   registry item: an unnamed widening on the creek's line, an oxbow, a slough lake — T153 / Q124's default, the
-   "process we already have"): it is the stream and takes the stream's rules, walked ones included. Bowman Slough
-   (`wbk:329103932`, a slough held as a stream) takes Williston Lake's Zone A rule with its streams. Owner 2026-11-24
-   ~15:30: "only the polygon ponds that we have listed as piece of stream. (for example oxbows or slough lakes etc etc )
-   make sense? using the process we already have". Measured: 3,657 such polygons are bound by walks in the live run
-   (3,668 with T1053), every one held by a stream item; no lake that is a water of its own is bound by any walk.
+1. **A stream's own row, or the nearer ✱ row, wins on each thing both speak to** (a quota, a release, gear, bait):
+   the Duncan's tributaries keep the Duncan's bull trout 2, not Kootenay Lake's tributaries' release
+   (`read.ladder.OWN_ROW_BEATS_INHERITED`, `NEARER_ROW_BEATS_FARTHER`, `OWN_ROW_REPLACES_INHERITED`).
+2. **A DATED closure inherited from further down still closes**, even a stream with its own row, unless that stream
+   is exempt by a printed lift: the Granby is closed Jul 25-Sep 15 by the Kettle's tributaries' closure.
+3. **An ALL-YEAR inherited "No Fishing" yields** to the stream's own water-table row (`r<region>:`, never a zone line)
+   or a nearer ✱ row, per fish that row speaks for: Dove Creek reopens for the fish Anderson Lake's ✱ release names
+   and stays closed for the rest; Dick Creek, with no row, still closes under Eagle Creek's ✱ "No Fishing"
+   (`read.ladder.ALL_YEAR_INHERITED_CLOSURE_YIELDS`; which row counts as "speaking" is still open).
+4. **Tributary rules cover streams, never lakes** (RULINGS T1). A walk climbs through a lake to the streams feeding it
+   and never covers the lake, except a pond the registry holds as a piece of a stream (an oxbow, a slough lake, an
+   unnamed widening): it is the stream. Bowman Slough takes Williston Lake's Zone A rule with its streams.
 5. **A whole-water ✱ rule climbs through its head lake** (RULINGS T18): Eagle Creek's "No Fishing" reaches Dick Creek
-   above Dick Lake. A stretch rule ("downstream of Y Lake") still stops at the lake, and so do DFO places and licensing.
+   above Dick Lake. A stretch rule, a DFO place and a licensing record stop at the lake.
 
----
+## Questions the owner will put to BC Fish and Wildlife
 
-## Questions the owner will put to BC Fish and Wildlife (the book can be read two ways; we keep the stricter reading)
-
-- **Thompson River below Kamloops Lake in June** (Region 3, p.28 and p.32). The spring closure: "No Fishing in any
-  stream in Region 3 from Jan 1-June 30 (see tables for exceptions)". The Thompson's own row: "No Fishing Oct 1-May
-  31 … Additional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River,
-  May 1-31", with no "Exempt from spring closure" (the upstream Thompson row prints one). Read either way: June
-  closed by the region (kept; rulings L1, L20) or the row's own dates replacing it (June open: 26 trout sections;
-  22 salmon sections chinook and sockeye "check"). Owner 2026-11-16: "keep closed but add to gotchas as one i need to
-  ask fish and wildlife about".
-
-  **Every water the same question touches** (owner 2026-11-17: "what are all the streams that would be effected by the
-  change? i want the list in gotchas", only those whose own row prints NO exemption from that closure). A water's own
-  row prints its own "No Fishing" dates, a regional closure also covers it, and the row never says it is exempt. Strict
-  (built, RULINGS L1): both hold, so the days in the last column are closed. Loose: the row's dates replace the region's
-  closure and those days open. Generated by `export.closures.closures_combine` (RULINGS L20) from the 11-16 rebuild
-  bundle; "stretches" are the app's sections.
-
-  | Water (region) | Its own row | Region's closure | Loose would open | Stretches |
-  |---|---|---|---|---|
-  | Thompson River below Kamloops Lake (3) | No Fishing Oct 1-May 31 | spring, Jan 1-Jun 30 | Jun 1-30, all fish | 26 |
-  | Stein River (3) | No Fishing Jan 1-May 31 | spring, Jan 1-Jun 30 | Jun 1-30, all fish | 30 |
-  | Guichon Creek (3) | No Fishing Jan 1-May 31 | spring, Jan 1-Jun 30 | Jun 1-30, all fish | 9 |
-  | Nahatlatch River below the lake (3) | No Fishing Jan 1-May 31 | spring, Jan 1-Jun 30 | Jun 1-30, all fish | 7 |
-  | Fraser River, Thompson confluence to the CNR Bridge 1 km down (3) | No Fishing Oct 1-May 31 | spring, Jan 1-Jun 30 | Jun 1-30, all fish | 1 |
-  | Bridge River below the Hwy 40 bridge (3) | No Fishing Mar 31-Jun 20 | spring, Jan 1-Jun 30 | Jan 1-Mar 30 and Jun 21-30, all fish | 1 |
-  | Nicola River below Nicola Lake (3) | No Fishing Mar 1-Sept 30 | spring, Jan 1-Jun 30 | Jan 1-Feb 28, fish other than trout (trout are already catch and release then) | 36 |
-  | Shuswap Lake, its stream part (3) | No Fishing Mar 15-May 14 | spring, Jan 1-Jun 30 | Jan 1-Mar 14 and May 15-Jun 30, all fish | 1 |
-  | Stellako River (6 and 7A) | No Fishing Nov 15-May 14 | Fraser watershed spring, Apr 1-Jun 30 | May 15-Jun 30, all fish | 11 |
-  | Campbell Lake's tributaries, incl. the Campbell between Strathcona Dam and the lake (1) | No Fishing Feb 1-Jul 15 | summer, Jul 15-Aug 31 | Jul 16-Aug 31, all fish | 54 |
-  | John Hart Lake's tributaries, incl. the channel below Ladore Dam (1) | No Fishing Apr 15-Jul 15 | summer, Jul 15-Aug 31 | Jul 16-Aug 31, all fish | 4 |
-  | Campbell River, Maple Street sign to the cement block (1) | No Fishing Aug 1-Oct 31 | summer, Jul 15-Aug 31 | Jul 15-31, all fish | 1 |
-  | Kitimat River, tributaries and above the Hwy 37 bridge (6) | No Fishing Mar 16-May 31 | steelhead, May 15-Jun 15 | Jun 1-15, steelhead | 4,713 |
-  | Dala River (6) | No Fishing Jun 15-Aug 1 | steelhead, May 15-Jun 15 | May 15-Jun 14, steelhead | 951 |
-  | Ksi Hlginx River (6) | No Fishing Jun 15-Sept 1 | steelhead, May 15-Jun 15 | May 15-Jun 14, steelhead | 60 |
-  | Triumph River (6) | No Fishing Nov 1-May 31 | steelhead, May 15-Jun 15 | Jun 1-15, steelhead | 9 |
-  | West Road (Blackwater) River mainstem (5) | No Fishing Nov 1-Jun 14 | Region 6 steelhead, May 15-Jun 15 | Jun 15, steelhead | 4 |
-
-  Checked and left as they are: the Fraser's "Exempt from spring closure" covers only the part upstream of the Thompson,
-  not this spot below it. Shuswap's printed exemption is for the Salmon Arm pier, and from its own closure. The West Road's
-  "tributaries subject to spring closure" agrees with the region. One more of the same kind, with dated rows instead of
-  "No Fishing": **Duck Lake (4)**, where "bass catch and release, May 15-June 15" and "Bass daily quota = 3, June 16-May 14"
-  sit under Region 4's spring stream closure (Apr 1-Jun 14) on its stream parts. Strict: closed to Jun 14. Loose: bass
-  catch and release from May 15. Not on the list: rows whose only clash is an UNDATED quota under a closure (Bowron Lake
-  park waters, the West Road's tributaries, Station, Hevenor and Two Mile creeks, Creston Valley, French and Lewis
-  sloughs, Okanagan River, Christina Creek), because a quota with no dates says nothing about the season.
-- **A stream's own daily quota against the region's "from streams" share and the region's total** (T834; Region 4
-  p.34-38, the same shape in every region with a stream share). Region 4 prints "Trout/char: 5 … 2 from streams, 1 bull
-  trout"; the book (p.3) says to follow the provincial, regional AND water-specific rules, and never says how a water's
-  own quota sits against the share or the total. Owner 2026-11-17: ONE reading for every water, the strict one (as for
-  the Thompson above): the region's cap stands unless the water's row says otherwise or cannot work under it. A water's
-  own number for a fish that is AT OR BELOW a regional cap sits inside it; one ABOVE it raises that cap to its own number
-  for that fish only (the other kinds stay at the region's number, all of them inside the raised cap). The book prints
-  "EXEMPT from …" where it means a lift (the Lardeau's spring closure; Upper Arrow's kokanee "none from streams").
-  Ask about each case (built reading first, the looser one after):
-  - **Kaslo River, Keen Creek** ("Bull trout daily quota = 2"): 2 fish from the stream in all, both may be bull trout.
-    Looser: 2 bull trout PLUS 2 other trout = 4.
-  - **Lardeau River, Duncan River** ("Rainbow trout daily quota = 5, bull trout daily quota = 2"): 5 a day in all; bull
-    trout and the other trout (not rainbow) only 2 of them; e.g. 3 rainbow + 2 bull, or 5 rainbow, or 2 cutthroat + 3
-    rainbow. Looser: 7 (5 rainbow + 2 bull). The owner first said 7 ("because we have other ones like one of the
-    kootenay lakes having a 10 a day quota for rainbows"), then chose the strict reading for every water.
-  - **Kootenay Lake main body** ("Bull trout daily quota = 1; rainbow trout daily quota = 10"): 10 a day in all (the
-    rainbow's 10 cannot fit inside the region's 5, so it raises it), other kinds 5 at most, bull trout 1. Looser: 11.
-  - **Adams River** (Region 3, "Rainbow trout daily quota = 2" under "4 from streams"): 4 from the stream in all, at
-    most 2 of them rainbow. Looser: 2 rainbow plus 4 others. Owner: "it is just 2 of the 4".
-  - **Buckley Creek** (Region 6, "rainbow trout daily quota = 1" under "1 trout from streams July 1-Oct 31"): 1 trout
-    from the stream in all, a rainbow or a cutthroat. Looser: 1 rainbow plus 1 other trout = 2.
-  - **The 12 rows that carried a hand-written lift out of the share** (Lardeau, Duncan, Beaver, Lavington, Perry,
-    Whiteswan, Chilliwack, Kitimat ×2, Peace in 7B): under the strict reading a number equal to the share no longer
-    lifts (the Lardeau and Duncan bull trout 2, revising RULINGS T3a for those rows).
-  - **Lakes with their own brook trout quota above the region's 5** (Region 4 p.35-40: Big Fish, Botts, Box, North
-    Star, Premier, Twin, Whitetail "Brook trout daily quota = 20"; Region 8 p.70 Jewel; Region 7 p.59-61 Bow,
-    Butterfly, Camp, Kathie, Kinglet, Redstart "= 10"): the region's 5 stands, brook trout may go to 20, and they count
-    toward the 5. Owner 2026-11-17 12:29: "the total is 5 not 20 or 25 ... 5 with exception to 20 brook trout which
-    also uses up your 5 quota". Built: 15 brook trout + 5 cutthroat is legal (the cutthroat fill the 5, the extra slots
-    are brook trout only), 6 cutthroat is not. Owner 12:32: "For now say legal (need to ask about this with co tho)".
-    Stricter: brook trout fill the 5 first, so 5 brook trout + 1 cutthroat is not legal.
-
-### Questions for each office (the book's words, printed pages of the 2025-2027 synopsis)
-
-**Answered by the owner (not to ask):** Region 6's steelhead closure (p.49, "No fishing: in all rivers and streams for
-steelhead, May 15 – June 15") holds on every stream whose own row prints other "No Fishing" dates: the Kitimat (p.51),
-Dala (p.50), Ksi Hlginx (p.52), Triumph (p.54), and the West Road mainstem (Region 5, p.47) by the same reading. Owner
-2026-11-17: "the no steelhead is different then a full closure so the no steelhead definitely holds here".
-
-**BC Fish and Wildlife, Region 1 (Vancouver Island)**
-1. Summer closure (p.13): "No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water
-   specific regulations table for exceptions)". These rows print their own "No Fishing" dates and no exemption. Does
-   the summer closure still apply outside them?
-   - Campbell Lake's tributaries (p.14): "No Fishing Feb 1-July 15 including Campbell River between Strathcona Dam
-     and (Lower) Campbell Lake". Closed Jul 16-Aug 31 as well?
-   - John Hart Lake's tributaries (p.16): "No Fishing Apr 15-July 15 (includes channel downstream of Ladore Dam)".
-     Closed Jul 16-Aug 31 as well?
-   - Campbell River (p.14): "No Fishing from the boundary sign at the end of Maple Street downstream to the boundary
-     sign at the cement block, Aug 1-Oct 31". Closed Jul 15-31 as well?
-2. The Campbell River is listed under MU 1-10 (p.14), but its lower river lies along the MU 1-6 line. Does the MU 1-1
-   to 1-6 summer closure apply to the lower Campbell River?
-3. Bait ban (p.13): "applies to all streams of Region 1, all year, with some important exceptions. Check the tables."
-   Quatse (p.18): "Bait ban, May 1-Nov 30"; Somass (p.18): "Bait ban, June 1-Aug 24"; Sproat (p.18): "Bait ban, May
-   1-Oct 31"; Stamp (p.18): "Bait ban all year upstream of signs at 'Girl Guide Falls'". Is bait allowed on these
-   waters outside the dates or places printed?
-
-**BC Fish and Wildlife, Region 3 (Thompson-Nicola)**
-1. Spring closure (p.28): "No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)".
-   These rows print their own "No Fishing" dates and no exemption. Does the spring closure still apply outside them?
-   - Thompson River below Kamloops Lake (p.32): "No Fishing Oct 1-May 31". Closed in June?
-   - Stein River (p.32): "No Fishing Jan 1-May 31". Closed in June?
-   - Guichon Creek (p.30): "No Fishing Jan 1-May 31". Closed in June?
-   - Nahatlatch River (p.31): "No Fishing downstream of Nahatlatch Lake, Jan 1-May 31". Closed in June?
-   - Fraser River (p.30): "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream:
-     No Fishing, Oct 1-May 31". The same row's "Exempt from spring closure" is only "upstream of Thompson River".
-     Closed in June?
-   - Bridge River (p.29): "No Fishing downstream of Hwy 40 bridge … Mar 31-June 20". Closed Jan 1-Mar 30 and June
-     21-30?
-   - Nicola River (p.31): "No Fishing downstream of Nicola Lake, Mar 1-Sept 30" and "Trout catch and release
-     downstream of Nicola Lake, Jan 1-Feb 28". Is fishing for other fish (whitefish, etc.) closed Jan 1-Feb 28?
-   - Shuswap Lake (p.32): "No Fishing Mar 15-May 14 …". Are its stream parts closed Jan 1-Mar 14 and May 15-June 30?
-2. Daily quota (p.28): "Trout/char: 5, but not more than: 4 from streams". Adams River upstream of Adams Lake (p.29):
-   "Rainbow trout daily quota = 2". Are the 2 rainbow part of the 4 from streams, or in addition to them?
-
-**BC Fish and Wildlife, Region 4 (Kootenay)**
-1. Daily quota (p.34): "Trout/char: 5, but not more than … 2 from streams, 1 bull trout (Dolly Varden) of any size".
-   When a water prints its own quota for a fish, does that fish still count toward the 2 from streams and the 5?
-   - Kaslo River and Keen Creek (p.37): "Bull trout daily quota = 2 (any size)". 2 fish in all, or 2 bull trout plus
-     2 other trout?
-   - Lardeau River (p.38) and Duncan River (p.36): "Rainbow trout daily quota = 5 (any size), bull trout daily quota
-     = 2 (any size)". 5 fish in all, or 7? Do the bull trout count toward the 2 from streams?
-   - Kootenay Lake main body (p.37): "Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size)". 10 fish
-     in all, or 11? Are other trout still limited to 5?
-   - Big Fish, Botts, Box, North Star, Premier, Twin and Whitetail lakes (p.35-40): "Brook trout daily quota = 20".
-     Do brook trout count toward the 5? Is 15 brook trout + 5 cutthroat legal, or only 5 other trout less the brook
-     trout kept? (The same question for Region 7's "Brook trout daily quota = 10" lakes, p.59-61, and Region 8's
-     Jewel Lake, p.70.)
-2. Spring closure (p.34): "No Fishing: in any stream in Region 4 from Apr 1-June 14". Duck Lake (p.36): "bass catch
-   and release, May 15-June 15". Are its streams open for bass catch and release from May 15, or closed to June 14?
-3. Glenn Creek flows by Wilkie Creek into Trout Lake, which drains down the Lardeau to the Duncan. The Duncan
-   (includes tributaries, p.36) is "Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch
-   and release". Trout Lake's tributaries (p.40) print only "Bull trout catch and release", and Wilkie and Asher
-   creeks' own rows print no exemption. Do the Duncan's exemptions reach these creeks?
-4. Mackenzie Creek (p.38, "No Fishing") is listed under MU 4-21. The only Mackenzie Creek is in MU 4-31. Is it a typo?
-
-**BC Fish and Wildlife, Region 5 (Cariboo)**
-1. Frog Lake (MU 5-6, p.45): "No Ice Fishing; trout daily quota = 1; bait ban, single barbless hook". No lake on the
-   provincial map (Freshwater Atlas) is named Frog Lake in MU 5-6; the Frog Lakes we found are in MUs 1-10, 3-29 and
-   7-30, far from it. Its row's words are exactly those of Hidden Lake (24 ha) and Secret Lake (18 ha), the next rows in
-   the same MU, both found; so it is probably a small lake near them, unnamed on the map or known locally by another
-   name. Which lake is it?
-2. Redfern Lake (MU 5-15, p.46): "Trout daily quota = 2; bait ban, single barbless hook". No lake named Redfern is in
-   MU 5-15; the only Redfern Lake on the map is in Region 7 (MU 7-42, about 500 ha). Is the MU a typo (7-42), or is
-   it another lake in 5-15?
-
-**BC Fish and Wildlife, Region 6 (Skeena)**
-1. Fraser watershed closure (p.49): "in the Fraser River watershed in Region 6, Apr 1-June 30", and Region 7A's spring
-   closure (p.58), "in any stream of Zone A, Apr 1-June 30". Stellako River (p.53 and p.61): "No Fishing Nov 15-May
-   14". Closed May 15-June 30?
-2. Daily quota (p.49): "1 trout from streams July 1-Oct 31". Buckley Creek (p.50): "rainbow trout daily quota = 1".
-   1 trout in all, or 1 rainbow plus 1 other trout?
-3. Squirrel Lake (MU 6-1, p.53; also printed in the Region 5 table, p.47): "Trout daily quota = 2; bait ban, single
-   barbless hook". No lake named Squirrel is in MU 6-1; the only Squirrel Lake on the map is in Region 5 (MU 5-1,
-   about 43 ha). The other MU 6-1 lakes printed in both tables with these words (Chipmunk, Toms, Basalt, Gatcho,
-   Naglico, Pettry) are all found, near the Region 5 border. Is it the MU 5-1 lake (an MU typo), or another lake near
-   that border?
-4. Kitimat River (p.51): "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2", with no dates. Region 6
-   (p.49): "you must release: … Trout of any size from streams, Nov 1-June 30". May hatchery steelhead be kept on the
-   Kitimat from Nov 1 to June 30?
-
-**BC Fish and Wildlife, Region 7A (Omineca)**: Stellako River, see Region 6 question 1.
-
-**BC Fish and Wildlife, Classified Waters licence (any region; T973, owner 2026-11-20)**
-1. A river is Classified Waters "[Includes Tributaries]". One of its tributaries has its own row that does not mention
-   Classified Waters. Does a non-resident need the river's Classified Waters licence on that tributary and the creeks
-   above it? (Built: no.)
-   - Example: Stellako River (p.53): "Class II water [Includes Tributaries]". Its tributary the Endako River has its own
-     row, which prints only "No Fishing Nov 15-June 30".
-
-**DFO (salmon)**
-1. Tatshenshini below the border: "All | Jul 24 to Aug 14 | No fishing for salmon" beside "Coho | Apr 1 to Mar 31 | 2
-   per day". Is coho closed Jul 24-Aug 14?
-2. Cowichan, 66 Mile Trestle to the Sandy Pool: "All | Sep 1 to July 14 | Open for salmon catch and release" beside
-   "Coho | Nov 1 to Dec 31 | 1 per day". May coho be kept Nov 1-Dec 31?
-3. Skeena at the Kispiox confluence: the closure reads "4 triangular" signs in one wording and "3 white triangular"
-   signs in another. Is it one closure, and how far up and down the Skeena are the signs?
-4. Kispiox River: "signs near the Kispiox River Resort". No place has that name. Is it the Kispiox River Lodge?
-5. Kasiks River, coho: "fishing boundary signs located below the Upper Pool". Where are the signs? Is it the pool
-   below the falls at about 18 km?
-6. Kanaka Creek: "112th Street bridge". The only crossing there is 112 Avenue. Is that the one?
-7. Stamp River at Stamp Falls: the lower end is given as "500 m below the fishway" and as "225 m below Deer Creek".
-   These are about 60 m apart on the river. Which is right?
-8. Somass River: "Paper Mill Dam upstream approximately 0.5 km to Collins Farm". The named ends are about 1.3 km
-   apart. Do the named ends or the 0.5 km decide?
-9. Thompson River, closed area at Juniper Beach: the upper end is "approximately 4 km" above the lower signs, or 1.5
-   km below Juniper Beach Park. These give areas of about 4 km and 1.2 km. Which?
-10. Bulkley River: one row reads "all tributaries … other than the Suskwa River"; another reads "… other than Morice
-    River and tributaries, Suskwa River and tributaries, and Two Mile Creek". Are they two different places, or one
-    row with a slip?
-11. Sheldens Creek (Moresby Island): no map names it. Is it the creek into Sheldens Bay, and where do the rule's
-    "bridge" and signs stand?
-
----
+The questions (the book read two ways; the app is built on the stricter reading) are `pipeline/docs/BOOK-QUESTIONS.md`.
 
 ## Harrison Lake's lake trout show "hatchery only" (a bare "trout" line covers char)
 
-- **Harrison Lake** (Region 2). The row reads "No wild trout over 50 cm, 1 bull trout over 60 cm". The book's
-  definitions say a rule for "trout" also applies to char unless char are specifically left out, and the owner's
-  2026-11-18 rule (CATALOGUE_PARSE_PROMPT.md, labels.py) leaves out only the char the same row gives its own line:
-  here bull trout. So `harrison_lake.r1` is `TROUT_CHAR` except `DV`, origin wild, take 0 over 50 cm: it covers
-  lake trout and brook trout too. Every lake trout the zone lets you keep is over 50 cm, so a keepable one must be a
-  hatchery fish, and the trout card shows lake trout as "hatchery only" (in practice: no wild lake trout kept here).
-  Looks like a parse error; it is the book read the agreed way. Owner 2026-11-23: "okay that makes sense. just
-  confusing regulations can you add this one to gotchas?" (staging report `e034e473bf96ab93`, PR #85.) If the owner ever reads "trout" here as trout only, the
-  change is one line: add `LT` (and `EB`) to `species_except` in region-2.json.
+The row reads "No wild trout over 50 cm, 1 bull trout over 60 cm". A "trout" rule covers char unless char are left out,
+and RULINGS C2 leaves out only the char the same row gives its own line, here bull trout. So `harrison_lake.r1` is
+`TROUT_CHAR` except `DV`, wild, take 0 over 50 cm: it covers lake trout and brook trout too. Every lake trout the zone
+lets you keep is over 50 cm, so a keepable one is a hatchery fish. It looks like a parse error and is the book read the
+agreed way (owner 2026-11-23). If "trout" here is ever read as trout only: add `LT` (and `EB`) to `species_except` in
+region-2.json.
 
 ## An "All" closure against a species row on the same DFO place (the Tatshenshini, the Cowichan)
 
-**2026-11-12 · owner ruling T671 D1 · DFO salmon · `pipeline/deliver/salmon.py` `_all_closure_wins`, RULINGS L24**
+DFO's table puts an `All` row and a species row on one place with no words saying which wins (`pipeline/deliver/salmon.py`
+`_all_closure_wins`, RULINGS L24). **The All CLOSURE wins unless the species row is dated inside the All row's dates.**
 
-DFO's table puts an `All` row and a species row on one place with no words saying which wins, and the two shapes
-look alike but read opposite ways:
-
-- Tatshenshini below the border: `All | Jul 24 to Aug 14 | No fishing for salmon` beside `Coho | Apr 1 to Mar 31 |
-  2 per day`. The coho row is NOT the exception — it is DFO's all-year default written loosely (above the border the
-  same closure sits beside `Coho | Aug 15 to Jul 23`, dated around it). The closure wins: coho closed Jul 24-Aug 14.
+- Tatshenshini below the border: `All | Jul 24 to Aug 14 | No fishing for salmon` beside `Coho | Apr 1 to Mar 31 | 2
+  per day`. The coho row is DFO's all-year default written loosely; the closure wins.
 - Cowichan, 66 Mile Trestle to the Sandy Pool: `All | Sep 1 to July 14 | Open for salmon catch and release` beside
-  `Coho | Nov 1 to Dec 31 | 1 per day`. The coho row IS the exception: dated inside the All row, it speaks.
+  `Coho | Nov 1 to Dec 31 | 1 per day`. Dated inside the All row, the coho row speaks.
 
-The rule (owner): the All CLOSURE wins unless the species row is dated inside the All row's dates. Do not "fix" the
-Tatshenshini's coho back to open because its own row says all year, and do not let an All row that is no closure
-swallow a short species opening. On the pages of 2026-11 only the Tatshenshini below the border and the Koksilah
-(undrawn) are changed by it; the Region 6 B(i) places now quote the All closure on Jan 1-Jun 15 instead of the
-species' own closure (closed either way).
+Do not reopen the Tatshenshini's coho because its own row says all year, and do not let an All row that is no closure
+swallow a short species opening.
 
-## Kept city-layer names that are not real names (and labels that look wrong)
+## Kept city-layer names that are not real names
 
-**2026-10-29 · owner review · city layers (Burnaby, Port Moody, Squamish)**
+Names are shown as sourced (owner rule): city layers keep any feature that carries a name, so some are asset codes or
+designations, and some labels sit on the wrong FWA line. Do not drop or rename them.
 
-Names are shown **as sourced** (owner rule). City layers keep any feature that carries a name, so some kept
-"names" are asset codes or design designations, and some labels land on the wrong FWA line. This is a
-known-issue note, not a filter: do not "fix" these by dropping or renaming them.
-
-- **Designations, not names:** 154 Burnaby "X Trib.N" (e.g. "Stoney Trib.3-1-1-2-2-1"); 17 Port Moody and
-  16 Squamish "Trib" names.
-- **Codes as names (Burnaby):** Slvt2; Jr 1-1, Jr 4-1, Jr 4-1-1, Jr 4-1-2, JR Trib. 4; Crabtown Creek T1.
-- **Not streams / odd spelling (Squamish):** Mamquam Blind Channel Wetland (a wetland); Logger's Lane
-  Connector and Loggers Lane Creek (two spellings, one a "Connector"); Mashiter Side Channel.
-- **Labels that look wrong on an FWA line:** Evans Creek on the Squamish River; Dragonfly Creek on Still
-  Creek; Lost Trib.1 on Austin Creek; Stoney Trib.4 on Stoney Creek.
-- **Several names on one unnamed FWA line:** Thunderbird + Newport on `360305166`; Beaver Creek + Beaver
-  Creek BioPond North + Deer Lake Brook on `356297118`; Beecher + Sunken Engine on `356093488`.
-- **Already there before:** the Seymour River item holds the city's Tunnel Creek (`-2000000390`).
-
-Seeing one of these on the map is the data as sourced, not a regression.
-
----
+- Designations: 154 Burnaby "X Trib.N" ("Stoney Trib.3-1-1-2-2-1"); 17 Port Moody and 16 Squamish "Trib" names.
+- Codes: Slvt2; Jr 1-1, Jr 4-1, Jr 4-1-1, Jr 4-1-2, JR Trib. 4; Crabtown Creek T1 (Burnaby).
+- Not streams or odd spellings (Squamish): Mamquam Blind Channel Wetland; Logger's Lane Connector and Loggers Lane
+  Creek; Mashiter Side Channel.
+- Labels on the wrong line: Evans Creek on the Squamish River; Dragonfly Creek on Still Creek; Lost Trib.1 on Austin
+  Creek; Stoney Trib.4 on Stoney Creek. Several names on one unnamed line: Thunderbird + Newport (`360305166`); Beaver
+  Creek + Beaver Creek BioPond North + Deer Lake Brook (`356297118`); Beecher + Sunken Engine (`356093488`). The Seymour
+  River item holds the city's Tunnel Creek (`-2000000390`).
 
 ## Book errata: an MU printed wrong (Mackenzie Creek "4-21" is 4-31)
 
-**2026-10-26 · owner ruling · Region 4, `r4:mackenzie_creek@4-21` · `data/curated/regulations/book_name_links.json`**
-
-The synopsis prints MACKENZIE CREEK ("No Fishing", printed p.38) under **MU 4-21**. There is no Mackenzie
-Creek in 4-21; the book means the one in **MU 4-31** (`gnis:12042`). It reads as a water the registry is
-missing — it is a typo in the book.
-
-The fix is an ordinary override keyed on the row AS PRINTED (`name_verbatim` + the printed MU 4-21)
-naming the right item; the entry id keeps the printed MU (`@4-21`) because it is minted from the row,
-not the item. Do not "correct" the id or the MU in the corpus.
-
-Known book errata (add new ones here): **Mackenzie Creek MU 4-21 → 4-31.** Still not found (2026-11-17), `not_found` overrides,
-unconfirmed, not errata: Frog Lake (MU 5-6), Redfern Lake (MU 5-15), Squirrel Lake (MU 6-1). Hidden, Secret and
-Square lakes (MU 5-6) were found since and bind; Chipmunk, Toms, Basalt, Gatcho, Naglico and Pettry (MU 6-1) are
-printed in both the Region 5 and Region 6 tables with the same words, and the Region 6 row binds them.
-
----
+The book prints MACKENZIE CREEK ("No Fishing", p.38) under MU 4-21; the only Mackenzie Creek is in MU 4-31
+(`gnis:12042`). The fix is an override in `data/curated/regulations/book_name_links.json` keyed on the row as printed;
+the entry id keeps the printed MU (`r4:mackenzie_creek@4-21`). Do not "correct" the id or the MU in the corpus. Known
+errata: **Mackenzie Creek MU 4-21 -> 4-31.** Not found and not errata (`not_found` overrides): Frog Lake (MU 5-6),
+Redfern Lake (MU 5-15), Squirrel Lake (MU 6-1).
 
 ## A water's undated hatchery-steelhead quota does not lift the zone's Nov-Jun release (the Kitimat)
 
-**2026-10-21 · owner ruling · Region 6, `kitimat_river.r5` vs `z6 trout_char_quota.r7` · test `test_answers_kitimat_steelhead_lift.py`**
-
-The Kitimat row prints "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2" with **no dates**, right under
-"Hatchery rainbow trout … daily quota = 5, … **all year**" (printed p.51). Region 6 prints "And you must release: …
-Trout of any size from streams, Nov 1-June 30" (printed p.49). It reads as if the row's quota is a year-round exception
-(and the Kitimat hatchery steelhead run is a winter one), so the curated `exempts` on r5 named r7 and the app let you
-keep 2 in Nov-June. **The owner ruled it is NOT lifted:** hatchery steelhead on the Kitimat are catch-and-release
-Nov 1-June 30, and the quota of 2 applies outside that window. Only "all year" lifts a dated zone release; an undated
-row quota does not. Separately (same day), keeping hatchery steelhead counts toward the 1-over-50 cm trout limit — a
-"+1 for steelhead", as on the Vedder — so it does not free up another trout over 50 cm.
+The Kitimat prints "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2" with no dates (p.51); Region 6
+prints "you must release: … Trout of any size from streams, Nov 1-June 30" (p.49). Owner ruling: not lifted. Hatchery
+steelhead there are catch and release Nov 1-Jun 30 and the 2 applies outside it; only "all year" lifts a dated zone
+release (`test_answers_kitimat_steelhead_lift.py`). Keeping one also counts toward the 1-over-50 cm trout limit.
 
 ## A row's closed season does not shorten the zone's (the Stein, the Nahatlatch)
 
-**2026-10-05 · zone closures, all regions · `pipeline/deliver/bundle/rules/lifts.py`, export `gotchas.closures_combine`**
-
-The Stein's row prints "**No Fishing** Jan 1-May 31"; Region 3 prints "No Fishing in any stream in
-Region 3 from Jan 1-June 30". It reads as if the row's dates replace the zone's, so the Stein
-opens June 1. They do not: **both hold, closed on the union** (Jan 1-June 30). The p.28 line that
-lists "Nahatlatch River downstream of Nahatlatch Lake and Stein River: from Jan 1-May 31" looks
-like an exception list and is not one — it sits under *Steelhead Management Changes*, a list of
-steelhead closures (the Thompson heads it). Two lifts built on it were removed.
-
-A row beats a zone closure only where the book PRINTS an exemption ("exempt from spring
-closure", or the zone page names the water), or prints a dated catch and release, opening or
-quota INSIDE the closure — then on exactly those dates, for exactly those fish (the Nicola below
-its lake: trout catch and release Jan 1-Feb 28; whitefish stay closed). Every entry where the
-two overlap is listed, generated, in the export's `guide.gotchas.closures_combine` — and the
-READER decides what each note claims: "both hold" only on the days and for the fish the zone
-closure actually speaks outside the row's dates (`zone_holds`), with any lift in part named
-(`zone_lifted`: the Nicola's trout, the Thompson's May opening on 2 of its 20 sections). The
-Fulton's "Open June 16-Apr 30" closes it May 1-June 15 and lifts the Skeena winter closure on
-every other day, so it is no such case; read off printed dates alone it looked like one. Before
-adding a lift, find the printed words; a row's own season is never them.
-
----
+The Stein prints "No Fishing Jan 1-May 31"; Region 3 closes every stream Jan 1-June 30. Both hold, closed on the union.
+The p.28 line listing "Nahatlatch River … and Stein River: from Jan 1-May 31" sits under Steelhead Management Changes
+and is no exception list. A row beats a zone closure only where the book prints an exemption, or a dated release,
+opening or quota inside the closure: then on exactly those dates, for those fish (AGENTS 57). Every overlap is listed in
+the export's `guide.gotchas.closures_combine`, and the reader decides what each note claims. Before adding a lift, find
+the printed words; a row's own season is never them.
 
 ## A dated bait ban DOES replace the zone's all-year one (Quatse, Somass, Sproat, Stamp)
 
-**2026-10-05 · Region 1 bait ban · export `gotchas.dated_bait_ban_replaces_zone`**
-
-The opposite of the entry above, and easy to "fix" by analogy. Region 1 prints "Bait ban: applies
-to all streams of Region 1, all year, with some important exceptions. Check the tables." The
-Quatse prints "Bait ban, May 1-Nov 30". Here the row's dates DO replace the zone's: bait is
-allowed on the Quatse Dec 1-Apr 30 (`quatse_river.r4x` lifts the zone ban on those dates). A
-closure never works this way; a bait ban with "check the tables" does. As of 2026-10-05 only
-Region 1 prints this shape (the export's gotcha says where, read off the rules, not a fixed
-sentence): Regions 6, 7A and 7B ban bait all year on streams too, but no row there prints a
-dated ban on the same water (the one Region 5 Fraser section under Zone 7A's ban is lifted by the
-Region 7 Fraser row's "EXEMPT from bait ban").
-
----
+The opposite of the entry above. Region 1's bait ban is "all streams of Region 1, all year, with some important
+exceptions. Check the tables."; the Quatse prints "Bait ban, May 1-Nov 30", so bait is allowed there Dec 1-Apr 30
+(`quatse_river.r4x`). A closure never works this way; a bait ban with "check the tables" does (RULINGS G5; export
+`gotchas.dated_bait_ban_replaces_zone`).
 
 ## The same closure appears twice, under two sign counts (Skeena @ Kispiox)
 
-**2026-09-21 · DFO salmon, Region 6 · `pipeline/regs/dfo_salmon/`**
-
-The Skeena carries **three** locators for the fishing-boundary-sign closure at the Kispiox
-confluence:
-
-- `6:skeena-river:all-waters-within-the-4-triangular` — *"all waters within the **4** triangular
-  fishing boundary signs located at the confluence of the Kispiox River with the Skeena River"*
-- `6:skeena-river:mainstem-waters-within-3-white-tri` — *"mainstem waters within **3** white
-  triangular fishing boundary signs located at the confluence of the Kispiox River…"*
-- `6:skeena-river:mainstem-waters-within-three-white` — *"mainstem waters within **three** white
-  triangular fishing boundary signs located at the confluence with the Kispiox River"*
-
-The duplicate grouper caught the numeral one (score 0.934) and missed the spelled-out one — the
-gap between `3` and `three` is wider than its threshold. Both are now
-`duplicate_confirmed` against the four-sign primary.
-
-**They are one zone.** DFO re-worded it across years and every wording survives in the corpus, so
-the sign count is not a distinguishing fact — do not go looking for two or three closures, and do
-not bind them to different water. All three bind to the same pair of cuts
-(`skeena_river__kispiox_sign_zone_lower` / `_upper`).
-
-The sign count is the trap: a wording can change 4 -> 3 -> three without a single fish being
-affected, and each change mints a locator that looks new.
-
-Why it reads as several: the locator id is a fingerprint of `section|water|specific_area`, so re-worded
-scope text mints a *new* locator rather than updating the old one. That is the design — the old one
-goes dormant and revives if the wording returns — but it means **wording drift looks exactly like a
-new regulation**. `whatchanged` (removed with `archive/` in T335: `git show d1b36ca44:archive/pipeline/regs/dfo_salmon/whatchanged.py`) diffs rules on structure for this reason; locators have no such
-defence, and a curator is the only thing that spots it.
-
-Check before assuming two: same water, same section, same rules, landmark in the same place. If all
-four match, it is one zone — record it with `duplicate_of` + `duplicate_confirmed`, not by binding
-the copies to different geometry.
-
-> The 400 m either side of the confluence is an **assumption**, not a survey. DFO gives no distance;
-> 400 m is the radius it uses for the comparable Region 6 mouth closures (Babine Lake, Pinkut Creek).
-> `spatial_caveat` stays set until someone pins the real signs.
-
----
-
-## A locator that matches everything but a trailing period
-
-**2026-09-21 · DFO salmon · `pipeline/regs/dfo_salmon/`**
-
-Four of the ten live Skeena locators matched their stored binding only after normalising a trailing
-`.`. The page's scope text gains and loses sentence-ending punctuation between scrapes, and because
-the fingerprint is taken over the raw text, one character retires a locator and mints its twin.
-
-Same family as the entry above, smaller blast radius: it shows up as a locator that has "vanished"
-alongside an identical one that has "appeared", on the same water, in the same run.
-
----
+DFO words the closure at the Kispiox confluence three ways over the years: "the 4 triangular", "3 white triangular"
+and "three white triangular" signs. **They are one zone**, bound to one pair of cuts
+(`skeena_river__kispiox_sign_zone_lower` / `_upper`). A DFO locator id is a fingerprint of `section|water|specific_area`,
+so re-worded scope text (even a trailing `.`) mints a new locator that looks like a new regulation. Same water, same
+section, same rules, landmark in the same place: one zone, recorded with `duplicate_of` + `duplicate_confirmed`. The
+400 m either side of the confluence is an assumption (the radius of comparable Region 6 mouth closures);
+`spatial_caveat` stays set until someone pins the signs.
 
 ## Sheldens Creek is a name we assumed
 
-**2026-10-29 · names / DFO salmon · `data/curated/waters/found_name_calls.json` (was `names.OWNER`, T327), `handoff/PLAN/curation-review/name-variants/mine.py` (`DFO_UNMATCHED_LEADS`, a one-off miner; T437 repointed)**
-
-DFO's Region 6 rules name "Sheldens Creek" (Moresby Island, Haida Gwaii), but no Freshwater Atlas water carries that
-name. We named the unnamed FWA line blk 360846083 (code 950-016367) into Sheldens Bay "Sheldens Creek" because the
-forest roads around it are named for it ("SP 19(1) TO SHELDONS", "SP 19H TO SHELDONS", SHEL100–SHEL103). The owner
-accepted it on 2026-10-29 knowing it is **low confidence and an assumption** — no map, gazetteer or DFO source names
-this line. The DFO salmon rule and its cut (Spur 19 road crossing, 53.12968,-131.78224) bind to it through that name.
-
-If a source ever names a different stream "Sheldens Creek" (BC Geographical Names, a DFO map, a local), or DFO's
-wording points elsewhere, this is the first thing to recheck. Since 2026-11-17 (T806) the name is a `name_variants.json`
-record on blue line 360846083 (a graph name, so the line and the hand-drawn estuary channel are ONE item,
-`wsc:950-016367`), not a found name: drop that record (the `found_name_calls.json` accept stays, and
-`pipeline.tools.mined_names` writes it back as a found name) and re-point the DFO place on the next build. Don't treat
-it as a confirmed name in audits or when matching other sources.
+DFO's Region 6 rules name "Sheldens Creek" (Moresby Island); no FWA water carries the name. Blue line 360846083
+(`wsc:950-016367`) into Sheldens Bay carries it, because the forest roads around it do ("SP 19(1) TO SHELDONS",
+SHEL100-103). The owner accepted it at low confidence; no map, gazetteer or DFO source names the line. It is a
+`name_variants.json` record (so the line and the hand-drawn estuary channel are one item); the
+`found_name_calls.json` accept stays. If a source names another stream "Sheldens Creek", recheck this first; never
+treat it as confirmed in audits or matching.
 
 ## The Kasiks "Upper Pool" is a place we inferred
 
-**2026-11-15 · owner asked for the proposal · DFO salmon Region 6 · `data/generated/review/dfo-split-hunt.json` cut `kasiks_upper_pool_signs`**
-
-DFO splits the Kasiks River for coho at "fishing boundary signs located below the Upper Pool" (closed all year above,
-Sep 1 to Oct 31 open below). No public source names or locates "the Upper Pool": the wording is the same in the
-2009-2011 supplement, notice FN0717 (2018) and every saved Region 6 page from 2017 to 2026, with no distance, canyon,
-falls or coordinate; no guide page, forum or report names pools on the river.
-
-The point we propose is an inference, not a fact:
-
-- The lower Kasiks has exactly one barrier: a short canyon with falls at FWA km 17.6-18.4 (the river climbs from 31 m
-  to 72 m over about 600 m and is flat below and above; FISS / RAB record cascades and a 5 m rock obstacle there; the
-  1983 DFO stream catalogue says "impassable cascade type falls"; the 2007 Skeena Fisheries Commission report says a
-  1 km reach "with falls and cascades" and "navigable for 18.5 km").
-- "The Upper Pool" is taken as the pool at the foot of those falls (about 54.3554 N, 129.5361 W) and the signs as its
-  tail-out (about 54.3535 N, 129.5360 W, km 17.65 on blk 360879632). Confidence: medium.
-- A weaker alternative is the confluence pool at the canyon mouth (about 54.3518 N, 129.5350 W), which would put the
-  signs about 300 m lower.
-- The 1983 catalogue's "22.5 km from mouth" is read as the same canyon measured from another starting point: the map
-  profile has no step near 22.5 km. That reading is ours.
-
-So: a mismatch between the app and signs on the ground here is not a pipeline bug; it means the inference was wrong.
-What settles it is the sign position from DFO's Terrace or Prince Rupert office. Do not "correct" the point from
-another guess; replace it only with a stated position. (Same family as "Sheldens Creek is a name we assumed".)
+DFO splits the Kasiks for coho at "fishing boundary signs located below the Upper Pool"; no source names or places the
+pool. The proposed cut (`kasiks_upper_pool_signs`) takes it as the pool at the foot of the river's one barrier, the
+canyon falls at FWA km 17.6-18.4, with the signs at its tail-out (km 17.65 on blk 360879632; medium confidence; the
+weaker alternative is the confluence pool about 300 m lower). A mismatch with signs on the ground means the inference
+was wrong. Replace it only with a stated sign position (DFO Terrace or Prince Rupert), never another guess.
 
 ## DFO place words that do not fit the ground, kept as they are on the owner's word
 
-**2026-11-16 · owner re-checked each by map picture · DFO salmon places · answers verbatim in the retired `handoff/PLAN/OWNER-TODO.md` ((in git history at 03be2862e): "Answers by batch", "Re-check of saves"), tickets T803 / T806**
+Each looks like a labelling mistake when measured; each was shown to the owner and kept. A change needs a new source
+and his word.
 
-Each of these looks like a labelling mistake when measured or read closely. Each was shown to the owner and kept.
-Do not "fix" one from a measurement or a closer reading of DFO's words; a change needs a new source (a sign
-position, a corrected DFO page) and his word.
-
-- **Kanaka Creek, "112th Street bridge"** (Region 2). There is no 112th Street crossing; the only crossing is
-  112 Avenue, and the cut sits there. Owner: "keep it but add to gotcha".
-- **Kispiox, "signs near the Kispiox River Resort"** (Region 6). No resort has that name; the signs are placed at
-  the Kispiox River Lodge, 13.7 km up, low confidence, until DFO Smithers confirms. Owner: "okay sounds good add to
-  gotchas".
-- **Lower Shuswap closed stretch, "one km"** (Region 8). DFO's two printed points are 1,738 m apart in a straight
-  line and 2,075 m along the river; neither is near one km. The printed points stand ("Right: keep the printed
-  points"); nothing goes to DFO. Owner: "just add to gotchas that is all. might be 1km as bird flies too" (it is
-  not: 1,738 m).
-- **Stamp Falls, lower end given two ways** (Region 1). DFO says both "500 m below the fishway" and "225 m below
-  Deer Creek". On our line the first is the cut (498 m below the fishway) and that cut is only 164 m below Deer
-  Creek. The two do not agree; the fishway measure is kept. Owner: "Keep 500 m below the fishway" (this replaced an
-  earlier "Move it 60 m down", given before the fishway measure was known).
-- **Somass, "Paper Mill Dam upstream approximately 0.5 km to Collins Farm"** (Region 1). The stretch between the
-  two named ends is drawn about 1.3 km long, not 0.5 km. The named ends win over the distance. Owner: "right all of
-  it but add to gotchas please".
-- **Thompson closed area at Juniper Beach, upper end** (Region 3). DFO's words can be read two ways: "approximately
-  4 km" above the printed lower signs, or a point 1.5 km below Juniper Beach Park (which would make the area about
-  1.2 km long). The 4 km reading is used (it errs toward closed). Owner: "if the book says 4km then we put it 4km
-  unless i had another split it already matched??" and, on the picture, "Keep 4 km (errs closed)".
-- **Bulkley, two "all tributaries" rows with different exception lists** (Region 6). One row is "all tributaries …
-  other than the Suskwa River": only the Suskwa comes out; the Morice and Two Mile Creek stay in. Its sibling is
-  "… other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile Creek": all three come out.
-  They look like one row entered twice with a slip; they are two places, read word for word. Owner: "right but add
-  to gotchas. it should only drop the blue suskwa river. rest are good." and "right only keep part that is purple.
-  rest get dropped here."
-- **Sheldens Creek, the bridge** (Region 6; see "Sheldens Creek is a name we assumed" above). Owner: "add as gotcha
-  but i think you can see the road in satellite that crosses neaar the mouth that should be the bridge i think (near
-  a camp site etc) have it be low confidence and set it top tidal too", then on the picture (2026-11-16 20:01):
-  "Extend to the bridge". The road crossing near the sea, beside the OpenStreetMap camp site, is the FTEN road SPUR 14
-  over the estuary channel (53.14746 N 131.76003 W); the FWA line stops ~1 km of channel above it, at the head of the
-  salt marsh. So the creek is DRAWN ON by hand (added stream `-2400000001`, source `manual`,
-  `data/source/municipal/manual_streams.geojson`: head = the FWA line's mouth vertex, same code 950-016367, the
-  creek's order carried) through the marsh to the bridge and ~65 m on to the flats, and the tidal limit is a `cut`
-  row at the bridge on it (`waters/tidal_limits.json`, LOW CONFIDENCE in its `why`). Which marsh channel carries the
-  creek is a reading of Esri imagery, not a survey. The literal Spur 19 road ("SP 19(1) TO SHELDONS") crosses the
-  FWA line 3.4 km up, at the old cut `sheldens_creek__spur_19_bridge_site`, which nothing binds now; if DFO ever
-  places the signs there, that is the cut to use.
+- **Kanaka Creek, "112th Street bridge"** (2): the only crossing is 112 Avenue; the cut sits there.
+- **Kispiox, "signs near the Kispiox River Resort"** (6): placed at the Kispiox River Lodge, 13.7 km up, low
+  confidence, until DFO Smithers confirms.
+- **Lower Shuswap closed stretch, "one km"** (8): the printed points are 1,738 m apart in a line and 2,075 m along the
+  river; the printed points stand.
+- **Stamp Falls** (1): "500 m below the fishway" and "225 m below Deer Creek" disagree; the fishway measure is kept.
+- **Somass, "Paper Mill Dam upstream approximately 0.5 km to Collins Farm"** (1): the named ends, about 1.3 km apart,
+  win over the distance.
+- **Thompson closed area at Juniper Beach, upper end** (3): "approximately 4 km" above the lower signs is used, not the
+  point 1.5 km below Juniper Beach Park (it errs toward closed).
+- **Bulkley, two "all tributaries" rows** (6): one leaves out only the Suskwa, the other the Morice, the Suskwa and Two
+  Mile Creek. They are two places, read word for word.
+- **Sheldens Creek, the bridge** (6): the creek is drawn on by hand (added stream `-2400000001`, source `manual`,
+  `data/source/municipal/manual_streams.geojson`) from the FWA line's mouth through the salt marsh to the SPUR 14 road
+  crossing near the sea (53.14746 N 131.76003 W), with the tidal limit a `cut` at that bridge
+  (`waters/tidal_limits.json`, low confidence). Which marsh channel carries it is a reading of imagery. The literal Spur
+  19 crossing, 3.4 km up, keeps the unbound cut `sheldens_creek__spur_19_bridge_site` should DFO place the signs there.

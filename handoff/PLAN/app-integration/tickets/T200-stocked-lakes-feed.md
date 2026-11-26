@@ -4,7 +4,7 @@ Status: OPEN — NEXT AFTER CLOSED TESTING (first). Was POSTPONED (deferred, own
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T200 | stocked lakes: feed the prepared Stocked mode; NEXT AFTER CLOSED TESTING, first (plan: handoff/PLAN/research/stocking-feasibility.md; matcher = lake code picks, FISS point + name confirm, frozen reviewed file) | OPEN | — | owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history … (detail: ticket file) |
+| T200 | stocked lakes: feed the prepared Stocked mode; NEXT AFTER CLOSED TESTING, first (plan: handoff/PLAN/research/stocking.md; matcher = lake code picks, FISS point + name confirm, frozen reviewed file) | OPEN | — | owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history … (detail: ticket file) |
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet".
@@ -17,7 +17,7 @@ T158: the cvd stocking ramp (navy → pale yellow) does not hold against the no-
 ## Next after closed testing (owner 2026-11-13)
 Owner, 2026-11-13, verbatim: "after the closed release we will do stocking and depth maps next. so add that to next after
 closed tickets." Starts once Play closed testing is running; stocking first, then T201. Carried with T634 (items 4-5).
-Feasibility note: [`handoff/PLAN/research/stocking-feasibility.md`](../../research/stocking-feasibility.md).
+Feasibility note: [`handoff/PLAN/research/stocking.md`](../../research/stocking.md).
 
 **Work: the note supersedes main's name-first matcher** (name picks the nearest same-named lake with no
 distance cap; code only a late fallback; 550 unnamed rows matched unchecked). Here the lake code picks and a name never does.

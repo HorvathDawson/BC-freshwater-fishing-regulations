@@ -7,7 +7,7 @@
  * and optional, to `KNOWN_VERSIONS` and `OPTIONAL_VERSIONS` here, so neither side bumps alone. It parses the two lines
  * below: keep each an `Object.freeze({ name: n, … } as const)` on one line.
  *
- * The three files are the release's (README §0, D22): `water` (the store's common tables: keys, segments, parts, rules,
+ * The three files are the release's (app-integration/decisions.md, "Offline, data and release", D22): `water` (the store's common tables: keys, segments, parts, rules,
  * statics, the dictionaries), `regs-<region>` (cells + the frames they reach), `regs-sid` (section → key / place).
  * The store checks each file's format against these; `@app/data` `regs/formats.test.ts` holds each equal to its file's format in the
  * generated contract (`@app/data` `PACK_FILES`), so a format bump there cannot leave this copy behind (T810 S: the

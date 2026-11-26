@@ -1098,7 +1098,7 @@ def document(inp: Inputs, findings: list[Finding], prev: Optional[dict] = None) 
         "D": "Siblings are what `entries.to_reach_input` picks (the reach run's own code). 'Cannot be drawn' = names a "
              "cut the atlas does not hold, or a water with no registry item; a sibling that binds zero sections on the "
              "graph is not detected here.",
-        "E": f"Method (from mouth-tidal-ends-audit-2026-11-15.md): the boundary is the atlas's `tidal.resolved.json` "
+        "E": f"Method (the 2026-11-15 mouth/tidal audit): the boundary is the atlas's `tidal.resolved.json` "
              f"(rank-1 split, else the coast cut in `shore_cuts.json`, else the mouth); a place cut that is not it is "
              f"listed when its id/label has mouth words or it is within {NEAR_M:.0f} m on the same line. An open "
              "seaward end ('downstream of X', 'whole') lands on the boundary by construction (T632) and is not listed. "

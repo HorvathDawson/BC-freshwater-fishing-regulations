@@ -75,13 +75,11 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - A classified-water unit carried through an unlisted stream shows as an ordinary Classified Waters row with an expander explaining why; nearest unit wins in both directions; cleanup waits for a Conservation Officer's answer. (owner 2026-11-20, T973, T974)
 - "N waters changed" counts rule changes only and is hidden at 0. (owner 2026-11-24, T1030)
 - The Stanley Park / municipal park-bylaw closed waters have a curated path; Lost Lagoon first, the rest reviewed next release. (owner 2026-11-21, T981)
-- Sheets: "Done" in sentence case, the scrim stays and fades while the sheet slides, sentence-case headings. (Claude 2026-10-22, T41)
 - A fully closed water shows no gear, method or quota; where something is still open (salmon) the page says what is in force. (owner 2026-11-12, T670, T934)
 - No province-wide banner for alien-angler closures: each water carries its own closure and price on its own Licence tab only. (owner 2026-11-17, T789)
 - The trout table's rows say where a rule came from ("this water", tributary) the way the card does. (owner 2026-11-19, T907)
 - The map paints the drawn answer: an undrawn place never paints `check`; the card keeps the answer and adds the caveat. (owner 2026-11-04, T372)
 - "To be determined" reads as that; the map still shows green if any salmon is open and yellow if closed apart from it. (owner 2026-11-18, T882)
-- A lake or thing without a meaningful map needs no gauge map; one map size. (owner 2026-11-18, T881)
 - A new app version shows a popup with the swimming fish and the update list, dismissed to the Bell, on both platforms. (owner 2026-11-18, T888)
 - The opening loader is the coho (web and app, web version much smaller); small in-app loaders keep the circling fish. (owner 2026-11-17, T844)
 - Share uses the phone's share sheet; the web uses `navigator.share` or copies the link; the same link either way. (owner 2026-11-04, T385)
@@ -115,7 +113,6 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - A bulk reclassification runs a dry run and is confirmed before sweeping; tight filters only. (owner 2026-10-24)
 - Deleting a curated cut is never done: every curated cut was added for a reason; find the rule or DFO scope that uses it, or show it as an open high-severity item. (owner 2026-10-26, T207)
 - Unused curated cuts and missing splits are high severity in the review tool. (owner 2026-10-26, T207)
-- A split may carry confidence (high, medium, low), shown as "approximate location (low confidence)" wherever the cut is named. (owner 2026-10-26, T207)
 - The owner's whole-water hand matches (e.g. Okanagan oxbow channels) are kept, never deleted to pass a check. (owner 2026-11-11, T637)
 - When the book prints an extent no cut can express, the rule stays whole-water where ambiguous (restrictions apply everywhere); a closure is never widened beyond the area the book maps (François Lake). (owner 2026-10-26)
 
@@ -131,14 +128,6 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 
 - An authored cut never moves; automatic boundaries within 5 m join the authored point; a gauge joins the nearest named cut within 400 m. (owner 2026-10-24 / 2026-10-25, T179)
 - A lake-anchored cut takes the edge in the extent's direction (upstream of a lake: inlet; downstream: outlet); the lake binds only when wholly inside the extent. (owner 2026-10-25, T179)
-- An authored point within 1 m of a polygon or lake edge snaps to it; farther inside or 1-5 m outside stops the build naming the id. (owner 2026-10-25, T179)
-- The BC border is generated from the region polygons so border and region lines coincide; a curated cut 5-25 m from another boundary is reported. (owner 2026-10-25, T179)
-- A merged place carries every name and every id. (owner 2026-10-25, T179)
-- A park boundary is not a confluence; confluence proposals skip area boundaries. (owner 2026-10-25, T179)
-
-#### Koocanusa
-
-- The Koocanusa split is the reservoir's inlet ("upstream of Koocanusa"). (owner 2026-10-25, T179)
 
 #### needs a split
 
@@ -152,25 +141,10 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Words that name a boundary but cannot be located are never defaulted to the mouth; they are queued to locate. (owner 2026-10-28, T212)
 - The tidal piece below an accepted tidal boundary leaves the freshwater map; the DFO tidal polygon is drawn instead and taps open "Tidal water - DFO rules". (owner 2026-10-28, T166)
 - The tributary walk runs on the full network before the tidal pieces are dropped; a stream entering tidal water stays its river's tributary. (owner 2026-10-28, T212)
-- Capilano uses the source-text boundary; Cowichan the river mouth; Noons Creek the railway bridge; Nitinat where the river enters the lake; Bear River the mouth. (owner 2026-10-27 / 2026-10-29, T212)
-- The Fraser delta channels (Parsons, Annacis, Cannery, Morey) and the Fraser-code sloughs below Mission are tidal along their whole length; Ewen Slough stays freshwater. (owner 2026-10-29, T212)
 - A stream whose line runs on through a lake or sea has its mouth where the line leaves the water body. (owner 2026-10-29, T212)
-- Only the Coast rule and the ten-creek calls of 2026-11-12 are in RULINGS E20-E24; this list is the older 10-27 to 10-29 set.
-
-#### after the scheduled run
-
-- Sandy Pool is medium confidence; proposed splits carry their confidence everywhere. (owner 2026-10-27, T185)
-- Tidal proposals reuse an existing curated cut within about 25 m (alias "tidal boundary") rather than a new point. (owner 2026-10-27, T212)
 
 #### Other placement calls
 
-- Pitt at Grant Narrows holds on the whole water; the Kootenay navigation dolphin is the Kootenay Lake main-body split; McArthur Island Slough matches itself by name. (owner 2026-10-27, T207)
-- Skeena "section 2" starts at the Exchamsiks cut (book p.53). (owner 2026-10-24, T183)
-- Halfway River cuts are on the Peace. (owner 2026-10-26)
-- Cayoosh lake wbk 329505890 is part of Cayoosh Creek (a stream); Caribou wbk 329262655 carries both creeks' regulations. (owner 2026-10-25, T179)
-- Mackenzie Creek's "MU 4-21" is a book typo for 4-31 (errata in `pipeline/docs/GOTCHAS.md`). (owner 2026-10-26)
-- Stave r1 binds the whole Ruskin spawning channel; the Northrop channel is added from OpenStreetMap. (owner 2026-10-28, T222)
-- Overlapping rules the owner retired (zone trout quotas r3 etc.) and the merged zone daily-quota entries (`zN:daily_quotas`) stay as accepted. (owner 2026-10-26, T206)
 - A water-bound DFO place covering a water's whole main stem also covers its side channels. (owner 2026-10-28, T228)
 - Every boundary is a named split; there are no fallback names; a salmon difference at a point with no split is a data gap queued for DFO review. (owner 2026-10-28, T228)
 
@@ -183,27 +157,16 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Lake Stocked and Depth modes are prepared, not fed: the toggles are greyed with "no data yet" until a release carries values. No stocking or survey data is fetched. (owner 2026-10-21, T200, T201)
 - Stocking, bathymetry and salmon code is kept as "prepared", not deleted. (owner 2026-10-22, T61)
 - Water map keeps the 10 municipal continuations; the crossing button says where it goes; reversed continuations are dropped. (owner 2026-10-21)
-- Palette D is the app's palette; the owner raises changes after using it. Status colours stay far apart; region boundaries are grey. (owner 2026-10-22, T47)
-- Icons are Lucide (ISC), rounded joins and caps, 1.75 px stroke on the 24 px grid. (owner 2026-10-22, N1)
-- Dark water names use the blue family of the light water. (owner 2026-10-22, T83)
 - No public access draws as a dotted grey line, grey lakes, and the regulation page leads with an amber "No public access" block; "own regulations" keeps amber. A section wholly outside on a part that crosses no-access land leads with the part's banner; one block per page. (owner 2026-10-23 / 2026-10-28, T165, T147)
 - Not-fishable waters (sewage basins, tailing ponds, dumps) draw as a muted fill, never as a lake; not-fishing land and the own-regulations colour sit further apart. (owner 2026-10-24 / 2026-11-12, T152, T689)
-- Region and unit boundaries draw under the status lines and above the fills. (Claude 2026-10-22, T83)
-- Private land is softer and visible from a little further out; restricted and closed areas read well at every zoom. (owner 2026-10-22)
-- The Conditions watershed colouring starts at a slightly higher zoom; while visible the lakes and streams are hidden; one answer per zoom. (owner 2026-10-22, T130)
 - Basemap and atlas tile size: basemap to z13 with no feature lost and overzoom past it; the outside-BC mask stays out of the tiles; every size loss needs a zero-loss proof. (owner 2026-10-24 / 2026-10-27, T85, T202)
 - Wetlands are drawn only when in a registry item, stream-kind or gazetted-named. (owner 2026-10-24, T64)
 - Where a lake is hidden at a zoom, the creek's line is drawn through it. (owner 2026-11-07, T493)
-- The shoreline gets a shaded band; the colour-blind theme keeps it solid. (owner 2026-11-23, T467)
 - Production Android builds use one pinned upstream MapLibre main commit and no patch of ours; never a stock release. (owner 2026-11-22, T978)
-- A tile build and the data are versioned separately; the app keeps the last good pair on a mismatch; tiles and bundle share a vintage. (owner 2026-10-20, D27)
-- Spot pins are square, neutral ink; the selected spot is a ring in the spot colour. (owner 2026-10-24, Q134)
-- Saved spots draw on the map with a Layers switch, on by default. (owner 2026-10-22)
 - The map's Standard / Salmon / Run timing modes are three choices on one switch. (owner 2026-10-27 / 2026-10-28, T211, T199)
 - Map chrome: top = search plus the day, legend and its control in the bottom bar, square corners, cards not loose text. (owner 2026-11-04, T367)
 - The map frames the water the user tapped; steps up and down the water stay put on phone and desktop. (owner 2026-11-14 / 2026-11-18, T747, T875)
 - A one-bank DFO place draws a split stripe with closed dashes from zoom 13, along the bank edge on a polygon river, no stripe on creeks; a one-bank place that includes tributaries takes only the tributaries joining on that bank. (owner 2026-11-24, T1029, T754)
-- Outline rings are drawn on a slough's or wide reach's line only, not on every polygon piece. (owner 2026-11-24, T1024)
 - Obstacles (PSCIS crossings) use small, nice icons per type; PSCIS is treated as Open Government Licence - B.C. (owner 2026-10-28, T173, Q165)
 
 ## 6. Gauges and flow
@@ -228,13 +191,10 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - The estimate uses the flood models combined (CLEVER and COFFEE, geometric mean, equal weights) and ELF only where no flood model reaches; weights change only on the run-archive verdict (>= 200 paired cases over >= 20 issue days). (owner 2026-10-23 / Claude 2026-10-24, T144, T177)
 - Past COFFEE's day 5 the Change is CLEVER alone with a note; ELF carries a low-water caveat. Forecast models draw in their own colours. (owner 2026-10-23 / 2026-11-19, T144, T895)
 - A spot visit records its trip day: lead gauge and panel are read from that day's record, never the live feed; offline it saves pending. A spot is rated 1-5 stars (Poor, Fair, OK, Good, Great). (owner 2026-10-24 / 2026-10-29, Q161, T294)
-- The spot-similarity ("Like your visit") weights are flow 45%, air 20%, rain before 20%, wind 10%, cloud 5%, across today plus four days; no flow reads on weather alone. (Claude 2026-10-23, T51)
-- Per-feed staleness lives in one table (`STALE_AFTER`): gauge feed 2 h; forecast 36 h; regulations and tiles by release, never by age; the sync dot means only "a tap or reopen fixes this". (Claude 2026-10-22, owner "gauge data is much faster turnover")
 - The release stamps `valid_until` (the synopsis period end); past it the page leads with "Out of date: these regulations were valid to <day>. Check the current Synopsis and the Province's notices before you fish." (Claude 2026-10-22)
 - A newer HYDAT is signalled by a "Newer release out" badge, an owner-only notification, and one script the owner runs. (owner 2026-10-22) Detail: AGENTS 64.
 - Gauge pages are findable by search ("<river> forecast / level / flow"); no water page links to a gauge. (owner 2026-11-23, T1045)
 - The gauge page chart is the app's own chart (about 260 KB) with the same Get-the-app buttons as Spots and almanac facts (sunrise, sunset, cloud, pressure, humidity); ELF is offered on it. (owner 2026-11-23, T1039)
-- Gauge map sits under the chart; the gauge list is a legend. (owner 2026-11-19, T920)
 - Data sources: BC River Forecast Centre permission is held and credited; HYDAT and ECCC GeoMet are Open Government Licence - Canada, credited to ECCC. (owner 2026-10-23, T167)
 
 ## 7. Salmon, DFO, run timing and in-season
@@ -261,11 +221,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Opening a water from a search result consumes the search: back and close land on the map at that water; the search text is not kept. (owner 2026-10-22, T48)
 - On wide layouts: Esc closes search; a click on the map outside closes it and does nothing else; the panel has its own close at the top right; the field's X only clears. (owner 2026-10-22)
 - Back steps out one layer: moves within a water replace history; a different water is a new layer; every water header has a close control to the main view; web, in-app and Android agree. (owner 2026-10-22, T50)
-- Placeholders may name towns; one per opening; at most 36 characters. (owner 2026-10-22, T48)
 - Search finds a pointer by its name or its start; Kootenay Lake's three parts are listed with no parent result. (Claude 2026-10-23, T80)
-- More tab: sync and data block at the top with a freshness badge, display as three preview tiles, contact inline at the foot, back returns to the previous tab. (owner 2026-10-22, T48)
-- Adding a spot offers "at my location" or "pick on the map"; long-press stays on the map; spots draw in the shown color. (owner 2026-10-22)
-- The region page shows a map preview. (owner 2026-11-22, T1010)
 - A part's name drops its suffix; "Mouth" only where the water truly ends. (owner 2026-11-19, T780)
 - Search description facts use open season windows from the year strip, boats and steady marks; nothing from the build day. (owner 2026-11-23, T1042)
 
@@ -305,7 +261,6 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - The website sets no cookies and runs no advertising or tracking scripts; the only script is the visit counter (Cloudflare Web Analytics). (owner 2026-11-20, T739)
 - OpenStreetMap is credited through the map attribution and Sources; ODbL share-alike is an owner-accepted risk; city stream layers each have their own credit row. (owner 2026-10-28, T235)
 - Water pages for the web: the full rules in plain words, today's open or closed line, the book page, an "Open in the app" link and "not a legal document - check the synopsis", generated from the release so page and app cannot disagree. (Claude 2026-10-24, T188)
-- A tap on stacked spots opens the Spots list; a spot opened from a water's map sits over the water. (Claude 2026-10-23, T131)
 - Reports first, every chat: read both workers' reports and crashes, TestFlight feedback and Play before work starts; anything new becomes a ticket. (owner 2026-11-22)
 
 ## 11. Process (beyond AGENTS)
@@ -326,7 +281,17 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - The repo moves to the `canifishthis` organisation and is renamed `canifishthis/canifishthis`; the merge queue follows. (owner 2026-11-25, T1041)
 - Before a push run the related tests; the full app suite and pipeline tier run once before opening a PR; mutation testing reports only. (owner 2026-11-23, T1041)
 - Run timing keeps its own weekly feed: "Keep the weekly feed" (owner 2026-11-25, asked by the planning chat with his earlier remark in front of him). No change to the feed.
-- The bottom bar in water mode is as shipped: `bottomBarShown(route)` (`app/packages/ui/src/route.ts:306`) is true only in browse mode with no spot being added, so a water's page (regs mode) and the add-a-spot flow have no bar, on phones, tablets and the web rail alike (`Shell.tsx:180,466,671`, `NavRail.tsx`). (owner 2026-11-25: as shipped)
-- The synopsis PDF on the phone apps is as shipped: an in-app viewer, `react-native-pdf` 7.0.5 (`app/packages/ui-native/package.json:15`, `regs/PdfViewer.native.tsx`, mounted by `Shell.tsx:756`); the web opens the PDF in a browser tab (`synopsisPdf.web.ts`). (owner 2026-11-25: as shipped)
 - Accounts and cross-device sync (T223): postponed, not dropped. No sync now; accounts stay a far-future idea and the ticket stays. (owner 2026-11-25)
-- Satellite: Esri World Imagery (the keyless address) is the source on the web and the phones, drawn by MapLibre. No Mapbox and no offline imagery for now; T1108 holds the research and reopens when a provider allows offline corridors through MapLibre. (owner 2026-11-25, T1108)
+
+## 12. Data flow (owner walkthrough 2026-11-05, T408; the map is `handoff/PLAN/data-flow.md`)
+
+- A review mark makes one hop: appended to `marks.jsonl`, written through to its final curated file; no middle `decided/` copy. The build reads only final files. (owner 2026-11-05, T325)
+- Curated holds only the owner's decisions and the files the build reads: machine output and proposals live in `data/generated/` (gauge candidates, `review/dfo_fix_proposals.json`), and the app reads proposals there. (owner 2026-11-05, T324)
+- Hand-edited waters files stay hand-edited, with a fast schema-and-reference check as the build's first step. (owner 2026-11-05, T324)
+- Accepting a regenerated steelhead list is a decision: one command prints the diff (added, dropped) and writes the curated file. (owner 2026-11-05)
+- Every build checks each saved DFO match id still exists in that build's registry and fails otherwise; a new DFO name with no match is held unplaced and a human matches it. (owner 2026-11-05, T337)
+- The worker has one copy of the DFO wording (R2); missing or invalid fails the job and reports, the app keeps the last good feed. (owner 2026-11-05, T324)
+- Run timing is a slow feed: its own R2 folder and `index.json`, started by a button or the worker, never a GitHub schedule. (owner 2026-11-05, T413)
+- One command ships, "build once, promote the same artifact": `pipeline release --staging` = build, checks, promote LATEST, staging upload, stop at the first failure. The same command is the human's; a short runbook. (owner 2026-11-05, T408)
+- Claude batches rebuilds after curated changes (one build via `heavy.sh`, diff summarized). (owner 2026-11-05)
+- Curated file names are accurate and consistent: `*_calls.json` per-item decisions, `*_waters.json` lists of waters, `*_stations.json` lists of gauges; every JSON keeps an `_about` header and every curated folder a README. (owner 2026-11-05)
