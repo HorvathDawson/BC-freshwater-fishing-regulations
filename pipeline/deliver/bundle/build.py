@@ -762,6 +762,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
                             grades={(x["entry_id"], x["rule_id"]): _closure_grade(x) for x in _rules_from(db)})
         _derived.write(db, cov, places=places)
         _continuation.write(db, _continues, cov, built_with=_settled)
+        # (T1140) a part with no main stem: its channels' joins the flow does not say, and the area it lies inside —
+        # measured on the shapes, before the marks and names are read from the spans
+        from pipeline.deliver.bundle import side_channels as _side_channels
+        _side_channels.write(db, named_geo, build_dir, cov)
         _topology.write(db, named_geo, cov, mouths=_mouths, codes=_codes,
                         dfo_places=(_place_words, _chain_places) if _reaches is not None else None)
         del named_geo

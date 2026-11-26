@@ -1273,3 +1273,10 @@ CREATE TABLE glossary_source (kind TEXT NOT NULL CHECK (kind IN ('definition', '
 -- placed section's chain. Not provincial regulation: no status reads it; the Salmon card and colouring do.
 CREATE TABLE salmon_doc (k TEXT PRIMARY KEY, j TEXT NOT NULL) WITHOUT ROWID;
 CREATE TABLE salmon_section (sid INTEGER PRIMARY KEY, chain INTEGER NOT NULL) WITHOUT ROWID;
+-- (T1140, owner 2026-11-25) a part with NO main stem measured against one cut area of the atlas's catalogue
+-- (`side_channels.inside_rows`: its lines by length, its polygons by area, every section measured). `how` 'inside': at
+-- least 95 % of every shape in it ("<water> inside <area>"); 'at': at least 95 % of its lines in it while a polygon section
+-- straddles its edge ("<water> at <area>"). `share`: the lines' share. A part neither has no row.
+CREATE TABLE part_inside (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area TEXT NOT NULL, share REAL NOT NULL,
+                          how TEXT NOT NULL CHECK (how IN ('inside', 'at')),
+                          PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;
