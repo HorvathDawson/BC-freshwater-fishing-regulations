@@ -1,10 +1,10 @@
 # T1156 — One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy
 
-Status: IN REVIEW — owner: see ## Owner
+Status: PARTIAL — the guard and the data docs are done; left: `fresh-machine.md` lines 54 and 109 (the repo-move chat's page)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1156 | One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy | IN REVIEW — owner: see ## Owner | 11ea55132, 8635bebd6 | the owner's pick: keep the nine as pinned reference copies (default) or delete the folder |
+| T1156 | One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy | PARTIAL — guard + data docs done | 11ea55132, 8635bebd6, 7516341b7 | `fresh-machine.md` lines 54 and 109 still call the region PDFs read by "quota print checks"; the repo-move chat owns that page: say they are not kept and nothing reads them |
 
 Source: the read-only synopsis spot-check of 2026-11-25 (planning chat's night agents): the repo's main checkout
 held two copies of the book. `data/source/fishing_synopsis.pdf` (tracked in git; read by the pipeline, the review
@@ -41,11 +41,17 @@ book is dropped into `data/source/official/` (mutation); the two doc lines agree
 ## Owner
 
 - [x] 2026-11-25 — The stale second copy of the book: how to fix → "you can do the 3 steps" (2026-11-25)
-- [ ] 2026-11-25 — Keep or delete the nine region PDFs (`data/source/official/`)? Evidence: nothing reads them (no code, test, tool or review-app reader; `quota_print` was deleted in 759bdebbd, only a stale `data/.gitignore` comment named it, now fixed). Default built: kept as pinned reference copies (`python -m data.fetch_region_pdfs`, pins in `data/source/region_pdfs.pins.json`); say "delete" to drop the folder and the fetch.
+- [x] 2026-11-25 — Keep or delete the nine region PDFs (`data/source/official/`)? Evidence: nothing reads them (no code, test, tool or review-app reader; `quota_print` was deleted in 759bdebbd) → "B: delete the folder" (2026-11-26)
 
 ## Done (lane 2026-11-26)
-- Fetch: `python -m data.fetch_region_pdfs` (`data/fetch_region_pdfs.py`), pins `data/source/region_pdfs.pins.json`
-  (sha256, bytes, date_fetched per file; extra keys kept by a re-pin). Real fetch into a scratch folder: all nine matched.
-- Guard: `python -m pipeline.tools.one_book`, run in CI by `pipeline/tests/test_t1156_region_pdfs_and_one_book.py`.
-  A full book = named like it, or (1 MiB and over) 60+ pages at 5 MiB+, or 20+ pages with the synopsis cover; nothing under 1 MiB is opened; CI checks the tracked files; passes where `official/` is absent.
-- Docs: `data/README.md`, `data/.gitignore` comment. `fresh-machine.md` is the repo-move chat's page tonight: its lines 54 and 109 ("quota print checks" / "only they read them") still need the same correction there.
+- Built first: a fetch command with pinned checksums for the nine (11ea55132, hardened in 8635bebd6; a real fetch matched
+  all nine pins). On the owner's pick "B: delete the folder" both were REMOVED (7516341b7): `data/fetch_region_pdfs.py`,
+  its pins and its tests. The planning chat deletes `data/source/official/` from the owner's main checkout (it is
+  git-ignored: nothing to delete in git). The `source/official/` ignore rule stays, so a leftover folder never reaches a
+  `git add`.
+- Guard: `python -m pipeline.tools.one_book` (`pipeline/tools/one_book.py`), run in CI by `pipeline/tests/test_one_book.py`.
+  A full book = named like it, or 60+ pages at 5 MiB+, or 20+ pages with the synopsis cover; nothing under 1 MiB is
+  opened; CI checks the tracked files; passes where `official/` is absent. A region chapter (4-9 pages) is not a book.
+- Docs: `data/README.md`, `data/.gitignore` comment, `pipeline/tools/README.md`.
+- Left: `fresh-machine.md` lines 54 and 109 (repo-move chat). Also `T1166` line 19 says "the nine region PDFs are checked the
+  same way (T1156's pins)": the pins no longer exist, so T1166's planning needs that sentence changed.
