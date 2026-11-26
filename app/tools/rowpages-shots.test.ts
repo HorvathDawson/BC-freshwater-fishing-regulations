@@ -3,7 +3,7 @@
  * (T1031, trout per-row pages) the owner's pictures of a trout row's species sheet, Sources tab (not a test: skipped unless
  * `T1031_SHOTS=1`). Each sheet is core's own (`tf:<row>`, built by `buildRegsPage` from the trout fixture release, the
  * vectors' case and day), drawn by the real SheetHost and photographed by headless Chrome (`wide-measure.mjs`) at 390 px,
- * light and dark, into handoff/PLAN/app-integration/T1031-shots/ as `rowpages-<tag>-<case>-<row>-<theme>.png`. Run it on
+ * light and dark, into docs/app-integration/T1031-shots/ as `rowpages-<tag>-<case>-<row>-<theme>.png`. Run it on
  * the base and on the change (`ROWPAGES_TAG=before|after`) for the before/after pair. `ROWPAGES_H`: the page's height in px
  * (default 1800; option B's whole lists need more to show the sheet to its Source line).
  *
@@ -27,7 +27,7 @@ import { snapshot } from "./wide-snapshot";
 const ON = process.env.T1031_SHOTS === "1";
 const TAG = process.env.ROWPAGES_TAG ?? "after";
 const HEIGHT = Number(process.env.ROWPAGES_H ?? 1800);
-const OUT = join(process.cwd(), "..", "handoff", "PLAN", "app-integration", "T1031-shots");
+const OUT = join(process.cwd(), "..", "docs", "app-integration", "T1031-shots");
 const WEEKDAY = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" } as const;
 /** Lois Lake's Dolly Varden (Region 2's table, p.21, and the lake's own row, p.24), the Vedder's rainbow (p.21, p.22) and
  *  (T1031 option B) the Vedder's steelhead, a row of 9 rules */

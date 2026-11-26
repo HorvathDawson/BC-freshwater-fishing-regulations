@@ -1,5 +1,5 @@
 """Q44 — a gauge on a side channel or slough, and the river it branched from. OWNER 2026-10-23
-(handoff/PLAN/app-integration/decisions.md "Gauges and flow"; ticket T101):
+(docs/app-integration/decisions.md "Gauges and flow"; ticket T101):
 
 "a gauge on a side channel or slough never answers Level for the river it branched from (level is local to the
 backwater). It answers Flow for that river only when the side channel carries a large share of the river's flow;

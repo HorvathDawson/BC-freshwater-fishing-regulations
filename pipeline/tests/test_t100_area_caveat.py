@@ -56,7 +56,7 @@ def _corpus():
 #: entry -> how many of its rules are widened (bound to the whole water, holding only in an
 #: undrawn part). 135 rules on 87 rows, 2026-10-23. Lakes are most of them (100 rules on lakes, 9 on
 #: Hatzic Lake and Slough / Shuswap's lake-and-river row, the rest streams and one zone line).
-#: Kootenay, Williston (Zones A/B) and Shannon are SPLIT into parts (`sub_lake_areas.json`, now in handoff/PLAN/app-integration/tickets/T281-files/) and are
+#: Kootenay, Williston (Zones A/B) and Shannon are SPLIT into parts (`sub_lake_areas.json`, now in tickets/T281-files/) and are
 #: not here, nor the Stave's two spawning channels (T222 drew Ruskin and Northrop); Ross Lake / Skagit River are not either — each row binds its whole water by the book.
 WIDENED = {
     "r1:cowichan_lake_including_bear_lake@1-4": 1, "r1:great_central_lake@1-7": 1,

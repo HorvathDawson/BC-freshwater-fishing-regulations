@@ -1,4 +1,4 @@
-"""The next atlas rebuild (T664 + T665 + the nine DFO cuts, `handoff/PLAN/app-integration/next-rebuild.md`, T677), points a-e.
+"""The next atlas rebuild (T664 + T665 + the nine DFO cuts, `docs/app-integration/next-rebuild.md`, T677), points a-e.
 
 a. the coast cut is decided on the tidal water rank 1 makes, resolved by the atlas (`tidal.rank1_owners`, T678 plan 2),
    and the build stops if the registry it writes disagrees;

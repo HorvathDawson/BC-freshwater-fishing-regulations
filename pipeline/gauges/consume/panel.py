@@ -313,7 +313,7 @@ def weight_of(share: float, role: str, years: int, same_river: bool = True) -> f
 
 # ------------------------------------------------------------------ a water's own gauge comes first
 #
-# OWNER 2026-10-22 (handoff/PLAN/app-integration/decisions.md, "Gauges and flow"): "the pitt could use its own gauge" — "it can still use
+# OWNER 2026-10-22 (docs/app-integration/decisions.md, "Gauges and flow"): "the pitt could use its own gauge" — "it can still use
 # auxiliary gauges but own gauge should be main (unless far from click) low magnitude compared to click spot."
 #
 # A water's OWN gauge is a station matched to that water (gauge.item_id is the section's water) — or to a water it is

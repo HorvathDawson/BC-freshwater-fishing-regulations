@@ -3,7 +3,7 @@
  * the Save button rides on the iOS keyboard (`KeyboardBar`, an `InputAccessoryView` both fields name), so it is in
  * reach and the scroll keeps the focused field above it. Android lifts the page's own row (T819) and gets no bar; the
  * web has no soft keyboard. The phone's half is drawn here (`KeyboardBar.native`); how it sits on the keyboard is the
- * simulator's (handoff/PLAN/ios/shots/t723/).
+ * simulator's (docs/ios/shots/t723/).
  */
 import { createElement, forwardRef } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";

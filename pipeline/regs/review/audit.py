@@ -1,6 +1,6 @@
 """T743: THE FINAL MARKS AUDIT — one read-only command over the owner's DFO place marks, run once when he says he is done
 marking (owner 2026-11-15: "we should wait until fully done marks though", "we just want to prepared for how we will
-audit them"). It replaces the one-off agent audits of 2026-11-15 (handoff/PLAN/curation-review/resaved-marks-audit-*,
+audit them"). It replaces the one-off agent audits of 2026-11-15 (docs/curation-review/resaved-marks-audit-*,
 resaved-marks-second-look-*, fraser-channels-*, mouth-tidal-ends-audit-*) with deterministic code: the same inputs give
 the same report, byte for byte.
 

@@ -180,6 +180,6 @@ def test_the_release_texts_name_runbooks_that_exist():
     from pipeline import release as REL
     root = Path(__file__).resolve().parents[2]
     text = REL.prod_instructions("r-x", {})
-    assert "handoff/PLAN/runbooks/release-by-hand.md" in text and "release/PRODUCTION.md" in text
-    assert (root / "handoff/PLAN/runbooks/release-by-hand.md").is_file()      # (runbooks/ is in CI's pipeline paths)
+    assert "docs/runbooks/release-by-hand.md" in text and "release/PRODUCTION.md" in text
+    assert (root / "docs/runbooks/release-by-hand.md").is_file()      # (runbooks/ is in CI's pipeline paths)
     assert "(memory " not in Path(REL.__file__).read_text(encoding="utf-8")

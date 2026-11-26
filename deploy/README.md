@@ -19,5 +19,5 @@ agent runs only the staging scripts (and only as the owner's memory notes allow)
 - Reads: `data/release/<r-id>/` (and `LATEST`), `app/` builds. Writes: the R2 buckets named in each script (a staging script hardcodes
   its staging bucket and never names a production one).
 - Rules: deploy scripts `set -o pipefail` and never `|| true` (AGENTS W46); never a GitHub schedule for feeds (a worker cron starts a workflow).
-  Runbook: `handoff/PLAN/runbooks/release.md`.
+  Runbook: `docs/runbooks/release.md`.
 - Tests: `deploy/staging/*.test.mjs` (`node --test`, run by `pipeline/tests/test_deploy_node_scripts.py`), `pipeline/tests/test_deploy_gates.py`.

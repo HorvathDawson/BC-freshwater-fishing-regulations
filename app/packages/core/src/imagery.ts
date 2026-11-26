@@ -1,5 +1,5 @@
 /**
- * SATELLITE IS ONLINE-ONLY (owner 2026-10-21, `handoff/PLAN/app-integration/decisions.md`).
+ * SATELLITE IS ONLINE-ONLY (owner 2026-10-21, `docs/app-integration/decisions.md`).
  *
  * The satellite ground is Esri World Imagery, fetched live and never packaged or drawn offline (its terms forbid
  * exporting tiles for offline use outside Esri's own software; see "Esri terms" below; what the map engine's own

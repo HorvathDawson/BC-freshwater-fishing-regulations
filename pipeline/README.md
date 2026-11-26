@@ -14,7 +14,7 @@ python -m pipeline release --prod <r-id>         # HUMAN-ONLY: the same release 
 python -m pipeline release --cut [X.Y.Z]         # version and branch (release_version.py; --data-only for data-<date>)
 ```
 
-`pipeline/release.py`; the runbook is `handoff/PLAN/runbooks/release.md`. The build runs with `--hold-latest`:
+`pipeline/release.py`; the runbook is `docs/runbooks/release.md`. The build runs with `--hold-latest`:
 the new release waits in `data/release/CANDIDATE` and LATEST moves only after the checks pass.
 
 ## The rebuild

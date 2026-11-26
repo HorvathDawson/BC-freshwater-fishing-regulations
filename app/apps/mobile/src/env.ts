@@ -15,7 +15,7 @@
  * derives from them — the release, tiles, map assets, feeds, synopsis copy and sql.js (`endpointsFor`), the app's version
  * files (`<origin>/app/android/play/<versionCode>.json`, `<origin>/app/ios/<version>.json`, core `storeVersionFileUrl`), reports and crashes (`reportUrlFor` / `crashUrlFor`).
  * The public site (share links, privacy page) is `@app/core` `SITE_ORIGIN`: one site for every environment. A host spelt
- * anywhere else in app code fails `tools/no-env-hosts.test.ts`. The runbook is handoff/PLAN/release/PRODUCTION.md.
+ * anywhere else in app code fails `tools/no-env-hosts.test.ts`. The runbook is docs/release/PRODUCTION.md.
  *
  * Chosen at BUILD time by `EXPO_PUBLIC_APP_ENV` (Metro inlines `EXPO_PUBLIC_*` into the bundle; eas.json's profiles set
  * it). Unset: a known `EXPO_PUBLIC_DATA_BASE` names its environment; otherwise the web (the dev loop and the browser

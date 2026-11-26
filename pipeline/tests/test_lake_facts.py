@@ -1,4 +1,4 @@
-"""LAKE FACTS — PREPARED, NOT FED (owner 2026-10-21, handoff/PLAN/app-integration/decisions.md, "Map, colour and chrome": "we dont have the
+"""LAKE FACTS — PREPARED, NOT FED (owner 2026-10-21, docs/app-integration/decisions.md, "Map, colour and chrome": "we dont have the
 stocking and bathy map data in a feed yet. but we just want it prepared for it when we do have the feed"). The release's
 optional `lakes` slot (format `lakes/1`) carries, per lake SECTION, a survey state and a last stocked day; nothing
 produces one yet, and `deliver all` ships none.

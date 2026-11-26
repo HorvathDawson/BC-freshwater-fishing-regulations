@@ -4,7 +4,7 @@ name: feeds worker
 # pnpm workspace, so `pnpm check` never ran them: the DFO and gauge parity with the Python (the venv below), the report
 # / crash endpoints, the cron dispatcher. deploy/staging/feeds.sh runs the same command before it deploys.
 # It was the last step of app-ci's one job (skipped whenever an earlier step failed) and app-ci ran for every change
-# under app/ and handoff/. Now it runs when what it reads changes: the worker, the core package it imports, the
+# under app/ and docs/. Now it runs when what it reads changes: the worker, the core package it imports, the
 # Python the parity tests call (pipeline/regs/dfo_salmon, pipeline/gauges), the venv's requirements, and the app's
 # lockfile (vitest resolves from app/node_modules).
 

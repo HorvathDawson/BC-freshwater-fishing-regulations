@@ -262,7 +262,7 @@ describe("the scan itself (mutation pins)", () => {
     const repo = join(APP, "..");
     const full = readFileSync(join(repo, "scripts/test-full.sh"), "utf8");
     expect(full).toMatch(/^step "app check \(strict parity\)" env REGS_STORE_REQUIRED=1 pnpm -C app check$/m);
-    const runbook = readFileSync(join(repo, "handoff/PLAN/runbooks/release.md"), "utf8");
+    const runbook = readFileSync(join(repo, "docs/runbooks/release.md"), "utf8");
     expect(runbook).toContain("node app/tools/regs-recut/sync.mjs");
     expect(runbook).toContain("REGS_STORE_REQUIRED=1");
   });

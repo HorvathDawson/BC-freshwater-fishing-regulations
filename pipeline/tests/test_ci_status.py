@@ -122,9 +122,9 @@ def test_strict_needs_a_green_run_at_the_sha_or_an_unchanged_area_since_one():
     rc, lines = CI.check(HEAD, runs_of=fake(per), strict=True, **git)
     assert rc == 0 and any("docs-ci.yml: no run on aaaaaaaaaaaa; nothing in its area changed since its green run on "
                            "cccccccccccc" in ln for ln in lines)
-    changed = ["handoff/PLAN/STATUS.md"]                                   # mutation: docs changed, no run saw it
+    changed = ["docs/STATUS.md"]                                   # mutation: docs changed, no run saw it
     rc, lines = CI.check(HEAD, runs_of=fake(per), strict=True, **git)
-    assert rc == 1 and any("its area changed since its last run (cccccccccccc: handoff/PLAN/STATUS.md)" in ln
+    assert rc == 1 and any("its area changed since its last run (cccccccccccc: docs/STATUS.md)" in ln
                            for ln in lines)
     assert CI.check(HEAD, runs_of=fake({**green, "docs-ci.yml": []}), strict=True, **git)[0] == 1     # none at all
     rc, _ = CI.check(HEAD, runs_of=fake({**green, "app-ci.yml": [run(HEAD, status="in_progress", conclusion="")]}),
@@ -174,7 +174,7 @@ def recorded(ancestors, total=REC_TOTAL):
             return CI.parse_page(json.dumps({**pg, "total": total}), "rec")
         return [r for pg in REC["pages"] for r in pg["runs"]][:limit]  # what the old query (newest 30) saw
     git = {"is_ancestor": lambda a, b: b == REC_SHA and a in ancestors,
-           "changed": lambda a, b: RECORDED_OUTSIDE_DOCS if a.startswith("15a257ca9") else ["handoff/x.md"]}
+           "changed": lambda a, b: RECORDED_OUTSIDE_DOCS if a.startswith("15a257ca9") else ["docs/x.md"]}
     return runs_of, git
 
 

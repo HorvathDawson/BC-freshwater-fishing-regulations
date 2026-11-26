@@ -16,7 +16,7 @@ import { join } from "node:path";
 import { KEPT_ASSETS, KEPT_READERS, TICKETS_DIR, assetIds, readWorkTree } from "./ledger.mjs";
 
 /** The docs folder (the planning pages, runbooks, restart pages). The tickets folder (ledger.mjs) sits inside it today. */
-export const DOCS_DIR = "handoff/PLAN";
+export const DOCS_DIR = "docs";
 /** The trees the totals count: every tracked path under one of these (a file under both counts once). */
 export const TREE = [DOCS_DIR, TICKETS_DIR];
 
@@ -39,7 +39,7 @@ export const BUDGETS = {
   // 112 lines of room the third chat to save its state failed docs-ci and its push the night credits ran short. They keep
   // their own cap (`restart`, 60 lines each) and are deleted when their chat ends.
   readingLines: [11129, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],
-  // the docs tree (handoff/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
+  // the docs tree (docs/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
   treeLines:    [23000, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],
   treeFiles:    [1600, "tracked files in the docs tree"],
   treePictureBytes: [157660235, "bytes of tracked png/jpg/webp/gif in the docs tree (pictures live in git forever)"],
@@ -67,7 +67,7 @@ export const TICKET_OVER = {
 
 /** Markdown files allowed over BUDGETS.anyMarkdown: path -> its own budget (today's size + 10%). */
 export const MARKDOWN_LONG = {
-  "handoff/PLAN/app-integration/T1140-files/multi-part-waters.md": 840,   // 763
+  "docs/app-integration/T1140-files/multi-part-waters.md": 840,   // 763
   "pipeline/regs/parsing/prompts/CATALOGUE_PARSE_PROMPT.md": 777,   // 706
 };
 
@@ -75,21 +75,21 @@ export const MARKDOWN_LONG = {
  *  leaves the list when it is cut; a NEW long page needs an entry here, in its PR, with the reason beside it. */
 export const PAGE_LONG = {
   "pipeline/docs/RULINGS.md": 452,                                         // the owner's rulings on how the book is read: his words, never shortened
-  "handoff/PLAN/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
-  "handoff/PLAN/play-production-access/questionnaire-draft.md": 173,       // the Play production access record
-  "handoff/PLAN/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends
-  "handoff/PLAN/repo-move/PREP.md": 262,                                   // the same
+  "docs/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
+  "docs/play-production-access/questionnaire-draft.md": 173,       // the Play production access record
+  "docs/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends
+  "docs/repo-move/PREP.md": 262,                                   // the same
   // held as they are while 0.10.0 ships from them (planning chat 2026-11-25): one release.md + a short by-hand page after its merge back
-  "handoff/PLAN/runbooks/release-by-hand.md": 495,   // +2 (T1161): "lid open, on power", the line that would have saved 0.10.0 its 8.3 h asleep
-  "handoff/PLAN/runbooks/release-gates-explained.md": 366,
-  "handoff/PLAN/runbooks/release.md": 219,   // +3 (T1161): the same line, with the battery refusal and its flag
+  "docs/runbooks/release-by-hand.md": 495,   // +2 (T1161): "lid open, on power", the line that would have saved 0.10.0 its 8.3 h asleep
+  "docs/runbooks/release-gates-explained.md": 366,
+  "docs/runbooks/release.md": 219,   // +3 (T1161): the same line, with the battery refusal and its flag
   // long files in an open ticket's folder (the T1140 one is in MARKDOWN_LONG)
-  "handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md": 272,
-  "handoff/PLAN/app-integration/T1108-files/handoff-2026-11-25-offline-satellite-and-reversible-engine.md": 209,
+  "docs/app-integration/T1053-shots/head-lakes-before-after.md": 272,
+  "docs/app-integration/T1108-files/handoff-2026-11-25-offline-satellite-and-reversible-engine.md": 209,
 };
 
 /** PAGE_LONG entries that are a cap with room under it, not the page's size (a live page another chat keeps). */
-export const PAGE_ROOM = new Set(["handoff/PLAN/ROADMAP-after-0.9.0.md"]);
+export const PAGE_ROOM = new Set(["docs/ROADMAP-after-0.9.0.md"]);
 
 /** Look-up files: text a program reads or writes, or the book's own words. Not counted in BUDGETS.readingLines and not
  *  held to BUDGETS.page (anyMarkdown still holds them). A prefix ending in "/" is a folder. */
@@ -260,7 +260,8 @@ export function keptProblems({ paths, kept = KEPT_ASSETS, readers = KEPT_READERS
   const problems = [];
   const have = new Set(paths);
   for (const key of Object.keys(kept)) {
-    const full = `${DOCS_DIR}/${key}`;   // ledger.mjs keys by the path under the docs folder
+    // ledger.mjs keys by the path under the docs folder; the tickets folder is top-level, its keys are repo paths
+    const full = under(key, TICKETS_DIR) ? key : `${DOCS_DIR}/${key}`;
     if (!paths.some((p) => p === full || p.startsWith(`${full}/`))) problems.push(`KEPT_ASSETS lists ${key}, which is not tracked: take it off the list`);
     const who = readers[key];
     if (!who?.length) { problems.push(`KEPT_ASSETS lists ${key} with no KEPT_READERS entry: name the file that still reads it, or take it off the list`); continue; }

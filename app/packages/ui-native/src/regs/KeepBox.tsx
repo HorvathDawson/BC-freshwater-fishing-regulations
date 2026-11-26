@@ -1,6 +1,6 @@
 /**
  * (T829, owner 2026-11-16: "B: trout keep box") THE KEEP BOX and the RELEASE / CLOSED GROUPS of the trout table (spec
- * 3.1 – 3.2, now `handoff/PLAN/design/trout-table-contract.md` section 3), built first for the salmon card and adopted by
+ * 3.1 – 3.2, now `docs/design/trout-table-contract.md` section 3), built first for the salmon card and adopted by
  * the trout table (ticket O), so there is one component, not two. Props are the contract's Box / TRow / Band fields
  * (`trout-table-contract.md` 2.3; core `TroutBox`, `TroutRow`, `TroutBand`) plus the DateSet text that lands on each cell
  * and the fish picture the caller resolves.

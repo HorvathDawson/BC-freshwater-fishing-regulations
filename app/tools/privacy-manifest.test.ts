@@ -1,6 +1,6 @@
 /**
  * (T1099) THE iPHONE PRIVACY MANIFEST SAYS WHAT THE APP STORE CONNECT LABELS SAY. `app.json` `ios.privacyManifests`
- * (what ships inside the app) is compared with the labels table of `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (what the
+ * (what ships inside the app) is compared with the labels table of `docs/ios/APP-STORE-SUBMISSION.md` (what the
  * owner pastes into App Store Connect): the same data types, the same purposes, the same linked answer, no tracking.
  * The owner's pick of 2026-11-24 is "Strict: linked" (every type linked except Coarse Location). Apple does not compare
  * the two at review; this test is what keeps them from drifting.
@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = resolve(process.cwd(), "..");     // vitest runs from app/
 const manifest = JSON.parse(readFileSync(resolve(ROOT, "app/apps/mobile/app.json"), "utf8")).expo.ios.privacyManifests;
-const page = readFileSync(resolve(ROOT, "handoff/PLAN/ios/APP-STORE-SUBMISSION.md"), "utf8");
+const page = readFileSync(resolve(ROOT, "docs/ios/APP-STORE-SUBMISSION.md"), "utf8");
 
 interface Row { linked: boolean; purposes: string[] }
 const PURPOSE: Record<string, string> = { "App Functionality": "AppFunctionality", Analytics: "Analytics" };

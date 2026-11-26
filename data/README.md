@@ -14,7 +14,7 @@ Code names these paths through `pipeline.common.curated` (`CURATED` / `GENERATED
 ## Getting the source data
 
 On a fresh clone, `bash scripts/bootstrap.sh` fetches the exact bytes the live release was built from, checked against
-`source/pins.json` (runbook: `handoff/PLAN/runbooks/fresh-machine.md`). Refreshing from upstream is a separate choice:
+`source/pins.json` (runbook: `docs/runbooks/fresh-machine.md`). Refreshing from upstream is a separate choice:
 
 ```bash
 python data/fetch_data.py --help     # the BC Freshwater Atlas layers and the other upstream sources

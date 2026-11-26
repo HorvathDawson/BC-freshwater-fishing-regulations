@@ -29,7 +29,7 @@ records the question and the words. 07FD001, 08KH019 and 08MH153 stay `proposed`
 | 08EF001, Skeena River at Usk | history 2.37 m up | 2025-01-30 | moved about 1 km upstream, "a 2.370m jump in stage" | all 300 live days sit on the curve (110 of 300 without it); the reading is inside the normal range |
 
 Pictures (web, 390 px, light; one live reading, only the history differs):
-`handoff/PLAN/app-integration/T1047-shots/accepted-08HD006-before.png`, `…-after.png`,
+`docs/app-integration/T1047-shots/accepted-08HD006-before.png`, `…-after.png`,
 `…/accepted-08EF001-before.png`, `…-after.png`.
 
 ## Where it shows up

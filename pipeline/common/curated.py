@@ -399,7 +399,7 @@ class Generated(BaseModel):
     #: `/feeds/inseason/` by the local tile server, R2 `feeds/inseason/` in production)
     inseason: Path
     #: T330: the curation review's machine-written inputs (candidates, pre-verify, suggestions, the Q154 sample, the
-    #: mined name candidates, the T185 proposals) — moved out of handoff/; the review app and `regs/review/*` read them
+    #: mined name candidates, the T185 proposals) — moved out of docs/; the review app and `regs/review/*` read them
     review: Path
     #: (T435) the slough finder's output (`slough-automark.json`, `candidates_v2.json.gz`) the slough review reads
     sloughs: Path

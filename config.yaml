@@ -67,7 +67,7 @@ generated:
   inseason: "data/generated/inseason"
   # T330: the curation review's MACHINE-WRITTEN inputs (tidal candidates / pre-verify / edits / web / OSM landmarks,
   # tidal pass 2, DFO suggestions / pre-verify / split hunt, entry split suggestions, T89 awaiting-water, the Q154
-  # sample, the mined name candidates, the T185 proposals). Moved here from handoff/PLAN/curation-review/; committed
+  # sample, the mined name candidates, the T185 proposals). Moved here from docs/curation-review/; committed
   # (data/.gitignore) because the review app reads them. Nothing human-made lives here.
   review: "data/generated/review"
   # T435: the slough finder's output (automark + candidates), read by the slough review (regs/review/slough.py)

@@ -110,7 +110,7 @@ def test_changed_runs_only_the_areas_the_branch_changed(monkeypatch, capsys):
     guard = "ticket guard (node app/tools/check-tickets.mjs)"
     docs = "docs: the ticket guard's tests and the start-here page (docs-ci)"
     msgs = BP.COMMITS                                                     # (T998) first, whatever changed
-    assert _changed(monkeypatch, capsys, ["handoff/PLAN/STATUS.md", "AGENTS.md"]) == [msgs, guard, docs]
+    assert _changed(monkeypatch, capsys, ["docs/STATUS.md", "AGENTS.md"]) == [msgs, guard, docs]
     assert _changed(monkeypatch, capsys, ["NOTICE.txt"]) == [msgs, guard]
     # (T995 review) what docs-ci runs on a handoff change, the hook runs: its vitest step, word for word
     import yaml
@@ -182,15 +182,15 @@ def test_changed_holds_commits_the_working_tree_and_untracked_files(tmp_path, mo
     """(T995 review) the unpinned mutation: untracked files are part of the change."""
     here, run = _repo(tmp_path, monkeypatch)
     run("switch", "-qc", "lane")
-    (here / "handoff").mkdir()
-    (here / "handoff" / "x.md").write_text("x")
+    (here / "docs").mkdir()
+    (here / "docs" / "x.md").write_text("x")
     run("add", ".")
     run("commit", "-qm", "docs")
     (here / "pipeline" / "a.py").write_text("2")                           # uncommitted
     (here / "app").mkdir()
     (here / "app" / "new.ts").write_text("n")                              # untracked
     base, paths = BP.changed_paths()
-    assert base == run("rev-parse", "origin/main") and paths == ["app/new.ts", "handoff/x.md", "pipeline/a.py"]
+    assert base == run("rev-parse", "origin/main") and paths == ["app/new.ts", "docs/x.md", "pipeline/a.py"]
 
 
 def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, capsys):
@@ -199,8 +199,8 @@ def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, 
     here, run = _repo(tmp_path, monkeypatch)
     z = BP.ZERO
     run("switch", "-qc", "lane")
-    (here / "handoff").mkdir()
-    (here / "handoff" / "x.md").write_text("x")
+    (here / "docs").mkdir()
+    (here / "docs" / "x.md").write_text("x")
     run("add", ".")
     run("commit", "-qm", "docs")
     one = run("rev-parse", "HEAD")
@@ -211,7 +211,7 @@ def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, 
     two = run("rev-parse", "HEAD")
     (here / "pipeline" / "a.py").write_text("dirty")                       # the tree: never the hook's change
     said, paths = BP.pushed_paths([f"refs/heads/lane {two} refs/heads/lane {z}"])
-    assert paths == ["app/y.ts", "handoff/x.md"] and "since the merge base with origin/main" in said[0]
+    assert paths == ["app/y.ts", "docs/x.md"] and "since the merge base with origin/main" in said[0]
     said, paths = BP.pushed_paths([f"refs/heads/lane {two} refs/heads/lane {one}"])
     assert paths == ["app/y.ts"] and said == [f"refs/heads/lane: 1 path(s) in {one[:12]}..{two[:12]}"]
     assert BP.pushed_paths([f"refs/tags/v1 {two} refs/tags/v1 {z}", f"(delete) {z} refs/heads/old {one}"]) == (
@@ -256,9 +256,9 @@ def test_the_pushed_paths_are_the_prs_own_not_what_a_merge_of_main_brought(tmp_p
     said, paths = BP.pushed_paths([f"refs/heads/lane {one} refs/heads/lane {z}"])         # first push
     assert paths == ["pipeline/own.py"]
     run("push", "-q", "origin", "lane")
-    two = commit({"pipeline/own.py": "pr 2", "handoff/x.md": "x"}, "the PR again")
+    two = commit({"pipeline/own.py": "pr 2", "docs/x.md": "x"}, "the PR again")
     said, paths = BP.pushed_paths([f"refs/heads/lane {two} refs/heads/lane {one}"])       # a follow-up push
-    assert paths == ["handoff/x.md", "pipeline/own.py"] and said == [f"refs/heads/lane: 2 path(s) in {one[:12]}..{two[:12]}"]
+    assert paths == ["docs/x.md", "pipeline/own.py"] and said == [f"refs/heads/lane: 2 path(s) in {one[:12]}..{two[:12]}"]
     # main changes the PR's file and one of its own; the merge's resolution is the PR's
     main_moves({"pipeline/own.py": "main", "app/main_only.ts": "m"})
     # with an identity on the command line: a CI runner has none configured (git then exits 128, not the conflict's 1)
@@ -296,20 +296,20 @@ def test_the_commit_messages_of_what_is_pushed_are_checked_first(tmp_path, monke
     z = BP.ZERO
     base = run("rev-parse", "HEAD")
     run("switch", "-qc", "lane")
-    (here / "handoff").mkdir()
-    (here / "handoff" / "x.md").write_text("x")
+    (here / "docs").mkdir()
+    (here / "docs" / "x.md").write_text("x")
     run("add", ".")
     run("commit", "-qm", "docs(handoff): x")
     one = run("rev-parse", "HEAD")
     said, paths, ranges = BP.pushed([f"refs/heads/lane {one} refs/heads/lane {z}", f"refs/tags/v1 {one} refs/tags/v1 {z}"])
     assert ranges == [f"{base}..{one}"]
     # (T1019) an UPDATED branch: still the branch's own commits since the trunk (docs-ci's range), never `<old tip>..`
-    (here / "handoff" / "y.md").write_text("y")
+    (here / "docs" / "y.md").write_text("y")
     run("add", ".")
     run("commit", "-qm", "docs(handoff): y")
     two = run("rev-parse", "HEAD")
     said2, paths2, ranges2 = BP.pushed([f"refs/heads/lane {two} refs/heads/lane {one}"])
-    assert ranges2 == [f"{base}..{two}"] and paths2 == ["handoff/y.md"]
+    assert ranges2 == [f"{base}..{two}"] and paths2 == ["docs/y.md"]
     step = BP.plan(tier=False, areas={"docs"}, ranges=ranges)[0]
     assert step == BP.Step(BP.COMMITS, ("node", "app/tools/check-commits.mjs", "--range", f"{base}..{one}"))
     assert BP.plan(tier=False)[0].cmd == ("node", "app/tools/check-commits.mjs", "--range", "origin/main..HEAD")
@@ -656,7 +656,7 @@ def test_the_wait_limit_fails_saying_who_holds_it(tmp_path, monkeypatch, capsys)
         assert "FAILED" in msg and f"pid {p.pid}" in msg and "nothing was checked" in msg and BP.NO_LOCK_ENV in msg
         # through the hook: the steps never run, the hook fails with the message
         monkeypatch.setattr(BP, "LOCK_FILE", lock)
-        monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["handoff/x.md"], []))
+        monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["docs/x.md"], []))
         monkeypatch.delenv(BP.SKIP_ENV, raising=False)
         monkeypatch.setenv(BP.LOCK_WAIT_ENV, "0.005")                                 # minutes: 0.3 s
         ran = []
@@ -676,7 +676,7 @@ def test_the_escape_prints_its_reason_and_runs_beside_the_holder(tmp_path, monke
     import io
     lock = tmp_path / "l"
     monkeypatch.setattr(BP, "LOCK_FILE", lock)
-    monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["handoff/x.md"], []))
+    monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["docs/x.md"], []))
     monkeypatch.delenv(BP.SKIP_ENV, raising=False)
     p = _holder(lock)
     try:
@@ -697,8 +697,8 @@ def test_the_escape_prints_its_reason_and_runs_beside_the_holder(tmp_path, monke
 
 def test_the_hook_holds_the_lock_and_caps_vitest_while_its_steps_run_a_hand_run_does_neither(monkeypatch, capsys):
     import io
-    monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["handoff/x.md"], []))
-    monkeypatch.setattr(BP, "changed_paths", lambda: ("b" * 40, ["handoff/x.md"]))
+    monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["docs/x.md"], []))
+    monkeypatch.setattr(BP, "changed_paths", lambda: ("b" * 40, ["docs/x.md"]))
     monkeypatch.delenv(BP.SKIP_ENV, raising=False)
     for k in BP.VITEST_CAPS:
         monkeypatch.delenv(k, raising=False)
