@@ -144,7 +144,7 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
       + "for new data and, when a new data release is out and your download setting allows it, to start downloading it; the signal carries no words, no waters and no location. I do not receive your alerts, the waters you "
       + "watch or where you are. I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it "
       + "for a day’s counting. The token is deleted when you turn notifications off, or when Apple tells me it no longer works. "
-      + "From version 0.9.1, the app sends the token only while this phone lets it show notifications and at least one is on; if you turn notifications off for the app in the phone’s settings, the app tells my server to delete the token the next time you open it. A token the app has not sent again for 30 days is deleted (the app sends it again about once a week when you open it), and it is not used after those 30 days. "
+      + "From version 0.10.0, the app sends the token only while this phone lets it show notifications and at least one is on; if you turn notifications off for the app in the phone’s settings, the app tells my server to delete the token the next time you open it. A token the app has not sent again for 30 days is deleted (the app sends it again about once a week when you open it), and it is not used after those 30 days. "
       + "It is not linked to you or to an account and is not backed up.");
     expect(text(pv.html)).toContain("The app sends me three things: a problem report, only when you press Send; unless you switch "
       + "it off, a short error report when the app itself fails; and, on an iPhone with notifications on, a push token so I can "
