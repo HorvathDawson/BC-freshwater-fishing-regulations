@@ -26,3 +26,8 @@ recorded here. One test pins a lake's max/mean depth from the bundle.
 
 Depends: T201 (Depth mode slot), T158 (contour drawing rules). Size: S. Owner: no (licence settled 2026-10-27).
 Default: ship all 28; no per-lake review.
+
+## 2026-11-26
+The owner says the licence for the Province's vector lake maps is granted (T201); the catalogue still marks this layer
+"Access Only", so the credits page cites where his permission is written (T201's open line). Order: second, after
+T201's chart card; the matching checks gate it.

@@ -55,6 +55,11 @@ build BEHIND the store would be told of the store's version. Telling a TestFligh
 capability and a phone build: left, a find for the planning chat (it numbers the follow-up). Setting a build-time word
 is wrong: the TestFlight binary is the one promoted to the App Store.
 
+## 2026-11-26: follow-ups
+The review of the night's merges (LOW-2, LOW-3 on #285): the strong prompt does not check the version the data needs,
+and a kept "current" answer survives an app update: T1175 (owner: "Small fix in 0.10.1"). The run-time TestFlight
+check above is not numbered yet.
+
 ## Owner
 - [ ] 2026-11-26 — Device check on Play Internal one build behind (T390's test bed): a build on a track the phone cannot
   install from raises nothing; when Play offers it, the notice appears and Update installs. Not run: it needs a phone build.

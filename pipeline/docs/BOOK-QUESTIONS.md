@@ -46,6 +46,9 @@ water's number at or below it sits inside it; one above it raises that cap for t
 
 **Other questions, by office:**
 
+- Region 2: which creek is McLennan Creek, MU 2-8 ("No Fishing")? No McLennan Creek is in 2-8; McLennan Creek is in
+  2-4 and McLean Creek in 2-8. To build: bound to both (owner 2026-11-26, T1118, the next data build).
+
 - Region 1: is bait allowed outside the printed dates or places on the Quatse ("May 1-Nov 30"), Somass ("June 1-Aug
   24"), Sproat ("May 1-Oct 31") and Stamp ("upstream of signs at 'Girl Guide Falls'"), p.18, under "Bait ban: applies
   to all streams of Region 1, all year" (p.13)? Built: yes (GOTCHAS, the dated bait ban).

@@ -45,3 +45,4 @@ Model: Opus. Size: M. Owner: the key, the picks.
 
 - [x] 2026-11-25 — The 7 Google API keys in public history → "these have all been revoked"; the alerts → "you can close them" (closed #1-#7 as revoked, 2026-11-25)
 - [ ] 2026-11-25 — Picks (defaults first): your name and email in new commits: stop adding them from now (a project identity) / rewrite history / leave; LICENSE name: keep / "the authors"; the shared token's admin scopes: drop now / with T1160; sign the release manifest in the next app build: yes / no; the staging worker's address with your name in it: move to a project subdomain / leave.
+- [x] 2026-11-26 — Your name and the project identity → "is it reall yan issue?" (2026-11-25 23:27; answered: a privacy preference, not a security issue) → "Leave it; only fix the OpenStreetMap client name (Recommended)" (2026-11-26 00:45)

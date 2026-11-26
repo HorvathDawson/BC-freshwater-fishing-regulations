@@ -37,6 +37,14 @@ Each hole has a test that changes only the missed input and sees the stage rerun
 unchanged tree after a branch switch is measured before and after; the verify run matches. Severity: medium (a
 stale stage could ship). Model: Opus. Size: M (1), M–L (2), S (3). Owner: the picks below.
 
+## 2026-11-26: #286 is being fixed against the second review
+PR #286 (the holes) is not mergeable: the second review said "fix first" (the package trace stops every real build on
+pandas and scipy Cython modules, `pipeline/_trace.py` `_sweep`; an empty record is accepted; the backfill covers 333
+modules, 62% of the pipeline). A planning-chat sub-agent is fixing it (main merged, the second review's findings, a
+test with real pandas; no auto-merge); a third, independent review follows before it merges. Until it lands, a venv
+reinstalled from `requirements.txt` reruns reach and deliver once (#279 added pytest-xdist).
+
 ## Owner
 
-- [ ] 2026-11-25 — Picks (defaults first): order: the holes, then content keys, then provenance, then speed; the atlas build names code changes and a person starts it; a no-cache verify once per release night; store cap 20 GB; no R2 remote cache yet; an app-only release says "data unchanged" and proves it.
+- [x] 2026-11-25 — Picks (defaults first): order: the holes, then content keys, then provenance, then speed; the atlas build names code changes and a person starts it; a no-cache verify once per release night; store cap 20 GB; no R2 remote cache yet; an app-only release says "data unchanged" and proves it. → "Yes, that order" (2026-11-25 23:23)
+- [x] 2026-11-26 — #286: the live atlas on first sight → "One-time backfill (Recommended)"; what a stage key holds → "Only what a stage imports (Recommended)" (2026-11-26 01:54; they stand after the second review)

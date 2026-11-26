@@ -43,3 +43,4 @@ The list is run and recorded for the 0.10.0 App Store build; the script fails on
 ## Owner
 
 - [ ] 2026-11-25 — Before the App Store submit of 0.10.0: run the 12-step iPhone list (about 12 minutes; I hand it to you with the build). Picks (defaults first): the non-affiliation sentence in the first patch / skip; the parking-pin Settings button in the first patch / before the submit; F4 and F5 stay known cosmetic / a ticket each.
+- [x] 2026-11-26 — The three picks (the non-affiliation sentence, the parking-pin Settings button, F4 and F5) → "Yes, the recommended set" (2026-11-26 01:01; the 12-step check above stays open)

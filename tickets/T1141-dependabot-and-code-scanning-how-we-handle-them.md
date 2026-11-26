@@ -1,10 +1,10 @@
 # T1141 — Dependabot and code scanning are on: how their PRs and alerts are handled
 
-Status: OPEN — the hardening release (tooling); the first Dependabot PR (#250) is held until 0.10.0 is out
+Status: OPEN — on again since 2026-11-26; the planning chat owns the bot PRs through sub-agents; left: `dependabot.yml`, the policy line, CodeQL's first results
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1141 | Dependabot and code scanning are on: how their PRs and alerts are handled | OPEN — the hardening release (tooling); the first Dependabot PR (#250) is held until 0.10.0 is out | | repo-move chat 2026-11-25; owner: "I turned them on, keep" |
+| T1141 | Dependabot and code scanning are on: how their PRs and alerts are handled | OPEN — on again 2026-11-26; the planning chat owns the bot PRs | | `dependabot.yml` (none on main); the AGENTS policy line; CodeQL's first results and alerts; fflate 0.8.2 still in root `app/package.json` |
 
 Source: the repo-move chat's snapshot compare after the transfer, 2026-11-25 15:25. The owner turned on Dependabot
 security updates, and GitHub's CodeQL and Dependency Graph workflows now exist on the new repo; his words: "I turned
@@ -37,6 +37,22 @@ him (the repo switch). CodeQL default setup was forced by the ORG security confi
 its `code_scanning_default_setup` to disabled at 15:43. Back on after 0.10.0: that one field to enabled, and the
 repo switch for Dependabot security updates (an owner item, 2026-11-25 afternoon). PRs #250, #252 and #254 were closed.
 
+## 2026-11-26: on again; the planning chat owns the bot PRs
+- Turned on early, on the owner's word ("you can do it for me", 2026-11-26 02:07): the org security configuration
+  303766 has dependency graph, Dependabot alerts and Dependabot security updates enabled. CodeQL (the same
+  configuration's `code_scanning_default_setup`) was turned on 2026-11-26 11:32 MST on his pick, after the rename (#310).
+- Owner, 2026-11-26, verbatim: "you own them and subagents will manage them. also you can use subagents to close out
+  cchats that were very close and dont deserve their own full agent".
+- The night's PRs: #291 (esbuild + vite in the review tool's frontend) closed 2026-11-26; #292 Pillow 13 merged on his "Merge
+  now"; #305 vitest 3 to 4 closed (it fails a test: T1174); #307 fflate 0.8.2 to 0.8.3 merged on "Fix the lockfile,
+  merge".
+- Finds: there is no `.github/dependabot.yml` on main; a pnpm PR arrives without `app/pnpm-lock.yaml` (#307 was fixed
+  by hand); the root `app/package.json` still pins fflate 0.8.2, so two versions coexist.
+- Pillow 13 (#292) may change the bytes of the next release's synopsis copy and bathymetry TIFFs (T416): the re-cut
+  may need its release-backed pins re-recorded.
+
 ## Owner
 
 - [x] 2026-11-25 — Dependabot security updates and CodeQL → "I turned them on, keep" (2026-11-25, repo-move chat); Dependabot PR #250 (vite 5 to 8) is held until 0.10.0 is out.
+- [x] 2026-11-26 — Who handles the Dependabot PRs (#292, #305, #307) → "you own them and subagents will manage them. also you can use subagents to close out cchats that were very close and dont deserve their own full agent" (2026-11-26)
+- [x] 2026-11-26 — Pillow 13 (#292) → "Merge now"; fflate (#307) → "Fix the lockfile, merge" (2026-11-26)

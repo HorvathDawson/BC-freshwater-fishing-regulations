@@ -1,10 +1,10 @@
 # T1158 — A standing-rulings page of the owner's pattern-setting answers; every default is checked against it before it is built
 
-Status: OPEN — the planning chat writes the page; the owner confirms it once; then the rule in AGENTS
+Status: PARTIAL — the page is written (`docs/OWNER-RULINGS.md`, 2026-11-26); owner: see ## Owner; then the AGENTS and README lines
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1158 | A standing-rulings page of the owner's pattern-setting answers; every default is checked against it before it is built | OPEN — the planning chat writes the page; the owner confirms it once; then the rule in AGENTS | — | planning chat: draft the page from the answered Owner lines (first entries in the notes), owner confirms, AGENTS line + README line; S |
+| T1158 | A standing-rulings page of the owner's pattern-setting answers; every default is checked against it before it is built | PARTIAL — the page is written; owner: see ## Owner | — | owner: read `docs/OWNER-RULINGS.md` once; then the AGENTS line and the tickets README line (item 2); S |
 
 Source: the read-only "fewer questions" pass of 2026-11-25 night (notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `fewer-questions.md`, a
 35-row table of the questions asked during 0.10.0 and a 14-row sample for 0.9.0). Its main finding: **the "Part N
@@ -30,6 +30,13 @@ how to make our release cycle faster?" Related: T1159, the memory notes `everyth
 ## Acceptance
 The page exists and he has confirmed it; the next release's questions include none that a ruling already
 answers (checked at the cut by the planning chat). Severity: process. Size: S. Owner: one read.
+
+## 2026-11-26: the page is written
+`docs/OWNER-RULINGS.md` (not `docs/RULINGS.md`: `pipeline/docs/RULINGS.md` already holds the book rulings, and a
+ruling moves there when it is built). It holds the working rules of item 1 and the data rulings of the night of
+2026-11-25 and of 2026-11-26 (Campbell, Rancheria, the seven T1118 bindings, audit picks P1 to P4), each with his
+words and date. Left out for want of a date in the record: "10 m imagery is useless". None of its data rulings is
+built yet: they ride one data build after his audit review.
 
 ## Owner
 

@@ -85,6 +85,8 @@ tickets." Both start once Play closed testing (T495 / T371) is running; they are
 Both ride on **T634** (the Lake tab and the owner's 2026-11-11 decisions; its "Path to ship" is the shared step list).
 T218 (28 digitised lakes) and T219 (tracing scans) stay POSTPONED: they follow T201 and its licence answer. The other
 deferred rows (river widenings T695, map-tile trimming T699, T389, T626, T223, T234) stay where they are.
+2026-11-26: the owner moved T201 to "start soon" (next after the re-cut work; the lake-matching checks gate it) and
+gave the licence for the Province's vector lake maps (T201).
 
 **T714** (share saved spots) and **T715** (store video builds its own state) are after closed testing too (owner
 2026-11-13: "these are after closed"); they are not stocking or depth work and have no place in the order above yet.

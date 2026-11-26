@@ -16,14 +16,11 @@ Work in a scratchpad worktree of `origin/main`, never the main checkout.
 
 1. **Land the second cut** if its PR is not on main yet (review findings fixed, `scripts/before_pr.sh`, queue on the
    planning chat's word).
-2. **The rename, now.** Fresh worktree off main; `node app/tools/check-size.mjs --measure`;
-   `python3 scripts/rename_handoff.py --dry-run`, then `--commit` on the planning chat's word (it waits for the open
-   0.10.0 PRs to be on main); guards; one PR. Agreed with the 0.10.0 chat (2026-11-25): after the rename only
-   code-only picks go onto `release/0.10.0`; its merge back first runs the same script on that branch, which must
-   also rewrite the Step 8 record files written there at old paths (`play-production-access/`). Each other branch
-   owner runs the script on their branch, then merges main. The legacy restart pages move into this folder and
-   `LEGACY_RESTART` goes. The owner gets one command for the memory notes that spell old paths (his git-ignored
-   `CLAUDE.md` spells none).
+2. **The rename is done** (#310, 2026-11-26 11:31 MST): tickets are top-level `tickets/`, the rest is `docs/`. Each
+   open branch (#286, `release/0.10.0`, the parked hardening branches) runs `python3 scripts/rename_handoff.py
+   --commit`, then merges main; on `release/0.10.0` it also rewrites the Step 8 record files written at old paths
+   (`play-production-access/`). The memory notes' old paths are rewritten. Left here: the legacy restart pages move
+   into this folder and `LEGACY_RESTART` goes.
 3. **The review tool gets one home** (suggested `tools/curation-review/`; the server side may stay in
    `pipeline/regs/review`), CI on its own files only, a README. A saved-mark write-through test is proven before
    and after. Never the owner's marks, `data/curated/review` or `data/generated/review`.

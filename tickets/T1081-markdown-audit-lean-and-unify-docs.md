@@ -18,30 +18,12 @@ Related: T987 (repo docs and cleanup), T539/T540 (ledger and docs guard), PR #11
 distill tickets a bit and make it more wieldy etc etc so much unneeded content I want. ahuman to be able to go
 through code and be able to not get super lost. handoff folder is a weird name too..."
 
-Measured the same day on main: 6,434 tracked files under `docs/` (1,386 of them markdown; the rest mostly
-pictures in the `Tnnn-shots` folders), about 1,060 ticket files of which about 835 are closed, and 180 code, test,
-script and workflow files that spell the path `docs/`.
-
-What this adds to the ticket (the planning chat's reading of his words; each is a question on the layout page he
-agrees before anything is cut):
-1. **The goal is a repo a person can walk through**, not only shorter markdown. The layout page starts with a map:
-   the top-level folders in one screen, what each is, where to start reading the code, and for each package and
-   pipeline stage a short README (what it does, what it reads and writes, where its entry point is). Anything the
-   map cannot explain in a line is a candidate to merge, move or delete.
-2. **Distill the tickets.** Proposal: a closed ticket's file is deleted and its one line (id, title, the commit or
-   PR, the release) stays in a built index; what a closed ticket decided that still binds the code moves to one
-   place per subject (a rule in AGENTS, a decision page, a comment at the code), not left in 835 files. Its
-   pictures folder goes with it unless a doc still shows a picture from it. Git keeps everything. Open tickets are
-   cut to the template: source, what, work, acceptance, the last line.
-3. **Rename `docs/`.** Proposal for him to pick from: `docs/` (plan, runbooks, tickets, store under it) or
-   `project/`. One commit, by a script, with every one of the 180 citing files changed in the same commit and the
-   guards run; it lands at a moment with no open PRs, which is why this chat sits right after the repo move and
-   before the 0.10.1 lanes open.
-4. **Less in the repo overall**: old restart pages, audits, status archives, superseded plans, one-off research,
-   design prototypes nobody reads, pictures cited by nothing. The inventory gives each a verdict; `cleanup-delete-
-   freely` applies (git is the safety net), except the owner's review files and marks, which are never touched.
-5. **Code a person can follow** is partly not a docs job: dead code, files that are too long, names that mislead.
-   This chat lists what it finds as candidates and hands them to the planning chat for tickets; it cuts no code.
+Measured the same day: 6,434 tracked files under `docs/` (1,386 markdown), about 1,060 ticket files (about 835
+closed), 180 code, test, script and workflow files spelling the old path. The planning chat read five aims into his
+words (each agreed on the layout page before any cut): a repo a person can walk through (a one-screen map, a short
+README per package and stage); closed tickets reduced to one index line each; the folder renamed; less in the repo
+overall (old restart pages, audits, superseded plans, pictures cited by nothing; never the owner's review files and
+marks); code a person can follow, listed as candidates for the planning chat (this chat cuts no code).
 
 ## Work
 1. Inventory first, no edits: every `.md` with size, last change, who cites it (code, guard, another doc), and a
@@ -145,3 +127,9 @@ ships from them), the T1140 page (763; PR #265), the T1053 head-lake list (272; 
 The guard (`check-size.mjs`) now also holds: a page outside tickets is 150 lines at most unless listed (`PAGE_LONG`,
 only shrinks); one total for the reading (`readingLines`); no page named for a day; no ticket working page outside
 the tickets folder unless listed with its reason (`WORKING_PAGES`).
+
+## 2026-11-26: the rename landed (#310); what is left
+Tickets are top-level `tickets/`, the rest is `docs/` (#310, 11:31 MST). Each open branch runs
+`python3 scripts/rename_handoff.py --commit`, then merges main. #301 (the restart pages outside the reading total):
+the owner confirmed it ("Confirm", 2026-11-26). Left: the review tool's one home (`docs/restart/cleanup.md` item 3);
+the four release runbook pages cut to one (item 4); close this ticket with the final counts.

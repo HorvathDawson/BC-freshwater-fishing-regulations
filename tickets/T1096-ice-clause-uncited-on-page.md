@@ -21,3 +21,12 @@ On Dick Lake the ice line's source opens the printed page it comes from. The tes
 
 Depends: T1050. Severity: low (the words are right; their source is not shown). Release: 0.9.2 (needs a data
 release). Model: Opus (pipeline + page contract). Size: S. Owner: no.
+
+## 2026-11-26
+Built by the hardening chat on a local branch of the main checkout, not pushed: the pre-push hook refused it because
+`pipeline/deliver/answers/gear.py` changed and the mini release was not re-cut. Next: the re-cut under the lock (the
+owner's yes below), push, review.
+
+## Owner
+
+- [x] 2026-11-26 — A build chat runs `python -m pipeline.tools.mini_release --write` (the fixture re-cut) once per branch, under the lock → "Yes" (2026-11-26; T1085, T1096, T1168)

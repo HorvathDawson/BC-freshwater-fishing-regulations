@@ -38,3 +38,5 @@ Owner: the words; the rows.
 
 - [x] 2026-11-25 — The licence wording → "we should change this"; when → "First patch (Recommended)"; the stale rules → "we can then fix stale rules in a future ticket."; the rows the province lost → "add to gotchas with info about it when it was there and how it isnt there now. then later we will send the gotchas with everything" (2026-11-25)
 - [ ] 2026-11-25 — Read the proposed FWID / WILD wording in the first patch's pre-cut pack. Later, when you schedule it: your parser run and review for the Cowichan and Heber rows.
+- [x] 2026-11-26 — The republished book's stale rules: when → "After the re-cut" (2026-11-26 00:54)
+- [x] 2026-11-26 — A build chat runs `python -m pipeline.tools.mini_release --write` (the fixture re-cut) once per branch, under the lock → "Yes" (2026-11-26; T1085, T1096, T1168)
