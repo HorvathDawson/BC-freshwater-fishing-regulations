@@ -62,3 +62,5 @@ tqdm
 
 # Testing
 pytest
+pytest-xdist  # (T1144) CI's no-data tier on every core of the runner (pipeline-ci.yml "Tests": -n auto --dist loadfile);
+              # never `-n` on the Mac (scripts/pytest-chunked.sh, T792 B: a child forked after pyproj loaded crashes)
