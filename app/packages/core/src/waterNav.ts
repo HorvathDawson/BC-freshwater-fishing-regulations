@@ -581,7 +581,8 @@ export const WATER_MAP_WORDS = {
  */
 export function nameUnder(water: string, name: string): string {
   if (!water || !name.startsWith(`${water} `) || name.includes(" → ")) return name;
-  const rest = name.slice(water.length + 1);
+  // (T1140 proposal) "Noons Creek — Turner Creek (City of Port Moody ESA streams layer)": under the water, the dash goes too
+  const rest = name.slice(water.length + 1).replace(/^— /, "");
   return rest ? rest[0]!.toUpperCase() + rest.slice(1) : name;
 }
 

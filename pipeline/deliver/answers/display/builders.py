@@ -198,6 +198,10 @@ def _crossings(path: str) -> Dict[tuple, list]:
         for iid, p, area, how in db.execute("SELECT i.item_id, n.part_ix, n.area, n.how FROM part_inside n JOIN item i "
                                             "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
             out[(iid, "inside", p)] = (area, how)
+        # (T1140 proposal) the own name of a part of added city lines (`bundle.side_channels.own_name_rows`)
+        for iid, p, nm, lb in db.execute("SELECT i.item_id, n.part_ix, n.name, n.label FROM part_own_name n JOIN item i "
+                                         "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
+            out[(iid, "own", p)] = (nm, lb)
         out.update(_flows_into(db))
         return out
     finally:
@@ -245,7 +249,7 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     or its name is another part's; the part across that place says the same token (the mark there names it).
     Anything still said twice stops the build (`name_check`)."""
     import json as _json
-    from pipeline.deliver.answers.display.part import AREA_HEAD, NEAR, PLACE, REVIEWED_INSIDE, SIDE, at_place, \
+    from pipeline.deliver.answers.display.part import AREA_HEAD, NEAR, OWN, PLACE, REVIEWED_INSIDE, SIDE, at_place, \
         branch_end_tokens, end_name_of, end_tokens, end_words, side_channels, side_words
     from pipeline.deliver.bundle.topology import is_crossing
     toks = [end_tokens(W.doc, p) for p in W.parts]
@@ -263,6 +267,13 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             for p, t, a in zip(W.parts, toks, inside)]
     ends: List[Optional[list]] = [[t[0], t[1]] if t else [f"{AREA_HEAD[a[1]]}area:{a[0]}"] * 2 if a else None
                                   for t, a in zip(toks, inside)]
+    # (T1140 PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is
+    # fixed in hardening") a part of added city lines with its own name: "Noons Creek — Turner Creek (City of Port Moody
+    # ESA streams layer)" (`part.OWN`, both ends)
+    for i, t in enumerate(toks):
+        own = crossings.get((W.id, "own", W.export_ix[i])) if t is None and ends[i] is None else None
+        if own:
+            ends[i] = [OWN + _json.dumps(list(own), separators=(",", ":"), ensure_ascii=False)] * 2
     if not several:
         # (T1140, owner 2026-11-25: "Named by its ends", "They should always have the cut names or distance") the ONE part
         # of side channels only of a water, where a channel has a named end: said by them ("Side channel from the

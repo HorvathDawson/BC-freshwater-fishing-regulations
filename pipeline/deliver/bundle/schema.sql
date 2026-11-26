@@ -1280,3 +1280,10 @@ CREATE TABLE salmon_section (sid INTEGER PRIMARY KEY, chain INTEGER NOT NULL) WI
 CREATE TABLE part_inside (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area TEXT NOT NULL, share REAL NOT NULL,
                           how TEXT NOT NULL CHECK (how IN ('inside', 'at')),
                           PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;
+-- (T1140 proposal, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is
+-- fixed in hardening") a part made ONLY of added-stream lines (negative blk, `section_measure`) that carry their OWN name,
+-- one name, not the water's: that name (`added_streams.json` `streams[].name` by blk) and the words of its source (the
+-- water's `name_source.label` for that name). `answers.display` names it "<water> — <name> (<label>)": Noons Creek's
+-- part that is the City of Port Moody's Turner Creek, filed with it until the refile.
+CREATE TABLE part_own_name (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, name TEXT NOT NULL, label TEXT NOT NULL,
+                            PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;
