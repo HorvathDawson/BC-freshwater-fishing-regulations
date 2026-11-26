@@ -20,11 +20,13 @@
 #   --no-distribute  (T918) upload only: the build is NOT added to the External TestFlight group (below)
 #   --dry-run     print the steps and the secrets it would read; builds nothing, needs no account
 #   --no-fast-fail=<reason> --no-ci-check=<reason> --no-notes=<reason>   (T993 plan 5) the escapes of the gates below,
-#                 each printed; a bare one is refused
+#                 each printed; a bare one is refused; --no-rc-check=<reason> (T1062) is the release
+#                 candidate check's
 #
 # (T993 plan 5, T661) THE GATES, before the heavy lock, the same as build-apk.sh's (deploy/lib/build-links.sh): the
 # precheck lists every failure together (the tools, the secrets, the gitignored links, and — not for --unsigned —
-# app.json's version having its changelog entry, the newest); then CI on HEAD (scripts/ci_status.py; --strict for
+# app.json's version having its changelog entry, the newest, and (T1062) on release/x.y.z HEAD being the newest
+# release candidate's tree apart from the build numbers); then CI on HEAD (scripts/ci_status.py; --strict for
 # --production), then scripts/fast-fail.sh, whose "changed" is everything since the last upload (app/dist/ios/last-sha).
 # heavy.sh runs no fast-fail of its own: this script does.
 #
@@ -95,6 +97,7 @@ if [[ -z ${BUILD_IOS_INNER:-} ]]; then
   build_links_common
   build_links_frontend "$FFB"
   if has --unsigned; then ok "changelog: not asked (--unsigned: nothing is uploaded)"; else build_check_changelog; fi
+  if has --unsigned; then ok "release candidate: not asked (--unsigned: nothing is uploaded)"; else build_check_rc; fi
   if ! has --unsigned; then
     for f in ios-team-id asc-api-key.json; do
       [[ -s $SECRETS/$f ]] && ok "$SECRETS/$f" || bad "no $SECRETS/$f (this script's header says what it holds)"
@@ -122,7 +125,7 @@ if [[ -z ${BUILD_IOS_INNER:-} ]]; then
   build_gates build-ios-testflight ${PROD:+--strict}
 fi
 if [[ -z ${BUILD_IOS_INNER:-} && -z $DRY ]]; then
-  export BUILD_IOS_INNER=1
+  export BUILD_IOS_INNER=1 BUILD_PRECHECK_SHA=$(git rev-parse HEAD)
   exec scripts/heavy.sh build-ios-testflight 20 -- "$0" "$@"
 fi
 if has --production; then
@@ -155,6 +158,7 @@ VER=$(node -p "require('./$M/app.json').expo.version")
 # (T894) the version names its file (app/ios/<version>.json): only a plain x.y.z, the form the app reads (storeVersionFileUrl)
 [[ $VER =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo "build-ios-testflight: app.json's version '$VER' is not x.y.z" >&2; exit 2; }
 SHA_FULL=$(git rev-parse HEAD)
+[[ -n $DRY ]] || build_same_head build-ios-testflight "$SHA_FULL"
 if [[ -n $DRY ]]; then
   echo "[dry-run] $ENV build of committed HEAD $SHA_FULL: version $VER, build $BUILD_NO (app.json $APP_BUILD, last uploaded $LAST)"
   for f in "$TEAM_FILE" "$KEY_FILE"; do [[ -s $f ]] && echo "[dry-run] found $f" || echo "[dry-run] MISSING $f (see the header)"; done

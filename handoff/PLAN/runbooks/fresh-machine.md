@@ -7,8 +7,8 @@ owner's Mac (M-series, 64 GB).
 ## 1. Clone and bootstrap
 
 ```bash
-git clone --branch main git@github.com:HorvathDawson/BC-freshwater-fishing-regulations.git
-cd BC-freshwater-fishing-regulations
+git clone --branch main git@github.com:canifishthis/canifishthis.git
+cd canifishthis
 bash scripts/bootstrap.sh            # PYTHON=python3.13 by default
 ```
 

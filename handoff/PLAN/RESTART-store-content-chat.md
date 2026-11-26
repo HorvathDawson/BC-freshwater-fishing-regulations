@@ -14,7 +14,7 @@ planning chat; work only in scratchpad worktrees, never the main checkout.
    step is `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots/run.mjs`.
 2. **The one set (T1072; #192, then #209, merge 4b21a95bc):** direction A, the angler's questions, 7 frames (the owner's
    pick, 2026-11-24). 21 PNGs in `handoff/PLAN/app-integration/store/graphics/store/light/`: `appstore-6.9`,
-   `appstore-6.5`, `play-phone`, 7 each. No tablet sets (owner 2026-11-25: "Drop tablet set"); frame 3 reshot so its Change
+   `appstore-6.5`, `appstore-6.3` (added 2026-11-25), `play-phone`, 7 each. No tablet sets (owner 2026-11-25: "Drop tablet set"); frame 3 reshot so its Change
    panel names the chart's watershed (a check refuses any other name).
    Regenerate: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light` (one frame: add
    `--reuse --scenes <nn> --only <target>`).
@@ -48,7 +48,7 @@ planning chat; work only in scratchpad worktrees, never the main checkout.
 - Play: no store badges, no "Best / #1 / Top / New / Free", no "Download now"; a caption takes at most 20 % of the
   picture; nothing time-bound. Apple 2.3.7: no prices in pictures or text.
 - Sizes differ only in pixels: Play phone 1080x1920 (2 to 8 pictures), no tablet sets (the push clears the tablet slots);
-  App Store 6.9" 1320x2868 (required slot) and 6.5" 1242x2688 (optional once 6.9" is given), 1 to 10, no alpha.
+  App Store 6.9" 1320x2868 (required slot) and 6.5" 1242x2688 (optional once 6.9" is given) and 6.3" 1206x2622 (the "iPhone with Dynamic Island" slot Apple now requires, 2026-11-25; display-type name unconfirmed), 1 to 10, no alpha.
 - App Store pictures change only with a new version; Play's can change any day.
 
 ## Reports (step 0, 2026-11-24)

@@ -46,3 +46,7 @@ round this week found something no check caught); needed about once per release.
 Acceptance: a run started by hand opens a PR whose pictures pass the tool's checks and the size check; a run with
 `only` set changes one frame; a failed check fails the run with the frame's name. Severity: none (tooling). Model:
 Sonnet. Size: S–M. Owner: yes (looks at the first Linux-rendered set).
+
+Added 2026-11-25 (iOS chat): Apple refused the 6.9" set and now requires the 6.1"/6.3" size (1206 x 2622); the
+native set at that size is the store chat's PR #238. The workflow makes every size the push list names, that one
+included, and its size check is the list's.
