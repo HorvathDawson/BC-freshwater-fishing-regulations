@@ -169,10 +169,10 @@ export const LABEL_PROPS = { numberOfLines: 1, maxFontSizeMultiplier: LABEL_SCAL
 
 /**
  * (T1201) The width a control must give a label so it is not cut or wrapped at `scale` (1 to `LABEL_SCALE`): an UPPERCASE
- * label's glyphs run to 0.72 em each at the heaviest weight (measured: "CONDITIONS" 0.65, "SALMON" 0.72), plus its letter
+ * label's glyphs run to `em` each (default 0.72, the heaviest weight; measured: "CONDITIONS" 0.65, "SALMON" 0.72), plus its letter
  * spacing (which the OS does not scale), plus the control's own horizontal padding. An over-estimate by design: the
  * control grows a few px more than the word needs, never less.
  */
-export function labelMinWidth(text: string, t: { fontSize: number; letterSpacing?: number }, scale: number, padding = 0): number {
-  return Math.ceil(text.length * (0.72 * t.fontSize * scale + (t.letterSpacing ?? 0)) + padding);
+export function labelMinWidth(text: string, t: { fontSize: number; letterSpacing?: number }, scale: number, padding = 0, em = 0.72): number {
+  return Math.ceil(text.length * (em * t.fontSize * scale + (t.letterSpacing ?? 0)) + padding);
 }

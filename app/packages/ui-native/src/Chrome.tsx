@@ -305,7 +305,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   const word = { ...TYPE.caption, lineHeight: 15, color: palette.sub } as const;
   // (T1201) Low / High / Normal sit in fixed boxes: one line, whole, following the OS size to LABEL_SCALE; the boxes grow
   const scale = useScaleUpTo(LABEL_SCALE);
-  const ends = Math.max(LABEL_W, labelMinWidth(low, word, scale), labelMinWidth(high, word, scale));
+  const ends = scale > 1 ? Math.max(LABEL_W, labelMinWidth(low, word, scale, 0, 0.6), labelMinWidth(high, word, scale, 0, 0.6)) : LABEL_W;
 
   return (
     <View testID="legend-ramp" style={{ width: "100%", maxWidth: LEGEND_RAMP_MAX, alignSelf: "center" }}>

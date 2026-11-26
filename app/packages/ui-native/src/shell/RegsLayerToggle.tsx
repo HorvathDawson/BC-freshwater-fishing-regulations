@@ -78,9 +78,9 @@ export function RegsLayerToggle({ col, palette, fishImages, look }: {
         return (
           <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)} accessibilityRole="radio"
                      aria-checked={on} aria-busy={busy} accessibilityLabel={W.said[k]} accessibilityHint={W.hint} {...HIT}
-                     // (T1201) 44 square at the default text size; at a larger one the cell GROWS (the rail is right-aligned, so it
+                     // (T1201) exactly 44 square at the default text size (as in 0.9.0); at a larger one the cell GROWS (the rail is right-aligned, so it
                      // grows leftwards, both cells alike) before its word wraps or shrinks (type.ts, the one rule)
-                     style={{ minWidth: Math.max(SIZE, ...keys.map((w) => labelMinWidth(W.rail[w], LABEL, scale, 6))), minHeight: SIZE, alignItems: "center", justifyContent: "center", gap: 1,
+                     style={{ minWidth: scale > 1 ? Math.max(SIZE, ...keys.map((w) => labelMinWidth(W.rail[w], LABEL, scale, 2))) : SIZE, minHeight: SIZE, alignItems: "center", justifyContent: "center", gap: 1,
                               backgroundColor: on ? palette.accent : palette.card,
                               borderTopWidth: i ? 1 : 0, borderTopColor: palette.line }}>
             {busy ? <LoadingState palette={palette} size={15} colour={ink} />

@@ -58,7 +58,7 @@ export function TabBar({ active, onChange, palette }:
                      // (T1201) equal shares, but never narrower than the label at the OS text size: the bar GROWS the tab
                      // that needs it ("CONDITIONS") before the label is cut (type.ts, the one rule)
                      style={{ flex: 1, alignItems: "center", gap: TAB_BAR.gap, paddingVertical: 2,
-                              minWidth: labelMinWidth(t, TYPE.tab, scale, 4),
+                              minWidth: labelMinWidth(t, TYPE.tab, scale, 4, 0.65),
                               minHeight: TAB_BAR.minHit, justifyContent: "center" }}>
             <Icon name={k} colour={on ? palette.ink : palette.sub} size={TAB_BAR.icon} />
             {/* the label is always there: an icon alone is a guess */}

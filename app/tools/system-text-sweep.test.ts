@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 /**
- * T1201 — THE SHELL'S SCREENS AT A LARGER SYSTEM TEXT SIZE, walked: the Map tab (rail, search, legend, day bar, the
- * Trout / Salmon switch), Conditions, Runs, Spots and More with its pages, each laid out in headless Chrome at 360 and 412
- * wide. The same phone-text emulation as `regs-text-scale.test.ts` (size and line height x min(OS scale, the Text's own
+ * T1201 — THE SHELL'S SCREENS AT A LARGER SYSTEM TEXT SIZE, walked: the Map tab (its search field, the Layers button and the
+ * bottom bar; the map is blank, and the Trout / Salmon switch, legend and day bar draw only with live data, so they are NOT swept here: the switch is
+ * held by `system-text-labels.test.ts`), Conditions, Runs, Spots and More with its pages, each laid out in headless Chrome at 320, 360 and
+ * 412 wide. The same phone-text emulation as `regs-text-scale.test.ts` (size and line height x min(OS scale, the Text's own
  * cap); react-native-web drops both props), the same Chrome layout (`wide-measure.mjs`).
  *
  * Measured per screen: a word cut by a clamp or hidden overflow (`cut`), two lines of different words drawn over each
@@ -163,8 +164,8 @@ const problems = (m: Record<string, M>): string[] => Object.entries(m).flatMap((
 ]);
 
 describe("T1201 the Shell's screens at a larger system text size, laid out in Chrome", () => {
-  it("at 1.3x, 360 and 412 wide: no cut word, no overlap, nothing past the edge, no word broken in two (and the walk reached every screen)", async () => {
-    const m = await sweep(process.env.T1201_REPORT ? [1, 1.15, 1.3, 1.5, 2] : [1.3], [360, 412]);
+  it("at 1.3x, 320, 360 and 412 wide: no cut word, no overlap, nothing past the edge, no word broken in two (and the walk reached every screen)", async () => {
+    const m = await sweep(process.env.T1201_REPORT ? [1, 1.15, 1.3, 1.5, 2] : [1.3], [320, 360, 412]);
     if (process.env.T1201_REPORT) writeFileSync(process.env.T1201_REPORT, JSON.stringify(Object.fromEntries(Object.entries(m).map(([k, v]) => [k, problems({ [k]: v })])), null, 1));
     expect(problems(Object.fromEntries(Object.entries(m).filter(([k]) => / 1\.3x$/.test(k))))).toEqual([]);
     expect(Object.entries(m).filter(([, v]) => v.lines < 5).map(([k]) => k)).toEqual([]);
