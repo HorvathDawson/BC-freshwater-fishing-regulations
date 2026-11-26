@@ -17,7 +17,7 @@ wording. The comparison is T1157's (`T1157-changed-book`): the gov.bc.ca copy ed
    River's lower-canyon closure now ending Aug 31 (data: Sep 14), the rest of T1157's rule changes. Wording-only changes go
    in or are listed as skipped.
 2. **Dropped rows:** LITTLE QUALICUM RIVER (1-6) and LIZARD LAKE (1-3) get `drop: true` and a `drop_note` (last printed in the
-   2025-11-18 copy; absent from the 2026-08-25 copy, no notice; the Province asked: `BOOK-ERRORS-FOR-THE-PROVINCE.md` entry 16).
+   2025-11-18 copy; absent from the 2026-08-25 copy, no notice; the Province asked: `BOOK-ERRORS-FOR-THE-PROVINCE.md` entry 17).
    Readers skip a dropped entry; nothing deletes the entry; a second Puntledge is never minted (it is printed twice in the new book).
 3. The planning chat audits every change against the new PDF page by page (a table: row, before, after, page) before anything merges.
 4. Adopt the new copy as `data/source/fishing_synopsis.pdf` through `runbooks/annual-synopsis.md`; the pins of T1166 move with it.

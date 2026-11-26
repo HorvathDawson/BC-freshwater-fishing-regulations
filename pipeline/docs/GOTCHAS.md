@@ -122,8 +122,8 @@ both polygons, plus Mine Lake's own engine row. Owner: "keep on both add to gotc
 
 ## Hay River basin keeps the stricter rule against the p.63 map (O12)
 
-The Region 7B Liard row says "see map p.63", and that map puts the Hay basin (Kotcho Lake, the Hay, Kotcho and Shekilie
-rivers) in the "Liard River Watershed". Data uses the true river basin, so all bull trout are released there. Owner: "we
+The Region 7B row "LIARD RIVER WATERSHED (see map on page 63)" (p.65) points to a map that draws everything north of its
+dotted line, the Hay basin's Kotcho Lake and Kotcho River included, as "Liard River Watershed" (Province list entry 12). Data uses the true river basin, so all bull trout are released there. Owner: "we
 will not add hay basin in for now. leave it stricter". Not an error in the data.
 
 ## Two Maka creeks, one rule on both (O14)
@@ -133,7 +133,7 @@ the Spius Creek one. Owner: "keep on both because they are same MU and everythin
 
 ## Nanaimo River's struck-through "15" (O17)
 
-The row prints "Sept 1-Oct ~~15~~" with the 15 struck through and nothing in its place. Data: Oct 15. Owner: "it is
+The row prints "Sept 1-Oct ~~15~~": a 0.14 pt black line (a drawn line, not text) runs through the 15, nothing in its place. Data: Oct 15. Owner: "it is
 probably a format issue and is okay". A real end date from the Province would replace it.
 
 ## A water's undated hatchery-steelhead quota does not lift the zone's Nov-Jun release (the Kitimat)
