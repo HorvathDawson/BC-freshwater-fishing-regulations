@@ -73,7 +73,7 @@ unnamed part takes the key of its content); later changes are section versions.
   the store adds `cell.trout` and tables `trout_frame`, `trout_table`, `trout_dates`, `trout_sheet`. Contract:
   `handoff/PLAN/design/trout-table-contract.md`. Code: `pipeline/deliver/answers/trout/`.
 - **Judgment calls** are `DECISIONS` in `gear.py`, `licence.py`, `display/decisions.py` and `rows/decisions.py` (each with what,
-  why, effect, how to undo); the rulings they implement are `pipeline/docs/RULINGS.md`.
+  why, effect, how to undo), except V1-V7, D12, F5b-F5d, T127 and T128, which are in section 9 below; the rulings they implement are `pipeline/docs/RULINGS.md`.
 
 ## 1. Pairing
 
@@ -206,3 +206,75 @@ static), an `encode.CODECS` entry and its text in `encode.SPEC` and this file; `
 Shipped inside the file as `spec` (`encode.SPEC`); every key of the file and of each section is described there, or the
 build stops. Frame shapes: the models in `model/` (`frames.py`, `rows.py`, `gear.py`, `licence.py`, `display.py`, `trout.py`,
 `top.py`).
+
+## 9. Decisions kept here (not in a code `DECISIONS` table)
+
+Copied from the old page (T1081 review S3): the undo steps of these live nowhere else. The other judgment calls are the
+`DECISIONS` tables in the code (G, L, D1-D6, R, F1-F5a, F6-F17); the rulings they implement are `pipeline/docs/RULINGS.md`.
+
+**Rows fixes** (`rows.DECISIONS` F1-F10, handoff ROWS-REVIEW; where the page contradicts the book
+the card follows the book and the port names the page bug, `PAGE_BUGS` in `pipeline/tests/answers_v35_port.py`):
+F1 one item per kind (Anderson R.: brook/brown/cutthroat "up to 4, only 1 over 50", not "keep 1
+over 60"); F1b a cap missing only the steelhead-filtered rainbow is general with `except: [RB]`;
+F2 origin2 also when the other origin's keep RANGE differs ("No wild trout over 50 cm",
+Chilliwack Lake); F3 lines about other fish compared by SET (Kitimat, Feb: the cutthroat/brown
+release); F4 a fish lifted out of the narrowing clause counts toward the outer total (Vedder
+hatchery rainbow 4 of 4, `against`); F5a slots are 0 bands (Teslin); F5b the zone's outer size cap
+caps a water's own bands (Thompson below Kamloops L.); F5c a rainbow's range ends at 50 cm on a
+steelhead water; F5d every shared cap (Region 8 "2 over 30"); F6 `possession_cap`, never a yearly
+limit, decided once by `display.kind_of` (the display rule kind, the rows' line and role and the
+plain sentence all read it; the page's "annual" is page bug d10); F7 `scope.apart` only when no outer total is left (Vedder r9, Kitimat r4/r5 still count
+toward the region's); F8 `of: area` (Haida Gwaii, Bowron Lake Park, Liard); F9 a water's own
+limit still counts fish kept elsewhere (the page's "Only fish kept on this lake count" is wrong);
+F10 no presence data for any fish but steelhead: the book's group wording stays. Undo: revert the
+
+rows-fixes commit (rows.py, the section's version 2).
+
+**Keying and reader (v1)**:
+- V1 Gear and conduct dimensions carry clause condition, means and acts, NOT the water kind · where
+  two gear rules both bind they bind the same kind, and a water row's barbless rule must still
+  replace the zone's · zp:set_lining.r2 stays displaced by z6/z7a set_lining.r2 (the same statement,
+  closer rung) · undo: add `water` to the gear condition in `catalogue.CatalogueRule.dimension`.
+- V2 handling_rule (20 province conduct rules) is keyed by its acts · two duties never replace each
+  other · no answer changes (they never competed) · undo: return `t.value`.
+- V3 G5 order: wrong water is read after the also_printed fold; a superior authority's displacement
+  is read after wrong water; `displaced` lists the superior keys sorted; `also_printed` keeps only
+  held or displaced keys · one obligation goes where its restated record goes · licence answers
+  unchanged · undo: reorder in read.requirements_in_force.
+- V4 The licence frame's `holds` leaves out displaced requirements (they are under `displaced`; the
+  per-profile requirement rows still show them) · the reader's semantics · 3 key-runs · undo: list
+  `rows` in licence.section wire.
+- V5 The part key carries `kind` and `tidal` · the licence key reads both · v0 sections unchanged ·
+  undo: drop them (the licence key would then not be a function of the part key).
+- V6 Display status per segment is the status index's code — the verdicts' projection (base/own/closed); a tidal
+  part reads its key's `tidal`, not a TIDAL code · one definition of closed · undo: map tidal keys.
+- D12 (FIX round, user ruling 2026-10-06) TIDAL WATER IS A DOCUMENTED STATE. On a part key with
+  `tidal` 1 the `display` frame is `{"status": "tidal", "tidal": true, "note", "see", "licence"}`
+  (`common.TIDAL_STATE`: "Tidal water: a different regulation system … see the federal (DFO) tidal
+  waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence
+  is required"), the `gear` frame is `TIDAL_STATE` itself (never "angling: not allowed here"), and
+  the `licence` frame's `holds.tidal` is `TIDAL_STATE` with every profile `{documents: [],
+  none_needed: false, requirements: [], tidal: true}` (never "no licence needed"). Its ladder lists
+  each fish with only the tidal row's own note, shown; its rows hold no rule. All year, one scope (`common.TIDAL_SCOPE`). The export's
+  `waters[].tidal.guide` starts with the same words · undo: drop the `TIDAL_SCOPE` branches in
+  display/gear/licence.
+- V7 Feb 29 (coordinator ruling): a range to Feb 28 runs through Feb 29 · `catalogue.range_days` ·
+  3 part-days of the v0 file change (the Nicola below the lake and two lakes), status index day 60
+  only · undo: drop the `(2, 28)` branch in range_days.
+- T128 (owner 2026-10-22: "Up to 2 may be hatchery brook, brown or cutthroat trout" read as 2 more on top of the quota) A
+  KIND LINE NAMES ITS TOTAL: "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or cutthroat
+  trout". `tree.total_named` picks the tier — the nearest total, stream (lake) share or water's own rule above the kind (a
+  count or size tier is part of one) — and `tree.total_words` says it: its number, the group's fish (`written_name` of the
+  group's pool), "a day", and where it holds only where limited ("in streams" / "in this stream" for a share, "under this
+  river’s rule" for an own tier, "in streams" for a zone total printed for one kind of water). "only N" where the kind is
+  held below that total, else "up to N". A kind that is the ONLY kind of that tier at its number names nothing (the header
+  or the tier it is folded into says the whole of it). The `sentence` is the same line with the detail and notes; a kind
+  naming nothing keeps "Of the 2 a day: …". THE TOTAL IS NAMED ONCE IN FULL — on the header ("4 a day per angler across
+  Region 2, lakes included") and the tier lines; a kind line names it SHORT ("your 4 trout and char a day"), never the
+  header's words. The card gate proves the named number (a total/share/own tier the kind sits in). Supersedes ROUND UR7 2
+  ("(part of the 2 from streams)"). Review: an OWN tier holding only some of the group's fish names no fish
+  (`tree.total_fish`): "Of the 3 a day under this lake’s rule, only 1 may be Dolly Varden/bull trout" (Kamloops Lake).
+- T127 A POOL THE READER DISPLACED FOR A FISH IS NO CROSS-REFERENCE: `rows.counts_toward` (the pool governs the fish, or
+  holds it as role `contains`) decides `build_model`'s xref facts, `group_of`'s kinds and `total_of` — Perry Creek's
+  brook trout no longer "count toward" the St. Mary's 1 on its tributaries (displaced, own_row); Perry Creek's own "brook
+  trout 20" row is then held by nothing and is a one-kind group of 20 (T80 3) · undo: `A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE`.
