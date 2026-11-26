@@ -17,7 +17,7 @@ looks answers up. Not affiliated with the Government of British Columbia: always
 | `curation-review/` | the owner's review tool (FastAPI backend + Vite frontend); writes the owner's marks |
 | `deploy/` | staging and production uploads, site and worker deploys, store builds |
 | `scripts/` | dev and CI helpers: `heavy.sh`, `before_push.py`, the test tiers, bootstrap |
-| `handoff/` | the work: tickets and their ledger, runbooks, plans, owner to-do |
+| `handoff/` | the work: tickets and their ledger, runbooks, plans, the owners' asks (each ticket's `## Owner` block) |
 | `.github/`, `.githooks/` | the seven workflows (four are required checks); the commit-msg and pre-push hooks |
 
 Each folder, pipeline stage and app package has its own `README.md`.

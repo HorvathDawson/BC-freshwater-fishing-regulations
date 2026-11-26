@@ -46,7 +46,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 ## 3. Showing the rules
 
 - A water's page has Regulations, Conditions and Map views under one strip; the strip is the water's only Map entry. The regs header has no action and no Parts button; it keeps the part's name. (owner 2026-10-22 / 2026-10-23, T71, T150)
-- When a water has several parts, the Map view carries a collapsible "Parts of this water" list (a radio group by name). (Claude 2026-10-23, T150)
+- When a water has several parts, the Map view carries a collapsible "Parts of this water" list (a radio group by name). (Claude's call 2026-10-23, Q122, T150)
 - The bottom bar is hidden while a water is open (water mode). (owner 2026-10-20, D1)
 - One-part waters show their part label in the header wherever it is not the water's own name. (owner 2026-10-21)
 - An unnamed stream opens Regulations and Conditions, titled "Unnamed stream · Region N"; the downstream label is geography only. (Claude 2026-10-22, T53)
@@ -256,7 +256,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 
 ## 8. Search, navigation and spots
 
-- The bottom bar holds the browse tabs (Map, Conditions, Runs, Spots, More); the top bar is the search field plus the sync icon; no hamburger; the rail holds Layers only. (owner 2026-10-22, T48)
+- The bottom bar holds the browse tabs (Map, Conditions, Runs, Spots, More); the top bar is the search field plus the sync icon; no hamburger; the rail holds Layers only. (built from Claude's 2026-10-22 recommendation, easily reversed, T48; the Runs tab was added by the owner 2026-10-29, T261)
 - Search is route state, not a tab or sheet layer: back closes it; the sheet is full while choosing and half once a pick is made; the map follows picks, never typing; cancel restores the camera. (Claude 2026-10-22, T48)
 - Opening a water from a search result consumes the search: back and close land on the map at that water; the search text is not kept. (owner 2026-10-22, T48)
 - On wide layouts: Esc closes search; a click on the map outside closes it and does nothing else; the panel has its own close at the top right; the field's X only clears. (owner 2026-10-22)

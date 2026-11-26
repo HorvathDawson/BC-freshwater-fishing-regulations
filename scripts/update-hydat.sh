@@ -6,7 +6,7 @@
 #   scripts/update-hydat.sh                         the served feed in data/generated/gauges/feeds (the only one:
 #                                                   `pipeline build` packs the bundle from THAT clim.json)
 #
-# THE ORDER IS THE POINT (AGENTS.md rule 64):
+# THE ORDER IS THE POINT (this script's own; AGENTS.md rule 64 makes the HYDAT refresh the owner's):
 #   1. fetch HYDAT        data/source/hydat.sqlite3 + hydat.release (~266 MB; a no-op when already the newest).
 #                         fetch_data's hydat layer downloads through scripts/hydat-fetch.sh (the checked one, T433)
 #                         and fails on a failed listing or fetch; the script still asks the listing itself and

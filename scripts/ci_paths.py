@@ -90,7 +90,7 @@ AREAS: dict[str, list[str]] = {
                  # app (generated copies, fixtures, goldens, the tree scanners), the README, the pytest setup, two
                  # handoff folders. Derived by test_workflow_pins.py, which fails when a test reads a path this misses.
                  ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md", "pytest.ini", "conftest.py",
-                 ".gitignore", "handoff/PLAN/app-data/**", "handoff/PLAN/runbooks/**",
+                 ".gitignore", "handoff/PLAN/runbooks/**",
                   "handoff/PLAN/app-integration/store/graphics/store/light/**",   # (T1127) test_store_push_pictures reads the committed set
                   *_SHARED],
 }
