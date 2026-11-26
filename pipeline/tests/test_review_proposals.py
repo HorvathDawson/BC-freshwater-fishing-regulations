@@ -216,7 +216,7 @@ def test_a_withdrawn_cut_is_not_rebuilt_from_the_mark_that_still_names_it(src):
 
 
 def test_sandy_pool_is_medium_by_the_owners_override():
-    """decisions.md 2026-10-27: Sandy Pool = medium — recorded in the override file, since the
+    """decisions.md, "Cuts and boundaries": Sandy Pool = medium — recorded in the override file, since the
     marks store is never edited."""
     got = M.load_overrides(CURATED.review.proposal_overrides)
     sandy = [o for o in got if "Sandy Pool" in (o.match.name or "")]

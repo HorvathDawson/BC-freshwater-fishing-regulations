@@ -214,3 +214,50 @@ def test_a_corrupt_last_check_file_is_named_not_treated_as_empty(env, capsys):
         R.read_state(env.state)
     env.state.unlink()
     assert R.read_state(env.state) == {}                           # no file at all is a first run, said by default
+
+
+# ---- (T1081) closed tickets are archived: closed.tsv's last column stands in for their text -----------------------------
+def _tsv_line(tid: str, tokens: str) -> str:
+    return "\t".join([tid, "title", "DONE", "abc1234", "", "—", "closed-2026", tokens]) + "\n"
+
+
+def test_an_archived_ticket_still_cites_its_report_ids_in_the_old_order(env):
+    # mutation: ticket_texts without closed.tsv marks every archived ticket's item NEW again
+    (env.tickets / "closed.tsv").write_text(_tsv_line("T7", "rep-aaaa1111") + _tsv_line("T985", "deadbeef0001 rep-bbbb2222"))
+    rc, text = run(env, ["--only", "worker-prod", "--no-save"])
+    assert "T7 report rep-aaaa1111" in text and "T985 report rep-bbbb2222" in text
+    assert "T1005,T985 crash deadbeef0001" in text                   # open and archived, in ticket-id order (the file order)
+    assert "-- 0 NEW item(s)" in text
+
+
+def test_a_malformed_closed_tsv_is_named_not_skipped(env):
+    (env.tickets / "closed.tsv").write_text("T7\tonly two fields\n")
+    with pytest.raises(R.SourceError, match=r"closed\.tsv:1 is not a closed-ticket line"):
+        R.ticket_texts(env.tickets)
+
+
+def test_the_real_archive_cites_what_its_tickets_cited_before_they_were_archived():
+    """Every report id / crash hash shape the archived tickets hold is found by `cited_by` in the same tickets as the
+    full text would have found it (the old glob over the closed files), read with tarfile, independent of the JS tool."""
+    import re
+    import tarfile
+    tickets = R.TICKETS
+    tsv = tickets / "closed.tsv"
+    assert tsv.exists(), f"{tsv} is missing: the closed tickets' index is committed (ledger.mjs --archive writes it)"
+    texts = R.ticket_texts(tickets)
+    full: dict[str, str] = {}
+    for gz in sorted((tickets / "archive").glob("*.tar.gz")):
+        with tarfile.open(gz) as tf:
+            for m in tf.getmembers():
+                tid = re.match(r"T\d+[a-z]?", m.name).group(0)
+                full[tid] = tf.extractfile(m).read().decode("utf-8")
+    assert len(full) > 800
+    open_texts = {t: x for t, x in texts.items() if t not in full}
+    old = dict(sorted({**open_texts, **full}.items()))
+    ids = set()
+    for x in full.values():
+        ids.update(re.findall(r"(?<![0-9A-Za-z])[0-9a-f]{16}(?![0-9A-Za-z])", x))
+        ids.update(m for m in re.findall(r"(?<![0-9A-Za-z_-])A[A-Za-z0-9_-]{22}(?![0-9A-Za-z_-])", x) if re.search(r"\d", m) and re.search(r"[a-z]", m))
+    assert len(ids) > 50
+    for i in sorted(ids):
+        assert R.cited_by(i, texts) == R.cited_by(i, old), i

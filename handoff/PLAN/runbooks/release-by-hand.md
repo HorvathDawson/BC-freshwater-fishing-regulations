@@ -95,8 +95,7 @@ Never use `git stash` or `git reset --hard` in this folder: your review files li
 
    It prints the version, the commits that decided it, and how many it counted. Read the "decided by" lines. If one of
    them is not a change anglers get, stop and ask Claude: the rule needs fixing in code. You cannot type a different
-   number past it. (The next release computes 0.9.0 from T998's tooling commit, which touched `app/package.json`; you
-   accepted that on 2026-11-22: "let it be 0.9", released once the next chat's work is in. Settled for this release.)
+   number past it.
    - It says **"no app release"**: nothing since the last version bumps the app. This is a data-only release: go to
      [A data-only release](#a-data-only-release).
 2. **Cut the branch** at scope lock, when the batch is complete:

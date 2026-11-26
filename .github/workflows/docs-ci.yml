@@ -2,8 +2,10 @@ name: docs
 
 # (T993) THE TICKET LEDGER AND HANDOFF DOCS GUARD, on its own. app/tools/check-tickets.mjs (T84, T539) keeps the ledger
 # whole and reads every commit SUBJECT for a ticket id (a subject that names a Tnnn before its file and ledger row exist
-# fails), and checks the handoff docs (START-HERE, the restart page, OWNER-TODO and the runbooks cite paths that exist;
-# the restart page holds no state; AGENTS rule ids are unique). A ledger fix alone must run it, or a red run on a ledger
+# fails), and checks the handoff docs (START-HERE, the restart pages and the runbooks cite paths that exist;
+# START-HERE and each restart page stay short, a restart page holds no state; AGENTS rule ids are unique). (T1081) It also
+# holds the size budgets (app/tools/check-size.mjs: required reading, READMEs, open tickets, any markdown file, the docs
+# tree's totals, closed tickets' picture folders). A ledger fix alone must run it, or a red run on a ledger
 # edit stays the newest and blocks the release's CI check (scripts/ci_status.py reads this workflow too).
 #
 # It used to run inside app-ci for every push under handoff/: 210 docs-only pushes, 1,578 minutes in 30 days, to run
@@ -16,7 +18,10 @@ on:
     branches: [main, "release/**"]
     paths: ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md", "app/tools/check-tickets.mjs",
             "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts", "app/tools/ledger.mjs",
-            "app/tools/ledger.test.ts", ".github/workflows/docs-ci.yml",
+            "app/tools/ledger.test.ts", "app/tools/check-size.mjs", "app/tools/check-size.test.ts",
+            # (T1081) the size guard reads every markdown file's length and each package's README / manifest
+            "*.md", "**/*.md", "pipeline/*/__init__.py", "app/apps/*/package.json", "app/packages/*/package.json",
+            "app/workers/*/package.json", ".github/workflows/docs-ci.yml",
             ".github/actions/app-setup/**", ".github/actions/changes/**", "scripts/ci_paths.py"]
   # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
   # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs
@@ -71,7 +76,7 @@ jobs:
       # the clone above has it) and the carry of an old-style branch
       - name: The guard's own tests, the ledger tool's, and the one start-here page
         if: ${{ !cancelled() }}
-        run: pnpm exec vitest run tools/check-tickets.test.ts tools/start-here.test.ts tools/ledger.test.ts
+        run: pnpm exec vitest run tools/check-tickets.test.ts tools/start-here.test.ts tools/ledger.test.ts tools/check-size.test.ts
 
   # (T998) EVERY COMMIT IN THE PULL REQUEST, AND ITS TITLE, FOLLOW CONVENTIONAL COMMITS (app/tools/check-commits.mjs,
   # the commit-msg hook's check). On every pull request, whatever it touched: no `changes` gate. The title is checked

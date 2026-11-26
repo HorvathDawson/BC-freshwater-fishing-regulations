@@ -1,5 +1,5 @@
 /**
- * ONE ICON SET (ticket N1; owner 2026-10-22, decisions.md "icons: Lucide, rounded 1.75"). The app's chrome glyphs — the
+ * ONE ICON SET (ticket N1; owner 2026-10-22, decisions.md, "Map, colour and chrome"). The app's chrome glyphs — the
  * bottom bar, the map rail, the top bar's search / back / clear, every back and close — are drawn by ONE component
  * (`packages/ui-native/src/icons.tsx` `<Icon>`) from ONE table of Lucide paths. Before N1 they were drawn three ways
  * (two path tables, an inline Svg in RegsHeader, Views for the hamburger) plus typed unicode glyphs, in three sizes.
@@ -13,7 +13,7 @@
  *   the table    every icon is used somewhere; the version is recorded once (`@app/core` ICON_SET) and the licence
  *                file and the credit say the same (each icon's drawing: packages/ui-native/src/icons.test.tsx)
  *
- * The scan is a net, not a proof: how the bar and rail look is in the shots (handoff/PLAN/app-integration/icons-shots/).
+ * The scan is a net, not a proof: how the bar and rail look is in a screenshot pass, not here.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";

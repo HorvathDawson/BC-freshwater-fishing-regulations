@@ -32,3 +32,7 @@ pauses and asks; the tests fail without the change.
 Severity: medium–high (a first install can spend a tester's mobile data without asking). Release: 0.9.2 (the
 planning chat's proposal; the owner did not name a release). Model: Opus (download queue, three platforms). Size: M.
 Owner: yes (the words of the question).
+
+## Owner
+
+- [ ] 2026-11-25 — Pick the words of the question that asks before the first download uses mobile data (and again if Wi-Fi drops), from pictures. Proposed for 0.10.1.

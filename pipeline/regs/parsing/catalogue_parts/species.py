@@ -336,7 +336,7 @@ def steelhead_scope_problems(entry_id: str, rules) -> List[str]:
               and q.lengths and (q.take or 0) > 0)]
     # A size line that PRINTS steelhead and counts them in is the table's own steelhead quota for
     # that size too: Regions 1/2 "1 over 50 cm (2 hatchery steelhead over 50 cm allowed)" is r2b,
-    # the Q16 total, since the separate ST-only r3 was retired (owner 2026-10-26, overlapping-rules.md).
+    # the Q16 total, since the separate ST-only r3 was retired (owner 2026-10-26, the overlapping-rules note, cut in T1081).
     own_st += [q for q in rules if q not in own_st and q.lengths and (q.take or 0) > 0
                and "ST" not in q.species_except and ("ST" in q.species or "TROUT_CHAR" in q.species)
                and _PRINTS_STEELHEAD.search(q.verbatim or "")]

@@ -3,7 +3,7 @@
  * `BackHandler` is replaced by a stand-in that behaves as Android's does (the last listener first; a press no listener
  * handles is Android's own — it leaves the app). One test per surface: what one hardware back does there, and that
  * the press says it was handled (true) everywhere but the Map tab's root (false: Android leaves the app).
- * The table these follow is app/HANDOFF-ui.md "Back, everywhere".
+ * The table these follow is app/BACK.md.
  *
  * The browser's back is the same back through `systemBack.web.ts` (jsdom's real History API) — the last block.
  *
@@ -315,7 +315,7 @@ const ACROSS_SEEN = [
   `water Vedder River on Map · no bar · ${VEDDER_TOP}`,
 ];
 
-describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", () => {
+describe("Android's back, surface by surface (BACK.md)", () => {
   it("the Map tab's root: not handled — Android leaves the app (no trap)", async () => {
     await mount(HOME);
     expect([...backs(1), `exits ${android.exits.length}`])

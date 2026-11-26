@@ -52,6 +52,9 @@ AREAS: dict[str, list[str]] = {
              "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
              # (T1041) the guard reads the rows and owner items through the ledger tool
              "app/tools/ledger.mjs", "app/tools/ledger.test.ts",
+             # (T1081) the size guard: it reads every markdown file's length and each package's README / manifest
+             "app/tools/check-size.mjs", "app/tools/check-size.test.ts", "*.md", "**/*.md", "pipeline/*/__init__.py",
+             "app/apps/*/package.json", "app/packages/*/package.json", "app/workers/*/package.json",
              ".github/workflows/docs-ci.yml", ".github/actions/app-setup/**", *_SHARED],
     "app": ["app/**", ".github/workflows/app-ci.yml", ".github/actions/app-setup/**",
             "pipeline/deliver/bundle/schema.sql", "pipeline/deliver/bundle/indexes.sql",
@@ -87,7 +90,7 @@ AREAS: dict[str, list[str]] = {
                  # app (generated copies, fixtures, goldens, the tree scanners), the README, the pytest setup, two
                  # handoff folders. Derived by test_workflow_pins.py, which fails when a test reads a path this misses.
                  ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md", "pytest.ini", "conftest.py",
-                 ".gitignore", "handoff/PLAN/app-data/**", "handoff/PLAN/runbooks/**",
+                 ".gitignore", "handoff/PLAN/runbooks/**",
                   "handoff/PLAN/app-integration/store/graphics/store/light/**",   # (T1127) test_store_push_pictures reads the committed set
                   *_SHARED],
 }

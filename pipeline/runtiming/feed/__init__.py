@@ -49,7 +49,7 @@ WHAT THE APP READS (`runtiming/`, every file but the index named by its content 
                  range; a lake: its waterbody key) + its profile (the run x relation set; `run_ids` names the runs).
                  Durable across atlas rebuilds; for any consumer that is not the map (and checking by eye).
 
-THE RELATIONS (`bind.py`, measured on the 2026-10-24 prototype, handoff/PLAN/runtiming/PLAN.md): `spawning` (PSF: in
+THE RELATIONS (`bind.py`, measured on the 2026-10-24 prototype; plan cut in T1081): `spawning` (PSF: in
 the CU polygon, order >= 3 or a draining lake), `passage` (PSF: the flow walked down to the sea, never into another
 river's code), `observed` (DFO: the surveyed stream's own named sections; IN ADDITION to the PSF runs there, never
 replacing them — owner 2026-11-09, Q180: PSF is primary; T552).

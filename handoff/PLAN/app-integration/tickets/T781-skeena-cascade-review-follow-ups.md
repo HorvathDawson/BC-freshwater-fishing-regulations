@@ -1,6 +1,6 @@
 # T781 — Skeena cascade review on the built release: what the app shows that is wrong or needs the owner's call
 
-Status: OPEN (owner answered 2026-11-16, batches 5 and 6 in OWNER-TODO "Answers by batch"; each item is carried elsewhere: 1 Babine Lake → the 7 matching circles confirmed, the rest a later owner item, split and circles T812; 2 Gosnell / Thautil → T804 (one stated rule); 3 Gitnadoix → powerline on the mouth (T803, T833: 5debac3ef); 4 eulachon → T770 (DONE); 5 Kitimat east bank "Both banks closed (Recommended)", one-bank T754. Close when T803, T804 and T812 land)
+Status: OPEN (owner answered 2026-11-16, batches 5 and 6 in old owner to-do "Answers by batch"; each item is carried elsewhere: 1 Babine Lake → the 7 matching circles confirmed, the rest a later owner item, split and circles T812; 2 Gosnell / Thautil → T804 (one stated rule); 3 Gitnadoix → powerline on the mouth (T803, T833: 5debac3ef); 4 eulachon → T770 (DONE); 5 Kitimat east bank "Both banks closed (Recommended)", one-bank T754. Close when T803, T804 and T812 land)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -31,3 +31,8 @@ with three exceptions, one fails).
 - T771: the Skeena has 14 same-tier pairs that disagree, none decided by id today.
 - A rest-of place with no sections of its own reads `outcome: unresolved, reason: no_sections` in the reach table
   (the bundle handles it); audits that count unresolved DFO rows count it (T775 / T776).
+
+## Owner
+
+- [x] 2026-11-16 — Babine Lake in August, 13 closed areas → "i think you can confirm them. it is just confluences and unless the names dont match they are easy to auto confirm" (2026-11-16 11:03).
+- [x] 2026-11-16 — Gosnell Creek and the Thautil River inside the Morice closure → "yes they are out but please make sure this rule doesnt break other stuff. we need a trigger for why they are out? why does this tributary rule not apply? what is the condition just so it is a universal rule."; Gitnadoix, coho "upstream of powerline" → "the powerline is. the mouth essentially so maybe you could add the cut for powerline to the mouth then it is all good?" (2026-11-16 11:03).

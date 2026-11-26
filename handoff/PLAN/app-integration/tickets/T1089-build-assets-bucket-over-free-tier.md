@@ -48,3 +48,8 @@ not in this bucket) is noted as counted against the same account total.
 Depends: none. Severity: low to medium (a few cents a month over the free tier today; it grows with each new pinned
 version). Release: 0.9.2, or the first free lane before it. Model: Opus (pins are what builds trust), Sonnet for the
 runbook. Size: S–M. Owner: yes (confirms the delete of the old objects).
+
+## Owner
+
+- [ ] 2026-11-24 — Once the compressed pins are proven, confirm the delete of the old uncompressed objects in the build-assets bucket.
+- [x] 2026-11-24 — Bucket over R2's 10 GB free tier → "yes compress it then we should have somethign mention hopw to rebuild it to update every so often too." (2026-11-24).

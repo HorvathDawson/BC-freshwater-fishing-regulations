@@ -3,7 +3,7 @@
  * fish × origin, rows_row per drawn row — T04 joined them into a `RowsValue`) with every rule reference resolved to the
  * part's `RuleView`, and the day's `CardModel` the Keep tab reads.
  *
- * Owner rule 2026-10-21 (decisions.md): every keep / release / closed, every daily take, every winning and narrowing rule,
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every keep / release / closed, every daily take, every winning and narrowing rule,
  * every role and lift note here is the store's (`Decided.status/win/daily/narrow/roles/lift_notes`, `Row.kind/pool/win/
  * daily/…`). This file DECODES them (rix → RuleView, `no_limit` → "nolimit", a null cap → Infinity as page v36 reads it),
  * SELECTS (by segment, fish and origin) and GROUPS them for display; it decides nothing. Which of a fish's two origin

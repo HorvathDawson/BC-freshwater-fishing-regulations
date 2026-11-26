@@ -46,7 +46,7 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
    pages' "Open in the app" link is made relative (`/?regs=…`) so it opens the staging app, not prod. Canonicals stay on
    https://canifishthis.ca.
 
-## Verified against https://staging.canifishthis.ca (shots: staging-shots/)
+## Verified against https://staging.canifishthis.ca
 - App: loads and paints (01), reads manifest/paint/tiles/basemap/feeds from data-staging (38 requests, no 4xx), a tap on the
   Fraser opens its regs (02), `/?regs=gnis:3062` opens Vedder River regs, desktop + phone (03, 04).
 - Water pages 200: vedder-river, cowichan-river, skeena-river, harrison-river, kootenay-lake-main-body (05, 06, 08); hubs
@@ -79,7 +79,7 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
   `published 2026-10-29` (T251 stamp) and put LAST; sync-inputs (entries same, matches 22). 1,313 objects, 557 MiB.
 - Builds: `pnpm -C app/apps/mobile export:web:staging` (T232; build 0374a71) and `pnpm -C app seo --release-dir
   ../data/release/r-0fa7927b16e5` → 19,945 pages (19,653 waters), p95 3,346 B gzip. `deploy/staging/site.sh` → version 6cbb47ac.
-- Verified on https://staging.canifishthis.ca (shots staging-shots/B01–B13): map paints from the new release (every request
+- Verified on https://staging.canifishthis.ca (shots cut in T1081): map paints from the new release (every request
   to data-staging, release r-0fa7927b16e5, no 4xx but /favicon.ico) (B01); Vedder regs (B02); 6-row in-season bell (B03); tap on
   an unnamed stream → "Unnamed stream · Region 2" regs (B04); Pitt River Conditions: estimate from 08MH006 (North Alouette,
   donor), live reading 21:45 PDT, CLEVER/COFFEE (B05); Salmon mode (B06); Run timing mode, runtiming/index.json
@@ -104,7 +104,7 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
 - Lighthouse mobile: hubs/About 100/100, LCP 1.3-1.4 s, CLS 0 (Cloudflare's injected script no longer shows); water
   pages Performance 40-45, CLS 0.15-0.72 at the app's hand-over → T405.
 - Production today (curl 2026-11-05): canifishthis.com + www.canifishthis.com already 301 to https://canifishthis.ca with
-  path + query (an owner redirect rule); **www.canifishthis.ca 301s to `/` and drops the path** (fix: OWNER-TODO);
+  path + query (an owner redirect rule); **www.canifishthis.ca 301s to `/` and drops the path** (fix: an owner step);
   http → https 301; no HSTS yet (v1 site).
 
 ## Phase D (2026-11-05 UTC): T405 hand-over + T406 PNG cards on staging

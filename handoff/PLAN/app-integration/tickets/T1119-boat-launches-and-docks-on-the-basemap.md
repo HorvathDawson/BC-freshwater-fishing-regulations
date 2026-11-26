@@ -81,3 +81,8 @@ fixture); 4 device and offline check (Sonnet, S, with the APK batch).
 **The spike proves:** recall against BC Parks and Recreation Sites launch lists, the atlas byte cost (expected
 1-2 MB), piers not drawn twice (Protomaps' grey shape plus our icon), pictures on Okanagan, Shuswap, one small
 lake and one coastal harbour for the owner. T1129 (give-back to OSM) stays after launch.
+
+## Owner
+
+- [x] 2026-11-25 — The three picks for boat launches, docks and the like → kinds "Launches, marinas, named piers (Recommended)"; private docks "Hide, drop unnamed piers (Recommended)"; coast "All of BC incl. the coast"; tap "Drawn only (Recommended)" (2026-11-25, planning chat dialog).
+- [ ] 2026-11-25 — Look at the spike's pictures (Okanagan, Shuswap, one small lake, one coastal harbour): the look, from which zoom, with or without names.

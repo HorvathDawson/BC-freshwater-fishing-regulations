@@ -25,3 +25,8 @@ the other. Esri's terms do not say whether a device cache is allowed (see T1108)
 
 Severity: low to medium (a privacy page that is not exactly true). Model: Sonnet (Opus for the device check).
 Size: S. Owner: clears the sentence.
+
+## Owner
+
+- [x] 2026-11-25 — Satellite tile cache → "Keep cache, reword the page" and "Only the cache rewording" (2026-11-25).
+- [ ] 2026-11-25 — Clear the reworded privacy sentence about the satellite tile cache when it is drafted.

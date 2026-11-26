@@ -21,7 +21,7 @@ on:
     branches: [main, "release/**"]
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py", "requirements.txt", "constraints.txt",
             "curation-review/**", "scripts/**", ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md",
-            "pytest.ini", "conftest.py", ".gitignore", "handoff/PLAN/app-data/**", "handoff/PLAN/runbooks/**",
+            "pytest.ini", "conftest.py", ".gitignore", "handoff/PLAN/runbooks/**",
             "handoff/PLAN/app-integration/store/graphics/store/light/**", ".github/actions/changes/**", "scripts/ci_paths.py"]
   # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
   # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs

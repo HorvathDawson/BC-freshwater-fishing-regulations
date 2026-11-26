@@ -125,7 +125,7 @@ def _bella_coola_system():
 
 def test_includes_tributaries_except_upstream_of_splits():
     """ATNARKO/BELLA COOLA [Includes Tributaries] EXCEPT the three upstream-of reaches — pure set
-    difference over the pieces the splits already made (docs/04)."""
+    difference over the pieces the splits already made (pipeline/atlas/README.md "Splits and names")."""
     g = _bella_coola_system()
     # each 'X upstream of Y' resolves to the upper piece via its split's boundary label:
     hu_up = piece_above(g, "HU", "Hunlen Falls")

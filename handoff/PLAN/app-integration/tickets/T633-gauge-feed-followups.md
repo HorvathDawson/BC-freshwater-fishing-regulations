@@ -8,103 +8,36 @@ Status: PARTIAL — items 1–8 built (a6bf038be, 2ebfe0787, 52878ceb6, 9995fcf1
 
 Source: gauges lane report 2026-11-11.
 
-## Work
-1. The worker's FLOOD_WEIGHTS and other policy constants are generated from the Python spec, not hand-copied (rest of T557 item 2).
-2. The app refuses a gauge feed file with no format tag, once both workers write `gauge-feed/1`.
-3. The feed-contract test runs on the worker's own output.
-4. The gauge card says which reading was ranked (`rankedAt`) and when a figure is kept; the "as of" line names release, environment and channel; a staged release is applied at cold start (T585 F12, with T555).
-5. A warning when the feed's HYDAT differs from the release's.
-6. The web keeps an offline week like the phone (T585 F14, web half).
+## Done (2026-11-11)
+- 1 (a6bf038be, with T557 item 2): the worker's policy constants (FLOOD_WEIGHTS …) are generated from change.py / skill.py.
+- 2 (2ebfe0787): a gauge feed file with no format tag is refused (reported; held data answers).
+- 3 (52878ceb6): the contract test runs on the worker's own output (workers/feeds/test/gauges.contract.test.ts).
+- 4 (T585's lane: 04316bd91, c58640b86, e4add6e9a): `readingStanding`, `dataProvenanceLine`, `bootSaid`; words and
+  device checks are in T585. Not built, by T585's choice: installing a newer set BEFORE the map on a cold start.
+- 5 (9995fcf13): `hydatNotice` carries the feed's own HYDAT; when it is not the release's, the Data sources page / More
+  reads "Gauge ranks use another HYDAT" (stale). Wording is a default (owner may reword).
+- 6: the web keeps the week in IndexedDB (`openGaugeHistoryStore()`; `HistoryText` `load`, `gaugeHistory` `ready()`).
+  No service worker, so a fully offline web start is not in this ticket. Tests: `data/src/feed/history.test.ts`
+  "(T633 item 6)", `data/src/spots/store.web.test.ts`. The kept lines read "… saved on this phone" (`conditions.ts`,
+  `freshness.ts`) on a laptop too; "this device" would fit both; not changed (agreed strings).
+- 7 (07dbf3791): `ctxOf` (publish.ts) hashes the station's envelope, rating, rating pad and recent years.
+- 8 (78b6846e2): before 03:00 UTC the daily archive is not asked (`DAILY_NOT_BEFORE_UTC_H`), counted on /status as
+  `dailyRefillDeferred` (ECCC writes the day's first daily CSV at about 02:18 UTC).
+- HYDAT envelope rebuilt locally on STAGING (2026-11-10/11, HYDAT 20261019): clim.json 1,959 → 1,951 stations; level
+  changed for exactly the 45 shifted stations; uploaded to `feeds/live/clim.json`. Owner list:
+  handoff/PLAN/app-integration/T550-datum-shift-stations.md. The bundle's copy (chart bands) still needs `pipeline
+  build` + a release.
 
-## Owner
-- Is 6 hours the right cutoff for a reading to count as current?
-- Run the HYDAT workflow so the datum-shift cut reaches clim.json (45 stations in HYDAT, 21 live), then read the shift list.
+## Work (left)
+9. The 8 level-only stations the datum cut removed from clim (under 3 years left; none live: 08KH017 08MD014 08NH060
+   08NH094 08NH096 08NH098 08NJ075 08NL058): 7 have a row in matches.json. Check the next bundle build handles them, and
+   say so in the release notes.
+- Not seen in a real browser (item 6, tested over a fake IndexedDB). Check on staging: open a gauged water, reload with
+  the feed blocked (DevTools: block `feeds/live/*`), the chart draws its measured line with the kept words.
 
 Depends: T550, T557, T585. Size: M.
 
-## Owner answers 2026-11-11
-- 6 hours stays as the cutoff.
-- Run the HYDAT workflow on staging, then send the datum-shift station list to read.
+## Owner
 
-## 2026-11-10 (UTC 11-11): HYDAT envelope rebuilt locally, on STAGING
-- Why local: the branch is ~312 commits ahead of origin, so the workflow would have built with old code. Ran the
-  workflow's step 2 on the Mac with the current code (HYDAT 20261019 = ECCC's newest = what staging is on):
-  `pipeline.gauges.feed.climatology` and `pipeline.gauges.feed.hydat_daily --index <staging index.json>` (heavy.sh lane 2).
-- Old (staging, built 10-30) vs new clim.json: 1,959 → 1,951 stations. The 8 gone are level-only historic gauges with
-  under 3 years after their shift (08KH017 08MD014 08NH060 08NH094 08NH096 08NH098 08NJ075 08NL058), none live.
-  Flow: envelope, stats and recent years identical for every station. Level: changed for exactly the 45 shifted stations
-  and no other; recent-year level traces unchanged. New keys: levelShifts (45), ratings (430), ratingPadM 0.5.
-- hydat_daily: every file identical to staging's (377 built; staging also holds 11 for stations no longer in the index).
-  Nothing to upload, so not uploaded.
-- Tests before upload: 107 passed (test_level_datum, test_bundle_clim, test_pentad_window, test_record_years,
-  test_feed_maintenance, test_hydat_daily, test_update_hydat_script, test_publish, test_feed_reading_age,
-  test_feed_shown_parameter, test_feed_gaps, test_feed_daily, test_feed_year_backfill, test_gauge_policy; unfiltered).
-- Uploaded clim.json to bc-fishing-regulations-staging `feeds/live/clim.json` (rclone `r2:`, md5 checked). Old copy
-  kept in the session scratchpad. One `POST /run/gauges`: ok, 428/428 answered, 415 ranked, 0 unchanged (all re-ranked),
-  status ok. Level standings changed for 18 of the 21 live shifted stations (3 unchanged: still at an end of the band);
-  08HD006 and four unshifted stations (07FD001 08EF001 08KH019 08MH153) lost their level standing to the rating check,
-  as T550 item 2 predicted. Every other level change came with a newer reading. No flow moved without a newer reading.
-- Owner list: handoff/PLAN/app-integration/T550-datum-shift-stations.md. The bundle's copy (chart bands) still needs
-  `pipeline build` + a release; not done here.
-- Gap found: the worker's change-aware cache keys a station on clim's `release`, not its content. A clim.json rebuilt
-  on the same HYDAT is not re-ranked for a station whose CSV answers 304 until the UTC day turns. This run happened to
-  get 0 unchanged. Proposed: put a hash of the station's envelope + rating into `ctxOf` (publish.ts).
-- eccc-daily http_404, 8 or 9 a run: the hourly health record shows every 404 falls between 00:00 and about 02:30 UTC,
-  every day since 11-04, and none at other hours. ECCC writes the day's first daily CSV into `/today/.../daily/` at about
-  02:18 UTC (Last-Modified on BC_08HB022 today), so until then every daily refill gets 404. The 8 are just the stations
-  with a gap in the last 29 days that run (08DA005 08EE013 08GA079 08HB022 08KB006 08NB014 08NM241 and one more), all
-  200 again after 02:30. Upstream timing, not a wrong URL; ours only in that we ask then and count it as a failure.
-  Proposed fix (not deployed): between 00:00 and 03:00 UTC read the previous day's dated folder
-  (`https://dd.weather.gc.ca/<YYYYMMDD>/WXO-DD/hydrometric/csv/BC/daily/`, answers 200) or skip the refill in that
-  window. Same rollover as T550 item 4 (hourly), which only forgives the first 30 minutes.
-
-## Added 2026-11-11 (from the staging clim rebuild)
-7. Worker: the per-station reuse key (`ctxOf`, publish.ts) names clim by release, not content, so a clim rebuilt on the same
-   HYDAT is not re-ranked for an unchanged station until the UTC day turns. Add a hash of the station's envelope and rating.
-8. Worker: `eccc-daily` asks for today's daily file between 00:00 and about 02:30 UTC, before ECCC writes it, and counts the
-   404 as a failure (8 per run, every day since 11-04; this is the "degraded" on /status). Read yesterday's dated folder in
-   that window, or skip the refill then.
-9. The 8 level-only stations the datum cut removed from clim (under 3 years left; none live): 7 have a row in matches.json.
-   Check the next bundle build handles them, and say so in the release notes.
-
-## Done 2026-11-11
-- 1 (a6bf038be, with T557 item 2): the worker's policy constants are generated from change.py / skill.py.
-- 2 (2ebfe0787): a gauge feed file with no format is refused (reported; held data answers). Staging writes the tag on all
-  429 station files + index + obs (read 2026-11-11); production serves no gauge feed yet.
-- 3 (52878ceb6): the contract test runs on the worker's own output (workers/feeds/test/gauges.contract.test.ts).
-- 5 (9995fcf13): `hydatNotice` carries the feed's own HYDAT (`feed`); when it is not the release's, the HYDAT line on the
-  Data sources page / More reads "Gauge ranks use another HYDAT" (stale). An index naming none keeps the old rule.
-  Wording is a default (owner may reword; no answer needed to ship).
-- Owner questions: both already answered 2026-11-11 (6 h stays; HYDAT workflow run on staging).
-
-## Done 2026-11-11 (items 7, 8: 07dbf3791, 78b6846e2)
-- 7: `ctxOf` hashes the station's envelope, rating, rating pad and recent years; a clim.json rebuilt on the same HYDAT
-  re-ranks the station on its next run.
-- 8: before 03:00 UTC the daily archive is not asked (`DAILY_NOT_BEFORE_UTC_H`); said in the run log, counted on /status
-  as `dailyRefillDeferred`. Staging 2026-11-12 00:09 UTC: 9 deferred, no failed source, feed ok. The other proposal
-  (yesterday's dated folder) was not taken: skipping needs no new URL and the gap is asked again after the window.
-
-## Done 2026-11-11, later (items 4 and 6)
-- **4: already built, in T585's lane** (read and its tests run here, nothing added). The card says which reading was
-  ranked and which this is (`readingStanding`, 04316bd91, c58640b86) and leads a kept figure's age line with the kept
-  words; the gauge card's foot names the release, and the data source / channel when not the build's own, in staging
-  and development builds (`dataProvenanceLine`, e4add6e9a); a cold start that opens a staged set says so once
-  (`bootSaid`, e4add6e9a). The words and the device checks are listed in T585's ticket (owner's yes still owed there).
-  Not built there or here, by T585's stated choice: installing a newer set BEFORE the map on a cold start.
-- **6: the web keeps the week like the phone.** `openGaugeHistoryStore()` in a browser is IndexedDB (one record of the
-  same text a phone's file holds; localStorage would be crowded by 2–3 MB). IndexedDB is read later than a file, so
-  `HistoryText` has `load` and `gaugeHistory` has `ready()`: the history starts with what the session notes, takes the
-  kept week in under it (a minute both hold is the session's), writes nothing before that, and the feed's fallback waits
-  for it, so a page opened offline never reads "nothing kept" a moment early. A week that cannot be read is reported; a
-  refused write is reported once; a browser with no IndexedDB keeps the week for the session as before (the
-  environment's, not reported). The phone's store is unchanged (ready at once).
-  Tests: `data/src/feed/history.test.ts` "(T633 item 6)" (4), `data/src/spots/store.web.test.ts` (3, a fake IndexedDB).
-- **What this does and does not give the web.** The web app has no service worker, so a tab cannot be OPENED with no
-  connection at all; the kept week answers when the page loads but the feed cannot be read (the feed down or refused,
-  a line that drops after the page is in), and it now survives a reload. A fully offline web start needs a service
-  worker (not in this ticket).
-- **Wording, for the owner:** no new string. The kept lines read "… saved on this phone" (`conditions.ts`,
-  `freshness.ts`); the web already printed them inside a session and now prints them after a reload too. On a laptop
-  "this phone" is wrong; "this device" would fit both. Not changed (agreed strings).
-- Not seen in a real browser: the IndexedDB path is tested over a fake. Check on staging: open a gauged water, reload
-  with the feed blocked (DevTools: block `feeds/live/*`), the chart draws its measured line with the kept words.
+- [x] 2026-11-11 — Is 6 hours the right cutoff for a reading to count as current? → "6 hours stays as the cutoff." (2026-11-11)
+- [ ] 2026-11-11 — Run the HYDAT workflow on staging so the datum-shift cut reaches clim.json (45 stations in HYDAT, 21 live), then send the datum-shift station list to read.

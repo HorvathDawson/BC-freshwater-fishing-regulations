@@ -278,7 +278,7 @@ def test_the_top_zoom_is_simplified_because_the_camera_cannot_go_past_it():
         f"the app believes the atlas stops at z{atlas_max} but it is built to z{tile_max}")
     # OVERZOOM IS NOW DELIBERATE (owner 2026-10-21; 24cb5888): the camera goes past the atlas (CAMERA_MAX_ZOOM > the
     # atlas max) and MapLibre magnifies z{tile_max}, so the top-zoom tolerance above becomes visible corner-cutting at
-    # z17-18. That trade-off (size vs fidelity) is recorded in handoff/PLAN/app-data/S2-tile-size-easy-wins.md.
+    # z17-18. That trade-off (size vs fidelity) was recorded in the S2 tile-size note (cut in T1081; `pipeline/tools/audit/tile_sizes.py` reproduces the table).
     c = re.search(r"export const CAMERA_MAX_ZOOM = (\d+)", ladder)
     assert c and int(c.group(1)) > atlas_max, "overzoom: the camera max must stay above the atlas max"
 

@@ -38,7 +38,7 @@ def _cand(station, area, years=40, same=True):
 # ------------------------------------------------------------------ the constants
 
 def test_the_reserve_depth_is_the_measured_one():
-    """Measured (panel.py `MEMBERS_PER_QUANTITY`; handoff/PLAN/app-data/live-panels/scripts). Changing it moves the
+    """Measured (panel.py `MEMBERS_PER_QUANTITY`; the live-panels scripts, cut in T1081). Changing it moves the
     paint file against its 1 MB gzip gate."""
     assert (MEMBERS_PER_QUANTITY, OWN_LEADS_PER_QUANTITY, QUANTITIES) == (8, 4, ("discharge", "level"))
 

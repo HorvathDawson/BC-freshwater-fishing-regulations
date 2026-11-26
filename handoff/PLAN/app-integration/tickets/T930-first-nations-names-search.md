@@ -29,20 +29,13 @@ and one BCGNIS name; no ranking change for exact English names; owner reviews th
 
 Depends: T926 (search folding of "'", ":" and combining marks). Size: S (list) + M (BCGNIS). Owner: reviews the proposals.
 
-## Owner 2026-11-19 20:38 (main chat)
-Verbatim: "We will make t930 defered until after bathy map and stocky and charts etc..". Starts after T200 (stocked
-lakes), T201 / T634 (depth maps and charts) ship.
-
-## Owner 2026-11-19 23:56 (main chat) + source check
-Verbatim: "We could add first Nation names to the main rivers now if we want and they are easy to find with a good open
-source". Checked the same minute (read-only):
-- Wikidata (CC0): none of 20 main rivers (Fraser, Skeena, Nass, Cowichan, Chilko, Thompson, Stikine, Harrison, Squamish,
-  Bella Coola, Dean, Babine, Bulkley, Nicola, …) carries a native-language name (P1559) or one as an alternate label. (The
-  one hit, Wiwek̓a̱m, is the city of Campbell River.)
-- BC Geographical Names: the river records hold one name each (Fraser River: English only, no alternates); "Stó:lō" finds
-  nothing. Officially adopted Indigenous names exist only where the Province adopted them (Tŝilhqox Biny = Chilko Lake,
-  already in our names).
-- So no structured open source holds them; the only route is the hand list with citations (Wikipedia prose, CC BY-SA, or
-  the Nations' own published pages), i.e. this ticket's step 1.
-Owner 2026-11-19 (main chat, question batch), after that check: "Keep deferred (Recommended)". T930 stays POSTPONED as
-above.
+## Owner 2026-11-19
+- 20:38, verbatim: "We will make t930 defered until after bathy map and stocky and charts etc..". Starts after T200
+  (stocked lakes), T201 / T634 (depth maps and charts) ship.
+- 23:56, verbatim: "We could add first Nation names to the main rivers now if we want and they are easy to find with a good open
+  source". Checked the same minute (read-only): Wikidata (CC0) gives none of 20 main rivers a native-language name
+  (P1559) or alternate label (the one hit, Wiwek̓a̱m, is the city of Campbell River); BC Geographical Names holds one name
+  per river record ("Stó:lō" finds nothing; adopted Indigenous names only where the Province adopted them, e.g.
+  Tŝilhqox Biny = Chilko Lake, already in our names). So no structured open source holds them; the only route is the
+  hand list with citations (Wikipedia prose, CC BY-SA, or the Nations' own published pages), i.e. step 1.
+- After that check (question batch): "Keep deferred (Recommended)". T930 stays POSTPONED as above.

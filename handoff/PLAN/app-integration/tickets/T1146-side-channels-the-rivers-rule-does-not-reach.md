@@ -30,3 +30,8 @@ Acceptance: the count of bare-name parts before and after, by cause; the binding
 the tiles and bundle of one vintage (rule: tiles and bundle share a vintage). Severity: high (a part with the
 wrong rule set, the Squamish case's family). Model: Opus. Size: S if mechanical, otherwise unknown. Owner: the
 marks if step 3.
+
+## Owner
+
+- [x] 2026-11-25 — The 15 rule-gap channels → "Fix the binding in 0.10.0" (2026-11-25).
+- [ ] 2026-11-25 — Only if the finding says the 15 cases are separate causes that need your marks: the cases come to you tonight. No agent writes a mark.

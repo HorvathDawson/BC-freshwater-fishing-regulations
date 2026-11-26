@@ -78,7 +78,7 @@ export const BackLayerContext = createContext<BackLayers | null>(null);
 /**
  * A surface's registration while `open` — EVERY surface that back must close before it pops the route registers here:
  * a sheet (`<Sheet>` does it for you), a menu, a dialog, a confirm, an in-screen step (a spot being captured, a town's
- * list in search). See app/HANDOFF-ui.md "Back, everywhere" for the table and how a new surface joins it.
+ * list in search). See app/BACK.md "Back, everywhere" for the table and how a new surface joins it.
  *
  * `close` is what one back does to this surface. It need not close it: a back that only takes ONE STEP inside it (a
  * capture's step, an edit that asks before it drops anything) leaves it `open`, and the layer is then registered

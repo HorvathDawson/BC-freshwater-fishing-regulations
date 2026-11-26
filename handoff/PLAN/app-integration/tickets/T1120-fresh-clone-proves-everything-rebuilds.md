@@ -37,3 +37,7 @@ first stage done, every deploy dry run clean. The list from step 1 has no row ma
 Depends: T1041 (after the slug flip). Severity: medium (a lost machine today may not be recoverable from the repo;
 unknown until tried). Release: chat 3 (repo move), last step. Model: Opus orchestrates, Sonnet lanes for the doc fixes.
 Size: M (machine time more than credits). Owner: yes (confirms the secrets list; about 10 minutes).
+
+## Owner
+
+- [ ] 2026-11-25 — At the repo move: confirm a list of secrets (names only) that you can restore each one (about 10 minutes).

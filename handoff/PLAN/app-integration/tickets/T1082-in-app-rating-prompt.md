@@ -33,3 +33,7 @@ loosened; a device look on each platform.
 Depends: T1046 (Play production access) for the Android half to be useful. Severity: feature. Release: 0.10 or
 0.11 (owner: "needs thought"); the design can be done earlier. Model: Sonnet for the design page, Opus for the
 build. Size: S for the design, M to build. Owner: yes (picks when it asks).
+
+## Owner
+
+- [ ] 2026-11-24 — A star-rating prompt on launch (sometimes, not invasive, or after a certain feature): needs thought for 0.11 or 0.12; a design page and your pick come first. Your words: "we need to add a random (sometimes on launch in a reasonable amount) star rating review on launch. must be uninvasive."

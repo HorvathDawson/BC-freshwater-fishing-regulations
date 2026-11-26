@@ -36,3 +36,8 @@ Acceptance: a docs-only PR starts one workflow; every required check still repor
 queue; a change under pipeline/ still runs the pipeline tier. Proven on a test PR of each kind.
 Severity: medium (slow merges on every release day). Model: Opus for the gate workflow (required checks and the
 merge queue are easy to break), Sonnet for the rest. Size: M. Owner: sees the deletion list.
+
+## Owner
+
+- [ ] 2026-11-25 — After 0.10.0 is out: turn Dependabot security updates back on (the repo switch, yours) and CodeQL back on (one field on the org security configuration); the planning chat reminds you (T1141).
+- [x] 2026-11-25 — "clean up workflows after too. can delete bloat as part of cleanup" (2026-11-25 15:44).

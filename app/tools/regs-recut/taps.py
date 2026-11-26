@@ -63,13 +63,13 @@ _D0 = datetime.date(2026, 1, 1)
 WD_OF_DAY = {day_of(((_D0 + datetime.timedelta(i)).month, (_D0 + datetime.timedelta(i)).day)): WEEKDAYS[(_D0 + datetime.timedelta(i)).weekday()] for i in range(365)}
 
 
-# (T115, r-941dcc149b17) owner decision AGENTS 54 / tickets/T115-one-region-membership.md: a stream piece straddling a
+# (T115, r-941dcc149b17) owner decision AGENTS 54 / tickets/archive/closed-2026.tar.gz:T115-one-region-membership.md: a stream piece straddling a
 # region line is its HOME region's only. The four Fraser pieces that carried two regions' rows (and so were parts of their
 # own: golden x15p14/15/17/18) now carry their home region's rows and merge with the neighbouring part; the Fraser has 15
 # parts (0..14), not 19. Measured old r-b518a2b507fa -> new by part_section: old 0..13 -> same index, 14 -> 4,
 # 15 -> 6, 16 -> 14, 17 -> 1, 18 -> 0.
 T183 = "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115)"
-T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only"
+T115 = "T115 (owner decision AGENTS 54, tickets/archive/closed-2026.tar.gz:T115-one-region-membership.md): a straddling stream piece is its home region's only"
 T67 = "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12)"
 T220 = "T220 (owner 2026-10-28, FIX \"complete\"): no channel line ends where the water goes on"
 # (T278, r-62e2f3a8c81e) the tidal cuts: each takes the piece below its point out of every binding (bundle `tidal`)

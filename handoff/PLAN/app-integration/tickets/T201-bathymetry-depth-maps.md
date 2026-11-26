@@ -4,15 +4,10 @@ Status: OPEN — NEXT AFTER CLOSED TESTING (second, after T200). Was POSTPONED (
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T201 | bathymetry: feed the prepared Depth mode, depth charts in the Lake tab; NEXT AFTER CLOSED TESTING, second (plan: research/bathymetry-feasibility.md; reuse bathymetry/propose.py, PDFs first, vector contours later) | OPEN | — | owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the … (detail: ticket file) |
+| T201 | bathymetry: feed the prepared Depth mode, depth charts in the Lake tab; NEXT AFTER CLOSED TESTING, second (plan: handoff/PLAN/research/bathymetry-feasibility.md; reuse bathymetry/propose.py, PDFs first, vector contours later) | OPEN | — | owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the … (detail: ticket file) |
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet"; T158 (tiles carry no contour layer — a follow-up of its own).
-
-## Work
-Pick the source (BC lake bathymetric maps / FFSBC surveys), licence and coverage (owner); fetch + parse per-lake depth
-values into the release slot and enable the Depth toggle; a contour layer in the tiles (tile-size budget, T64/T85
-numbers) drawn per T158's no-access-vs-contour rules; tests + size diff; owner look.
 
 ## Next after closed testing (owner 2026-11-13)
 Owner, 2026-11-13, verbatim: "after the closed release we will do stocking and depth maps next. so add that to next after
@@ -20,9 +15,10 @@ closed tickets." Starts once Play closed testing is running, after T200. Carried
 stay postponed behind it.
 Feasibility note: [`handoff/PLAN/research/bathymetry-feasibility.md`](../../research/bathymetry-feasibility.md).
 
-**The note supersedes the Work above and main's name-first matcher** (name picks the nearest same-named lake, no
+**The note supersedes the old Work (pick a source, contours first) and main's name-first matcher** (name picks the nearest same-named lake, no
 distance cap, nobody reviews; 252 titles shared by 587 codes). Here the chart's lake code picks; name, position and
-size only confirm. Contours in tiles come last, not first.
+size only confirm. Contours in tiles come last, not first (then: tile-size budget, T64/T85 numbers; drawn per T158's
+no-access-vs-contour rules; tests + size diff; owner look).
 - **First step:** do not write a matcher. Rank `pipeline/bathymetry/propose.py` output into classes (A 1,739 code+name
   exact, B 256 weaker, C 343 owner-review rows); the owner bulk-ticks A/B after a spot check and reviews C into one
   frozen file; then the 2,599 200-dpi PDFs (201 MB) to staging R2, then the Lake tab "Depth chart" card (option 2 + 5).
@@ -38,6 +34,3 @@ size only confirm. Contours in tiles come last, not first.
   (derivative contours with CHS notice); (3) Okanagan/Kootenay/Shuswap: CHS licences, trace scans, or PDF-only; (4)
   emails to OBWB, Hakai, UNBC; (5) bulk-tick classes A/B after a sample of 50?; (6) modelled depth (GLOBathy) at all.
   Defaults to build with: ask for the link, no NONNA, PDF-only, no emails sent, bulk-tick with sample, no modelled depth.
-
-## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
-owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the ticket); with T634 items 1-3, 5-6

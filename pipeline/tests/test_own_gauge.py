@@ -33,7 +33,7 @@ from pipeline.tests.test_build_panels import MODEL, E, N, g
 # ------------------------------------------------------------------ the constants, said once
 
 def test_the_defaults_are_the_ones_the_report_proposes():
-    """handoff/PLAN/app-data/own-gauge/REPORT.md. Changing one is an owner decision, not a tidy-up."""
+    """The own-gauge report (cut in T1081; git history). Changing one is an owner decision, not a tidy-up."""
     assert (OWN_LEAD_SHARE, OWN_SMALLER_RATIO, OWN_FAR_FRACTION, OWN_FAR_MIN_KM, OWN_AREA_TRUST) == (
         0.7, 10.0, 0.2, 10.0, 10.0)
 

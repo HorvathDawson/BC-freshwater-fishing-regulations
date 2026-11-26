@@ -5,7 +5,7 @@
  *
  * Named decided.ts, not the ticket's ladder.ts: T07's ladder.ts (ladderAt, the verdict decoder) already holds that name.
  *
- * Owner rule 2026-10-21 (decisions.md): every role here is the PIPELINE's — `rows_decided.roles` [rix, role, by] (which
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every role here is the PIPELINE's — `rows_decided.roles` [rix, role, by] (which
  * rule governs, contains, narrows, is replaced, agrees, falls away, is moot, and by what) and the ladder's stored lifts
  * (`settled.lifted`). This file gathers them per row (page v36 rowSources), sorts them for reading (the roles the page
  * counts as deciding first, then by level) and words them; it never decides a role. The roles it groups as "deciding"

@@ -948,7 +948,7 @@ def tidal_decision_marks(path: Optional[Path], candidates: Optional[Path] = None
     """THE OWNER'S EARLIER TIDAL CALLS (a calls file) as tidal marks: each candidate's proposed
     boundary as its one new split, Place y, the call's date and note. They come BEFORE the marks
     store, so a later mark on the same candidate supersedes them (`marks.latest`). The file is
-    handoff data the owner dictated (decisions.md 2026-10-27); a call naming a candidate the
+    handoff data the owner dictated (decisions.md, "Cuts and boundaries"); a call naming a candidate the
     candidates file no longer has is refused, never skipped."""
     if path is None or not Path(path).exists():
         return []

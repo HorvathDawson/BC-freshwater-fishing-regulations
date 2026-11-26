@@ -15,7 +15,7 @@
  *                   registers with the one back: it calls `useBackLayer(` or draws a `<Sheet>` (which registers for
  *                   it); open state must be handed to `useBackLayer(` or to a registered surface's element. A
  *                   component whose back another layer takes is listed in COVERED with why. A NEW SURFACE THAT DOES
- *                   NONE OF THESE FAILS HERE; see app/HANDOFF-ui.md "Back, everywhere" for how to register one.
+ *                   NONE OF THESE FAILS HERE; see app/BACK.md "Back, everywhere" for how to register one.
  *
  * The scan is a net, not a proof: what a back DOES on each surface is pinned by the render tests
  * (apps/mobile/src/back.test.tsx, through the app's own BackHandler wiring).
@@ -134,7 +134,7 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
 
 /**
  * Surfaces whose back another layer already takes, keyed `path#Component`, each with its reason. An entry here is a
- * decision, said in app/HANDOFF-ui.md's table — not a way past the scan.
+ * decision, said in app/BACK.md's table — not a way past the scan.
  */
 const COVERED: Record<string, string> = {
   "packages/ui-native/src/DeveloperCard.tsx#DeveloperCard: takes onClose": "(T476) the Developer card's body: DeveloperModal draws it in a Modal and registers the back (its onClose is DeveloperModal's requestClose)",

@@ -2,13 +2,28 @@
  * SATELLITE IS ONLINE-ONLY (owner 2026-10-21, `handoff/PLAN/app-integration/decisions.md`).
  *
  * The satellite ground is Esri World Imagery, fetched live and never stored (its terms forbid exporting tiles for
- * offline use outside Esri's own software: `handoff/PLAN/app-data/satellite/README.md`). So a reader who chose
+ * offline use outside Esri's own software; see "Esri terms" below). So a reader who chose
  * Satellite and lost the connection must see the DRAWN map, told why, with the choice kept: when the imagery can be
  * reached again it comes back by itself.
  *
  * "Can be reached" is two facts: the device says it is online (the web's `navigator.onLine` and its online/offline
  * events; a phone's NetInfo — where its module is not linked the phone stays `online`), and the imagery itself has not
  * failed (a tile error on the web map, or the probe both platforms run). Either one down is down.
+ *
+ * ESRI TERMS (kept here when the 2026-10-21 research folder was cut; owner decision 2026-10-21 late):
+ *  - Source: Esri's ArcGIS Online World_Imagery MapServer, 256 px tiles, maxzoom 19 (the z18 camera asks for z19), with
+ *    `blankTile=false` so a place with no imagery answers 404 and MapLibre overzooms the parent (without it Esri serves
+ *    its grey "Map data not yet available" tile). Below z12 it is 15 m Earthstar TerraColor; rural BC is 0.3-0.5 m to z17-18.
+ *  - Licence: the Esri Master License Agreement and Product-Specific Terms (item 10df2279f9684e4a9f6a7f08febac2a9). The item
+ *    "is not intended to be used to export tiles for offline", so nothing is cached or packaged (`no-store` probe,
+ *    external source). Credit: "Powered by Esri" plus the service's copyrightText ("Source: Esri, Vantor, Earthstar
+ *    Geographics, and the GIS User Community"); both copies are held equal by tools/imagery.test.ts.
+ *  - The token-free `server.arcgisonline.com` URL is not, by Esri's terms, a licensed path for a non-Esri app (the licensed
+ *    route is ArcGIS Location Platform). The owner chose it anyway, as the original app ran ("this is a non profit app").
+ *    `EXPO_PUBLIC_ARCGIS_API_KEY` stays optional config (2M basemap tiles a month free, then $0.15 per 1,000); the keyed
+ *    endpoint was never exercised, and `blankTile=false` on it is assumed, not measured.
+ *  - Nothing sharper than EOX's 10 m Sentinel-2 mosaic is free and licensed for bundling; province-wide offline high-res is
+ *    impossible whatever the licence (z16 over BC is ~150 GB).
  */
 
 export type Basemap = "map" | "satellite";

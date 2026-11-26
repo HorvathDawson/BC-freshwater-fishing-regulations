@@ -37,3 +37,7 @@ release (staging); the tests fail without the change.
 
 Severity: medium (testers do not learn that the rules changed). Release: 0.9.2 (the planning chat's proposal).
 Model: Sonnet, Opus for the push registration part. Size: S–M. Owner: yes (the words and when it is asked).
+
+## Owner
+
+- [ ] 2026-11-25 — Pick the words of the first-load question that offers new-data notifications, from pictures; confirm the reading of your words "we shouldnt allow notifications without new data notifications" (no other notice can be on while new-data notices are off).

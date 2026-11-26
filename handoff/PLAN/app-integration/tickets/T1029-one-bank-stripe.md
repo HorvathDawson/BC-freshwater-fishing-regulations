@@ -392,3 +392,8 @@ route); islands (inner rings) never striped; written with the water on its right
 Cost: a new `bank_edge` tile layer (the tile export) + a tile build + one runtime layer in the app. No one-bank place sits
 on a polygon reach in today's data; the build prints `polygon_reach` (a typed reason, visible in the bundle log) when one
 appears — then build it.
+
+## Owner
+
+- [ ] 2026-11-25 — A creek of a one-bank place whose side cannot be read: keep it closed (as built, a proposal) or leave it out?
+- [x] 2026-11-25 — One-bank stretch hid the line's own cues → "A: cues above the stripe" (2026-11-25).

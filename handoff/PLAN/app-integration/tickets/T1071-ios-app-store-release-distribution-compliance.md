@@ -108,3 +108,8 @@ Owner: yes (App Store Connect entries, the submit, any legal answers).
   the reader is), the walkthrough after the first-run notice, the manifest's "not linked" flags named. Kept against
   the review: the Analytics purpose on Device ID (owner 2026-11-14), `fetch` in the background modes (read from a
   built Info.plist on 2026-11-14, T727; not re-read on build 45).
+
+## Owner
+
+- [ ] 2026-11-25 — App Store submission of 0.10.0: select the build, Add for Review, Submit, after the build is on TestFlight and the privacy page is live on production (your site command). Every screen that needs no build is done and confirmed.
+- [x] 2026-11-25 — EU trader status → "Not a trader"; content rights: "we will be changing it to mapbox soon" (T1108; this submission answers for Esri as the app ships); App Privacy "Linked to you" → "Strict: linked"; countries → "All 175 countries"; Performance Data → "keep ticked but next release will add to rpivacy page and add the performance monitor" (T1132) (2026-11-24/25).

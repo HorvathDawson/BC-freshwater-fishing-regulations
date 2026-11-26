@@ -1,7 +1,7 @@
 /**
  * The Keep tab's year strip (T13): the status line, the 365-day bar, the today marker, the month initials and the legend.
  *
- * Owner rule 2026-10-21 (decisions.md): every answer drawn here is the PIPELINE's —
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every answer drawn here is the PIPELINE's —
  * - open / closed on a day is the display frame's `status` (display_frame, one per book day: `inp.year.displayByDay`);
  * - the bar's per-day flags are the display frame's `strip` bits (answers 2.6), drawn as they are;
  * - nothing here ranks, merges or decides a day: `runOf` only reads how long the stored state of the selected day lasts

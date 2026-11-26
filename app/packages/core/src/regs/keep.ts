@@ -3,7 +3,7 @@
  * banner, T15 inherited / possession / where-not, T15b caveats, T17 group head, T18 tree, T19 not-kept / worked / quiet /
  * Other fish, T19b plain rows, T20 the fish manifest).
  *
- * Owner rule 2026-10-21 (decisions.md): every answer here is the PIPELINE's. This file decides no regulation — it only
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every answer here is the PIPELINE's. This file decides no regulation — it only
  * SELECTS which presenter output to draw where, by the stored answers it is handed: the day's display status (closed /
  * tidal, `display_frame.status`), the key (`akey.tidal`; no key = outside B.C.), the rows frame's rows (each row's stored
  * `group.headline`, its pool) and page v36's draw order. The presenters below consume the store as they are; the five
