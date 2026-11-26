@@ -59,6 +59,14 @@ EDITS = [
     ("pipeline/tests/test_before_push.py", 'here / "handoff"', 'here / "docs"', True),
     ("pipeline/tests/test_ci_paths.py", 'tmp_path / "handoff"', 'tmp_path / "docs"', True),
     ("pipeline/tests/test_workflow_pins.py", 'p.startswith("handoff")', 'p.startswith(("docs", "tickets"))', False),
+    # path filters: the docs folder is two top-level folders now
+    (".github/workflows/docs-ci.yml", '"handoff/**"', '"docs/**", "tickets/**"', False),
+    ("scripts/ci_paths.py", '"handoff/**"', '"docs/**", "tickets/**"', False),
+    ("pipeline/tests/test_ci_paths.py", '":(exclude)handoff/**"', '":(exclude)docs/**", ":(exclude)tickets/**"', False),
+    ("pipeline/tests/test_workflow_pins.py", 'assert "handoff/**" in _on(_load("docs-ci.yml"))[ev]["paths"], ev',
+     'assert {"docs/**", "tickets/**"} <= set(_on(_load("docs-ci.yml"))[ev]["paths"]), ev', False),
+    ("pipeline/tests/test_workflow_pins.py", '("test_workflow_pins.py", "handoff/**"): "the docs filter\'s own entry, compared as text",',
+     '("test_workflow_pins.py", "docs/**"): "the docs filter\'s own entry, compared as text",\n    ("test_workflow_pins.py", "tickets/**"): "the docs filter\'s own entry, compared as text",', False),
     # alternations of top-level folders: the tickets folder is a top-level folder now
     ("pipeline/tests/test_workflow_pins.py", r'curation-review|handoff|pipeline)"', r'curation-review|docs|tickets|pipeline)"', False),
     ("app/tools/check-tickets.mjs", r'scripts|handoff|curation-review', r'scripts|docs|tickets|curation-review', False),
