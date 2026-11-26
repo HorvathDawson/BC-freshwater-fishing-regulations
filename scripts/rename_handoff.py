@@ -77,10 +77,8 @@ EDITS = [
     # a listing of the planning folder that held the tickets folder
     ("app/tools/ledger.test.ts", '.toEqual(["T11-shots", "T4-shots", "tickets"])', '.toEqual(["T11-shots", "T4-shots"])', False),
     # prose that now needs both folders
-    ("README.md", "| `handoff/` | the work: tickets and their ledger, runbooks, plans, owner to-do |",
+    ("README.md", "| `handoff/` | the work: tickets and their ledger, runbooks, plans, the owners' asks (each ticket's `## Owner` block) |",
      "| `docs/` | the plans, runbooks, restart pages and decisions |\n| `tickets/` | the open tickets, and the index of the closed ones |", False),
-    # a relative path that was ambiguous once `docs/` could mean two folders
-    ("pipeline/README.md", "the stage order is docs/MAP.md", "the stage order is pipeline/docs/MAP.md", False),
 ]
 
 #: bare `handoff/` (after the two longer prefixes) -> docs/. The two longer prefixes are matched first, in both spellings.
