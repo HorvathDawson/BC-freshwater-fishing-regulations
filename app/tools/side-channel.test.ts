@@ -9,6 +9,7 @@
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { STYLE_META, resolveTheme } from "../packages/map/src/style";
 
 type Layer = { id: string; type: string; "source-layer"?: string; paint?: Record<string, unknown> };
@@ -27,7 +28,7 @@ function value(layer: Layer, prop: string, zoom: number, props: Record<string, u
   return e.value.evaluate({ zoom } as never, { type: 2, properties: props } as never, state as never) as unknown;
 }
 const streamLines = (theme: string, mode: string) =>
-  ((runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme, { stream: mode }) as
+  ((runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme, { stream: mode }, PMTILES) as
     { layers: Layer[] }).layers).filter((l) => l.type === "line" && l["source-layer"] === "stream");
 
 describe("(T891) side channels draw thinner, in the same colour", () => {
