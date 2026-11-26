@@ -10,7 +10,7 @@
   // (T814/T821) ffmpeg: the iOS test bed (tools/testbed/scenarios-ios/build36.mjs) cuts a screen recording into frames
   // with the machine's ffmpeg, as the Python frame tools beside it do; a system tool, not a package. (T917) memory_pressure:
   // macOS's free-memory reading, which the SEO build sizes its render threads by (tools/seo/threads.ts), as scripts/heavy.sh does.
-  "ignoreBinaries": ["ffmpeg", "ffprobe", "memory_pressure", "osascript", "sips"],  // osascript: the iOS bench's simulator memory warning (T725, lib/sim-memory-warning.js); sips: T836's rotated seed photos; both ship with macOS
+  "ignoreBinaries": ["ffmpeg", "ffprobe", "memory_pressure", "osascript", "sips", "plutil"],  // plutil: T1163's built-plist check reads a binary Info.plist with the Mac's own tool; osascript: the iOS bench's simulator memory warning (T725, lib/sim-memory-warning.js); sips: T836's rotated seed photos; both ship with macOS
   "workspaces": {
     ".": {
       // tools/: the `pnpm check` gates (node scripts) and the tools test suites vitest runs.

@@ -83,6 +83,8 @@ of reserve, and on 156 waters the lead part is open while another is closed. It 
    - LOW: a city stream that also has an OSM or excluded-FWA name gets no own-name row (`side_channels.py`); the
      build stop still catches an empty name.
 
+2026-11-26 test fix: test_t1140_inside_area kept its unnamed lakes in a module dict keyed by id(db), so a later db reusing a freed id inherited them (pre-push chunk saw 'join' for 'nearest'); now passed to `_write`, with a guard test.
+
 ## Acceptance
 From a search result for the Squamish River nobody can read "closed" without also reading that it is the reserve reach,
 and the open part is one tap or less away; no water's landing shows a single unnamed part; the search page agrees.

@@ -1,8 +1,8 @@
 /**
  * (T418) A STYLE ASSET THAT WOULD NOT LOAD — the sprite, a glyph range, a source's data (the `outside` mask) — is
  * REPORTED, once per asset a run, not only logged. MapLibre Native says it only in its own log (`LogManager`, an
- * `[ERROR] [Style]` line the binding prints with `console.error`), never through an event the map can catch, so the
- * map reads its log for exactly these lines. The line is still printed (the handler returns false): the report adds to
+ * `[ERROR] [Style]` line the binding prints with `console.error`; the engine hands it over as `engineLog`,
+ * `maplibre/log.ts`), never through an event the map can catch, so the map reads its log for exactly these lines. The line is still printed (the handler returns false): the report adds to
  * the log, it does not replace it.
  *
  * On a phone every one of them is a file of the installed release (`releaseTiles`): one missing is a defect of the app
@@ -32,12 +32,12 @@ export function styleAssetFailure(e: NativeLogEvent): { key: string; error: Erro
   return { key, error: new Error(`map: a style asset failed to load (${key}): ${e.message.trim()}`) };
 }
 
-/** What `LogManager` offers: one handler for the whole app (the binding's own, replaced). */
-interface LogManagerLike { onLog(h: (e: NativeLogEvent) => boolean): void }
+/** What the engine's log offers (MapLibre Native's `LogManager`): one handler for the whole app (the binding's own, replaced). */
+export interface EngineLog { onLog(h: (e: NativeLogEvent) => boolean): void }
 
 let watching = false;
 /** Install the watch once (the first native map mounted): every later map shares MapLibre's one log. */
-export function watchStyleAssets(log: LogManagerLike): void {
+export function watchStyleAssets(log: EngineLog): void {
   if (watching) return;
   watching = true;
   log.onLog((e) => {

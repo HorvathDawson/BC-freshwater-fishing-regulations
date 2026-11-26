@@ -29,10 +29,14 @@ const ROOT = new URL("..", import.meta.url).pathname;
  * under the OS temp dir — the app's `layers.json` and the fixture, nothing else — and the real gate runs on it through
  * `CHECK_ROOT`. The real tree is checked as is by each gate's "passes on a clean tree".
  */
-function inScratch<T>(files: Record<string, string>, run: (root: string) => T): T {
+/** (T1154) The map's engine folder, as the app has it: the engine rule fails a tree without it (W46). */
+const ENGINE_DIR = "packages/map/src/native/maplibre";
+
+function inScratch<T>(files: Record<string, string>, run: (root: string) => T, { engine = true } = {}): T {
   const root = mkdtempSync(join(tmpdir(), "app-gate-"));
   try {
     copyFileSync(`${ROOT}layers.json`, join(root, "layers.json"));
+    if (engine) mkdirSync(join(root, ENGINE_DIR), { recursive: true });
     for (const [f, src] of Object.entries(files)) {
       mkdirSync(dirname(join(root, f)), { recursive: true });
       writeFileSync(join(root, f), src);
@@ -119,6 +123,62 @@ describe("nested layers", () => {
     expect(outer).not.toContain("node:sqlite");
     expect(inner).toContain("node:sqlite");
     // and the real tree passes, which is the actual assertion
+  });
+});
+
+describe("(T1154) the map engine stays in its folder", () => {
+  // the engine's folder exists in each tree, as in the app: the rule learns the engine folders from native/
+  const ENGINE = { "packages/map/src/native/maplibre/View.tsx": "export const View = 1;\n" };
+  const shell = (file: string, src: string): number => gate("check-boundaries.mjs", { ...ENGINE, [file]: src });
+
+  it.each([
+    // the three mutations the ticket names, each a rule of its own
+    ["the SDK imported by the shell", "packages/map/src/Map.native.tsx",
+      'import { Layer } from "@maplibre/maplibre-react-native";\nexport const x = Layer;\n'],
+    ["a binding's native name in a native helper", "packages/map/src/native/useColouring.ts",
+      'export const ev = "MLRNTileIds";\n'],
+    ["the shell reaching past native/engine.ts into an engine folder", "packages/map/src/Map.native.tsx",
+      'import "./native/maplibre/View";\n'],
+    ["the SDK named in a lazy load", "packages/map/src/native/probe.ts",
+      'export const sdk = () => require("@maplibre/maplibre-react-native");\n'],
+    ["the binding's event bus", "packages/map/src/native/useColouring.ts",
+      'import { DeviceEventEmitter } from "react-native";\nexport const e = DeviceEventEmitter;\n'],
+    ["another engine's SDK", "packages/map/src/Map.native.tsx", 'export const sdk = "@rnmapbox/maps";\n'],
+    ["a helper beside the engine reaching into it", "packages/map/src/native-style.ts",
+      'export { View } from "./native/maplibre/View";\n'],
+    // (review) a binding's name in a template literal, and React Native's other ways to reach a native module by name
+    ["a binding's native name in a template literal", "packages/map/src/native/useColouring.ts",
+      'export const msg = (z: number) => `MLRNTileIds: tile ${z}`;\n'],
+    ["NativeEventEmitter", "packages/map/src/native/probe.ts",
+      'import { NativeEventEmitter } from "react-native";\nexport const e = NativeEventEmitter;\n'],
+    ["NativeModules", "packages/map/src/Map.native.tsx", 'import { NativeModules } from "react-native";\nexport const m = NativeModules;\n'],
+    ["requireNativeComponent", "packages/map/src/native/labelHold.tsx",
+      'import { requireNativeComponent } from "react-native";\nexport const v = requireNativeComponent("X");\n'],
+    // a folder of native/ that is not a named engine is scanned like any other
+    ["a helper folder beside the engine", "packages/map/src/native/helpers/events.ts",
+      'import { DeviceEventEmitter } from "react-native";\nexport const e = DeviceEventEmitter;\n'],
+  ])("rejects: %s", (_name, file, src) => {
+    expect(shell(file, src)).toBe(1);
+  });
+
+  it.each([
+    ["the SDK inside its engine folder", "packages/map/src/native/maplibre/Tree.tsx",
+      'import { Map } from "@maplibre/maplibre-react-native";\nimport { useRef } from "react";\nexport const x = [Map, useRef];\n'],
+    ["the one way in", "packages/map/src/native/engine.ts", 'export { View } from "./maplibre/View";\n'],
+    ["the shell through the one way in", "packages/map/src/Map.native.tsx", 'export { View } from "./native/engine";\n'],
+    ["a test mocking the SDK at its boundary", "packages/map/src/_bnd.render.test.tsx",
+      'import { it, vi } from "vitest";\nvi.mock("@maplibre/maplibre-react-native", () => ({}));\nit("", () => {});\n'],
+    ["the SDK and the event named in a comment", "packages/map/src/native/useColouring.ts",
+      '/** `MLRNTileIds` on DeviceEventEmitter, from "@maplibre/maplibre-react-native" */\nexport const x = 1;\n'],
+    ["the web map's own SDK", "packages/map/src/web/_bnd.ts", 'import maplibregl from "maplibre-gl";\nexport const x = maplibregl;\n'],
+  ])("allows: %s", (_name, file, src) => {
+    expect(shell(file, src)).toBe(0);
+  });
+
+  it("fails, by name, a tree without the engine folder it names (never a silent pass)", () => {
+    const run = inScratch({ "packages/map/src/Map.native.tsx": "export const x = 1;\n" },
+      (root) => runGate("check-boundaries.mjs", root), { engine: false });
+    expect([run.status, run.stderr.split("\n")[0]]).toEqual([1, `✗ ${ENGINE_DIR}`]);
   });
 });
 

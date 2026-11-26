@@ -10,6 +10,8 @@ import { GEOMETRY } from "../packages/map/src/chrome";
 const read = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
 const web = read("packages/map/src/Map.web.tsx"), native = read("packages/map/src/Map.native.tsx");
+/** (T1154) the native map element itself: the engine's tree */
+const nativeView = read("packages/map/src/native/maplibre/View.tsx");
 const instance = read("packages/map/src/web/useMapInstance.ts"), css = read("packages/map/src/controls.css");
 
 describe("web and phone draw the same credits, and the corners never meet (T424)", () => {
@@ -17,11 +19,12 @@ describe("web and phone draw the same credits, and the corners never meet (T424)
     expect(web).toContain("<MapCredits look={{ view, modes, groups, basemap }}");
     expect(native).toContain("<MapCredits look={{ view, modes, groups, basemap }}");
     expect(instance).toMatch(/attributionControl:\s*false/);
-    expect(native).toMatch(/attribution=\{false\}/);
+    expect(nativeView).toMatch(/attribution=\{false\}/);
     // the renderer's own control has no styling left, and nothing but the one component draws an Esri badge
     expect(css).not.toContain(".maplibregl-ctrl-attrib {");
-    expect(web).not.toContain("ESRI_BADGE");
-    expect(native).not.toContain("ESRI_BADGE");
+    expect(web).not.toMatch(/IMAGERY\.badge|esri-badge/);
+    expect(native).not.toMatch(/IMAGERY\.badge|esri-badge/);
+    expect(nativeView).not.toMatch(/IMAGERY\.badge|esri-badge/);
   });
 
   it("the scale bar is bottom-LEFT on both, the credits bottom-RIGHT", () => {

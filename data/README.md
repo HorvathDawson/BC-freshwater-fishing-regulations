@@ -24,6 +24,9 @@ then re-pin what changed with `python -m pipeline.tools.source_pins pin PATH` (i
 
 ## Notes on `source/`
 
+The book is `source/fishing_synopsis.pdf`; validate against nothing else (`python -m pipeline.tools.one_book` fails on a second full book anywhere under `source/`, even renamed: by name, or by size and pages; CI holds the tracked files only, so there it checks those, and a machine with `source/official/` filled is checked on the whole folder). The region PDFs (gov.bc.ca's per-region chapters) are not kept: nothing reads them and there is no fetch (T1156).
+
+
 `source/dfo_tidal_areas/` is 380 saved DFO web pages in dated folders (snapshots of the tidal-area descriptions the tidal boundary was read
 from, read by `pipeline/tools/audit/tidal_pass2.py`): keep them, they are the evidence. `source/pins.json` pins the big files that are not in git.
 

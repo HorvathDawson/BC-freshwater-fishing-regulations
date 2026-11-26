@@ -206,6 +206,8 @@ t0=$(date +%s)
 xcodebuild archive -workspace "$WS" -scheme "$SCHEME" -configuration Release -destination 'generic/platform=iOS' \
   -archivePath "$ARCHIVE" "${SIGN[@]}" >>"$LOG" 2>&1 \
   || { echo "xcodebuild archive failed ($LOG):" >&2; grep -E "error:|BUILD FAILED|ARCHIVE FAILED" "$LOG" | head -30 >&2; exit 1; }
+# (T1163) the BUILT Info.plist declares every background mode and usage string the app config does
+node "$REPO/app/tools/check-built-plist.mjs" "$(ls -d "$ARCHIVE"/Products/Applications/*.app | head -1)/Info.plist" || exit 1
 if has --unsigned; then
   APP=$(ls -d "$ARCHIVE"/Products/Applications/*.app | head -1)
   echo "unsigned device archive built in $(( $(date +%s) - t0 )) s: $(lipo -archs "$APP/$(basename "$APP" .app)") $(plutil -extract CFBundleVersion raw "$APP/Info.plist") (not installable, not uploaded)"

@@ -1,0 +1,8 @@
+{
+  "about": "(T1135) values copied from a release into tests, read by pin(name, value); re-cut by node app/tools/regs-recut/sync.mjs. answers: true = words or pages an angler reads (a moved one stops the release); false = counts and ids (committed with it).",
+  "pins": {
+    "reads.glossary": {"answers":false,"value":{"n":67,"v":5}},
+    "sourceLine.rowPages.glenn_501": {"answers":true,"value":{"sheet:tf:CT#9":[34,34,34,34],"sheet:tf:DV#6":[40,34],"sheet:tf:EB#8":[34,34,34],"sheet:tf:GB#8":[34,34,34],"sheet:tf:LT#8":[34,34,34],"sheet:tf:RB#9":[36,34,34]}},
+    "sourceLine.rowPages.glenn_615": {"answers":true,"value":{"sheet:tf:CT#9":[34,34,34,34],"sheet:tf:DV#6":[40,34],"sheet:tf:EB#8":[34,34,34],"sheet:tf:GB#8":[34,34,34],"sheet:tf:LT#8":[34,34,34],"sheet:tf:RB#9":[36,34,34]}}
+  }
+}

@@ -16,7 +16,7 @@
  * real URL.
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
-import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND } from "@app/core";
+import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND, IMAGERY } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import type { TileAccess } from "./tile-access";
@@ -93,13 +93,14 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Token
 }
 
 /**
- * THE EXTERNAL RASTER SOURCES the generated style declares — the satellite imagery (Esri World Imagery, online-only).
+ * THE EXTERNAL RASTER SOURCES the generated style declares — the satellite imagery (the provider in use's source,
+ * `IMAGERY.source`: Esri World Imagery, online-only).
  *
  * Copied from `style.json` rather than restated here, so the URL, tile size and the
  * attribution Esri requires live in ONE place (`layers.source.json`), where the builder
  * refuses an external source without a credit. Our own authoring keys (`external`,
  * `$comment`) are stripped: MapLibre's validator rejects properties it does not know.
- * `imagery` (a keyed template, `imageryTiles`) replaces the imagery source's tiles and nothing else.
+ * `imagery` (a keyed template, `imageryTiles`) replaces the provider's source's tiles and nothing else.
  */
 function externalRasters(imagery?: string): Record<string, Record<string, unknown>> {
   return Object.fromEntries(Object.entries(MAP_STYLE.sources)
@@ -107,7 +108,7 @@ function externalRasters(imagery?: string): Record<string, Record<string, unknow
     .map(([id, v]) => [id, {
       ...Object.fromEntries(Object.entries(v as Record<string, unknown>)
         .filter(([k]) => k !== "external" && !k.startsWith("$"))),
-      ...(id === "imagery" && imagery ? { tiles: [imagery] } : {}),
+      ...(id === IMAGERY.source && imagery ? { tiles: [imagery] } : {}),
     }]));
 }
 

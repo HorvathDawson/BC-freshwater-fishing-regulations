@@ -1,43 +1,48 @@
-# Restart: the speed build chat (T1144, T1161, T1135, T1165, T1159, T1133)
+# Restart: the speed build chat (T1144, T1161, T1135, T1171, T1170, T1120; then T1165, T1159, T1133)
 
 Started 2026-11-25 night by the owner: make development and releases faster. Orchestrator on Fable; at most 3
-lanes (Opus for CI and pipeline test changes); one independent review per PR; every PR through the merge queue
-with auto-merge; PR titles 93 characters or less; each change shows the failure it still catches. Each lane has
-its own scratchpad worktree of `origin/main`; never the main checkout or a release branch.
+lanes (Opus for CI and pipeline changes); one independent review per PR; merge queue with auto-merge; PR titles
+93 characters or less; each change shows the failure it still catches. Each lane has its own scratchpad worktree
+of `origin/main` (a real `pnpm -C app install` and a `.venv` link first); never the main checkout or a release
+branch. No heavy jobs: `scripts/before_pr.sh` is not run, each PR body says so. The planning chat numbers tickets;
+measured plans: `handoff/PLAN/app-integration/tickets/archive/night-notes-2026-11-25.tar.gz`. The folder rename
+is the owner's morning item: never run `scripts/rename_handoff.py` unasked.
 
-## Rules of this chat
+## On main (state written 2026-11-26 03:45; minutes are measured)
 
-- Only changes that need no data build, emulator, phone or heavy job: CI workflows, test config, release tooling
-  with unit tests. Never `scripts/heavy.sh`, `pipeline release`, atlas / reach / deliver / tiles builds, gradle,
-  xcodebuild, the parser. So `scripts/before_pr.sh` is not run while a release builds: each PR body says so.
-- The planning chat alone numbers tickets and holds the measured plans: the notes are in
-  `handoff/PLAN/app-integration/tickets/archive/night-notes-2026-11-25.tar.gz` (`ci-speed-build-plan.md` first,
-  then `ci-merge-queue.md`, `release-timeline.md`, `delivery-strategy.md`, `ship-workflow-design.md`).
-- A PR that changes `scripts/heavy.sh` or `pipeline release` is enqueued only after the planning chat checked
-  with the release chat. Tell the planning chat each PR number, and the measured minutes after it merges.
-- Questions to the owner: multiple choice, in chat. Items under "With the owner's yes" need his yes one by one.
-- When the folder rename lands: `python3 scripts/rename_handoff.py --commit` on every open branch, then merge main.
+- #279 pipeline tests in parallel on CI: Tests step 15.3 min (median of 21) to 7.5 / 9.0; check job 17.6 to 9.8 /
+  11.3; 1.7 to 1.9x (the runner is 2 cores x 2 threads). Queue time: 7.7 to 15.4 min per PR (median before: 19.7).
+- #280 release and heavy.sh keep the Mac awake; unattended on battery is refused (T1161 item 1; T1139 = same).
+- #276 the PR title checked with its " (#N)" suffix (`before_pr.sh --title`, and on push to an open PR).
+- #290 push hook: tests only the PR's own paths (a merge of main: 388 paths not re-tested), one push at a time per
+  machine, vitest workers from free cores. Every branch must merge main to get it. A push still takes about 250 s.
+- #283 MapLibre Android library built on a runner by hand (23.4 min), fetched and verified by `build.sh`; the lock
+  says `"published": false`. #301 restart pages are outside the docs reading total (the owner confirms). #275, #299.
 
-## Order
+## Open
 
-1. The PR title checked with its " (#NNN)" suffix before a PR opens (T1144): branch `ci/T1144-pr-title-check`.
-2. Release runs and heavy jobs keep the Mac awake; an unattended run refuses to start on battery (T1161 item 1):
-   branch `chore/T1161-keep-awake`.
-3. The pipeline tests in parallel on CI, each test file in one process, measured before and after (T1144):
-   branch `ci/T1144-pipeline-tests-parallel`. The Mac keeps `scripts/pytest-chunked.sh`.
-4. No third test run on push to main; a small cache job stays (T1144). After 3: same workflow files.
-5. One pins file for the release-backed tests, re-cut by one command with the fixtures (T1135). LAST, and ask the
-   planning chat first: its follows note refines the design.
-6. With the owner's yes on each: the web-only release path and build-time flags (T1165), the data-contract floor
-   check (T1165), the pre-cut gate (T1159), the first steps of the ship workflow (T1133).
+- #282 release pins files (T1135 pins part): reviewed, in the merge queue. Left: the T1140 fixture and the T1053 /
+  T666 pins, two property conversions, the vintage guard, T1135 items 1, 3, 4.
+- #293 fresh machine, `inseason resolve --first-build` (T1120): reviewed, auto-merge on. Clean-clone run: the stage
+  works (2m27s); deliver then stopped on the part-name check (gnis:10607 "km 8 → km 8" twice). Ruled out: the
+  first-build resolution (38 matches identical to the release-based one). OPEN: a from-nothing RELEASE is not
+  proved; split it by rerunning the clean clone's deliver on current main (about 50 min).
+- #286 build-key holes (T1171): NOT mergeable. Second review, in a PR comment: the package trace stops every real
+  build on pandas / scipy Cython modules (`pipeline/_trace.py` `_sweep`: use the spec name; test with real
+  pandas); an empty package or config record is accepted; the code backfill covers 333 modules. Owner picks
+  (relayed 02:10): one-time backfill; keys hold only imported packages and read config. Then a third review.
 
-## State
+## Owner
 
-Read it from GitHub, not from here: `gh pr list --search "T1144 OR T1161 OR T1135 in:title"` and each ticket's
-row. Baseline to beat (measured 2026-11-25): a code PR takes a median 40.1 min from last push to merge, 22.4 in
-PR CI and 19.7 in the queue; the pipeline `Tests` step is 11 to 19 min on one core.
+- Typed yes in the speed chat, not given yet (the planning chat relayed a yes at 02:10): the web-only release path
+  and the data-contract floor check (T1165), the pre-cut gate (T1159), T1133's first steps, the public GitHub
+  Release file for the MapLibre library (`publish=true` on `maplibre-android.yml`, from main).
+- Until #286 lands: a `.venv` reinstalled from requirements.txt (pytest-xdist, from #279) reruns reach and deliver
+  once. Every shipped `libmaplibre.so` since T978 holds his account name and a worktree path (a runner build has
+  neither).
 
-## Report
+## Not started, in order
 
-Each merged change is reported to the owner and the planning chat with its measured minutes, and written into
-its ticket's row.
+1. No third test run on push to main; a cache job stays; `tickets/archive/**` reaches its pipeline test (T1144).
+2. Measure only: a 3-way split of the pipeline tier, `-n 2`, one BLAS / OpenMP thread per worker.
+3. The night queue: T1112 + T1102; T1135's rest; T1063; T1147, T1137, T1138, T1130, T1079; T1161's rest.

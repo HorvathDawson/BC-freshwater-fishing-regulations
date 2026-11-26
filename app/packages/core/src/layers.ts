@@ -25,7 +25,7 @@
  * values the loaded release does not carry is "no-data" (Stocked, Depth: prepared, not fed — owner 2026-10-21); one
  * that streams and cannot be reached is "online-only" (Satellite). Each says why in the reader's words.
  */
-import { SATELLITE_OFFLINE, type Basemap } from "./imagery";
+import { IMAGERY, type Basemap } from "./imagery";
 import { STOCK_RECENCY, type StockRecency } from "./lakeFacts";
 import { MAP_RAIL } from "./mapRail";
 import { WATER_STATUS, WATER_STATUSES, type WaterStatus } from "./status";
@@ -99,7 +99,7 @@ export const LAYER_WORDS = {
   },
   reasons: {
     "no-data": "No data yet: the release carries no values for it. It turns on by itself when one does.",
-    "online-only": SATELLITE_OFFLINE,
+    "online-only": IMAGERY.words.offline,
     "coming-soon": "Coming soon.",
   },
   always: { lead: "Always shown:", tail: "They are never switched off." },
@@ -141,7 +141,7 @@ export const LAYERS: readonly LayerEntry[] = [
   { id: "ground.map", kind: "ground", views: ["map", "water", "conditions"], default: true,
     sets: { basemap: "map" }, label: "Map", note: "Works offline" },
   { id: "ground.satellite", kind: "ground", views: ["map", "water", "conditions"], default: false,
-    sets: { basemap: "satellite" }, needs: { network: true }, label: "Satellite", note: "Photo map · needs internet" },
+    sets: { basemap: "satellite" }, needs: { network: true }, label: "Satellite", note: IMAGERY.words.note },
   { id: "ground.corridors", kind: "ground", views: ["map", "water"], default: false,
     needs: { built: false }, label: "Corridors", note: "Close-up photos along rivers, download for offline" },
   // ── Colour the water by (streams, lakes and wetlands together) ──

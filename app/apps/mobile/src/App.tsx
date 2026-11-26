@@ -558,7 +558,7 @@ export default function App() {
     // is proven against the tiles DRAWN (`releaseMapInput`, tested in ui/release.test.ts)
     // T01: the loader goes to the water screen too — the Regulations page reads water / regs-<region> / regs-sid
     // through it (no regs store file of its own)
-    // the satellite imagery is Esri's, online (never in a release): `IMAGERY_TILES`
+    // the satellite imagery is the provider in use's (`IMAGERY`: Esri's), online (never in a release): `IMAGERY_TILES`
     // (T831) and a phone's reader of its installed atlas by range (the route map's lines); none on the web
     // (`@app/data/release/platform` `atlasRange`)
     const m = releaseMapInput(b, ENDPOINTS.tiles);

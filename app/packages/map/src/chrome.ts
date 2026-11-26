@@ -78,5 +78,3 @@ export const GEOMETRY = {
   right: 8, bottom: 8, chip: 28, gap: 6, esriBadgeMax: 100, cardMax: 340,
 } as const;
 
-/** (T275) Esri's required credit, kept visibly on the map while its imagery is drawn (the full text is in the attribution (i)). */
-export const ESRI_BADGE = "Powered by Esri";
