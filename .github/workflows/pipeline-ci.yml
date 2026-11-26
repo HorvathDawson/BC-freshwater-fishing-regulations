@@ -130,20 +130,7 @@ jobs:
       # the Mac keeps the chunked runner (scripts/pytest-chunked.sh, T792 B: on macOS a child process forked after
       # pyproj loaded crashes, so a file that starts one never shares a process there).
       - name: Tests
-        # (T1144, TEMPORARY: removed before review) the runner's cores and RAM, the peak resident size of the largest
-        # process (GNU time) and the machine's peak used memory sampled every 2 s, for the PR's proof
-        run: |
-          nproc; free -g; free -m
-          ( while sleep 2; do free -m | awk '/^Mem:/ {print $3}'; done ) > "$RUNNER_TEMP/used-mb.txt" &
-          sampler=$!
-          rc=0
-          /usr/bin/time -v python -m pytest -q --durations=25 -n auto --dist loadfile -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache" || rc=$?
-          kill "$sampler"
-          awk 'NR == 1 || $1 > max {max = $1} END {print "T1144 peak used memory (free -m, every 2 s): " max " MB over " NR " samples"}' "$RUNNER_TEMP/used-mb.txt"
-          # xdist's summary line leaves out the deselected count: the same selection, collected in one process
-          python -m pytest -q --co -p no:cacheprovider -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache" | tail -1
-          lscpu | grep -E '^(Model name|Socket|Core|Thread|CPU\(s\))'
-          exit "$rc"
+        run: python -m pytest -q --durations=25 -n auto --dist loadfile -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"
 
       # (T667 slice 8) THE MINI RELEASE the app's logic tests read is what the real pipeline builds from the invented
       # world NOW: rebuilt in a temp dir (no live data: ~10 s) and compared by content with the committed copy; a
