@@ -3,8 +3,9 @@
  * atlas tile's sections are labelled the moment the tile is reported, with every channel's label (status, standing,
  * the lake modes, salmon, method). What differs is only the platform's plumbing, all of it here:
  *
- *   the tile     the patched binding's `MLRNTileIds` device event (deps.md): MapLibre Native's tile REQUEST, with the
- *                tile's ids read from the same local archive — so the labels usually land before the tile is parsed.
+ *   the tile     the engine's per-tile ids (`EngineTiles`, handed in by the map; MapLibre Native's are the patched
+ *                binding's device event, `maplibre/tiles.ts`, deps.md): the tile REQUEST, with the tile's ids read from
+ *                the same local archive — so the labels usually land before the tile is parsed.
  *                The tiles reported are kept (`TileHold`) for what a new labelling or a style swap must relabel.
  *   the states   batched per source-layer into ONE `setFeatureStates` bridge call per burst, not one per section;
  *                nothing is sent before the map has drawn once (MapLibre Native dereferences a renderer that does not
@@ -15,18 +16,18 @@
  *                makes the engine forget what it labelled and labels the tiles it holds again.
  */
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { DeviceEventEmitter } from "react-native";
 import { Colouring, LABEL_SOURCE_LAYERS, bankInput, halfInput, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
          type Channel, type ChannelInput, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
 import type { ChannelValues } from "../style";
-import { TILE_IDS_EVENT, TileHold, type TileIdsEvent } from "../tile-hold";
+import { TileHold, type TileIdsEvent } from "../tile-hold";
 import { unsetValue } from "../sections";
 import type { CopyTarget, WaterCopy } from "../water-copy";
 import { readingDayOf, salmonDayIndex } from "@app/core";
 import { useLab } from "../lab";
 import { panProbe } from "./panProbe";
+import type { EngineTiles } from "./engine";
 
 /** What the engine asks of the patched atlas `VectorSource` (`VectorSourceRef`, deps.md). */
 export interface AtlasSource {
@@ -99,6 +100,8 @@ export interface NativeColouring {
 
 export function useNativeColouring(o: {
   atlas: () => AtlasSource | null;
+  /** (T1154) the engine's per-tile ids (`native/engine.ts`) */
+  tiles: EngineTiles;
   copy: () => WaterCopy;
   toCopy: CopyTarget;
   /** Put back what a clear took that was not the engine's (the highlight, pushed data): resend them. */
@@ -115,7 +118,7 @@ export function useNativeColouring(o: {
   const adapter = useMemo(() => ({ setChannel: () => {} }) as unknown as MapAdapter, []);
   const engine = useRef<Colouring | null>(null);
   engine.current ??= new Colouring(adapter);
-  const hold = useRef(new TileHold());
+  const hold = useRef(new TileHold(o.tiles.sentMax));
   const tag = useRef<number | null>(null);
   const ready = useRef(o.ready);
   ready.current = o.ready;
@@ -216,7 +219,7 @@ export function useNativeColouring(o: {
 
   // THE TILE EVENT: label the tile at once (the engine skips every id that already wears its labels)
   useEffect(() => {
-    const sub = DeviceEventEmitter.addListener(TILE_IDS_EVENT, (e: TileIdsEvent) => {
+    return ref.current.tiles.onTileIds((e: TileIdsEvent) => {
       if (tag.current === null) { try { tag.current = ref.current.atlas()?.nativeTag() ?? null; } catch { /* not mounted */ } }
       if (tag.current === null || e.tag !== tag.current) return;
       if (!e.layers) {
@@ -237,7 +240,6 @@ export function useNativeColouring(o: {
       if (c.active) c.label(target, t);
       panProbe.tile(labelled.current - before);
     });
-    return () => sub.remove();
   }, [target, rewatch]);
   // another archive is other tiles: what was held means nothing for it, and the binding must send them all again
   const firstUrl = useRef(true);

@@ -65,6 +65,7 @@ import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VI
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
+import { engineTiles } from "./native/engine";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
@@ -218,6 +219,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   /** (T74) THE COLOURING ENGINE: each tile's sections labelled as the binding requests it (`native/useColouring.ts`). */
   const colouring = useNativeColouring({
     atlas: () => atlasRef.current as unknown as AtlasSource | null,
+    tiles: engineTiles,
     copy: () => copy.current,
     toCopy: { set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
               remove: (id, key) => { void (key === undefined ? copyRef.current?.removeFeatureState({ id })
