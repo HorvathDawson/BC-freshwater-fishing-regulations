@@ -253,11 +253,24 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
         if iid not in MOUTH_WORDS:
             raise AnswersError(f"run end {e!r}: no mouth words for {iid} (`part.MOUTH_WORDS`)")
         return f"the mouth ({MOUTH_WORDS[iid]})"
+    if str(e).startswith(AT):
+        # T1140 (owner 2026-11-25, the Okanagan River Oxbows: "at Hayne's Lease Ecological Reserve"): its lines inside one
+        # area while a polygon of it straddles the edge (`bundle.side_channels.inside_rows`), said "at <area>"
+        return "at " + end_name(doc, INSIDE + str(e)[len(AT):], side)[len("inside "):]
     if str(e).startswith(INSIDE):
-        # T1140 (owner 2026-11-25: "itshould have the real name … it will say eco reserve here"): a part whose side
-        # channels lie wholly inside one area (`inside_area`), said by that area's name as every area end is
-        # ("Baynes Island Ecological Reserve boundary" less " boundary": the export's split name, cased by `area_display`)
-        return "inside " + re.sub(r" boundary$", "", end_name(doc, str(e)[len(INSIDE):], side))
+        # T1140 (owner 2026-11-25: "itshould have the real name … it will say eco reserve here"): a part with no main stem
+        # lying at least 95 % inside one area, measured on the shapes (`bundle.side_channels.inside_rows`), said by the
+        # area's name as every area end is: the export's split name less " boundary" where this water is cut at it,
+        # else the catalogue's name cased by the one caser (`area_display`)
+        tok = str(e)[len(INSIDE):]
+        if tok in (doc.get("splits") or {}):
+            return "inside " + re.sub(r" boundary$", "", end_name(doc, tok, side))
+        from pipeline.deliver.bundle.place_names import area_display
+        return "inside " + area_display(tok.split(":", 1)[1])
+    if str(e).startswith(SIDE):
+        import json as _json
+        w = side_words(doc, _json.loads(str(e)[len(SIDE):]))
+        return w[:1].lower() + w[1:]
     if NEAR in str(e):
         # T517 (owner 2026-11-09): a crossing two parts of one water would otherwise name alike (a border, an area's
         # boundary, an unnamed lake, a river polygon), said near what stands there (`topology.crossing_near`)
@@ -532,19 +545,79 @@ NEAR = "@near:"
 #: BOTH its ends. The `near:` head is the one the app already composes as "<water> <words>" (`spanName`: lo = hi =
 #: "near:…"), so a shipped app says "Squamish River inside Baynes Island Ecological Reserve" with no change of its own.
 INSIDE = "near:inside:"
+#: T1140: the same for a part whose lines lie in one area while a polygon of it straddles the area's edge: "near:at:…",
+#: said "<water> at <Area>"
+AT = "near:at:"
+#: the token head of each `part_inside.how`
+AREA_HEAD = {"inside": INSIDE, "at": AT}
 
 
-def inside_area(part: dict) -> Optional[str]:
-    """T1140 (owner 2026-11-25) THE AREA A PART WITH NO MAIN STEM LIES WHOLLY INSIDE: every one of its side-channel runs
-    runs from one area's cut to the same area's cut (the export's `area:` split at both ends — the run `_run_txt` says
-    "Within <area>"), all of them one area. None otherwise: a channel with a single end at an area's boundary (it runs to
-    it, from outside: the Skeena's below its reserve) or with ends of two areas is not said inside anything."""
-    runs = [r for r in part.get("runs") or [] if r.get("branch")]
-    if not runs or any(not _js(r.get("from")) or r.get("from") != r.get("to") or not str(r["from"]).startswith("area:")
-                       for r in runs):
+#: T1140 (owner 2026-11-25: "Named by its ends", "They should always have the cut names or distance it is impossible not
+#: to") the end token of a part of side channels only that is named by its channels' NAMED ends (`side_channels`): shipped
+#: as both its ends, "near:side:" + JSON [[lower end, upper end, km]…], each end a named token or "" and km the channel's
+#: join where neither end is named. Said "Side channel from <lower> up to <upper>" (one channel) or "N side channels: one
+#: …; one joining N km from the mouth" (`side_words`); the `near:` head is what a shipped app composes as "<water> <words>".
+SIDE = "near:side:"
+#: The run ends that name nothing on a side channel: its own two ends where it leaves and rejoins its river ("mouth",
+#: "source" on a channel's run are the CHANNEL's), an unnamed lake, the water's own polygon.
+UNNAMED_ENDS = ("mouth", "source", "polygon", "lake_inlet", "lake_outlet")
+#: T1140: the parts the build may name "<water> inside <area>" / "<water> at <area>", each checked by a reviewer on its
+#: picture (item id, the area's catalogue name, how). A new one stops the build until it is looked at and added here; one that stops being inside
+#: stops it too.
+REVIEWED_INSIDE = frozenset({("gnis:25671", "BAYNES ISLAND ECOLOGICAL RESERVE", "inside"),
+                             ("gnis:18167", "Pacific Rim National Park Reserve of Canada", "inside"),
+                             ("wsc:300-432687-459615", "HAYNE'S LEASE ECOLOGICAL RESERVE", "at")})
+
+
+def named_end(tok: Optional[str]) -> Optional[str]:
+    """A side channel's run end that names a place (a cut, an area's boundary, the B.C. border, a named lake or water), else
+    None."""
+    if not tok or tok in UNNAMED_ENDS or str(tok).startswith(("mouth:", "continues:")):
         return None
-    areas = {r["from"] for r in runs}
-    return next(iter(areas)) if len(areas) == 1 else None
+    return str(tok)
+
+
+def side_channels(part: dict, flows_into: Optional[str] = None) -> Optional[list]:
+    """T1140 THE CHANNELS OF A PART WITH NO MAIN STEM, as `SIDE` carries them, or None when none has a named end (the part
+    is then said by its label: `runs_label`). `flows_into`: the named water the part's lowest channel flows into where its
+    run says only its own mouth (the bundle's flow pointers, `builders._flows_into`): that channel's lower end."""
+    runs = sorted((r for r in part.get("runs") or [] if r.get("branch")),
+                  key=lambda r: (r.get("km_from") is None, r.get("km_from") or 0, str(r.get("from")), str(r.get("to"))))
+    if not runs:
+        return None
+    out = []
+    for k, r in enumerate(runs):
+        lo, hi = named_end(r.get("to")), named_end(r.get("from"))
+        if lo is None and flows_into and k == 0 and r.get("to") == "mouth":
+            lo = flows_into
+        km = round(float(r["km_from"]), 1) if r.get("km_from") is not None else None
+        out.append([lo or "", hi or "", km])
+    return out if any(c[0] or c[1] for c in out) else None
+
+
+def side_words(doc: dict, chans: list) -> str:
+    """The words of a `SIDE` token. A channel with no named end says where it joins; one with no join either STOPS
+    (T1140: "impossible not to")."""
+    def one(lo: str, hi: str, km) -> str:
+        if lo or hi:
+            # (owner 2026-11-25: "The clearer one") a channel that flows into a lake says so: "into Olsen Lake"
+            low = f"{'into' if lo.startswith('lake_inlet:') else 'from'} {end_name(doc, lo, 'to')}" if lo else ""
+            return " ".join(x for x in (low,
+                                        (f"up to {end_name(doc, hi, 'from')}" if hi else "")) if x)
+        if km is None:
+            raise AnswersError("display: a side channel with no named end and no join to say (T1140)")
+        return f"joining {km:g} km from the mouth"
+    if len(chans) == 1:
+        return f"Side channel {one(*chans[0])}"
+    named = [one(*c) for c in chans if c[0] or c[1]]
+    bare = [c for c in chans if not (c[0] or c[1])]
+    if any(c[2] is None for c in bare):
+        raise AnswersError("display: a side channel with no named end and no join to say (T1140)")
+    kms = sorted(c[2] for c in bare)
+    tail = ([] if not bare else [f"{'one' if len(bare) == 1 else len(bare)} joining "
+                                 + (f"{kms[0]:g}" if kms[0] == kms[-1] else f"{kms[0]:g}–{kms[-1]:g}") + " km from the mouth"])
+    # (owner 2026-11-25: "The clearer one") "Snehumption Creek side channels: one up to the B.C. border; one joining …"
+    return "Side channels: " + "; ".join([f"one {w}" for w in named] + tail)
 
 
 def at_place(token: str, km: Optional[float]) -> str:
