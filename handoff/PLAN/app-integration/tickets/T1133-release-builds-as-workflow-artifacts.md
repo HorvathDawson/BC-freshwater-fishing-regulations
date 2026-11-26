@@ -51,3 +51,30 @@ single-machine risk and the build contention). Release: after the repo move; the
 start of 0.10.1, stage A in 0.10.1 if the plan is agreed, B and C after. Model: Opus for the plan and the secrets
 design, Sonnet for the workflows. Size: L in stages (the plan is S). Owner: yes (agrees the plan; puts the secrets
 in; the approval clicks).
+
+## Design 2026-11-25 night (read-only; build-ready)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ship-workflow-design.md` (every release step today, the workflow sketch, the secrets list,
+the migration in steps). The owner's words that set it, 2026-11-25: "could we make the feeds workers prod and
+staging get deployed from gha? would that be a good idea?" and "ideally we have all the cloudflare items pushed
+from gha I think? like when a release needs new worker code pushed then it gets pushed and similar push other
+stuff it needs like data or webapp etc? maybe a seperate work deploy is bad."
+- ONE ship workflow per environment, started from the rc tag (staging) or the final tag (production): the worker
+  only if it changed since the last shipped tag, then the data pointer, then the web app; a check after each;
+  production behind a GitHub Environment with the owner as required reviewer. The data build stays on the Mac.
+- The data is already addressed by content (the release id is a hash of every file's hash, `rebase.py:38-42`), so
+  the Mac uploads and tags and CI only checks every hash and the one-vintage rule, then moves the pointer. The
+  stamped manifest bytes are outside that hash: the rc tag must carry their sha256. The worker inputs and
+  `map-assets/v1` are fixed keys: the Mac stages them under the release id.
+- **The approval gap:** agents use the owner's `gh` login, and GitHub accepts any `repo`-scoped token of a
+  required reviewer, so an approval click alone is no stronger than CONFIRM_PROD is today. Fix first: agents push
+  with their own GitHub identity, then "Prevent self-review" (T1160).
+- Today's exposure: no environments exist; the R2 keys and an unused `CLOUDFLARE_API_TOKEN` (permissions unknown)
+  are repo-wide; actions are pinned by tag; no tag ruleset. Cloudflare offers tokens limited to named Workers; no
+  Cloudflare OIDC was found.
+- Production becomes one approval click (about 25-35 min unattended: a guess) instead of 5-7 commands at the Mac.
+  Phones stay on the Mac for now (MapLibre is built from source); prerequisites for later: the MapLibre Android
+  library built once per pin in CI as a release asset; the SEO "previous snapshot" kept in R2.
+
+## Owner
+
+- [ ] 2026-11-25 — Picks for the ship workflow (defaults first): prune inside the approved run, exactly the keys the plan listed; the production site built after your click; agents get their own GitHub identity; approval required for all outside contributors' PR runs; token expiry 12 months; order: the clean-up step now, the rest after T1144's gate workflow and 0.10.0. Yours when it starts: create the two environments, the scoped tokens and the secrets (steps handed to you).

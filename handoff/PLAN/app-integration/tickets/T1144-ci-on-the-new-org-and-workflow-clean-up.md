@@ -37,7 +37,25 @@ queue; a change under pipeline/ still runs the pipeline tier. Proven on a test P
 Severity: medium (slow merges on every release day). Model: Opus for the gate workflow (required checks and the
 merge queue are easy to break), Sonnet for the rest. Size: M. Owner: sees the deletion list.
 
+## Measured 2026-11-25 night (read-only: 1,000 Actions runs, every job's waiting and running time, PRs #185-#268)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ci-merge-queue.md` (raw table and the `gh` commands to re-run it).
+- A code PR takes a median 40.1 min from last push to merge: 22.4 min of PR CI + 19.7 min in the queue; both are
+  mostly the pipeline tier's `Tests` step (11-19 min, one core, `pipeline-ci.yml:126`), run twice.
+- The push to main is a THIRD run: 31 of 31 push runs after the queue went on were at a commit the queue had just
+  tested green (about 21% of all jobs).
+- Waiting for a runner: a median of 0 min per job, except the first hour after the org move. "One docs PR at a
+  time" is no longer needed; a docs PR (1.3 min to build) still waits behind any code PR ahead of it in the queue.
+- Confirmed: the PR title plus " (#NNN)" is checked against 100 characters (#266 failed at 103); a docs PR starts
+  12 tiny jobs and 8 docs PRs edited `APP-STORE-SUBMISSION.md`, which runs the whole app tier. Not seen in the
+  window: a conflicted PR starting no workflow; vitest `onTaskUpdate` timeouts on CI (all 5 failed shards were
+  real failures). Cost is $0 (public repo).
+- To add to the work: pipeline tests in parallel (pytest-xdist); the queue skips an area whose files did not
+  change since the PR's green run; `main` dropped from `on: push` (release branches and a cache-warm job stay);
+  one required check instead of four; the title checked with its suffix before a PR. A build-ready plan is being
+  written (same archive, `ci-speed-build-plan.md`).
+
 ## Owner
 
 - [ ] 2026-11-25 — After 0.10.0 is out: turn Dependabot security updates back on (the repo switch, yours) and CodeQL back on (one field on the org security configuration); the planning chat reminds you (T1141).
 - [x] 2026-11-25 — "clean up workflows after too. can delete bloat as part of cleanup" (2026-11-25 15:44).
+- [ ] 2026-11-25 — Picks for CI (defaults first): pytest-xdist on the same runner / shards / a larger runner; the queue skips unchanged areas / re-runs everything; drop main from on-push / keep; one required check / four; no docs-PR limit and at most two code PRs in CI / one docs PR at a time; no Team plan yet / Team; no self-hosted runner on the Mac.

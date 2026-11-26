@@ -82,7 +82,21 @@ fixture); 4 device and offline check (Sonnet, S, with the APK batch).
 1-2 MB), piers not drawn twice (Protomaps' grey shape plus our icon), pictures on Okanagan, Shuswap, one small
 lake and one coastal harbour for the owner. T1129 (give-back to OSM) stays after launch.
 
+## Build plan 2026-11-25 night (read-only)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `T1119-build-plan.md` (lanes with a mutation each, the pictures to show first).
+- Source: OpenStreetMap only. One Overpass count on 2026-11-25: 764 slipways, 287 marinas, 16,183 piers (545
+  named). The only B.C. dataset found (Coastal BC Boat Launches) is about 2004 data; mixing it or the DFO harbours
+  with OSM points would pull them under share-alike (OSMF Horizontal Layers guideline). No BC Data Catalogue
+  dataset lists boat launches for recreation sites or BC Parks.
+- The current fetch (`data/fetch_data.py:803-931`) excludes marinas, reads only nodes and ways (75 marinas are
+  relations) and keeps no OSM base time: a new fetch writes a small committed, checksummed GeoJSON with a
+  `_licence` record (the `fish_obstacles` pin pattern), listed in `data/LICENSE-ODbL.md`.
+- Built like `obstacle` in the atlas tiles (`layers.py:415`, `tile-contract.json:268`, `tiles/__main__.py:122`,
+  `layers.source.json:2708`, then `pnpm style:build`): always on, no tap, neutral-ink icons, credit through the
+  atlas line. Expected 1,400-1,600 points and 0.1-0.5 MB (a guess, not measured). It fits 0.11.
+
 ## Owner
 
 - [x] 2026-11-25 — The three picks for boat launches, docks and the like → kinds "Launches, marinas, named piers (Recommended)"; private docks "Hide, drop unnamed piers (Recommended)"; coast "All of BC incl. the coast"; tap "Drawn only (Recommended)" (2026-11-25, planning chat dialog).
 - [ ] 2026-11-25 — Look at the spike's pictures (Okanagan, Shuswap, one small lake, one coastal harbour): the look, from which zoom, with or without names.
+- [ ] 2026-11-25 — Picks (defaults first): icon from zoom 11 and name from zoom 14; unnamed launches: keep all; customer / permit marinas: keep; piers named like roads or trails: shown as named; unnamed-pier radius 100 m; release 0.11; search: not now.
