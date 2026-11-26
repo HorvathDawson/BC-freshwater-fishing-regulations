@@ -1,7 +1,7 @@
 # Google Play production access: the closed-test record (T1046)
 
 Everything needed to apply for production access on Google Play once the closed test is done, kept current as the
-test runs. Ticket: `tickets/T1046-play-production-access-record.md` (stays OPEN until
+test runs. Ticket: `handoff/PLAN/app-integration/tickets/T1046-play-production-access-record.md` (stays OPEN until
 Google approves). Earlier history: T371 (the closed track) and T863 (production builds to Closed / TestFlight External).
 
 Files in this folder:
@@ -53,7 +53,7 @@ changes the numbers).
 | Google's answer | OWNER: ____ (approved / keep testing; date) |
 
 If a tester drops out and the count goes under 12, the 14 days start again from the day it is back at 12: write the new
-date in the table and in the owner to-do: a new item file in `docs/owner-todo/` (T1041; never `OWNER-TODO.md`
+date in the table and in the owner to-do: a new item file in `handoff/PLAN/owner-todo/` (T1041; never `OWNER-TODO.md`
 itself, which is a pointer page).
 
 ## Checklist to apply
@@ -71,7 +71,7 @@ Owner-only steps are marked **[you]**; everything else Claude keeps ready.
       **[you: promote; Claude may run the promote, see `runbooks/release-by-hand.md` Step 6]**
 - [ ] Android vitals: crash rate and ANR rate under Google's bad-behaviour thresholds for the last 28 days
       (Play Console > Monitor and improve > Android vitals) **[you read; Claude notes the numbers in the draft]**
-- [ ] Policy: Data safety form matches `docs/play/data-safety.md`; privacy policy URL live; content rating and
+- [ ] Policy: Data safety form matches `handoff/PLAN/play/data-safety.md`; privacy policy URL live; content rating and
       target audience forms done; no policy warnings in the Console inbox **[you]**
 - [ ] `questionnaire-draft.md`: every TODO filled, answers read and put in the owner's own words **[you, Claude drafts]**
 - [ ] Apply: Dashboard > "Apply for production"; paste the answers **[you]**

@@ -5,7 +5,7 @@ a catch or legal advice (the app's own disclaimer applies: it is a reading aid, 
 
 ## Name, descriptions, keywords, categories, URLs
 Moved to ONE source (T1072): `app/store-listing/listing.json` (+ `full-description.txt`); limits checked by `app/tools/store-listing.test.ts`.
-Facts (not words) are in `docs/play/listing.md`. Contact email: support@canifishthis.ca (owner 2026-10-29; the privacy page keeps privacy@canifishthis.ca).
+Facts (not words) are in `handoff/PLAN/play/listing.md`. Contact email: support@canifishthis.ca (owner 2026-10-29; the privacy page keeps privacy@canifishthis.ca).
 
 ## Age / content rating (answers; owner to submit)
 - Play (IARC): category Reference / Utility; no violence, sexual content, language, controlled substances, gambling, user-to-user

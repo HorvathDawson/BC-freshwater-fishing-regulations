@@ -2,7 +2,7 @@
 
 **Agreed by the owner 2026-11-25 ~13:58 (dialog): "Agreed".** His picks in section 5: 1a, 2a, 3a, 4a, 5a.
 
-Written 2026-11-25 by the repo-move chat for the owner to agree. Paths are in `docs/runbooks/` (`rbh` =
+Written 2026-11-25 by the repo-move chat for the owner to agree. Paths are in `handoff/PLAN/runbooks/` (`rbh` =
 release-by-hand.md) and `pipeline/` unless marked. No ticket numbers are new.
 
 ## 1. The problem

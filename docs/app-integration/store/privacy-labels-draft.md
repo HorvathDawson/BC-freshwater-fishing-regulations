@@ -17,7 +17,7 @@ changes, change these. Where the honest answer is a judgement call it is marked 
 Not present: accounts, advertising IDs, analytics SDKs, third-party crash SDKs, cookies (site), background location, purchases.
 
 ## Google Play: Data safety form
-Moved to `docs/play/data-safety.md` (2026-11-04, T371). It was redrafted from the code with file:line evidence.
+Moved to `handoff/PLAN/play/data-safety.md` (2026-11-04, T371). It was redrafted from the code with file:line evidence.
 It answers Device or other IDs = YES (the T352 install id) and Approximate location includes a problem report's map
 centre (T352 + T384); the table above now carries both.
 

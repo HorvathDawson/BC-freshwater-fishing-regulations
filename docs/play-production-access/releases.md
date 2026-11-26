@@ -6,7 +6,7 @@ Testing began with 0.4.0 on Play internal (2026-10-31); 0.1.0–0.3.0 came befor
 
 Sources: the version and build history of `app/apps/mobile/app.json` (the date is the day of the first Play upload
 commit for that version, or of the version commit before 0.7.0), the "What's new" bullets in
-`app/packages/core/src/changelog.ts`, and `docs/STATUS.md` / `STATUS-archive.md` for the tracks. Builds are
+`app/packages/core/src/changelog.ts`, and `handoff/PLAN/STATUS.md` / `STATUS-archive.md` for the tracks. Builds are
 Android versionCodes unless marked iPhone. The first tag, `v0.9.0`, sits on the versionCode 44 commit (moved there with the owner's OK, 2026-11-24; `AGENTS.md` W47).
 
 Tracks: **Internal** = Play internal testing; **Closed** = Play closed testing (the production-access test);

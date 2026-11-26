@@ -41,7 +41,7 @@ After the move, run the same calls against `repos/canifishthis/canifishthis` and
   the app and site; and `workers/feeds/src/dispatch.ts`: the worker's workflow starts)
 - `scripts/ci_paths.py` `REPO` (`ci_paths.py repo`: `deploy/staging/upload.sh`, `scripts/start-workflow.sh`)
 - tests: `app/packages/core/src/menu/legal.test.ts`, `app/workers/feeds/test/dispatch.test.ts`
-- `docs/runbooks/fresh-machine.md`: the clone URL and the `cd` line
+- `handoff/PLAN/runbooks/fresh-machine.md`: the clone URL and the `cd` line
 
 **Takes effect only when rebuilt or redeployed (the flip alone does not reach them):**
 - the two feeds workers (staging, production): `dispatch.ts` carries the address compiled in. Until each is deployed
@@ -59,7 +59,7 @@ After the move, run the same calls against `repos/canifishthis/canifishthis` and
   in runbooks, tickets and old scripts: **the local folder keeps its name**, so these stay true
 - chat session names `bc-freshwater-fishing-regulations-NN` and the Claude memory folder: both come from the local
   folder name, unchanged
-- about 190 lines in old tickets, hand-off pages and one-off scripts under `docs/`: history
+- about 190 lines in old tickets, hand-off pages and one-off scripts under `handoff/PLAN/`: history
 
 **Outside git, names the repo:**
 - `.git/config` of the main checkout: `origin` (one entry, shared by every worktree: section 3)

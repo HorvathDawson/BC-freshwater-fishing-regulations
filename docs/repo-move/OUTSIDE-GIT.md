@@ -48,7 +48,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
 | Review app frontend deps | `curation-review/frontend/node_modules` | fast-fail typecheck of the review app | `(cd curation-review/frontend && npm ci)` | yes: build-links.sh prints it |
 | Root `node_modules` | `./node_modules` | unknown (a stray, see finds) | unknown | NO |
 | Git hooks setting | `.git/config` `core.hooksPath` | commit-msg, pre-push, ledger views | `git config core.hooksPath .githooks` | yes: AGENTS.md; bootstrap does not |
-| Ledger and owner to-do views | `docs/views/` | reading the ledger | hooks run `node app/tools/ledger.mjs` | yes: .gitignore note |
+| Ledger and owner to-do views | `handoff/PLAN/views/` | reading the ledger | hooks run `node app/tools/ledger.mjs` | yes: .gitignore note |
 | Expo prebuild output | `app/apps/mobile/android/`, `ios/` | every phone build | build scripts run `expo prebuild` | yes: mobile `.gitignore` |
 | Gradle caches, daemons | `~/.gradle/{caches,daemon,wrapper}` | Android builds | Gradle refills them | not needed |
 | `~/.gradle/gradle.properties` | exists (181 B, not opened) | optional machine-wide Gradle settings | none needed | yes: gradle-watch.sh says it overrides |
@@ -91,7 +91,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
 | `app/dist/` (APKs, web, `last-sha`, `last-play-sha`) | `app/dist/` | fast-fail base of the next build | each build writes it; a loss falls back to the default | yes: build-apk.sh header |
 | Test-bed output | `app/tools/testbed/out/` | emulator runs | `app/tools/testbed/session.sh` | yes: testbed README |
 | Review app build | `curation-review/frontend/dist/` | the review app | `vite build` | yes: .gitignore note |
-| Store raw screenshots (28 MB) | `docs/app-integration/store/graphics/raw/` | store listing images | `app/tools/store-shots.mjs` re-shoots (heavy) | yes: T319 |
+| Store raw screenshots (28 MB) | `handoff/PLAN/app-integration/store/graphics/raw/` | store listing images | `app/tools/store-shots.mjs` re-shoots (heavy) | yes: T319 |
 | Knowledge graph | `graphify-out/`, `app/graphify-out/` | the owner's agent tooling | `graphify update .` | not needed to build |
 | Worker local state | `app/workers/feeds/{fixtures-full,.wrangler}` | worst-case timing test | `fixtures-full/` kept local; no recipe found | NO |
 

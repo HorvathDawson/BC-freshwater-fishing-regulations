@@ -46,7 +46,7 @@ TODO (numbers): active testers per week and sessions (Play Console > Statistics,
 We collected feedback through four channels, each logged with its ticket and the release that fixed it
 (`feedback-log.md`):
 1. **In the app:** "Report a problem" sends the screen, the water and the tester's words to our server; crash reports
-   arrive automatically (no personal data; see `docs/play/data-safety.md`).
+   arrive automatically (no personal data; see `handoff/PLAN/play/data-safety.md`).
 2. **TestFlight feedback** from iPhone testers (screenshots with comments).
 3. **Messages and in person:** testers sent the owner screenshots and screen recordings, which he passed on.
 4. **Email:** the "Join the test" address.
@@ -153,7 +153,7 @@ plausible, not that it is met.
   release build): two defects found and fixed before shipping (background checks that never ran under the code
   shrinker, T1027; a crash moving a frame to another water, T1034), then 9 of 9 flows and 5 of 5 background
   notifications passed; one known issue shipped and fixed in 0.9.1 (a cold-start tab link, T1049).
-- **Policy:** the Data safety answers match what the app sends (`docs/play/data-safety.md`); privacy policy at
+- **Policy:** the Data safety answers match what the app sends (`handoff/PLAN/play/data-safety.md`); privacy policy at
   canifishthis.ca (TODO owner: confirm the URL in Play Console); no ads; no account.
 
 ---
