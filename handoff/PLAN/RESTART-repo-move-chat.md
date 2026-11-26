@@ -45,14 +45,19 @@ option (it runs the precheck); the build's `--status` says "running" after a cra
 
 ## Left, in order
 
-1. Read the result of PR #293's proof build and report it (above).
-2. The iPhone simulator build (`deploy/staging/build-ios-sim.sh`), announced to the planning chat first.
-3. One docs PR: `runbooks/fresh-machine.md` and `repo-move/OUTSIDE-GIT.md` (the three finds; tonight's timings; the
-   keystore line; the region PDFs are no longer kept, the book is `data/source/fishing_synopsis.pdf`), the reshoot
-   step in `runbooks/release-by-hand.md` (short: the page is at its size budget), T1120's and T1131's ticket text.
-4. T1131 after the owner's switch: test `open_pr` once; two low review items (a run from a non-main branch carries
-   that branch's commits; a rerun collides on artifact and branch name).
-5. The deploy dry runs of T1120 (not run; the setup page says a dry run that reads production is not a setup check).
-6. Clean up when the proof is reported: the clean clone, its MapLibre work folder and logs (about 45 GB), this
-   chat's scratch worktrees. Then tell the planning chat "ready to close".
-7. After a release is out (owner's list): Dependabot security updates and CodeQL back on; the tag ruleset.
+1. Read the result of PR #293's proof build and report it (above), if this page still says it is running.
+2. `runbooks/fresh-machine.md` is corrected (the coast pin, the dead basemap address, the keystore, tonight's fetch and
+   MapLibre timings). Still to write there: section 6 after PR #293 (the first build makes the in-season file itself;
+   tonight's stage times); `build.sh --compile` once the MapLibre library PR (#283) is on main. In
+   `repo-move/OUTSIDE-GIT.md`: the `fwa_coast.gpkg` rows (pinned now), the `bc.pmtiles` row (its address is dead), the
+   region PDF rows (not kept, nothing reads them), find 3. T1120's and T1131's ticket text.
+3. NOT RUN, skipped on 2026-11-26 when credits ran short: the iPhone simulator build
+   (`deploy/staging/build-ios-sim.sh`; its dry run is clean); T1131's `open_pr` test (after the owner's org switch) and
+   its two low review items (a run from a non-main branch carries that branch's commits; a rerun collides on artifact
+   and branch name); the reshoot step in `runbooks/release-by-hand.md` (short: the page is at its size budget); the
+   deploy dry runs; the fetch of `fwa_coast.gpkg` by `bootstrap.sh` on a clean machine.
+4. **Disk, about 45 GB, safe to delete once PR #293 is merged** (nothing else reads them; every heavy job announced to
+   the planning chat first): the clean clone `canifishthis-fresh` beside the main checkout (16 GB of sources in its
+   `data/source`, about 20 GB of build output), `canifishthis-fresh-mln` (the MapLibre work folder, 5 GB) and the
+   `canifishthis-fresh-*.log` files there; this chat's scratch worktrees (`git worktree list` in the main checkout).
+5. After a release is out (owner's list): Dependabot security updates and CodeQL back on; the tag ruleset.
