@@ -28,7 +28,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { Selectable } from "./Text";
 import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
-import { PartsOthers, PartWhere, Place } from "./regs/RegsHeader";
+import { PartsOthers, Place } from "./regs/RegsHeader";
 import { WaterViewsContext } from "./ViewSwipe";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
@@ -127,7 +127,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
 
   // (T508) DRAWN WHOLE, this view's own part: the reach known (or why not), the place label and the access notices, the
   // watershed group's days — the panel says its own (`ConditionsPanel`), and its maps theirs (`MiniMap`)
-  // (T1140) and the head's "Part 1 of 2": the map's reading of the water's parts
+  // (T1140) and the head's name and line to the other parts: the map's reading of the water's parts
   usePaneReady(section === null ? !waiting : where.settled && mapRead.settled && days.state !== "loading" && (measured !== null || measures.state === "failed"));
 
   return (
@@ -141,10 +141,9 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
       ) : (
         <>
           {/* (T367) where on the water, and what land, as the Regulations view heads with them */}
-          {/* (T1140) a part of a water of several: "Part 1 of 2" over its name, and the line to the others */}
-          {where.part && <PartWhere where={where.part.where} palette={palette} />}
           {where.place && <Place place={where.place} palette={palette} coach={null} />}
-          {where.part?.others && <PartsOthers words={where.part.others} palette={palette} onParts={views?.onParts} />}
+          {/* (T1140) a part of a water of several whose other parts have other rules: the line to them */}
+          {where.others && <PartsOthers words={where.others} palette={palette} onParts={views?.onParts} />}
           <AccessNoticeBlock notices={where.access} palette={palette} />
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}

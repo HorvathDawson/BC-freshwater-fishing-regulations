@@ -55,6 +55,13 @@ export interface NavPart {
   readonly hi: string | null;
   /** (T460) A side channel (the release's part with no km). (T750) Said only: the step walks the one line regardless. */
   readonly side?: boolean;
+  /** (T1140) A part of the water outside B.C. (the release's part with no key and no facts, never tidal): named
+   *  "<water> outside B.C." (`partName`). */
+  readonly outside?: boolean;
+  /** (T1140, owner 2026-11-25 17:31: "The data's own label (Recommended)") A part with no ends and no area of its own
+   *  (side channels only): the release's own words for its runs (`PartFacts.runs`, "Side channel, joining 12 km from the
+   *  mouth"), its name where its water has several parts (`partName`). */
+  readonly said?: string;
   /** (T517) Its rule-set group and connected run: parts sharing both are one run the DFO salmon chain cuts, which the
    *  map joins where the live salmon reads them alike (`mergeNav`). */
   readonly grp: number;
@@ -129,7 +136,11 @@ export interface ItemNavRows {
   /** `side` (T460): a side channel, the release's part with no km (`part.km` NULL), never a step on the main stem. */
   readonly parts: readonly { readonly partIx: number; readonly label: string;
                               readonly lo: string | null; readonly hi: string | null;
-                              readonly side?: boolean; readonly grp: number; readonly run: number }[];
+                              readonly side?: boolean; readonly grp: number; readonly run: number;
+                              /** (T1140) outside B.C.: no key, no facts (`NavPart.outside`) */
+                              readonly outside?: boolean;
+                              /** (T1140) a part with no ends: the release's words for its runs (`NavPart.said`) */
+                              readonly said?: string }[];
   /** (T278) the item's TIDAL pieces (no key, never listed): left out of `parts`, and a mark reaching one goes with it */
   readonly tidal: readonly number[];
   readonly geo: readonly { readonly partIx: number; readonly box: Bbox | null;
@@ -193,6 +204,7 @@ export function waterGroup(all: readonly ItemNavRows[], ends: EndsTable): WaterG
       at.set(`${i.ord}:${p.partIx}`, parts.length);
       parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: p.partIx, pieces: [p.partIx], label: p.label,
                    lo: p.lo, hi: p.hi, grp: p.grp, run: p.run, ...(p.side ? { side: true } : {}),
+                   ...(p.outside ? { outside: true } : {}), ...(p.said ? { said: p.said } : {}),
                    box: g.box, mid: g.mid, sids: [...own].sort((a, b) => a - b) });
     }
   }
@@ -322,20 +334,18 @@ export function entryNames(g: WaterGroup, item: string): ReadonlyMap<number, str
 
 /**
  * (T1140, owner 2026-11-25: the Squamish's plain link opened "Closed all year" on a reach inside an ecological reserve, and
- * nothing said it was one part of two) WHERE EACH PART OF `item` SITS IN THE MAP'S LIST: the entry holding it is `n` of
- * `of` — the very count the Map tab says ("Part 1 of 2", `partWhere`), over the same `mergeNav(group, live salmon key)` it
- * draws — and whether ANOTHER entry has other rules (`differs`): another water of the group (a split lake's other area),
+ * nothing said it was one part of two) WHETHER ANOTHER ENTRY OF THE MAP'S LIST HAS OTHER RULES than the one holding each
+ * part of `item` (`differs`), over the same `mergeNav(group, live salmon key)` the map draws: another water of the group (a split lake's other area),
  * another rule set (`grp`, the picker's choice), or, with the live salmon read, another salmon reading. Entries of one
  * rule set and one salmon reading (two runs of one rule set a lake parts) are not "different". Empty for a group the map
  * shows as ONE entry: then the page is the whole water's, and says nothing new (a single-part water is unchanged).
  */
-export interface PartPlace { readonly n: number; readonly of: number; readonly differs: boolean }
+export interface PartPlace { readonly differs: boolean }
 export type PartPlaces = ReadonlyMap<number, PartPlace>;
 
 export function entryPlaces(g: WaterGroup, item: string, salmonKey: ((sid: number) => string) | null): PartPlaces {
   const out = new Map<number, PartPlace>();
-  const of = g.parts.length;
-  if (of < 2) return out;
+  if (g.parts.length < 2) return out;
   // each entry's salmon reading, as `mergeNav` keys it (null: not read, never a difference)
   const keys = salmonKey ? g.parts.map((p) => [...new Set(p.sids.map(salmonKey))].sort().join("|")) : null;
   const other = (a: number, b: number) => {
@@ -345,7 +355,7 @@ export function entryPlaces(g: WaterGroup, item: string, salmonKey: ((sid: numbe
   g.parts.forEach((p, i) => {
     if (p.item !== item) return;
     const differs = g.parts.some((_, j) => j !== i && other(i, j));
-    for (const k of p.pieces) out.set(k, { n: i + 1, of, differs });
+    for (const k of p.pieces) out.set(k, { differs });
   });
   return out;
 }
@@ -402,6 +412,11 @@ export function partName(g: WaterGroup, i: number): string {
 /** Entry `i`'s own name, composed from its ends (`spanName`): what `partName` says where its water has several parts. */
 function entryName(g: WaterGroup, i: number): string {
   const p = entry(g, i);
+  // (T1140, owner 2026-11-25: "\"<water> outside B.C.\"") a part outside B.C. has no ends and no facts: said where it is
+  if (p.outside) return WATER_MAP_WORDS.outside(p.itemName);
+  // (T1140, owner 2026-11-25 17:31: "The data's own label (Recommended)") a part with no ends of its own (side channels
+  // only, in no one area): the release's own words for it — never the bare water name, never a number
+  if (p.lo === null && p.hi === null && p.pieces.length === 1 && p.said) return p.said;
   // a joined entry is a span (`last`: it must have both ends); one part, its own
   return spanName(g.ends, p.itemName, p, p.pieces.length > 1 ? p : undefined);
 }
@@ -535,10 +550,11 @@ export const WATER_MAP_WORDS = {
   /** (T875) A water of one part: the toggle's place held by a quiet line, so the bar is the same height on every water
    *  ("This river is one part"; the noun is `waterNoun`'s, as ⤢'s). */
   partsOne: (noun: string) => `This ${noun} is one part`,
-  /** (T1140) Where a part sits in the water's list: "Part 2 of 5" — the map's bar and the Regulations and Conditions heads. */
-  partOf: (n: number, of: number) => `Part ${n} of ${of}`,
+  /** (T1140, owner 2026-11-25: "\"<water> outside B.C.\" (Recommended)") a part of the water outside B.C. */
+  outside: (water: string) => `${water} outside B.C.`,
   /** (T1140, proposed words for the owner) Under the Regulations and Conditions heads of a part whose water has others with
-   *  other rules (`entryPlaces` `differs`): opens the Map with the list of parts open. */
+   *  other rules (`entryPlaces` `differs`): opens the Map with the list of parts open. No part is ever numbered (owner
+   *  2026-11-25: "there should be no partt x of n nameas anywhewre in the app"). */
   partsOthers: "Other parts of this water have different rules",
   /** (T150) A row's mark: the part the map (and the Regulations view) is on. */
   partsHere: "✓",
@@ -555,19 +571,20 @@ export const WATER_MAP_WORDS = {
   unavailable: "The parts of this water are not available",
 } as const;
 
-/** "Part 2 of 5 · Chilliwack River": where the current part sits in the group. */
+/** The line over the part's name on the map's bar: the water the part is of ("Chilliwack River"; a split lake's area,
+ *  its own water). (T925, owner 2026-11-20: "It says part 1 of 1 should just say whole water") a water of one part is the
+ *  whole water. (T1140, owner 2026-11-25: "there should be no partt x of n nameas anywhewre in the app") NO COUNT: a part
+ *  is said by its name (`partName`), the bar's next line. */
 export function partWhere(g: WaterGroup, i: number): string {
-  const note = itemNote(g, i);
-  // (T925, owner 2026-11-20: "It says part 1 of 1 should just say whole water") a water of one part is the whole water
-  const where = g.parts.length === 1 ? WATER_MAP_WORDS.whole("water") : WATER_MAP_WORDS.partOf(i + 1, g.parts.length);
-  return `${where}${note ? ` · ${note}` : ""}`;
+  return g.parts.length === 1 ? WATER_MAP_WORDS.whole("water") : itemNote(g, i) || entry(g, i).itemName;
 }
 
-/** (T150) A row of the parts list as a screen reader says it: "Vedder Crossing Bridge → Tamihi Rapids Bridge, part 2
- *  of 4 · Chilliwack River" — its name, then where it sits (`partWhere`, lower-cased "part"). Whether it is the part
- *  shown is the row's checked state, not words. */
+/** (T150) A row of the parts list as a screen reader says it: its name ("Vedder Crossing Bridge → Tamihi Rapids
+ *  Bridge"), then its water's where the list holds several waters (a split lake's areas). (T1140) Never a number. Whether
+ *  it is the part shown is the row's checked state, not words. */
 export function partRowAria(g: WaterGroup, i: number): string {
-  return `${partName(g, i)}, ${partWhere(g, i).replace(/^(Part|Whole)/, (w) => w.toLowerCase())}`;
+  const name = partName(g, i), note = new Set(g.parts.map((p) => p.item)).size > 1 ? itemNote(g, i) : "";
+  return note && name !== note ? `${name}, ${note}` : name;
 }
 
 /** The ⤢ button: frame the whole river (or lake), or — while it is framed — back to this part. */

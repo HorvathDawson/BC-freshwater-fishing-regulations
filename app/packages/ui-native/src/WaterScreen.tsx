@@ -114,8 +114,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const sun = useSunLine(source, item, sunAt, sunDay);
   const daylight = useDaylight(source, item, sunAt, sunDay);   // (T473) the hours a daylight-only closure leaves open
   // (T517) the header and the Parts sheet name a part as the water's map does: the same group, the same live salmon
-  // (T1140) and say which part of how many: the page waits for the water's parts to be read (`settled`), so no part's
-  // answer is drawn without its "Part 1 of 2" (never for the salmon: the count joins when it lands, as the Map's does)
+  // (T1140) and name the part: the page waits for the water's parts to be read (`settled`), so no part's
+  // answer is drawn before its parts are read (never for the salmon: like stretches join when it lands, as the Map's do)
   const mapRead = useMapEntries(loader, store.value ?? null, item);
   const entries = mapRead.entries;
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null, entries?.names ?? null,

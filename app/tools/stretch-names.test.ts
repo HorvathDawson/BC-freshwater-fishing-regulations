@@ -8,7 +8,7 @@
  * the header, the parts list and the screen reader all say `partName`).
  */
 import { describe, expect, it } from "vitest";
-import { entryNames, headerOf, partName, spanName, type WaterGroup } from "@app/core";
+import { entryNames, headerOf, partName, spanName, WATER_MAP_WORDS, type WaterGroup } from "@app/core";
 import { loadRegsInputs, loadWaterGroup, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
 import { liveReleaseAt, openReleaseDir } from "../conformance/src/fixtureRelease";
 
@@ -127,7 +127,11 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
         for (const partIx of p.pieces) {
           checked += 1;
           const want = names.get(partIx)!;
-          const own = parts[partIx]!.facts ? spanName(g.ends, it.name, p) : it.name;
+          // (T1140, owner 2026-11-25) the part's own name: its ends; with none, the release's own words for it; with no
+          // facts, "<water> outside B.C." — what the map names an unjoined entry (this group is read with no salmon)
+          const own = parts[partIx]!.facts
+            ? (p.lo === null && p.hi === null && parts[partIx]!.facts!.runs ? parts[partIx]!.facts!.runs : spanName(g.ends, it.name, p))
+            : WATER_MAP_WORDS.outside(it.name);
           const viaPart = await said(partIx, names), early = await said(partIx, null);
           if (viaPart.short !== want) bad.push(`${it.id} part ${partIx}: map "${want}", header "${viaPart.short}"`);
           if (viaPart.full !== want && !(viaPart.inp.item?.picker?.choices.some((c) => c.parts.includes(partIx) && c.text === viaPart.full)))

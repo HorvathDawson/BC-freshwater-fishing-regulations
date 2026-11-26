@@ -350,7 +350,7 @@ export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day, dow
                             places: PartPlaces | null = null): RegsPage | null {
   // (T53) `downstream`: an unnamed reach's named water down its flow — the header's label slot (core `downstreamLabel`);
   // (T517) `names`: the parts as the water's map names them (`useMapEntries`) — the header's and the Parts sheet's;
-  // (T1140) `places`: where each part sits in the map's list — the header's "Part 1 of 2" (`useMapEntries`)
+  // (T1140) `places`: whether another part has other rules — the header's line to the parts (`useMapEntries`)
   return useMemo(() => {
     if (!inputs) return null;
     const t = openProbe.on() ? performance.now() : 0;
@@ -477,7 +477,7 @@ export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSo
                               item: ItemId | null, section: SectionId | null,
                               /** (T517) the parts as the water's map names them (`useMapEntries`) */
                               names: ReadonlyMap<number, string> | null = null,
-                              /** (T1140) where each part sits in the map's list (`useMapEntries`): the head's "Part 1 of 2" */
+                              /** (T1140) whether another part has other rules (`useMapEntries`): the head's line to the parts */
                               places: PartPlaces | null = null) {
   const store = useRegsStore(loader);
   const found = useRegsTarget(store.value ?? null, item, section);
@@ -488,8 +488,8 @@ export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSo
                                                     downstream: down.value?.name ?? null, names, places }) : null),
                        [inp, down.value?.name, names, places]);
   const place = head?.place ?? null;
-  // (T1140) the head's "Part 1 of 2" and its line to the list of parts, as the Regulations view says them
-  const part = head?.part ?? null;
+  // (T1140) the head's line to the list of parts, as the Regulations view says it
+  const others = head?.others ?? null;
   // (T387) the page's subject — its part, never the tap — so this view's notices are its Regulations page's
   const subject = usePageSubject(inp);
   const access = useAccessNotices(loader, store.value ?? null, subject);
@@ -499,5 +499,5 @@ export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSo
   const noTarget = !!store.value && found.state === "ready" && !found.value;
   const settled = !loader || failed || noTarget
     || (inputs.state === "ready" && (subject === null || access.state === "ready") && (item !== null || section === null || down.state !== "loading"));
-  return { place, part, access: access.value ?? [], settled };
+  return { place, others, access: access.value ?? [], settled };
 }

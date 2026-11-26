@@ -88,12 +88,10 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
         {!side && !!sun && <SunLine sun={sun} palette={palette} align="end" dateInset={8 + dateInset} />}
         {h.classed && <ClassLine b={h.classed} palette={palette} onTerm={onTerm} />}
       </>)}
-      {/* (T1140) a part of a water of several: "Part 1 of 2" over its name, as the Map tab says it */}
-      {h.part && <PartWhere where={h.part.where} palette={palette} />}
       {/* (T878) no place label (a water of one part, Babine Lake — Main Body): no empty slot under the name */}
       {!!h.place && <Place place={h.place} palette={palette} />}
-      {/* (T1140) and where other parts have other rules, the line to the list of them */}
-      {h.part?.others && <PartsOthers words={h.part.others} palette={palette} onParts={onParts} />}
+      {/* (T1140) where other parts of the water have other rules, the line to the list of them */}
+      {h.others && <PartsOthers words={h.others} palette={palette} onParts={onParts} />}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
     </View>
   );
@@ -230,19 +228,6 @@ export function Place({ place, palette, coach: coachKey = "regs:place" }: { plac
         <Text aria-hidden pointerEvents="none" onLayout={(e) => setMeasuredLabel(e.nativeEvent.layout.height)} maxFontSizeMultiplier={CAPPED_SCALE}
               style={[TYPE.metaSemi, { position: "absolute", left: GUTTER, right: 12, top: 0, opacity: 0 }]}>{shown}</Text>
       )}
-    </View>
-  );
-}
-
-/**
- * (T1140, a proposal for the owner) WHICH PART OF HOW MANY: "Part 1 of 2", over the part's name — the Map tab's own line
- * ("PART 1 OF 2" in its bar: the same words, count and face — in the secondary ink, as every regs line: no folded colour, T22), on the
- * Regulations and the Conditions heads alike.
- */
-export function PartWhere({ where, palette }: { where: string; palette: Palette }) {
-  return (
-    <View style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 2 }}>
-      <Text testID="regs-part-where" maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.section, { color: palette.sub }]}>{where}</Text>
     </View>
   );
 }
