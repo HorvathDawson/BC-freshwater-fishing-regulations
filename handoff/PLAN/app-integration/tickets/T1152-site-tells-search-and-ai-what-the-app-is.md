@@ -43,6 +43,29 @@ the words. Severity: medium (people are told to use a paid app for things this o
 Owner, 2026-11-25 (planning chat), on fish identification, verbatim: "we have id with pictures and words
 desacribing how to id." So the claim is a fish ID guide with pictures and words (shipped), not photo recognition.
 
+
+## 2026-11-25 night: stocked lakes and depth are claimed now (the owner's call)
+Two read-only passes found that the Stocked and Depth map modes exist in code but no data feeds them: both toggles
+show "Coming soon / No data yet" (`app/packages/core/src/layers.ts:150-160`, `lakeFacts.ts`, `mapModes.ts:126`;
+T200 and T201 are open, planned for 0.11). The planning chat said they could not be claimed. Owner, verbatim: "we
+want to claim this (Stocked lakes and depth cannot be claimed,) it will be there soon and was on old version".
+Asked how (ship first slices with the claim, recommended / claim as "coming soon" / claim them now as features),
+his pick: **"Claim them now as features"**. So Work step 2 changes for these two: the site, `llms.txt` and the
+structured data list stocked lakes and depth charts as features before the data is in. Recorded as his call, with
+the risk the planning chat named: a store listing that names a feature the build does not have can be rejected
+(Apple guideline 2.3 accurate metadata; Google Play's misleading-claims policy), and an assistant would send
+people to a layer that says "No data yet". The planning chat's proposal to shrink that gap, not his pick: put the
+claim on the SITE first and add it to the two STORE listings with the build that ships the first slices (the
+depth-chart card from the open provincial PDFs; the stocking card and colour from the open release records;
+T200 / T201), and pull those slices as early as they fit. The feature-list source file marks the two as
+"claimed by the owner, data from <release>" so the build gate allows them and names them.
+Fish ID is claimed as "fish identification guide with pictures and tips" (41 pictures, about 27 fish), not photo ID.
+The launch pass's proposed words (home block, features, meta, JSON-LD, llms.txt, store descriptions) are the
+planning chat's notes for the lane; the About page's "stocking records" source line and the credits page's
+stocking / depth lines (`menu/licences.ts:144`, `sources.ts:121`) stay, by the same call.
+
 ## Owner
 
 - [ ] 2026-11-25 — When the lane has the shipped-feature list and the proposed words (home block, store listing lines): read them and say yes or change them. Default: nothing ships to the site until you have.
+- [x] 2026-11-25 — Stocked lakes and depth are not fed with data yet: how to claim them → "Claim them now as features" (2026-11-25)
+- [ ] 2026-11-25 — The store listings (Play, App Store): name stocked lakes and depth now too, or only with the build that ships them (the review-rejection risk is on the stores, not the site). Default: the site now, the stores with the build.
