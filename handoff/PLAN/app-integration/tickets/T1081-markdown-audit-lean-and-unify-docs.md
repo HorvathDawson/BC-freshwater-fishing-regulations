@@ -66,3 +66,36 @@ Depends: T1080 and PR #114 first (they change the two biggest working pages). Se
 reading it; a human cannot). Release: none; its own docs chat after 0.9.1 (proposed chat D), about 3 lanes. Model:
 Sonnet for the inventory and cuts, Opus for AGENTS (deciding which rules still hold). Size: L. Owner: yes (agrees the
 layout; says which history he wants kept).
+
+## 2026-11-25 afternoon: the owner's layout picks, the conditions, two additions (clean-up chat is session -77)
+
+**Owner's picks (in the clean-up chat's dialogs, relayed):** (1) closed tickets (836 files, 2,012 pictures, 528
+MB): "move to archive but keep it compressed; images and assets can be dropped" (one index line per closed
+ticket, `tickets/closed.tsv`, and one `tickets/archive/closed-2026.tar.gz`); (2) `handoff/PLAN/` becomes `docs/`
+and tickets get a top-level `tickets/`; (3) `app-data/` deleted, its two scanning tests retired (kept: the
+satellite and stream-imagery research, under `handoff/PLAN/research/`, in use by T1108); (4) no owner-todo
+folder: an "## Owner" block in the ticket it belongs to, one built OWNER page ("it should live in tickets folder
+in some way and be easier to manage and control / keep info ... decisions too maybe"); (5) `decisions.md` one
+page by subject, only what binds now; (6) restart pages `restart/<chat>.md`, 60 lines or fewer, deleted when the
+chat ends. He said "yes start" at about 16:10; the lanes work on local branches.
+
+**The planning chat's conditions on the cut:** `pipeline reports` finds the same count of NEW items before and
+after (report ids and crash hashes cited in closed tickets stay findable); ticket numbers are never reused,
+claims of unmerged PRs included; `play-production-access/` moves whole; open tickets keep their pictures and
+files; the owner's review marks and `data/` are untouched; the planning chat's docs land before the cut PR; the
+RENAME waits for 0.10.0 on production and merged back, with no other PR open, on the planning chat's word.
+
+**Added by the owner 2026-11-25:**
+- Workflows (relayed by the repo-move chat, 15:44): "clean up workflows after too. can delete bloat as part of
+  cleanup" (the work is T1144).
+- The curation review tool STAYS in this repo. He asked "should curation review be moved to a different repo?";
+  the planning chat's answer was no (it writes through pipeline code, the `test_review_*` tests guard both
+  halves, it is about 60 files); his reply: "okay thatr works". Wanted: one obvious home with a short README (how
+  to start it, what it writes), its tests in CI only when its files change, the old plans under
+  `handoff/PLAN/curation-review/` cut down. On the path move and the CI filter: "do it when it is best timing" =
+  with the rename, last, with a saved-mark write-through test proven before and after. A separate repo only if
+  outside curators or another province is ever planned.
+
+**After the cut merges:** numbering is `node app/tools/ledger.mjs --next` then `--claim`; owner asks are lines
+under "## Owner" (`- [ ] date — ask`), unfiled ones in `tickets/OWNER-UNFILED.md`; the planning chat rewrites
+prompt P and closes T1080 (delivered by `views/OWNER.md`).

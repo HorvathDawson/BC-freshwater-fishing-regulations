@@ -10,14 +10,16 @@ release that was called "0.9.1" as **0.10.0**, because it carries feature commit
 ledger's status cells use the new numbers. Older text, ticket bodies, chat names and the owner's quoted words keep the
 old ones: read them through this line. A later release's real number is whatever the rule computes at its cut.
 
-**Order from here (owner 2026-11-25 15:14: "Yes, move now, re-cut 0.10.0 after"):** the 0.10.0 staging run finishes
-(it tags v0.10.0; no production step and no phone build from the old repo) → the repo transfer and rename the
-minute that run's upload has ended and no CI run is in progress (chat 3, about 20 minutes with the owner) → the
-merge queue (his OK) → T1140's label fix through the queue to main, cherry-picked onto release/0.10.0 → the staging
-step reruns → his production commands, the phone builds, the App Store submission (probably the next day) →
-merge-back → T1062's release-candidate build, T1120, T1131 (chat 3) and T1140's landing A as the next patch, the
-first release through a release candidate → the hardening release →
-the 0.11 features.
+**Order from here (rewritten 2026-11-25 17:09; the owner's words are in T1140, T1146 and today's owner items):** the
+repo is canifishthis/canifishthis with the merge queue on; the repo's new name (a85dec393) and the
+release-candidate build (T1062: 5ac3d67f3, fad6911e8) are on main and picked onto `release/0.10.0`. **0.10.0 is
+HELD by the owner for real names on river parts:** T1146 (side channels the river's rule does not reach) → T1140
+(no "Part N of M", a part named from its area cut, the Map bar) → T1145 (the game-fish bar's open colour) → one
+data build → staging ships as `v0.10.0-rc.1` → the owner's look → `release --final` → his production commands,
+the phone builds, his three App Store clicks → merge-back. Then: the clean-up chat's rename (T1081), T1120,
+T1131, T1140's landing A as the next patch → the hardening release (T1132, T1144, T1147, T1148 and the rest) →
+the 0.11 features (T1119; T1108 builds nothing, see its ticket). Nothing ships from a tree that is not the
+newest rc.
 
 Beside all of that from the moment the repo move is checked and 0.10.0 is running again (owner 2026-11-25): chat D
 (repo clean-up and docs lean-out: its inventory and layout first, then the cuts through the merge queue; its folder
@@ -71,9 +73,10 @@ order of 3, 2b and D after the iOS release is the planning chat's proposal; the 
 | P planning | `bc-freshwater-fishing-regulations-8e` | this file + the ledger; it alone numbers tickets (from T1055) |
 | 1 ship 0.9.0 | `bc-freshwater-fishing-regulations-37` | `handoff/PLAN/NEXT-SESSION-2026-11-24-after-090.md` (chat finished 2026-11-24) |
 | 2 0.9.1 follow-ups | `bc-freshwater-fishing-regulations-56` | `handoff/PLAN/RESTART-091-chat.md` |
-| 5i iOS full release | `bc-freshwater-fishing-regulations-06` (started 2026-11-24 23:10, beside chat 2 at the owner's ask) | `handoff/PLAN/ios/RESTART-ios-release-chat.md`; the paste-from page is `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` |
-| S store content | `bc-freshwater-fishing-regulations-a1` (started 2026-11-24 ~23:30; owner picked direction A for the pictures 23:42) | `handoff/PLAN/RESTART-store-content-chat.md` |
-| 3 repo move | `bc-freshwater-fishing-regulations-38` (started 2026-11-25 13:12; the org github.com/canifishthis exists; the transfer waits for 0.10.0 on production and merged back) | `handoff/PLAN/RESTART-repo-move-chat.md`; prep in the repo-move folder beside it |
+| 5i iOS full release | RETIRED 2026-11-25 by the owner; its leftovers (the privacy page check, his three submit clicks, the T1071 record, the T996 push proof) are the planning chat's. Was `bc-freshwater-fishing-regulations-06` (started 2026-11-24 23:10) | `handoff/PLAN/ios/RESTART-ios-release-chat.md`; the paste-from page is `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` |
+| S store content | CLOSED 2026-11-25 by the owner; PR #256 (T1134) is finished by the repo-move chat, PR #238 (T1072) waits for his look at frame 3. Was `bc-freshwater-fishing-regulations-a1` (started 2026-11-24 ~23:30) | `handoff/PLAN/RESTART-store-content-chat.md` |
+| 3 repo move | `bc-freshwater-fishing-regulations-38` (started 2026-11-25 13:12; the move is DONE and checked 2026-11-25 15:55, the merge queue is on, T1062 is built; left: PR #256's fix, then T1120 and T1131) | `handoff/PLAN/RESTART-repo-move-chat.md`; prep in the repo-move folder beside it |
+| D clean-up (T1081) | `bc-freshwater-fishing-regulations-77` (started 2026-11-25 about 15:30; the owner's layout picks are in T1081; works on local branches, its cut PR opens on the planning chat's word, the rename after 0.10.0) | its restart page comes with its PR |
 
 Build chats list new finds under "For the planning chat" on their restart page and message the planning chat; it
 replies with the Tnnn.

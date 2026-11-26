@@ -29,3 +29,10 @@ by the owner's word: the rule's one exception, written here so nobody removes th
 Acceptance: the policy is in AGENTS.md, `dependabot.yml` is on main, #250 has a decision, and the first CodeQL and
 dependency alerts are each a ticket or closed with a reason. Severity: low (medium if a first alert is real).
 Model: Sonnet (Opus for a major upgrade's lane). Size: S. Owner: no (he sees the policy).
+
+## 2026-11-25 15:45: paused until 0.10.0 is out; how to turn them back on
+Owner (relayed by the repo-move chat): "Pause both until 0.10.0 is out". Dependabot security updates: off, by
+him (the repo switch). CodeQL default setup was forced by the ORG security configuration
+`canifishthis-org-config-1` (id 303766), not a repo switch; with his "you can change it" the repo-move chat set
+its `code_scanning_default_setup` to disabled at 15:43. Back on after 0.10.0: that one field to enabled, and the
+repo switch for Dependabot security updates (an owner item, 2026-11-25 afternoon). PRs #250, #252 and #254 were closed.
