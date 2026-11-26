@@ -5,6 +5,7 @@
  * it is granted, and when the browser would ask it says so on the button ("Asks for your location first") — the
  * prompt then comes from the reader's own tap, through `here()`. Refused, or no geolocation at all: not offered.
  */
+import { environmentError } from "@app/core";
 import type { Locate, LocatePermission } from "@app/ui";
 
 /** A fix good enough to pin a spot by, not so fussy that a phone in a canyon never answers. */
@@ -24,7 +25,10 @@ export const locate: Locate | null = geo ? {
   },
   here: () => new Promise((resolve, reject) => {
     geo.getCurrentPosition((p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }),
-                           reject, OPTIONS);
+                           // (T1163) a refusal (code 1) or no fix in time (code 3) is the environment's: shown, never reported
+                           (e) => reject(e.code === e.PERMISSION_DENIED || e.code === e.TIMEOUT
+                             ? environmentError(Object.assign(new Error(`location: ${e.message}`), { code: e.code })) : e),
+                           OPTIONS);
   }),
   // (T303) following: only after the reader's own tap has been allowed (`here()`), stopped by the returned function
   watch: (on, failed) => {

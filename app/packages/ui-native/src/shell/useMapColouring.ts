@@ -2,7 +2,7 @@
  * WHAT EVERY MAP IS COLOURED BY: the layers choice, the tiles/data pair, the day's status, the lake values, the
  * Conditions colouring and its horizon — decided in `@app/ui` hooks and only gathered here for the Shell (T62 3.4).
  */
-import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, type SalmonMapStatus, type SectionKey,
+import { chooseLayer, chooseShow, IMAGERY, layersVM, withImageryCredit, type Horizon, type SalmonMapStatus, type SectionKey,
          type WaterStatus } from "@app/core";
 import { useCallback, useMemo, useState } from "react";
 import type { GaugeFeed, RunTimingSource, SalmonFeedSource, WaterSource, SectionId } from "@app/data";
@@ -135,7 +135,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    * imagery tile (web map), and one probed tile (both; a phone's only signal). `mapModes` turns it and the reader's
    * choice into the ground every map is handed (`mm.basemap`) and the Layers sheet's reason line; the choice is kept.
    */
-  const probe = useMemo(() => imageryProbe(tiles.imagery ?? imageryTiles(null)), [tiles.imagery]);
+  const probe = useMemo(() => imageryProbe(tiles.imagery ?? imageryTiles(IMAGERY, null)), [tiles.imagery]);
   const imagery = useImageryReach({ wanted: layerChoice.ground === "ground.satellite", connectivity, probe });
   /*
    * THE LAYERS SHEET'S VIEW MODEL, and what every map is handed (`effective`): from the layer registry over what the
@@ -203,7 +203,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
                            basemap: layers.effective.basemap, imageryUp: imagery.up,
                            salmon: regsShown === "salmon", runs: runsShown, runsField: runs.facts?.hasField === true });
   // Esri's credit is listed exactly while its imagery is drawn (the map's own control does the same from the style)
-  const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap), [attribution, mm.basemap]);
+  const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap, IMAGERY), [attribution, mm.basemap]);
   /*
    * THE CONDITIONS COLOURING (`useConditionsColour`): the release's classes and the feed's values at the horizon
    * (`standing` — one engine call per feed refresh or horizon change), labelled per tile by both renderers.

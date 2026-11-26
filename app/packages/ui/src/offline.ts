@@ -4,9 +4,11 @@
  * regions as parts of it — and, on the web, how much of the regulations the release cache holds (asked when the page
  * opens); on a phone the update service's release download (progress; Resume = a check now) and T231's
  * large-updates-on-mobile-data setting, shown as "Wi-Fi only". No action can drop the regulations.
+ * (T1154) And the satellite imagery kept by region (`OfflineImagery`, of the provider in use's offline method), asked
+ * when the page opens; none today, so no rows.
  */
 import { useEffect, useState } from "react";
-import { reportFailure, offlineVM, type OfflineVM } from "@app/core";
+import { reportFailure, offlineVM, type ImageryRegion, type OfflineImagery, type OfflineVM } from "@app/core";
 import { offlineSizes, regsKept, type ReleaseLoader } from "@app/data/release";
 import type { UpdateSnapshot } from "@app/data";
 
@@ -20,8 +22,10 @@ export interface OfflineControls {
 
 export function useOfflineMaps(o: {
   loader: ReleaseLoader | null;
-  /** the page is open: the cache is asked then (web) */
+  /** the page is open: the cache is asked then (web), and the imagery kept */
   open: boolean;
+  /** (T1154) the satellite imagery kept offline (`@app/data/release` `offlineImagery` of the provider in use) */
+  imagery: OfflineImagery;
   platform: "phone" | "web";
   /** phone: the update service's state, its check and its mobile-data setting (null: no service) */
   updates?: UpdateSnapshot | null;
@@ -37,12 +41,21 @@ export function useOfflineMaps(o: {
     void regsKept(loader).then((n) => { if (live) setHeld(n); }, reportFailure);   // (T368) the size unsaid, reported
     return () => { live = false; };
   }, [loader, web, o.open]);
+  const { imagery } = o;
+  const [kept, setKept] = useState<readonly ImageryRegion[] | null>(null);
+  useEffect(() => {
+    if (!o.open) return;
+    let live = true;
+    void imagery.list().then((r) => { if (live) setKept(r); }, reportFailure);   // a failed ask lists none, reported
+    return () => { live = false; };
+  }, [imagery, o.open]);
   if (!loader) return null;
   const sizes = offlineSizes(loader.manifest);
   const regions = Object.keys(loader.manifest.files).filter((f) => /^regs-(?!sid$)/.test(f)).map((f) => f.slice(5)).sort();
   const u = o.updates ?? null;
   const vm = offlineVM({
     platform, regions, regs: { bytes: sizes.regs, held: web ? held : null }, map: sizes.map, book: sizes.book,
+    imagery: kept,
     ...(web ? {} : {
       update: u?.release ? { phase: u.release.phase, bytes: u.release.progress?.bytes ?? 0, of: u.release.progress?.of ?? 0 } : null,
       wifiOnly: u && o.allowMetered ? !u.allowMetered : null,
