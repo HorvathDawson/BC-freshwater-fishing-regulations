@@ -47,6 +47,8 @@ Three rules hold the whole way through:
 
 ## Before you start
 
+0. **Lid open, on power.** The release command and `heavy.sh` hold the Mac awake (`caffeinate`), but not through a
+   closed lid (0.10.0 slept 8.3 h); an unattended run on battery is refused (`--on-battery "<why>"`).
 1. **The hooks and packages are in place.** Once per clone: `git config core.hooksPath .githooks` (set on this Mac
    already). After a pull that changed `app/package.json`: `pnpm -C app install --frozen-lockfile --prefer-offline`
    (the commit hook needs it).
