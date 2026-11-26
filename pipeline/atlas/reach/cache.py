@@ -205,5 +205,10 @@ from __future__ import annotations
 #:     every stream feeding it the rule's (Eagle Creek's closure now takes Dick Creek above Dick Lake). A stretch rule, a
 #:     DFO place and a licensing record stay as they were; each head lake is reported (`head_lake` diagnostic). No
 #:     classify.py outcome changed; the bump marks the binding diff.
-POLICY_VERSION = "50"
+#: 51: (T1146, owner 2026-11-25 "Fix the binding in 0.10.0") A SIDE CHANNEL GOES WITH ITS WATER
+#:     (`tributaries.A_SIDE_CHANNEL_GOES_WITH_ITS_WATER`): a walk that collects a stream item takes its no-main-flow
+#:     pieces (not a barrier, not carved out, not own water) that touch only collected pieces of that item, and climbs
+#:     on from them — the distributaries and bigger-order channels the upward walk never met (Forsyth, Koksilah,
+#:     Halfway, MacMillan, Manson, Omineca, Shelagyote). No classify.py outcome changed; the bump marks the binding diff.
+POLICY_VERSION = "51"
 
