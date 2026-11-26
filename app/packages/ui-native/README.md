@@ -15,4 +15,4 @@ ones through react-native-web, so phone, tablet and desktop match by constructio
 ## Tests
 
 `src/**/*.test.tsx` and `*.shell.test.tsx` beside the code (jsdom + react-native-web). What a jsdom render cannot prove
-(native-only components) is listed in [`RENDER-TESTS.md`](RENDER-TESTS.md) and in `src/RENDER-TESTS.md`.
+(native-only components) is listed in [`RENDER-TESTS.md`](RENDER-TESTS.md).

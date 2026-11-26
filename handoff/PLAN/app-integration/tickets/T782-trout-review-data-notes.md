@@ -4,9 +4,9 @@ Status: OPEN (pipeline answers / app core; none is new in r-46e4355a7277).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T782 | Data faults found by the trout display review: Kitimat wild rainbow limit of 1 not on the card, Ross Lake headline 2 against a daily total of 4, eight rule sets with no top line, the Dolly Varden/bull trout picture captioned "Bull trout" | OPEN | — | `design/trout-display-review-2026-11-15.md` |
+| T782 | Data faults found by the trout display review: Kitimat wild rainbow limit of 1 not on the card, Ross Lake headline 2 against a daily total of 4, eight rule sets with no top line, the Dolly Varden/bull trout picture captioned "Bull trout" | OPEN | — | `git show 828c5f7c4:handoff/PLAN/design/trout-display-review-2026-11-15.md` |
 
-Source: `handoff/PLAN/design/trout-display-review-2026-11-15.md` (rounds 1 to 4, "Things noticed in the data" and
+Source: `git show 828c5f7c4:handoff/PLAN/design/trout-display-review-2026-11-15.md` (rounds 1 to 4, "Things noticed in the data" and
 "Possible defect to check").
 
 1. **Kitimat River and Humphrys Creek, rainbow.** The stored rows give hatchery rainbow 5 a day (50 cm or less) and

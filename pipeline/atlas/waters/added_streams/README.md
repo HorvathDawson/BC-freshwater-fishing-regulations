@@ -1,182 +1,110 @@
-# pipeline/atlas/waters/added_streams — put non-FWA streams into the stream graph
+# added_streams: streams the FWA lacks, minted into the stream graph
 
-Some streams referenced by BC fishing regs (and local maps) are **absent from the FWA** stream
-layer — e.g. Salamander Creek, and a cluster of Burnaby Lake / Deer Lake creeks. This package ingests
-any such stream line — **fetched from OSM or hand-drawn** — as a real graph node with its own
-geometry, joined to the FWA network by a **`connector`** flow edge. Once in the graph the added
-stream is named (via `name_variants.json`), bindable by regs, and — being a real flow edge — counts
-as a tributary of the stream it joins.
+Some streams the regs name are absent from the FWA stream layer (Salamander Creek, the Burnaby Lake and
+Deer Lake creeks). This package turns stream lines from city layers, OpenStreetMap or a hand drawing into
+real graph nodes with their own geometry, each joined to the FWA network by a flow edge. An added stream
+is nameable through `name_variants.json`, bindable by regs, and counts as a tributary of the stream it joins.
 
-Source-neutral: the ingest only cares about GeoJSON stream lines. The line pools live in `data/source/municipal/`:
-the city exports, OpenStreetMap picks (`osm_streams.geojson`, T222) and channels drawn by hand
-(`manual_streams.geojson`, T806). `clean.py` normalises each into `data/generated/municipal/cleaned/`, and
-`build_dataset.py` mints the kept ones into the one frozen artifact the build reads (*Build integration* below).
-
-## Workflow
+Reads: `data/source/municipal/*.geojson` (city exports, `osm_streams.geojson`, `manual_streams.geojson`;
+`SOURCES.md` lists them), the FWA gpkg, DEM tiles (AWS Terrarium, cached).
+Writes: `data/curated/waters/added_streams.json`, the one frozen artifact the atlas build reads, plus
+reports under `data/generated/added_streams/`. Entry points: `build_dataset.py` (mint), `mapcheck.py`
+(check maps), `harness.py` (standalone demo), `fetch_osm.py` (the only network step, human-run).
 
 ```
-fetch_osm (Overpass, human-run)  ─┐
-                                  ├─>  data/source/municipal/*.geojson ──clean → build_dataset──>
-hand-drawn LineString  ──────────┘     data/curated/waters/added_streams.json ──build──> graph nodes + connectors
+fetch_osm / hand-drawn line --> data/source/municipal/*.geojson --clean--> merge --> fwa_match --> resolve
+                                                                           --> mint --> validate --> data/curated/waters/added_streams.json
+atlas build: drop fwa_exclude fids, add the artifact's fids, attach_connectors, feed name_variants
 ```
 
-1. **(optional) Fetch OSM candidates over an area** — human-run, hits Overpass (external network):
-   ```
-   PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.fetch_osm \
-       --bbox -123.02 49.22 -122.88 49.28 --out data/generated/added_streams/added_candidates.geojson
-   ```
-   Writes `data/generated/added_streams/added_candidates.geojson` (one Feature per merged channel) + a `.md` review table.
-2. **Curate** — copy the keepers into the source pool (`data/source/municipal/osm_streams.geojson`, or
-   `manual_streams.geojson` for a hand-drawn line), adding a `connect_to`
-   (`{gnis_id}` / `{blk}` / `{coord}`) for anything ambiguous. Hand-drawn streams: author a
-   `LineString` with `source:"manual"` and a negative `blk`.
-3. **Verify standalone** — no build.py needed:
-   ```
-   PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.harness \
-       --geojson pipeline/atlas/waters/added_streams/tests/data/added_streams.sample.geojson --out data/generated/added_streams/added_demo.gpkg
-   ```
-   Prints merged mainstem = one node/blk/wsc, tributaries nesting under it, added nodes ∈
-   `ancestors(FWA stream)`; writes a small gpkg to eyeball in QGIS.
-4. **Build integration — DONE** (see *Build integration* below): `pipeline/atlas/build.py` reads the frozen
-   `data/curated/waters/added_streams.json` on every build (on by default) and wires the added streams into the graph.
+## Commands
 
-## The line schema (the source pools' features)
+```
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.fetch_osm --bbox W S E N   # Overpass
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.harness                     # standalone check
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.build_dataset burnaby squamish port_moody
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.mapcheck burnaby --only package
+PYTHONPATH="$PWD" .venv/bin/python -m pytest pipeline/atlas/waters/added_streams/tests -q
+```
 
-A FeatureCollection of `LineString`s (lon/lat). Per-feature properties:
+`build_dataset` resolves each source in its own bbox (a combined bbox cross-contaminates), merges with
+per-source blk offsets, then the verify maps (`data/generated/added_streams/verify_<source>.html`) are
+eyeballed and the artifact committed. The tests are synthetic (no gpkg, no network, no credits) and the root
+`pytest.ini` `testpaths` collects them with the main suite.
+`tests/data/added_streams.sample.geojson` feeds `harness.py`, not the unit tests.
+
+## The line schema
+
+A FeatureCollection of lon/lat `LineString`s. Per-feature properties:
 
 | prop | meaning |
 |---|---|
-| `source` | `"osm"` \| `"manual"` |
-| `blk` | **channel** id (negative int). Features of one continuous stream share it; each tributary gets its own. fetch_osm fills `-min(way_id)` for same-name-connected OSM ways; author sets it for hand-drawn. |
-| `osm_way_id` | OSM provenance (optional) |
-| `name` | stream name (optional; can also be added later via `name_variants.json`) |
-| `connect_to` | receiver: `{gnis_id}` / `{blk}` (FWA positive, or another added negative) / `{coord}`. Omit to auto-detect the nearest FWA/added receiver within ~250 m. |
-| `wsc`, `stream_order`, `stream_magnitude`, `gnis_id`, `edge_type` | optional overrides (else minted) |
+| `source` | `"osm"` or `"manual"` |
+| `blk` | channel id (negative int); features of one continuous stream share it |
+| `osm_way_id`, `name` | optional provenance and stream name |
+| `connect_to` | receiver: `{gnis_id}`, `{blk}` or `{coord}`; omitted, the nearest FWA or added receiver within about 250 m |
+| `wsc`, `stream_order`, `stream_magnitude`, `gnis_id`, `edge_type` | optional overrides, else minted |
 
-## How it works
+## How a stream is minted
 
-- **Merge** (`merge.py`) — same-`name` touching ways (or same explicit `blk`) merge into one channel
-  = one blue line = one WSC, exactly like FWA merges fids. A fork has a different name, so it stays a
-  separate channel (that join becomes an edge, not a merge).
-- **WSC** (`wsc.py`) — a channel's watershed code = its receiver's WSC + a 6-digit proportional-
-  distance segment (`round(pct, 2)·10⁴`; FWA spec: 528.8 / 2479.5 → 21.33 % → `213300`). Assigned
-  top-down from the FWA root outward, so every added stream prefix-descends the stream it joins.
-- **BLK** — `-osm_way_id` (or an author-assigned negative). Never collides with real (positive) FWA
-  BLKs.
-- **Order / magnitude** — computed over the added network, not defaulted: Shreve
-  `magnitude(C) = 1 + Σ(magnitude of C's added tributaries)`; Strahler order folds tributaries
-  source→mouth (equal order → +1, else keep the max). So a channel formed by joining tributaries gets
-  order/magnitude 2+, matching FWA. A feature may override either.
-- **Ingest** (`ingest.py`) — synthesizes an FWA-shaped `FidRow` + `BlkChain` per channel (every
-  attribute the build reads: order, magnitude, `edge_type="1000"` — never `"2300"`/barrier, route
-  measures, geometry) and a `ConnectorSpec`; `attach_connectors` adds the real flow edge
-  (`connector` for a mouth↔receiver gap, `confluence` for a shared vertex) and a short bridge line
-  keyed under the **receiving mainstem's blk** (the connector shares the mainstem's blk).
-- The synthetic records go through the **same** `build_stream_graph` / `build_section_geometries` as
-  FWA data — no parallel machinery.
+- Merge (`merge.py`): same-name touching ways, or the same explicit `blk`, are one channel, one WSC. A fork
+  with another name stays a separate channel.
+- Classify (`fwa_match.classify`): a line that hugs an FWA stream is a duplicate (dropped, FWA geometry wins);
+  one genuinely longer is an extension (only the novel tail, on the FWA stream's own blk and WSC);
+  anything else is novel. A differently named line that only partly hugs an FWA line stays novel.
+- WSC (`wsc.py`): receiver's WSC plus a 6-digit proportional-distance segment, assigned from the FWA root
+  outward, so every added stream prefix-descends the stream it joins. The true length of a partly loaded
+  river is recovered from its coded FWA children. No two different streams share a code (`_bump_wsc`);
+  same-name fragments of one creek do.
+- Order and magnitude: computed over the added network (Shreve sum, Strahler fold), not defaulted. The
+  ripple onto FWA nodes downstream is not applied.
+- Same-name tributary: a same-name piece joining its mainstem partway (under `_CONTINUATION_FRAC`, 85 %)
+  is a distinct tributary named `<mainstem> Trib.N`; one joining at the source continues the mainstem.
+- Ingest (`ingest.py`): each channel becomes an FWA-shaped `FidRow` and `BlkChain` (edge type `1000`, never
+  a barrier) plus a `ConnectorSpec`; `attach_connectors` adds the flow edge (`connector` for a gap,
+  `confluence` for a shared vertex). The synthetic rows go through the same `build_stream_graph` and
+  `build_section_geometries` as FWA data.
+- Validate (`validate.py`) blocks the write unless every WSC prefix-descends its receiver and every
+  chain roots at a real FWA drainage or a 900 tidal root (`coastal.py`).
+- Streams with no receiver in tolerance are reported, never guessed.
 
-## Known Phase-B decision
+## DEM flow and the resolver
 
-An added tributary joining a larger FWA stream does not change the FWA stream's Strahler order (a
-lower order joining a higher one keeps the higher — FWA rule c), and its Shreve magnitude would rise
-by the tributary's magnitude across every FWA node downstream. That downstream ripple is deliberately
-NOT applied in Phase A (it would mutate existing FWA nodes). Decide during the build-integration
-(Phase B) whether the +magnitude on the FWA mainstem is worth propagating (it is imperceptible for
-line-weight rendering on a large river).
+`dem.py::dem_flow` orients each channel by ground elevation. Its steps, in order: clip a line drawn past the
+river it drains into; split at T-junctions; build the node graph (a loop closing two headwaters is
+dropped); give an approved lake its FWA or tidal outflow, and drain every mouth within 40 m of its shore
+into it; BFS the flow from every node that reaches a river, so each creek flows to its own nearest contact.
+`build_dataset._resolve_topology` derives receivers from that tree: `dem_outlet` is checked before
+`dem_down`; a tributary joins the stream its mouth touches; a novel the DEM eliminated is not minted;
+`_anchor` lets tidal win over a 900 coastal reach and an inland 100 route win over tidal.
+A lake's outlet runs through the lake as a central spine (`lake_through_spine`), so its inlets attach at
+distinct measures and the under-lake span carries the lake `wbk`.
 
-## Municipal batch (bulk sources → minted dataset)
+`build_dataset` also prunes a leaf tributary of 50 m or less (`_SHORT_TRIB_M`) and trims a mouth that
+overshoots its receiver (`_OVERSHOOT_TOL`, 40 m). `RELIABLE_SOURCES` lists sources trusted without DEM
+orientation (`manual`). Per-source calls live in `data/curated/waters/added_stream_calls.json`
+(`clean.calls()`: `exclude_names`, `exclude_src_ids`); `FWA_EXCLUDE_BY_SOURCE` and
+`APPROVED_LAKE_NAMES_BY_SOURCE` are in `build_dataset.py`. The regressions for each rule above are in
+`tests/test_build.py` and `tests/test_dem.py`.
 
-Beyond hand-authored/OSM streams, whole municipal stream layers (Port Moody, Burnaby, Squamish,
-Abbotsford — `data/*.geojson`, described in `SOURCES.md`) are turned into the minted map by a one-time
-batch:
+## What the atlas build consumes
 
-```
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.build_dataset burnaby squamish …
-```
+City layers add to FWA and never replace it: `fwa_exclude` is empty, and the build refuses a non-empty
+one outside `pipeline.atlas.build.OWNER_APPROVED_FWA_EXCLUDE`. A city line that matches an FWA line is a
+name label on it (a `duplicate` name variant). Only a named, real city stream with no FWA equivalent is
+minted (`build_dataset.addable`: unnamed, "(Unnamed)", drainage-typed and drainage-named pieces are not).
+A re-freeze keeps every blk it can (`_keep_previous_blks`: same source, name and src_id), since splits,
+overrides and gauge matches name them. A side channel the owner names (`SIDE_CHANNELS`, today Northrop
+Channel from the Stave River) carries edge type 1350 and an `intake`; `pipeline/tests/test_northrop_side_channel.py` pins it.
 
-Flow: `clean` (uniform schema, strip ArcGIS cruft) → `merge` (same-name connected ways → one channel)
-→ `fwa_match` (fuzzy, FWA-favouring) → resolve receiver → `underlake` (tag under-lake wbk) → mint →
-`validate` → write `added_streams.build.json` + `data/generated/added_streams/added_name_variant_candidates.json` +
-`data/generated/added_streams/added_streams_report.md`.
+The artifact's keys: `streams` (blk, wsc, name, `segments` with under-lake `wbk`, `connector`, order,
+magnitude, receiver, `base_measure`), `fwa_exclude` (WSC prefixes to drop), `name_variants` (`added`,
+`duplicate`, `excluded_fwa`). `atlas/build.py` reads it on every build (`--no-added-streams` skips it,
+`--added-streams PATH` points elsewhere): it drops the excluded fids, appends the added ones, attaches
+connectors by measure (a node id is `{blk}:{down_m}`), and passes the name variants to `apply_name_variants`.
+A bbox build keeps in-bbox streams plus their added-receiver chain (`_streams_in_bbox`).
 
-- **duplicates** (a municipal line that hugs an FWA stream, even a small offset subset) are dropped —
-  FWA geometry wins.
-- **extensions** (municipal genuinely bigger) keep only the novel tail on the FWA stream's own
-  blk+wsc so graph-build merges it into that blue line.
-- **novel** streams mint a negative blk + a WSC that prefix-descends their receiver — an FWA stream,
-  another added stream, or a **900 tidal root** (`coastal.py`) when they drain to the ocean.
-- `validate.py` blocks the write unless every WSC prefix-descends its receiver and every chain roots
-  at a real FWA drainage or 900 (primary codes inherited, never invented).
-- **matching drives direction**: the FWA/receiver match point is the mouth; the stream expands
-  upstream. A municipal name differing from a matched FWA name is reported as a name-variant candidate
-  (FWA name is boss; the municipal name is a searchable alias).
-- Streams with no receiver within tolerance are **reported, not guessed** (add a `connect_to` or widen
-  the tolerance).
+## Open
 
-Consume the built dataset with `build_dataset.to_graph_inputs(load_build(path))` →
-`(added FidRows, ConnectorSpecs)`.
-
-## Build integration (consumed by `pipeline/atlas/build.py`)
-
-**Owner model (2026-10-29): city layers ADD to FWA, never replace it.** `fwa_exclude` is empty and the atlas build
-refuses a non-empty one outside `pipeline.atlas.build.OWNER_APPROVED_FWA_EXCLUDE`. A city line that matches an FWA line
-is a NAME LABEL on it (`duplicate` name variant, with its city's source label); only a NAMED, REAL city stream with no FWA
-equivalent is minted (`build_dataset.addable`: unnamed, "(Unnamed)", drainage-typed — clean.py `drainage` from the
-layer's own type fields — or drainage-named pieces are not). A re-freeze keeps every previously minted blk it can
-(`_keep_previous_blks`: same source + name + src_id), since splits, overrides and gauge matches name them.
-A SIDE CHANNEL the owner names (`build_dataset.SIDE_CHANNELS`, today Northrop Channel <- Stave River) carries FWA's
-secondary-flow edge type (1350, as the Ruskin channels) and an `intake` (the river's blk + measure feeding its head):
-`attach_connectors` adds the river -> head edge. Its code stays a strict descendant of the river's, so its own walk never
-climbs the river (`test_northrop_side_channel.py`).
-
-The build **does not re-run the resolver**. It consumes a single **frozen, vetted** artifact —
-`data/curated/waters/added_streams.json` (`CURATED.waters.added_streams`, beside `cuts.json`) — that is generated once, eyeballed on the
-verify maps, and checked in. `build.py` reads it on **every build, on by default** (skip with
-`--no-added-streams`; point elsewhere with `--added-streams PATH`).
-
-**Artifact contents** (top-level keys):
-- `streams` — one record per minted stream: `blk` (negative), `wsc`, `name`, `segments`
-  (`coords3005` + under-lake `wbk`), `connector` (mouth→receiver, with the pre-merge `mouth`),
-  `stream_order`/`stream_magnitude`, `receiver_kind`/`receiver_blk`, `base_measure`.
-- `fwa_exclude` — WSC **prefixes** whose FWA blue lines the municipal network supersedes (e.g.
-  `100-019698-` = every tributary under Still Creek). The consumer removes them.
-- `name_variants` — three kinds: **added** (a stream's own municipal name → its own blk; this is how
-  the otherwise-nameless added node gets named + a registry item), **duplicate** (a municipal line
-  that hugs a KEPT FWA blue line → its name aliases that FWA blk), **excluded_fwa** (an excluded FWA
-  reach's own gnis name → the added stream that superseded it, so the name survives the exclusion).
-
-**What `build.py` does** (all additive, right after `load_stream_fids`):
-1. drop FWA fids whose trimmed WSC starts with any `fwa_exclude` prefix (`_apply_fwa_exclude`);
-2. `to_graph_inputs(streams)` → append the synthetic added fids so the **same** `build_blk_chains` /
-   `build_stream_graph` / `build_section_geometries` ingest them (under-lake segments tie into lake
-   nodes via their `wbk`);
-3. after the graph is built, `attach_connectors` wires each added stream to its receiver at the
-   confluence (resolving nodes **by measure**, since a node id is `{blk}:{down_m}` and a lake-inlet
-   mouth under the through-lake spine has no `:0` section);
-4. feed the artifact's `name_variants` into the existing `apply_name_variants` call.
-A bbox build keeps only in-bbox added streams **plus their added-receiver chain** (`_streams_in_bbox`),
-so it never adds another region's streams as orphans nor severs a chain at the bbox edge.
-
-**Regenerate + re-freeze** (Claude-safe: gpkg + DEM only, **no credits**) — resolves each source in its
-OWN bbox (a combined bbox cross-contaminates), then merges with per-source blk offsets:
-```
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.build_dataset burnaby squamish port_moody
-```
-Then eyeball `data/generated/added_streams/verify_<source>.html` (regenerate with `python -m pipeline.atlas.waters.added_streams.mapcheck <source> --only package`)
-and commit the artifact. It is the checked-off source of truth from then on.
-
-**Guarantees the resolver enforces** for the consumer:
-- **Unique WSC** — no two DIFFERENT streams share a code (`_bump_wsc`); same-name *fragments* of one
-  creek intentionally share, an unnamed stream shares with nobody.
-- **Lake through-flow** — a lake's outlet stream runs THROUGH the lake as a central spine
-  (`lake_through_spine`), so its many inlets attach at DISTINCT measures (no pile-up of identical
-  `…-999999` codes) and the under-lake span carries the lake `wbk`.
-- **Same-name tributaries** — a same-name piece joining its same-name mainstem **partway** (< 85 % up)
-  is a distinct tributary: its own descendant code + a `<mainstem> Trib.N` name. One joining at the
-  **source** is a fragment continuation and shares the code.
-
-## Notes
-
-- `fetch_osm.py` is the only network step (Overpass) and is human-run; everything else is local.
-- Nothing here is Burnaby- or OSM-specific — new area (new bbox), a hand-drawn line, or a municipal
-  layer all take the same path.
+About 4 Burnaby streams stay unresolved (one `Eagle Trib.3` sub-branch); `nonlinear_blks` may flag a
+source-data bowtie (Dallas 393), reported not raised.

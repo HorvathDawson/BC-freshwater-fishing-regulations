@@ -54,7 +54,24 @@ A web-only change reaches production without a phone build; a data release that 
 version is refused by a check (mutation); the speed release's numbers are in T1159. Severity: the owner's main
 priority. Model: Opus for the contract and release tooling. Size: L across lanes. Owner: the picks below.
 
+## 2026-11-25 late: 0.10.0 is held and will be re-cut bigger; the order from here
+Owner, verbatim: "could we maybe hold this release and start doing changes then have a bigger release in a bit?";
+"lets hold off on web release then until we speed this up because then release will be wuciker? no reason it
+should b 4 hours from now"; "we can redo release later and also add on other changes to the release. like
+hardening items and patches."; "since we are holidng release maybe we could have the markdown cut and repo move
+chats finish their items?". Dialog picks: live faults (Creston among them) wait: "Yes, wait; speed first
+(Recommended)"; overnight: "Skip staging; finish clean-up + repo-move (Recommended)".
+So: no 0.10.0 candidate went to staging; its fixes are on main (T1146 #264, T1145 #260, the privacy wording #270;
+T1140 #265 merging); `release/0.10.0` is retired as a release (the branch and tags are kept; the 0.10.0 chat
+lists what is only on it). The next candidate is cut from main AFTER the speed work, with the hardening items and
+patches added, on the faster path; the App Store submit and the Play build ride it. A speed build chat
+(`bc-freshwater-fishing-regulations-ae`, restart page `handoff/PLAN/restart/speed.md`) started the same night
+with: the PR title check, keep-awake (T1161), parallel pipeline tests and no third run (T1144), then T1135.
+The three deep looks he asked for are folded into T1171 (data build), T1135 (the checks after a build) and T1063
+(phone builds), with T1170 (the MapLibre library as a stored build).
+
 ## Owner
 
 - [x] 2026-11-25 — Release shape → "could we do option 1 but also allow for option 3 ... doing some stuff in web first will help with this as long as datatypes dont mismatch forcing app releases?? either way speed it up" (2026-11-25); the first patch → "you can choose best option" (2026-11-25; the speed release with the Creston fix)
 - [ ] 2026-11-25 — Picks (defaults first): data, web and native trains now, over-the-air updates only after two weeks of measuring; web production: one click a day / automatic for web-only changes; public PR previews on staging data: yes / no; flags: build-time only / also remote; the floor rule stops a release / only warns; old readers kept since the floor; OTA, if ever, for fixes only.
+- [x] 2026-11-25 — Hold 0.10.0 and re-cut it bigger after the speed work → "lets hold off on web release then until we speed this up ..."; "we can redo release later and also add on other changes to the release. like hardening items and patches." (2026-11-25)

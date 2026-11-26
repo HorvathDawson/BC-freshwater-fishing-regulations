@@ -4,7 +4,7 @@ Status: PARTIAL — audit done; fixes 1–3 built in 20afd21e6; RULINGS Z4a (own
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T668 | Audit: a DFO place covering one river stretch in more than one region (Fraser, Regions 2 and 3) | PARTIAL | 20afd21e6, dfb4ea7c1, d199f0d4d, c9488453c | owner 2026-11-11; audit in T668-audit.md; fixes 1–3, Z4a, 4 built; pairs live (staging 2026-11-18); fix 5: nothing to change (L10 11-22); owner: see ## Owner |
+| T668 | Audit: a DFO place covering one river stretch in more than one region (Fraser, Regions 2 and 3) | PARTIAL | 20afd21e6, dfb4ea7c1, d199f0d4d, c9488453c | owner 2026-11-11; audit in git history (T668-audit.md); fixes 1–3, Z4a, 4 built; pairs live (staging 2026-11-18); fix 5: nothing to change (L10 11-22); owner: see ## Owner |
 
 Source: owner 2026-11-11: "look into how DFO places that match to multiple regions, same river section, like Fraser
 2/3, is handled. To audit it."
@@ -12,7 +12,7 @@ Source: owner 2026-11-11: "look into how DFO places that match to multiple regio
 ## Question
 DFO lists salmon places per region. Where one physical stretch is named under two regions (the Fraser under Region 2
 and Region 3; likely also other boundary rivers), what does each step do with it, and what does the angler see?
-Audit and measures: `T668-audit.md` ("Fixes 1–3 as built").
+Audit and measures: the T668 audit (git history: T668-audit.md).
 
 ## Done
 - Fixes 1–3 (20afd21e6); RULINGS Z4a (dfb4ea7c1; chain `h` gives the card's hours line).
@@ -45,7 +45,7 @@ Owner 2026-11-12: Live straddler: "If python pair table is safe that sounds good
 Depends: T164, T549. Size: M. For the next chat.
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
-owner 2026-11-11; audit in T668-audit.md; fixes 1–3, Z4a, app half + fix 4 and option 2 (c9488453c, RULINGS Z4b) built; pairs live (staging 2026-11-18 'dfo-pairs ok'); left (Claude): fix 5 hygiene; owner: see ## Owner (phone check of that release)
+owner 2026-11-11; audit in git history (T668-audit.md); fixes 1–3, Z4a, app half + fix 4 and option 2 (c9488453c, RULINGS Z4b) built; pairs live (staging 2026-11-18 'dfo-pairs ok'); left (Claude): fix 5 hygiene; owner: see ## Owner (phone check of that release)
 
 ## Owner
 

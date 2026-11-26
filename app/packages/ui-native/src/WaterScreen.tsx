@@ -66,7 +66,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   /**
    * T01: everything the Regulations page reads (T21 draws it: `useRegsStore(loader)` opens the store on the first water).
    *
-   * The release loader (P11): the page's water / regs-<region> / regs-sid files come through it (README §0, D22), never
+   * The release loader (P11): the page's water / regs-<region> / regs-sid files come through it (`app/MAP.md`), never
    * a `/regs.sqlite` of their own. null on the dev-bundle path, which holds no regulations.
    */
   loader?: ReleaseLoader | null;
