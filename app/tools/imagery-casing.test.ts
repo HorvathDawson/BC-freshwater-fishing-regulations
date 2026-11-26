@@ -19,6 +19,7 @@ import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-sp
 import type { DayProfiles } from "@app/core";
 import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contract";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { IMAGERY_GAP_FLOOR } from "../packages/map/src/on-imagery";
 import { rampAt } from "../packages/map/src/paint";
 import { resolveTheme } from "../packages/map/src/style";
@@ -141,7 +142,7 @@ describe("over satellite the stream opens; the drawn map does not move (T594)", 
       const modes = { stream: "profile", lake: "profile", lake_flowing: "profile" };
       const layers = (b: "map" | "satellite") => Object.fromEntries((nativeStyle({ at: { atlas: "a", basemap: "b" } as never,
         theme, view: "plain", modes, basemap: b, gauges: '{"type":"FeatureCollection","features":[]}',
-        values: { status: DAY } as never }).style as { layers: { id: string; paint?: Record<string, unknown> }[] }).layers
+        values: { status: DAY } as never }, maplibreDialect).style as { layers: { id: string; paint?: Record<string, unknown> }[] }).layers
         .map((x) => [x.id, x.paint ?? {}]));
       const [nm, ns] = [layers("map"), layers("satellite")];
       for (const l of STREAM_LAYERS) {

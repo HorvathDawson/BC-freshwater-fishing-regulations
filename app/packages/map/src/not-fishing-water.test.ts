@@ -8,6 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { paintFor } from "./paint";
 import { nativeStyle } from "./native-style";
+import { maplibreDialect } from "./native/maplibre/dialect";
 import { runtimeStyle } from "./runtime-style";
 import { firstNotFishing, NOT_FISHING_LAYERS, SECTION_LAYERS, TAP_GROUPS, VISIBLE_LAYERS } from "./sections";
 import { STYLE_META, resolveTheme } from "./style";
@@ -40,7 +41,7 @@ describe("not fishing water (Q125)", () => {
   it.each(["web", "native"] as const)("draws on the %s map as a fill, never the lake's colour", (platform) => {
     for (const theme of ["light", "dark"]) {
       const s = (platform === "web" ? runtimeStyle(AT, theme)
-                                    : nativeStyle({ ...base, theme }).style) as unknown as S;
+                                    : nativeStyle({ ...base, theme }, maplibreDialect).style) as unknown as S;
       const l = s.layers.find((x) => x.id === ID)!;
       expect(l, `${platform} ${theme}`).toBeDefined();
       expect([l.type, l.source, l["source-layer"]]).toEqual(["fill", "atlas", ID]);

@@ -20,6 +20,7 @@ import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-sp
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM } from "@app/core";
 import { STYLE_META, runtimeStyle } from "@app/map";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
@@ -55,7 +56,7 @@ describe("each source stops where its archive stops", () => {
     it(`every tiled source declares a maxzoom short of the camera's, on both maps (${theme})`, () => {
       const web = runtimeStyle(AT, theme).sources as Record<string, Src>;
       const phone = nativeStyle({ at: AT, theme, view: "plain", modes: {}, basemap: "satellite",
-                                  gauges: AT.gauges }).style.sources as Record<string, Src>;
+                                  gauges: AT.gauges }, maplibreDialect).style.sources as Record<string, Src>;
       const tiled = (s: Record<string, Src>) => Object.fromEntries(Object.entries(s)
         .filter(([, v]) => v.type === "vector" || v.type === "raster")
         .map(([k, v]) => [k, v.maxzoom ?? "none"]));

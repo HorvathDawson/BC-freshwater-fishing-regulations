@@ -19,6 +19,7 @@ import { IMAGERY_CREDIT } from "@app/core";
 import { runtimeStyle } from "@app/map";
 import { imageryTiles } from "../packages/map/src/endpoints";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
@@ -31,7 +32,7 @@ const text = (html: string) => html.replace(/<[^>]+>/g, "");
 describe("the satellite source", () => {
   it("is Esri World Imagery, to z19, credited as Esri requires — on both maps", () => {
     const web = runtimeStyle(AT, "light").sources.imagery as Src;
-    const phone = nativeStyle({ at: AT, theme: "light", view: "plain", basemap: "satellite", gauges: "" })
+    const phone = nativeStyle({ at: AT, theme: "light", view: "plain", basemap: "satellite", gauges: "" }, maplibreDialect)
       .style.sources.imagery as Src;
     const want = { type: "raster", tiles: [ESRI], tileSize: 256, maxzoom: 19,
                    attribution: 'Powered by <a href="https://www.esri.com">Esri</a> · Source: Esri, Vantor, '
@@ -62,7 +63,7 @@ describe("the satellite source", () => {
 
 describe("the phone's credit follows the ground drawn", () => {
   const credit = (basemap: "map" | "satellite") =>
-    (nativeStyle({ at: AT, theme: "light", view: "plain", basemap, gauges: "" }).style.sources.imagery as Src)
+    (nativeStyle({ at: AT, theme: "light", view: "plain", basemap, gauges: "" }, maplibreDialect).style.sources.imagery as Src)
       .attribution ?? null;
   it("Esri's credit while satellite is drawn; none on the drawn map", () => {
     expect({ satellite: credit("satellite") !== null, map: credit("map") }).toEqual({ satellite: true, map: null });

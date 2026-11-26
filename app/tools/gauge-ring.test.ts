@@ -11,6 +11,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeStyle } from "@app/map";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { GAUGE_ONLY_RING_PX } from "../packages/map/src/gaugeDots";
 import { resolveTheme, STYLE_META } from "../packages/map/src/style";
 import { MODELS, worstSeparation } from "./cvd";
@@ -43,7 +44,7 @@ describe("a gauge reporting only the other quantity: a ringed grey dot, no words
       const t = resolveTheme(th) as Record<string, unknown>;
       for (const style of [runtimeStyle(AT as never, th, { gauges: "standing" }),
                            nativeStyle({ at: AT as never, theme: th, view: "conditions", modes: { gauges: "standing" },
-                                         basemap: "satellite", gauges: AT.gauges }).style]) {
+                                         basemap: "satellite", gauges: AT.gauges }, maplibreDialect).style]) {
         const dot = layer(style, "gauge-dot").paint!;
         expect(dot["circle-stroke-color"]).toEqual(["case", MUTED, t["color.gauge.only"], expect.any(String)]);
         expect(dot["circle-stroke-width"]).toEqual(["case", MUTED, GAUGE_ONLY_RING_PX, 2]);

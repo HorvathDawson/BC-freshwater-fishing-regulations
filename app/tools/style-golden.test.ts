@@ -24,6 +24,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { STYLE_META, runtimeStyle } from "@app/map";
 import { nativeStyle, type NativeStyleInput } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { NO_VALUES } from "../packages/map/src/style";
 
 const GOLDEN = fileURLToPath(new URL("../fixtures/map-style/composed.json", import.meta.url));
@@ -83,7 +84,7 @@ const RUNTIME: Record<string, () => unknown> = {
     runtimeStyle({ ...WEB, imagery: "https://imagery.example.invalid/tile/{z}/{y}/{x}?token=k" }, "light"),
 };
 const compose = (name: string): Record<string, unknown> => {
-  const s = NATIVE[name] ? nativeStyle(NATIVE[name]).style : RUNTIME[name]!();
+  const s = NATIVE[name] ? nativeStyle(NATIVE[name], maplibreDialect).style : RUNTIME[name]!();
   // the serialised text, parsed back: what is held is exactly what `JSON.stringify` hands on
   return JSON.parse(JSON.stringify(s)) as Record<string, unknown>;
 };

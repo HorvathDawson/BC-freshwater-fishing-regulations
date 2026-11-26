@@ -14,6 +14,7 @@ import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MIN_PX, BANK_MINZOOM, BANK_WIDEN, CL
 import { profileLabel, type StatusIndex, type WaterStatus } from "@app/core";
 import { statusInput } from "../packages/map/src/colouring";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 import { resolveTheme, type ChannelValues } from "../packages/map/src/style";
 
@@ -37,7 +38,7 @@ const VALUES = { status: STATUS, salmon: SALMON, method: null, standing: null, s
 const AT = { atlas: "file:///d/a.pmtiles", basemap: "file:///d/b.pmtiles", outside: "file:///d/o.geojson", assets: "file:///d/m/" };
 function handed(theme: string, mode: string, values: ChannelValues = VALUES): Layer[] {
   const { style, errors } = nativeStyle({ at: AT, theme, view: "plain", modes: { stream: mode }, hide: [], groups: {},
-    basemap: "map" as const, gauges: '{"type":"FeatureCollection","features":[]}', values } as never);
+    basemap: "map" as const, gauges: '{"type":"FeatureCollection","features":[]}', values } as never, maplibreDialect);
   expect(errors).toEqual([]);
   return (style as unknown as { layers: Layer[] }).layers;
 }

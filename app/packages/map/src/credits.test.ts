@@ -7,6 +7,7 @@
 import { describe, expect, it } from "vitest";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditId, MAP_CREDITS_DRAWN } from "./credits";
 import { nativeStyle } from "./native-style";
+import { maplibreDialect } from "./native/maplibre/dialect";
 import { runtimeStyle } from "./runtime-style";
 
 type S = { layers: { id: string; layout?: Record<string, unknown>; paint?: Record<string, unknown> }[];
@@ -40,15 +41,15 @@ describe("the map's credits (T235)", () => {
   });
 
   it("on a phone: a credit stays only while the look draws its data", () => {
-    const plain = nativeStyle(base).style as unknown as S;
+    const plain = nativeStyle(base, maplibreDialect).style as unknown as S;
     expect(credited(plain)).toEqual(["atlas", "basemap", "gauges"].filter((k) => plain.sources[k]?.attribution).sort());
     expect(credited(plain).some((k) => k.startsWith("credit-"))).toBe(false);
 
-    const salmon = nativeStyle({ ...base, modes: { stream: "salmon" } }).style as unknown as S;
+    const salmon = nativeStyle({ ...base, modes: { stream: "salmon" } }, maplibreDialect).style as unknown as S;
     expect(credited(salmon)).toContain("credit-salmon");
     expect(credited(salmon)).not.toContain("credit-obstacles");
 
-    const obstacles = nativeStyle({ ...base, groups: { obstacles: true } }).style as unknown as S;
+    const obstacles = nativeStyle({ ...base, groups: { obstacles: true } }, maplibreDialect).style as unknown as S;
     expect(credited(obstacles)).toContain("credit-obstacles");
     expect(obstacles.layers.find((l) => l.id === "credit-obstacles")!.layout!.visibility).toBe("visible");
     expect(credited(obstacles)).not.toContain("credit-salmon");

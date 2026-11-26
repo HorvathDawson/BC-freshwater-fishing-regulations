@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { STYLE_META, runtimeStyle } from "@app/map";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { statusInput } from "../packages/map/src/colouring";
 import { NO_VALUES, type ChannelValues } from "../packages/map/src/style";
 import type { SalmonFacts, StatusIndex } from "@app/core";
@@ -72,11 +73,14 @@ describe("MapLibre will accept what we hand it", () => {
 });
 
 /*
- * THE PHONE'S STYLE TOO (N2). MapLibre Native is handed `nativeStyle`: the same layers with no `promoteId`, no
- * fill-pattern, no gauge pill, and the basin field's values written in as a lookup by `basin_id` — the one expression
- * the web never sends. A style that fails to parse on a phone is dropped layer by layer, silently.
+ * THE PHONE'S STYLE TOO (N2), PER ENGINE (T1154): each dialect's style through that engine's own validator. MapLibre
+ * Native is handed `nativeStyle`: the same layers with no `promoteId`, no fill-pattern, no gauge pill, and the basin
+ * field's values written in as a lookup by `basin_id` — the one expression the web never sends. A style that fails to
+ * parse on a phone is dropped layer by layer, silently. One row today; a second engine adds its dialect and its spec.
  */
-describe("MapLibre Native will accept what we hand it", () => {
+const DIALECTS = [{ name: "MapLibre Native", dialect: maplibreDialect, validate: validateStyleMin }];
+
+for (const { name, dialect, validate } of DIALECTS) describe(`${name} will accept what we hand it`, () => {
   for (const theme of Object.keys(STYLE_META.themes)) {
     // (T594) on both grounds: over satellite the stream lines open (`line-gap-width`) and the lake fills fade
     it(`validates in the ${theme} theme, in every colour mode, with basin values, on the map and on satellite`, () => {
@@ -85,8 +89,8 @@ describe("MapLibre Native will accept what we hand it", () => {
         const { style } = nativeStyle({
           at: AT, theme, view: "plain", modes, basemap, gauges: AT.gauges,
           areaData: { basin: { "B-1": { standing: 30 }, "7": { standing: -100 } } },
-        });
-        for (const e of validateStyleMin(style as never))
+        }, dialect);
+        for (const e of validate(style as never))
           problems.push(`${JSON.stringify(modes)} ${basemap}: ${e.message}`);
       }
       expect(problems, problems.slice(0, 6).join("\n")).toEqual([]);
@@ -99,7 +103,7 @@ describe("MapLibre Native will accept what we hand it", () => {
  * gear marks, no-access dots and order fade) reads the salmon chain label `sp` ahead of the day's profile — a `case` the
  * plain matrix above never builds (it is handed no day). Shown, and isolated away by a legend tap; both grounds.
  */
-describe("MapLibre accepts the finfish closure paint", () => {
+for (const { name, dialect, validate } of DIALECTS) describe(`${name} accepts the finfish closure paint`, () => {
   it("every Standard layer with a chain closed to all fishing, on the map and on satellite, shown and isolated away", () => {
     const facts = { handles: "0".repeat(16), chains: 2, chainOf: () => 1, payload: {
       format: "salmon/4", credit: "DFO", default: 0, regions: {}, gears: [], unmapped: [],
@@ -116,9 +120,9 @@ describe("MapLibre accepts the finfish closure paint", () => {
     for (const only of [null, "own"] as const) for (const basemap of ["map", "satellite"] as const) {
       const status = statusInput({ index, day, only }, { facts, day }).values() as ChannelValues["status"];
       const { style } = nativeStyle({ at: AT, theme: "light", view: "plain", modes, basemap, gauges: AT.gauges,
-                                      values: { ...NO_VALUES, status, method } });
+                                      values: { ...NO_VALUES, status, method } }, dialect);
       expect(JSON.stringify(style)).toContain('["feature-state","sp"]');
-      for (const e of validateStyleMin(style as never)) problems.push(`${only} ${basemap}: ${e.message}`);
+      for (const e of validate(style as never)) problems.push(`${only} ${basemap}: ${e.message}`);
     }
     expect(problems, problems.slice(0, 6).join("\n")).toEqual([]);
   });

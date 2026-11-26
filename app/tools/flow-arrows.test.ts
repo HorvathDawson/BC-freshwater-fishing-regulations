@@ -21,6 +21,7 @@ import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contra
 import { paintFor } from "../packages/map/src/paint";
 import { applyLook } from "../packages/map/src/look";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 import { MAP_STYLE, STYLE_META, colorExpression, resolveTheme, shownLayers } from "../packages/map/src/style";
 
@@ -73,9 +74,9 @@ describe("the flow arrows are the Conditions view's own", () => {
                      gauges: '{"type":"FeatureCollection","features":[]}' };
     const vis = (s: unknown) => ((s as { layers: L[] }).layers.find((l) => l.id === ARROWS)!.layout!.visibility);
     const cond = nativeStyle({ ...common, modes: { stream: "standing" }, hide: ["mu", "region"],
-                               show: shownLayers("conditions") });
+                               show: shownLayers("conditions") }, maplibreDialect);
     // A phone's Map tab colours by the day's `profile`, as the web's does (T74: one engine on both)
-    const map = nativeStyle({ ...common, modes: { stream: "profile" }, hide: [] });
+    const map = nativeStyle({ ...common, modes: { stream: "profile" }, hide: [] }, maplibreDialect);
     expect({ conditions: vis(cond.style), map: vis(map.style), errors: [...cond.errors, ...map.errors] })
       .toEqual({ conditions: "visible", map: "none", errors: [] });
   });

@@ -19,6 +19,7 @@ import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
+import { PMTILES, type TileAccess } from "./tile-access";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { landOutline } from "./on-imagery";
 import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MINZOOM, BANK_MODES, bankCuePaint, bankHalfPaint, GEAR_BANK_LAYERS, gearBankPaint, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
@@ -114,11 +115,12 @@ function externalRasters(imagery?: string): Record<string, Record<string, unknow
  * Every vector source the generated style declares besides `atlas` — the field's `basins` — pointed at the atlas archive
  * with its own maxzoom, and promoting its layers' ids as `atlas` does (feature-state is how the field is coloured).
  */
-function fieldSources(atlasUrl: string): Record<string, Record<string, unknown>> {
+function fieldSources(atlasUrl: string, tiles: TileAccess): Record<string, Record<string, unknown>> {
+  // `pmtiles://atlas` is the generated style's placeholder for "the atlas archive" (layers.source.json), not an address
   return Object.fromEntries(Object.entries(MAP_STYLE.sources as Record<string, { type?: string; url?: string; maxzoom?: number }>)
     .filter(([id, s]) => id !== "atlas" && s.type === "vector" && s.url === "pmtiles://atlas")
     .map(([id, s]) => [id, {
-      type: "vector" as const, url: `pmtiles://${atlasUrl}`, maxzoom: s.maxzoom,
+      type: "vector" as const, url: tiles.archive(atlasUrl), maxzoom: s.maxzoom,
       promoteId: Object.fromEntries((MAP_STYLE.layers as { id: string; source?: string; "source-layer"?: string }[])
         .filter((l) => l.source === id && STYLE_META.featureIds[l.id] !== undefined)
         .map((l) => [l["source-layer"] ?? l.id, STYLE_META.featureIds[l.id]!])),
@@ -137,8 +139,12 @@ const lastDrawing = (sourceLayer: string): string | undefined =>
   (MAP_STYLE.layers as { id: string; type?: string; "source-layer"?: string }[])
     .filter((l) => l["source-layer"] === sourceLayer && l.type !== "symbol").at(-1)?.id;
 
+/**
+ * `tiles`: how the sources address the archives (`tile-access.ts`). `PMTILES` is the one access either MapLibre renderer
+ * has; the web map takes it as given, and the phone's style passes its engine's own (`nativeStyle`'s dialect).
+ */
 export function runtimeStyle(at: TileEndpoints, theme: string,
-                             modes: Record<string, string> = {}) {
+                             modes: Record<string, string> = {}, tiles: TileAccess = PMTILES) {
     // The BASEMAP has two flavours; ours has three. A colour-blind reader needs our outcome
   // hues changed, not the ground under them, so cvd rides on the light ground.
   const flavor = namedFlavor(theme === "dark" ? "black" : "light");
@@ -375,7 +381,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       // rather than left to the archive's header because a style's own `maxzoom` wins over the header's (GL JS
       // `loadTileJson`), and `tools/overzoom.test.ts` holds both numbers to the archives the pipeline writes.
       // (T235) ODbL's credit, linked — `credits.ts` holds every credit the map shows
-      basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, maxzoom: BASEMAP_MAX_ZOOM,
+      basemap: { type: "vector" as const, url: tiles.archive(at.basemap), maxzoom: BASEMAP_MAX_ZOOM,
                  attribution: BASEMAP_CREDIT },
       ...externalRasters(at.imagery),
       // `outside` IS a URL — the mask is fetched. `gauges` is not: it is the GeoJSON
@@ -385,7 +391,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       ...(at.gauges ? { gauges: gaugeSource(at.gauges) } : {}),
       atlas: {
         type: "vector" as const,
-        url: `pmtiles://${at.atlas}`,
+        url: tiles.archive(at.atlas),
         maxzoom: ATLAS_MAX_ZOOM,
         // Every reach, lake and boundary in this archive is derived from the Province's
         // Freshwater Atlas, and the rules painted over them from the Province's synopsis.
@@ -409,7 +415,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * those tiles up to the handover instead of asking for deeper ones that have none (`sources.basins` in
        * layers.source.json says why). Only the basin layer reads it, and only while the field is drawn.
        */
-      ...fieldSources(at.atlas),
+      ...fieldSources(at.atlas, tiles),
       // THE ROUTE OVERLAY's two sources, empty until a panel fills them — see trace-overlay.ts.
       ...traceSources(),
       // (T175) THE WATER COPY's source, empty until a map keeps a water's lines — see water-copy.ts.

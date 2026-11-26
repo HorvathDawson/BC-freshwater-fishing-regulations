@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { ENGINE_KEYS, issueInput } from "./colouring";
 import { nativeStyle } from "./native-style";
+import { maplibreDialect } from "./native/maplibre/dialect";
 import { GEAR_RAMPS, GEAR_RAMP, ISSUE_LAYERS, ISSUE_MODE, issuePaint, issueShown } from "./paint";
 import { runtimeStyle } from "./runtime-style";
 import { resolveTheme } from "./style";
@@ -94,7 +95,7 @@ describe("(T759) the native map draws the same stripe from the same style", () =
     const web = runtimeStyle(AT, "light", { stream: "salmon" }) as unknown as { layers: { id: string; paint: Record<string, unknown> }[] };
     for (const mode of ["salmon", "profile"]) {
       const n = nativeStyle({ at: AT, theme: "light", view: "plain", modes: { stream: mode }, hide: [], groups: {}, basemap: "map" as const,
-                              gauges: '{"type":"FeatureCollection","features":[]}' }).style as unknown as
+                              gauges: '{"type":"FeatureCollection","features":[]}' }, maplibreDialect).style as unknown as
         { layers: { id: string; paint: Record<string, unknown> }[] };
       for (const part of PARTS) {
         const l = n.layers.find((x) => x.id === ISSUE_LAYERS[part])!;
