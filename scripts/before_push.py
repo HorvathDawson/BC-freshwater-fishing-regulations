@@ -131,11 +131,20 @@ def title_limit(number: int | str) -> int:
     return header_max - len(f" (#{number})")
 
 
+class TitleNotChecked(Exception):
+    """(T1144) the title check could not run (no node, a timeout): said as a warning, the push goes on."""
+
+
 def title_verdict(title: str, number: int | str) -> str | None:
     """(T1144) None when the PR title, as its merge commit `<title> (#N)`, follows Conventional Commits and fits;
     otherwise what to fix. CI's check, run through the same command (`check-commits.mjs --title --number`)."""
-    got = subprocess.run(["node", "app/tools/check-commits.mjs", "--title", title, "--number", str(number)],
-                         cwd=ROOT, capture_output=True, text=True)
+    try:
+        got = subprocess.run(["node", "app/tools/check-commits.mjs", "--title", title, "--number", str(number)],
+                             cwd=ROOT, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as e:
+        raise TitleNotChecked(f"node could not run the check ({e})") from e
+    if got.returncode == 2:                                   # check-commits: the check could not run
+        raise TitleNotChecked(f"the check could not run ({(got.stderr or got.stdout).strip()[:200]})")
     if got.returncode == 0:
         return None
     limit = title_limit(number)
@@ -162,9 +171,11 @@ def pushed_title_check(lines: list[str], gh=None) -> tuple[int, list[str]]:
         parts = ln.split()
         if len(parts) != 4 or not parts[0].startswith("refs/heads/") or parts[1] == ZERO:
             continue
-        branch = parts[0][len("refs/heads/"):]
+        if not parts[2].startswith("refs/heads/"):
+            continue
+        branch = parts[2][len("refs/heads/"):]                # the REMOTE ref: `git push origin local:other` pushes `other`
         try:
-            got = gh(["pr", "view", branch, "--json", "number,title,mergeable"])
+            got = gh(["pr", "view", branch, "--json", "number,title,mergeable,state"])
         except (OSError, subprocess.SubprocessError) as e:
             out.append(f"WARNING: the PR title was not checked: gh could not run ({e})")
             continue
@@ -175,9 +186,15 @@ def pushed_title_check(lines: list[str], gh=None) -> tuple[int, list[str]]:
             out.append(f"WARNING: the PR title was not checked: gh could not answer ({why})")
             continue
         pr = json.loads(got.stdout)
+        if pr.get("state") != "OPEN":                         # gh pr view also answers a CLOSED or MERGED PR
+            continue
         if pr.get("mergeable") == "CONFLICTING":
             out.append(f"WARNING: PR #{pr['number']} conflicts with main (mergeable: CONFLICTING); CI will not run on it")
-        bad = title_verdict(pr["title"], pr["number"])
+        try:
+            bad = title_verdict(pr["title"], pr["number"])
+        except TitleNotChecked as e:
+            out.append(f"WARNING: the PR title was not checked: {e}")
+            continue
         if bad:
             rc = 1
             out.append(f"the title of PR #{pr['number']} fails CI's merge-commit check: {bad}\n  fix it: gh pr edit "

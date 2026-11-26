@@ -400,10 +400,12 @@ def _title(n: int) -> str:
     return "ci: " + "a" * (n - 4)
 
 
-def _gh(number, title, mergeable="MERGEABLE", rc=0, err=""):
+def _gh(number, title, mergeable="MERGEABLE", rc=0, err="", state="OPEN", asked=None):
     def gh(args):
         assert args[:2] == ["pr", "view"]
-        out = json.dumps({"number": number, "title": title, "mergeable": mergeable}) if rc == 0 else ""
+        if asked is not None:
+            asked.append(args[2])
+        out = json.dumps({"number": number, "title": title, "mergeable": mergeable, "state": state}) if rc == 0 else ""
         return subprocess.CompletedProcess(args, rc, out, err)
     return gh
 
@@ -452,3 +454,28 @@ def test_the_pre_push_hook_stops_on_a_title_over_the_limit_before_any_step(monke
                  gh=_gh(266, _title(94)))
     assert rc == 1 and ran == []
     assert "gh pr edit 266 --title" in capsys.readouterr().err
+
+
+def test_a_closed_or_merged_pr_does_not_block_a_push_but_an_open_one_does():
+    """gh pr view also answers a CLOSED or MERGED PR. Mutation: drop the state check -> the first two cases block."""
+    for state in ("MERGED", "CLOSED"):
+        assert BP.pushed_title_check(_push_line(), _gh(266, _title(94), state=state)) == (0, [])
+    assert BP.pushed_title_check(_push_line(), _gh(266, _title(94), state="OPEN"))[0] == 1
+
+
+def test_the_pr_is_looked_up_by_the_remote_ref_not_the_local_one():
+    """`git push origin local:other` pushes branch `other`. Mutation: use the local ref -> asks for `local`."""
+    asked = []
+    line = [f"refs/heads/local {'a' * 40} refs/heads/other {BP.ZERO}"]
+    BP.pushed_title_check(line, _gh(266, _title(40), asked=asked))
+    assert asked == ["other"]
+
+
+def test_a_missing_or_hung_node_warns_and_goes_on(monkeypatch):
+    """Mutation: no catch -> FileNotFoundError / TimeoutExpired is a traceback and a blocked push."""
+    for exc in (FileNotFoundError("node"), subprocess.TimeoutExpired("node", 60)):
+        def boom(*a, **k):
+            raise exc
+        monkeypatch.setattr(BP.subprocess, "run", boom)
+        rc, said = BP.pushed_title_check(_push_line(), _gh(266, _title(94)))
+        assert rc == 0 and len(said) == 1 and "title was not checked" in said[0], said
