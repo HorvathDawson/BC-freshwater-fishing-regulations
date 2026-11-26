@@ -58,6 +58,8 @@ function inSeasonYearMarks(banners: readonly InSeasonBannerVM[]): InSeasonYearVM
 export interface InSeasonKeepVM {
   /** "See the in-season notice above"; null: none in force */
   readonly pointer: string | null;
+  /** (T1167, owner 2026-11-26) the caution mark the pointer wears beside it (`INSEASON_WORDS.warn`); null: no pointer */
+  readonly pointerWarn: string | null;
   /** where the pointer is drawn: the game-fish strip's status line, or the top of the Keep tab (a page with no strip) */
   readonly pointerOn: "strip" | "tab";
   /** the dated ranges on the year bars; null: none */
@@ -66,6 +68,7 @@ export interface InSeasonKeepVM {
 
 /** (T1167) THE KEEP TAB'S IN-SEASON VM for a page (`keep`) and its notices on the page's day (`banners`). */
 export function inSeasonKeepOf(keep: Pick<KeepVM, "strip" | "order">, banners: readonly InSeasonBannerVM[]): InSeasonKeepVM {
-  return { pointer: inSeasonStatusLine(banners), pointerOn: keep.strip && keep.order.includes("strip") ? "strip" : "tab",
+  const pointer = inSeasonStatusLine(banners);
+  return { pointer, pointerWarn: pointer ? INSEASON_WORDS.warn : null, pointerOn: keep.strip && keep.order.includes("strip") ? "strip" : "tab",
            marks: inSeasonYearMarks(banners) };
 }

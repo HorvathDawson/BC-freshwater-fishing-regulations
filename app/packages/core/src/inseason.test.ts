@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   INSEASON_FAILURES, INSEASON_LINKS_FORMAT, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, inSeasonDates,
-  inSeasonSummary, inSeasonWhere, joinInSeason, parseInSeasonFeed, parseInSeasonLinks, type InSeasonChange, type InSeasonFeed, type InSeasonRow,
+  inSeasonLineTone, inSeasonSummary, inSeasonWhere, joinInSeason, parseInSeasonFeed, parseInSeasonLinks, type InSeasonChange, type InSeasonFeed, type InSeasonRow,
   type InSeasonRun, type InSeasonSection,
 } from "./inseason";
 // imported, never read from disk: core has no platform (AGENTS rule 22, the boundaries gate)
@@ -125,6 +125,11 @@ describe("(T1167) louder: the banner's words in each state, the status line's po
     expect([inForce.head, inSeasonSummary([inForce])]).toEqual(
       ["In-season change (Jul 30–Sep 15)", "In-season change (Jul 30–Sep 15) · see ›"]);
     expect(inSeasonSummary([inForce, upcoming, { ...upcoming, id: "is-b", mark: "New" }])).toBe("3 in-season changes (1 new, 2 upcoming) · see ›");
+  });
+  it("(T1167, owner 2026-11-26) in force wears the warning tone and the caution mark; upcoming stays quiet (grey)", () => {
+    expect([[inForce.tone, inForce.warn], [upcoming.tone, upcoming.warn]]).toEqual([["warn", "⚠"], ["quiet", null]]);
+    expect([inSeasonLineTone([upcoming, inForce]), inSeasonLineTone([upcoming])]).toEqual([{ tone: "warn", warn: "⚠" }, { tone: "quiet", warn: null }]);
+    expect([inSeasonKeepOf(STRIP, [inForce]).pointerWarn, inSeasonKeepOf(STRIP, [upcoming]).pointerWarn]).toEqual(["⚠", null]);
   });
   it("the status line points at a notice in force, never at an upcoming one", () => {
     const pointer = (bs: typeof upcoming[]) => inSeasonKeepOf(STRIP, bs).pointer;

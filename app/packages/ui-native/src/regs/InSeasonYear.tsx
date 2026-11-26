@@ -50,11 +50,16 @@ export function InSeasonLegend({ palette }: { palette: Palette }) {
 export function InSeasonPointer({ palette, on }: { palette: Palette; on: InSeasonKeepVM["pointerOn"] }) {
   const k = useInSeasonKeep();
   if (!k?.pointer || k.pointerOn !== on) return null;
-  const pointer = k.pointer;
+  // (T1167, owner 2026-11-26) the banner's warning look: the amber bar and band, the caution mark (hidden from a screen
+  // reader), the words ink
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, ...(on === "tab" ? { paddingTop: 10, paddingHorizontal: GUTTER } : {}) }}>
-      <View style={{ width: 4, alignSelf: "stretch", borderRadius: 1, backgroundColor: palette.attention }} />
-      <Text testID="st:inseason" style={[TYPE.metaBold, { color: palette.ink }]}>{pointer}</Text>
+    <View style={on === "tab" ? { paddingTop: 10, paddingHorizontal: GUTTER } : { marginTop: 4 }}>
+      <View testID="inseason-pointer" style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start",
+                                               backgroundColor: palette.noAccessBand, borderLeftWidth: 4, borderLeftColor: palette.warning,
+                                               paddingVertical: 2, paddingLeft: 6, paddingRight: 8 }}>
+        {k.pointerWarn && <Text testID="st:inseason-warn" aria-hidden style={[TYPE.metaBold, { color: palette.ink }]}>{k.pointerWarn}</Text>}
+        <Text testID="st:inseason" style={[TYPE.metaBold, { color: palette.ink }]}>{k.pointer}</Text>
+      </View>
     </View>
   );
 }

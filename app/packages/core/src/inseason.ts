@@ -374,6 +374,10 @@ export const INSEASON_WORDS = {
   /** (T1167, "Banner only, but louder") the Keep strip's status line while a notice is in force on the page: the answer
    *  stays the book's, and points at the notice above it */
   statusSee: (n: number) => (n === 1 ? "See the in-season notice above" : `See the ${n} in-season notices above`),
+  /** (T1167, owner 2026-11-26 "A: warning amber with a mark") the caution mark an in-force notice's banner and the
+   *  status line's pointer wear: the glyph the Keep tab's caveat titles already use ("⚠ At certain times", `regs/words.ts`),
+   *  drawn hidden from a screen reader (the words beside it say it) */
+  warn: "⚠",
   /** (T1167) the whole-year bars' legend for a dated notice's range */
   yearMark: (dates: string) => `In-season notice, ${dates}`,
   yearMarks: "In-season notices",
@@ -396,6 +400,20 @@ export interface InSeasonBannerVM {
   readonly phase: InSeasonPhase;
   /** (T1167) the range its own text states, when it is dated (`inSeasonSpan`): what the whole-year bars mark */
   readonly window: { readonly from: string; readonly to: string } | null;
+  /** (T1167, owner 2026-11-26 "A: warning amber with a mark") in force: "warn" (the page's warning amber and the caution
+   *  mark); upcoming: "quiet" (grey, owner "A: grey, as pictured") */
+  readonly tone: InSeasonTone;
+  /** the caution mark it wears (`INSEASON_WORDS.warn`), or null (upcoming) */
+  readonly warn: string | null;
+}
+
+/** (T1167) how loud a notice is drawn: in force "warn", upcoming "quiet" */
+export type InSeasonTone = "warn" | "quiet";
+
+/** (T1167) the collapsed line's tone and mark: "warn" when any notice under it is in force */
+export function inSeasonLineTone(banners: readonly InSeasonBannerVM[]): { readonly tone: InSeasonTone; readonly warn: string | null } {
+  const warn = banners.some((b) => b.tone === "warn");
+  return { tone: warn ? "warn" : "quiet", warn: warn ? INSEASON_WORDS.warn : null };
 }
 
 /**
@@ -429,7 +447,8 @@ export function inSeasonBanner(change: InSeasonChange, cover: Pick<InSeasonCover
   return { id: change.id, head, text: change.text, source: INSEASON_WORDS.source, url: change.source,
            line: `${m ? `${m} · ` : ""}${head}: ${change.text}${where ? ` ${where}.` : ""} — ${INSEASON_WORDS.source}`,
            where, note: INSEASON_WORDS.informational, mark: m, phase: change.phase,
-           window: change.dated && change.from && change.to ? { from: change.from, to: change.to } : null };
+           window: change.dated && change.from && change.to ? { from: change.from, to: change.to } : null,
+           tone: change.phase === "upcoming" ? "quiet" : "warn", warn: change.phase === "upcoming" ? null : INSEASON_WORDS.warn };
 }
 
 /** "7a" -> "Region 7A": a region code as every surface names it (T622: the public site's water pages read it too) */

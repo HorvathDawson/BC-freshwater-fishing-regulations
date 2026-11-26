@@ -71,6 +71,9 @@ describe("<RegsScreen>", () => {
     mount({ inSeason: [inSeasonBanner({ ...dated, phase: "in force" }, { where: null })] });
     expect(screen.getByTestId("inseason-summary").textContent).toBe("In-season change (Jul 30–Sep 15) · see ›");
     expect(within(strip()).getByTestId("st:inseason").textContent).toBe("See the in-season notice above");
+    // (T1167, owner 2026-11-26) with the banner's caution mark, hidden from a screen reader
+    expect([within(strip()).getByTestId("st:inseason-warn").textContent, within(strip()).getByTestId("st:inseason-warn").getAttribute("aria-hidden")])
+      .toEqual(["⚠", "true"]);
     expect(within(strip()).getByTestId("inseason-year-legend").textContent).toBe("In-season notice, Jul 30–Sep 15");
     // the answer stays the book's: the day's status word is the strip's own
     expect(within(strip()).getByTestId("st:open").textContent).toBe("✓Open");
