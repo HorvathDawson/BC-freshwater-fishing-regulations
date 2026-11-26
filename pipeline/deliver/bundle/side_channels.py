@@ -31,8 +31,8 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    <area>" (owner 2026-11-25, the Okanagan River Oxbows at Hayne's Lease Ecological Reserve).
 3. (PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is fixed
    in hardening") A PART OF ADDED LINES WITH ITS OWN NAME (`part_own_name`): every section an added-stream line (a
-   negative blk in `section_measure`), all one added stream's name (`added_streams.json` `streams[].name`, read at build
-   time), not the water's: named by it, with the words of its source (`name_source.label`). Noons Creek p4 is the City of
+   negative blk in `section_measure`), all one added stream's name (the atlas graph's name tuple for it,
+   `added_stream_names`), not the water's: named by it, with the words of its source (`name_source.label`). Noons Creek p4 is the City of
    Port Moody's Turner Creek, Seymour River p3 the City of Burnaby's Tunnel Creek (a watershed-code collision filed them
    there). One with no own name gets no row (and stops the build at the answers step if its name needs a distance).
 """
@@ -306,7 +306,9 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             filled += len(comp)
     log(f"     side channel: {filled} sections given the join their flow does not say")
     # 2. inside an area
-    named = own_name_rows(db, added_stream_names() if added is None else added)
+    if added is None:
+        raise SideChannelError("side_channels.write: the added streams' own names are not given (`added_stream_names`)")
+    named = own_name_rows(db, added)
     db.executemany("INSERT INTO part_own_name (ord, part_ix, name, label) VALUES (?,?,?,?)", named)
     cov.filled("part_own_name", len(named))
     rows = inside_rows(db, geo, build_dir, span)
@@ -314,14 +316,20 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
     cov.filled("part_inside", len(rows))
 
 
-def added_stream_names(path: Optional[Path] = None) -> Dict[int, str]:
-    """{blk: the added stream's own name} from the promoted added-streams file (`CURATED.waters.added_streams`)."""
-    import json
-    if path is None:
-        from pipeline.common.curated import CURATED
-        path = CURATED.waters.added_streams
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {int(r["blk"]): str(r["name"]).strip() for r in data.get("streams") or [] if str(r.get("name") or "").strip()}
+def added_stream_names(graph) -> Dict[int, str]:
+    """{blk: the added stream's own name} from the ATLAS GRAPH (the bundle reads no curated waters file): an added line's
+    node (a negative blk) carries the name its city layer gives it as a name tuple noted "added…" (the atlas's ingest of
+    `added_streams.json`), beside the name of the water it was filed under."""
+    out: Dict[int, str] = {}
+    for node in graph.nodes.values():
+        b = str(getattr(node, "blk", "") or "")
+        if not b.startswith("-"):
+            continue
+        own = sorted({t.name.strip() for t in getattr(node, "name_tuples", ()) or ()
+                      if str(t.note or "").startswith("added") and str(t.name or "").strip()})
+        if len(own) == 1:
+            out[int(b)] = own[0]
+    return out
 
 
 _MUNICIPALITY = re.compile(r"^(?:City|District|Town|Township|Village|Municipality) of (.+?)(?: (?:ESA )?(?:streams?|waterways|"

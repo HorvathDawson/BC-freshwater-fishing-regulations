@@ -547,12 +547,21 @@ def test_a_mixed_part_never_takes_the_name():
     assert sc.own_name_rows(_added_db([(22, -2200000392), (24, None)]), NAMES) == []          # a polygon (no line)
 
 
-def test_the_added_names_are_read_from_the_streams_by_blk(tmp_path):
-    import json
-    p = tmp_path / "added_streams.json"
-    p.write_text(json.dumps({"streams": [{"blk": "-2200000392", "name": "Turner Creek"}, {"blk": "-5", "name": " "}],
-                             "name_variants": [{"kind": "added", "name": "Other", "target_blk": "-2200000392"}]}))
-    assert sc.added_stream_names(p) == {-2200000392: "Turner Creek"}
+def test_the_added_names_are_read_from_the_atlas_graph():
+    from types import SimpleNamespace as N
+    t = lambda name, note: N(name=name, note=note)                                      # noqa: E731
+    g = N(nodes={"a": N(blk="-2200000392", name_tuples=(t("Noons Creek", ""), t("Turner Creek", "added:added"))),
+                 "b": N(blk="-5", name_tuples=(t(" ", "added:added"),)),                 # a blank name: none
+                 "c": N(blk="-6", name_tuples=(t("A", "added:added"), t("B", "added:added"))),   # two: none
+                 "d": N(blk="360000001", name_tuples=(t("Fwa Creek", "added:added"),)),  # an FWA line: never
+                 "e": N(blk="", name_tuples=())})
+    assert sc.added_stream_names(g) == {-2200000392: "Turner Creek"}
+
+
+def test_the_bundle_step_refuses_to_run_without_the_added_names(tmp_path):
+    db, geo = _db()
+    with pytest.raises(sc.SideChannelError, match="added streams"):
+        sc.write(db, geo, tmp_path, _Cov(), log=lambda *_: None, unnamed={})
 
 
 def test_the_part_is_said_by_its_own_name_and_source():
