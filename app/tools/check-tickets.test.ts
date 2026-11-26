@@ -235,7 +235,7 @@ describe("T1041 the old places hold no row and no item", () => {
     const readme = real.legacy.readme.replace(LEDGER_POINTER.trim(), `## Ledger\n\n${ROW_HEADER}\n${ROW_SEP}\n${rowOf(noGit, "T84")}`);
     expect(checkLedger({ ...noGit, legacy: { ...noGit.legacy, readme } })).toEqual([
       "handoff/PLAN/app-integration/tickets/README.md holds 1 ledger row(s) (T84…): a row lives in its ticket file under the Status line (T1041); " +
-      "`node app/tools/ledger.mjs --resolve` carries an old-style branch's rows"]);
+      "move each row into its ticket file by hand (the one-row table under the Status line), then empty this table"]);
   });
   it("a DONE.md that comes back fails, even an empty one", () => {
     expect(checkLedger({ ...noGit, legacy: { ...noGit.legacy, doneLedger: "" } })[0]).toMatch(/^handoff\/PLAN\/app-integration\/tickets\/DONE\.md exists/);

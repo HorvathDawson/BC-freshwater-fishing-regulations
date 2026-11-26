@@ -124,11 +124,11 @@ export function checkLedger({ tickets, subjects, unfiled = "", extraProblems = [
   }
   const oldRows = tableRows(legacy.readme);
   if (oldRows.length) problems.push(`${README} holds ${oldRows.length} ledger row(s) (${oldRows.slice(0, 3).map((r) => r.id).join(", ")}…): ` +
-    "a row lives in its ticket file under the Status line (T1041); `node app/tools/ledger.mjs --resolve` carries an old-style branch's rows");
+    "a row lives in its ticket file under the Status line (T1041); move each row into its ticket file by hand (the one-row table under the Status line), then empty this table");
   else if (ledgerSection(legacy.readme) !== LEDGER_POINTER)
     problems.push(`${README}: its "## Ledger" section is not the pointer text (ledger.mjs LEDGER_POINTER): a row lives in its ticket file (T1041), nothing is written there`);
   if (legacy.doneLedger !== null) problems.push(`${OLD_DONE} exists: closed rows live in their ticket files and are built into handoff/PLAN/views/DONE.md (T1041); ` +
-    "carry its rows (`node app/tools/ledger.mjs --resolve` in a merge), then git rm it");
+    "move any row it holds into its ticket file by hand (under the Status line), then git rm it");
   for (const p of legacy.retired) problems.push(`${p} exists: it was retired (T1081): an owner ask is a line of the "## Owner" block in its ticket (${OWNER_UNFILED} when it has none); \`node app/tools/ledger.mjs\` builds handoff/PLAN/views/OWNER.md`);
   for (const { name, text } of tickets) {
     const id = idOfFile(name);
