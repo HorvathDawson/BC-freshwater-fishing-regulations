@@ -1,37 +1,49 @@
 # Restart: the clean-up chat (T1081, chat D)
 
-Orchestrator on Fable; workers by task (Opus for data and tooling, Sonnet for mechanical edits). Branches stay local
-until the planning chat lifts the PR hold. Integration branch: `docs/T1081-cut`; each lane works in its own worktree off
-it and merges back by cherry-pick or merge, explicit paths in every commit (`type(T1081): subject`).
+The first chat (2026-11-25) landed the cut as PR #262. A NEW chat finishes the rest; the planning chat writes its
+prompt. Orchestrator on Fable; Sonnet lanes, at most 3, by folder; Opus only where a rule or contract is judged;
+lanes spawn no sub-agents; one review round; every PR through the merge queue.
 
-## State (2026-11-25 evening)
+## Done (on main)
 
-The cut is ONE local branch, `docs/T1081-lean-out`, ready for one PR (merge commit, not a rebase). It has merged
-`origin/main` (T1141-T1148 and the 17:00 owner asks are converted: their lines are `## Owner` lines in T1140, T1146,
-T1145, T1041, T1011 and the other tickets named in the conversion list). An independent review found 1 blocker and 9
-should-fix items; all are fixed (the archive tool now keeps folders surviving files cite, and a guard keeps that list
-true; the research open tickets plan from is back under `handoff/PLAN/research/`). Guards: `node app/tools/check-tickets.mjs`
-(includes the size guard), `node app/tools/ledger.mjs --check`, `--archive --dry` (0 folders).
+Closed tickets are `tickets/closed.tsv` + one tar.gz; owner asks are `## Owner` lines in tickets (`views/OWNER.md`);
+restart pages live here; AGENTS 438 lines; decisions by subject; a README per package and stage; the size guard
+`app/tools/check-size.mjs` (inside `check-tickets`); `scripts/rename_handoff.py` rehearsed, not run.
+Counts: 11,153 to 6,101 tracked files; markdown 143,408 to about 39,300 lines; 1,143 to 340 MB.
 
-## Next
+## The owner's word, 2026-11-25 evening (verbatim)
 
-1. The planning chat lifts the PR hold: push, open the one PR, enqueue it.
-2. The RENAME: `scripts/rename_handoff.py` (`handoff/PLAN/` to `docs/`, tickets to a top-level `tickets/`, the four
-   legacy restart pages into `restart/`, `LEGACY_RESTART` goes) is rehearsed and waits for the planning chat's word:
-   0.10.0 on production and merged back, no other PR open.
-3. The curation review tool's path move (with the rename, last; a saved-mark write-through test proven before and
-   after) is still to prepare.
-4. Unfinished by design: `play-production-access/` still names `owner-todo/` (README.md:56) and `STATUS-archive.md`
-   (releases.md:9); the planning chat owns that folder. Live chats' pages (`RESTART-091-chat.md:25`, T1041's Status)
-   still name the removed `ledger.mjs --merge`.
+"Why can't we do that stuff now before 0.10 all of it seems fine to do. Also it feels like we could remove more
+markdown. The ticket mark down is okay but we want to simplify the other files. It should be simple enough to be
+human resdble in not a super long period if time. Without an agent summarizing it."
 
-## Counts (baseline before: 11,153 files, 1,483 markdown files, 143,408 markdown lines, 1,143 MB)
+So: (a) the rename and the review tool move no longer wait for the release to be on production; (b) a second cut of
+the NON-ticket markdown; tickets are fine as they are.
 
-Now: 6,062 tracked files, 438 markdown files, 38,648 markdown lines, 349 MB. A new chat reads about 819 lines
-(README 64, START-HERE 27, AGENTS 438, STATUS 45, this page 37, `views/OWNER.md` about 208).
+## Left, in order
 
-## Rules for this chat
+1. **Second markdown cut.** 189 non-ticket files, 27,416 lines today. Target: a person reads everything outside
+   tickets in one sitting. Largest groups: `app-integration/` loose pages 5,900 (T678-progress 962, contracts 630,
+   tokens 347), `research/` 2,588, `pipeline/docs` 2,347 (GOTCHAS 514, RULINGS 452, 18 and 06), `design/` 2,203
+   (four trout pages), `data/curated` READMEs 2,120 (README text only, never the data), runbooks 1,594, `ios/`
+   1,328, `pipeline/regs` 1,174, AGENTS 438. Ask the owner the target as multiple choice first (lines, or minutes
+   to read), then cut; lower the budgets in `check-size.mjs` in the same PR. Code and tests pin some pages
+   (06, 15, 18, REACH-BUILDER, ANSWERS-SPEC section names, the trout contract): move the citers first.
+2. **The rename, now.** Fresh worktree off main; `node app/tools/check-size.mjs --measure`;
+   `python3 scripts/rename_handoff.py --dry-run`, then `--commit`; guards; one PR. It breaks every open branch:
+   tell the planning chat first, and each branch owner runs the same script on their branch, then merges main. The
+   release branch is the risk: a fix cherry-picked onto it after the rename must not touch a ticket or docs path
+   (code-only picks are safe); agree that with the release chat before the commit. The four legacy restart pages
+   move into this folder and `LEGACY_RESTART` goes. The git-ignored `CLAUDE.md` in the main checkout and the memory
+   notes spell the old paths: hand the owner the lines.
+3. **The review tool gets one home** (suggested `tools/curation-review/`; the server side may stay in
+   `pipeline/regs/review`), CI on its own files only, a README. A saved-mark write-through test is proven before and
+   after. Never the owner's marks, `data/curated/review` or `data/generated/review`.
+4. Close T1081 with the final counts. T1120's doc trips are this chat's to fix.
 
-Never touch `data/**`, `handoff/PLAN/sloughs/marks/`, `handoff/PLAN/curation-review/tidal/owner-decisions.json`,
-`handoff/PLAN/play-production-access/`, `handoff/PLAN/repo-move/` or `ROADMAP-after-0.9.0.md`, nor another live chat's
-restart page. Delete a file only when nothing surviving (an open ticket, running code, a guard) needs it.
+## Never touch
+
+`data/**` beyond README text, `handoff/PLAN/sloughs/marks/`,
+`handoff/PLAN/curation-review/tidal/owner-decisions.json`, `handoff/PLAN/play-production-access/`,
+`handoff/PLAN/repo-move/`, `handoff/PLAN/app-integration/store/`, the roadmap (path rewrites only), another live
+chat's restart page. A lane that closes a ticket first answers or moves its open `## Owner` lines.
