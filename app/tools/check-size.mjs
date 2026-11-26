@@ -75,8 +75,8 @@ export const MARKDOWN_LONG = {
  *  leaves the list when it is cut; a NEW long page needs an entry here, in its PR, with the reason beside it. */
 export const PAGE_LONG = {
   "pipeline/docs/RULINGS.md": 452,                                         // the owner's rulings on how the book is read: his words, never shortened
-  "docs/OWNER-RULINGS.md": 214,                                    // his standing rulings, in his words, never shortened (T1177: audit batch 2); like RULINGS.md
-  "pipeline/docs/GOTCHAS.md": 202,                                 // the gotchas (T1177: the audit rulings' entries); the Province's list is its own page
+  "docs/OWNER-RULINGS.md": 223,                                    // his standing rulings, in his words, never shortened (T1177: audit batch 2); like RULINGS.md
+  "pipeline/docs/GOTCHAS.md": 210,                                 // the gotchas (T1177: the audit rulings' entries); the Province's list is its own page
   "docs/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
   "docs/play-production-access/questionnaire-draft.md": 173,       // the Play production access record
   "docs/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends

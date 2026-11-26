@@ -78,7 +78,7 @@ does not (rendered pp. 18-20; no notice says why) and prints PUNTLEDGE RIVER twi
 the new book by hand, "drop the dropped rows by adding a drop boolean to the entries witrh a note why". So the two
 entries stay in the corpus with `drop: true` and a note (when the row was last printed, which book lost it); nothing
 deletes them and a re-read must not mint a second Puntledge. Until T1179 lands they are still live. The Province is
-asked in `BOOK-ERRORS-FOR-THE-PROVINCE.md` (entry 16).
+asked in `BOOK-ERRORS-FOR-THE-PROVINCE.md` (entry 17).
 
 ## Book errors we found, for the Province
 
@@ -98,7 +98,7 @@ The closure (p.42) excepts "the mainstem of the Fraser River and other streams l
 rows count: the tables print no "exempt" line. Owner, strictest reading: lifted ONLY where a row prints its own exemption or
 "open all year" (whole or part); a row with only gear or quota rules keeps the closure, so Cariboo, Moffat, McKinley, Blue Lead,
 Little Horsefly, Mitchell and Canim are closed Apr 1-Jun 30 (330.9 km). What we are unsure of, asked of the Region 5 office
-(BOOK-ERRORS entry 22): whole stream or only the stretch the row describes; park and chain-of-lakes rows; tributaries of a
+(BOOK-ERRORS entry 19): whole stream or only the stretch the row describes; park and chain-of-lakes rows; tributaries of a
 listed stream. Looks like a wrong closure on a listed stream: it is the strict reading, not a bug.
 
 ## Hevenor, Station and Two Mile creeks: trout 1 all year, and the Nov 1-Jun 30 release stays (P7c)
@@ -106,11 +106,19 @@ listed stream. Looks like a wrong closure on a listed stream: it is the strict r
 "Open all year; trout daily quota = 1 (no minimum size)" sits under Region 6's "release trout from streams Nov 1-Jun 30".
 On Jan 1 both "keep 1" and "release all" speak. Owner: "keep release add to gotchas". The release holds Nov 1-Jun 30.
 
-## Goat River "catch and release (mainstem only) Leadville Creek Cameron Creek" is garbled (O10, OPEN)
+## Goat River's garbled catch-and-release line is read as the stretch between two creeks (O10)
 
-Printed (Region 4) with no punctuation: a list, or a stretch? Built: catch and release on the whole river, none on the
-two creeks. Owner: "could it be boundaries? maybe it means between 2 confluences? we need to decide on best
-interpretation." Do not "fix" it until he picks; the Province is asked (BOOK-ERRORS entry 11).
+The row prints "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek" (Region 4, p.37) with no linking word; the
+Findlay Creek row prints "(mainstem only) from ... to ...". Owner: "between the 2 only with a gotcha added". Built (T1177): catch and release
+ONLY on the main stem between Leadville Creek (km 33.1) and Cameron Creek (km 42.6); the rest of the main stem takes the regional quota; the
+creeks get nothing extra. Before this the whole main stem (86 km) was catch and release. A reading, not the book's words: asked of the Province
+(BOOK-ERRORS entry 11); evidence `one-offs-evidence/A-goat-river.md`.
+
+## Mine Lake takes Main Lake's rules because FWA calls it Main Lake (O11)
+
+On Quadra Island FWA gives the Mine Lake polygon (wbk:329095512) the name "Main Lake" and the same GNIS id (12126) as Main Lake proper; the gazette's
+Mine Lake is an alternate name for that part of Main Lake. So the Main Lake row (bait ban, single barbless hook Nov 1-Apr 30, engine 7.5 kW) binds
+both polygons, plus Mine Lake's own engine row. Owner: "keep on both add to gotchas". Not a bug (`test_haynes_and_mine_show_the_engine_limit_once` pins it).
 
 ## Hay River basin keeps the stricter rule against the p.63 map (O12)
 

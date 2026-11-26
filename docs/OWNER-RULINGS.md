@@ -100,7 +100,7 @@ His words, verbatim. The data change is the line after "Build:"; all of it rides
 ### P5: a tributary at a row's boundary point
 "yes to leave out x unless including is what i want but we need to implement it in the extent level like by having
 changes to op maybe? need it to be low level". Build: X (and its tributaries) is left out of "upstream / downstream of X"
-unless the row says "including"; an extent op, not a special case (16 cases).
+unless the row says "including"; an extent op, not a special case (16 cases by the audit's count).
 
 ### P6a, P6b: notes and spot rules stop walking
 P6a: "Facilities and 'please note' lines (Recommended)". Build: they stop inheriting the tributaries mark.
@@ -171,7 +171,7 @@ park-rule fix (Recommended)" (T1149).
 - **O13 Healy Lake outlet:** "yes to bleow the lake but make sure you use global extent for this not rule level".
   Build: the closure is cut below Healy Lake as a global extent on the water.
 - **O14 Maka Creek:** "keep on both because they are same MU and everything make sure the gotcha is there for this". Build: none; GOTCHAS.
-- **O15 Tamihi Creek:** "Our cut is the falls". Build: none (0.66 km stays); on the Province list.
+- **O15 Tamihi Creek (TO RE-CONFIRM: the audit's paraphrase had the direction wrong):** "Our cut is the falls". The book prints two lines: "No Fishing downstream of the falls situated approximately 200 m upstream of Chilliwack River" and "No Fishing upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30". Data: below the falls closed all year (0.66 km), above it May 1-Jun 30 (13.1 km). Asked again; not settled. Province list entry 9.
 - **O16 Shuswap above Sugar Lake:** "it is a better more cautious reading to limit it so that it is not exempoting the
   whole river so exempt here". Confirmed (below): no data change.
 - **O17 Nanaimo River:** "it is probably a format issue and is okay add to gotchas." Build: none (Oct 15 stays); GOTCHAS.
@@ -182,7 +182,7 @@ should be strict here so lets take the strictest reading add it to gotchas with 
 about here (what is lifted items etc)". Build (T1177, option C of the P7b audit): the spring closure is lifted ONLY where
 a row prints its own exemption or "open all year" (whole or part); rows with only gear or quota rules keep the closure.
 Closes 330.9 km in spring (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2, Little Horsefly 17.8, Mitchell
-15.4, Canim 9.2). GOTCHAS entry and the Province question (BOOK-ERRORS entry 22) spell out what we are unsure of.
+15.4, Canim 9.2). GOTCHAS entry and the Province question (BOOK-ERRORS entry 19) spell out what we are unsure of.
 
 ### O16 confirmed; the Oxbows label (16:00)
 O16: "Yes, that is right": catch and release on the whole Shuswap River; the spring exemption only Mara Bridge-Sugar
@@ -199,11 +199,20 @@ lake stuff we need to just leave it how it is now and really have a few agents l
 it out and figure out the best way so it isnt janky." So: nothing is built; a separate design chat researches and brings
 proposals with pictures of options (T1180). Still OPEN: every zone pick.
 
+### O10 Goat River and O11 Mine Lake: RULED (17:10)
+- **O10:** first "add to gotchas and could it be boundaries? maybe it means between 2 confluences? we need to decide on best interpretation"; after the evidence: "between the 2 only with a gotcha added". Build (T1177): catch and release only on the main stem between Leadville Creek (km 33.1) and Cameron Creek (km 42.6); the rest of the main stem takes the regional quota. GOTCHAS and Province entry 11.
+- **O11:** first "Show me the map first"; after the evidence: "keep on both add to gotchas because in the gazette mine lake is labelled main lake by fwa but mine lake is a alt name for that part of main lake". No data change; GOTCHAS entry.
+
+### The tributary principle and chains (17:10; goes with O2, O7)
+"everything in is a tributary and only shouldnt be if an exception is listed saying otherwise." So a lake's tributaries row covers the river entering above the
+lake too, even when that river has its own row. Chains: "climb through everything (a stream is not a trib of itself tho so if stream a from x to y includes tribs then
+upstream of x is not included. lakes include all. and tribuatries stack so that if many tribuatry rules are on a water the most upstream ones get priority if they
+conflict (for example multiple quotas on same species upstream is the one that takes over) if that makes sense". Read as: the walk climbs through every lake; lakes
+include all inflows; a stream "from x to y, incl. tributaries" does not include itself above x; tributary rules stack and on a conflict about the same item the MOST UPSTREAM row wins.
+A walk change: needs a reach rerun and a rule-bindings diff (T1177 item 10).
+
 ### OPEN, not ruled
-- **O10 Goat River:** "add to gotchas and could it be boundaries? maybe it means between 2 confluences? we need to decide
-  on best interpretation". An agent checks where Leadville and Cameron creeks join the Goat. Until he decides: as built.
-- **O11 Mine Lake:** "Show me the map first".
-- **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
+- **O15 Tamihi** (re-confirm, above). **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".
