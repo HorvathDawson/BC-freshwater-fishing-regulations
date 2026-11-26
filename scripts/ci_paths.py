@@ -52,6 +52,9 @@ AREAS: dict[str, list[str]] = {
              "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
              # (T1041) the guard reads the rows and owner items through the ledger tool
              "app/tools/ledger.mjs", "app/tools/ledger.test.ts",
+             # (T1081) the size guard: it reads every markdown file's length and each package's README / manifest
+             "app/tools/check-size.mjs", "app/tools/check-size.test.ts", "*.md", "**/*.md", "pipeline/*/__init__.py",
+             "app/apps/*/package.json", "app/packages/*/package.json", "app/workers/*/package.json",
              ".github/workflows/docs-ci.yml", ".github/actions/app-setup/**", *_SHARED],
     "app": ["app/**", ".github/workflows/app-ci.yml", ".github/actions/app-setup/**",
             "pipeline/deliver/bundle/schema.sql", "pipeline/deliver/bundle/indexes.sql",

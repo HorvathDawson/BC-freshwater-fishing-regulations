@@ -156,6 +156,11 @@ REC_SHA = REC["sha"]
 REC_TOTAL = len({r["databaseId"] for pg in REC["pages"] for r in pg["runs"]})
 
 
+# (T1081) the docs area grew (every markdown file, a package manifest: the size guard reads them), and two of the recorded
+# paths are now in it; this test is about finding the run, so it keeps the recorded paths that were outside the area then
+RECORDED_OUTSIDE_DOCS = [p for p in REC["changed_since_15a257ca9"] if p not in ("CHANGELOG.md", "app/apps/mobile/package.json")]
+
+
 def recorded(ancestors, total=REC_TOTAL):
     """the recorded docs-ci answers through the real page reader; the other workflows green at the sha."""
     def runs_of(wf, branch=None, commit=None, limit=30, page=None):
@@ -169,7 +174,7 @@ def recorded(ancestors, total=REC_TOTAL):
             return CI.parse_page(json.dumps({**pg, "total": total}), "rec")
         return [r for pg in REC["pages"] for r in pg["runs"]][:limit]  # what the old query (newest 30) saw
     git = {"is_ancestor": lambda a, b: b == REC_SHA and a in ancestors,
-           "changed": lambda a, b: REC["changed_since_15a257ca9"] if a.startswith("15a257ca9") else ["handoff/x.md"]}
+           "changed": lambda a, b: RECORDED_OUTSIDE_DOCS if a.startswith("15a257ca9") else ["handoff/x.md"]}
     return runs_of, git
 
 

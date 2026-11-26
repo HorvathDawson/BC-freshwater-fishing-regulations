@@ -95,7 +95,7 @@ git config core.sshCommand "$(git config --get core.sshCommand || echo ssh) -o S
 #: (T995) the ticket guard on its own: what a push that changes no app file still runs (`pnpm check:fast` holds it)
 TICKETS = ("node", "app/tools/check-tickets.mjs")
 #: (T995 review) docs-ci.yml's vitest step, word for word (test_before_push.py pins it to the workflow)
-DOCS_TESTS = ("tools/check-tickets.test.ts", "tools/start-here.test.ts", "tools/ledger.test.ts")
+DOCS_TESTS = ("tools/check-tickets.test.ts", "tools/start-here.test.ts", "tools/ledger.test.ts", "tools/check-size.test.ts")
 #: (T995) skips every step, its reason printed: the release command's own pushes (its preflight ran these checks)
 SKIP_ENV = "BEFORE_PUSH_SKIP"
 #: (T998) the commit-message step's name: it runs first, whatever the change

@@ -97,10 +97,11 @@ describe("the guard fires (mutation)", () => {
   it("on two ticket files with the same id", () => {
     const t84 = real.tickets.find((t) => idOfFile(t.name) === "T84")!;
     const input = { ...noGit, tickets: [...real.tickets, { name: "T84-another-slug.md", text: t84.text }] };
-    expect(checkLedger(input)).toEqual([
+    // the list is sorted by its text, and that text starts with a folder name the rename changes: compare as a set (T1081)
+    expect(new Set(checkLedger(input))).toEqual(new Set([
       'T84: handoff/PLAN/app-integration/tickets/ids/T84 claims "T84-ticket-ledger-guard.md", but the ticket file is T84-another-slug.md: one number, one ticket',
       "T84: more than one ticket file (T84-another-slug.md, T84-ticket-ledger-guard.md)",
-    ]);
+    ]));
   });
 
   it("on a removed Status line", () => {
@@ -398,6 +399,11 @@ describe("T628 the docs guard covers the runbooks", () => {
     const synopsis = repoData("curated/regulations/synopsis");                             // the committed folder, by name (T667)
     expect(runbookPaths(annual().text)).toContain(synopsis);                               // only ever inside a ```bash block
     expect(citedPaths(annual().text)).not.toContain(synopsis);
+  });
+  it("(T1081) a branch name (docs/T1081-cut: one segment, no dot) is not a cited path; a file under it still is", () => {
+    // the rename makes `docs/` a repo root, where a cited branch would read as a dead path (found in the rehearsal)
+    expect(citedPaths("branch `docs/T1081-cut`, `ci/T1081-size-guard`, and `scripts/fast-fail.sh`")).toEqual(["scripts/fast-fail.sh"]);
+    expect(runbookPaths("```bash\ngit switch docs/T1081-cut\nbash scripts/fast-fail.sh\n```\n")).toEqual(["scripts/fast-fail.sh"]);
   });
   it("fails on a dead path in a command block (the T553 case: a renamed curated folder) and in backticks", () => {
     const block = checkDocs(withAnnual(`${annual().text}\n\`\`\`bash\nOLD=data/curated/regulations/entries/catalogue\ncp $W/book/region-*.json $OLD/\n\`\`\`\n`));
