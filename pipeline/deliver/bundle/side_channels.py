@@ -13,7 +13,8 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    mouth's). (T1140 proposal, coordinator 2026-11-25, "a consistent way to handle this") A channel whose downstream end
    TOUCHES a water body of its own river joins the river AT it: a named lake its main line runs through names the
    channel's lower end (`section_span.lo` = `lake_inlet:<lake>`: "side channel into <Lake>"); its own polygon (a wide
-   reach, an unnamed lake of the river) is measured at the main line's point nearest the touch, whatever the distance
+   reach) or an unnamed lake its main line runs through is measured at the main line's point nearest the touch,
+   whatever the distance
    — the snap limit holds only where the end touches NO water body of its river. A channel failing one gets NO join (never a guessed distance), logged here; a part whose NAME then lacks a
    distance stops the build at the answers step, named (`answers.display.builders._names`). Written into
    `section_span.lo_m = hi_m` of every section of that channel: the export then says "joining N km from the mouth" by
@@ -36,7 +37,7 @@ from __future__ import annotations
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 #: The farthest (metres) a channel's end may lie from its river's main line for the join to be said. Set from the data
 #: (T1140, r-71d09ad82e81, every channel the rule applies to printed at build): the 15 it measures lie at 0 m; the nearest
@@ -93,6 +94,20 @@ def _ends(geoms: List[object]) -> List[object]:
     return pts
 
 
+def _unnamed_lakes(db: sqlite3.Connection, build_dir: Path) -> Dict[str, object]:
+    """{handle: polygon} of every lake outline of the atlas (`waterbody_polys.pkl`) that no named water owns."""
+    import pickle
+    p = Path(build_dir) / "waterbody_polys.pkl"
+    if not p.exists():
+        return {}
+    from pipeline.common.section_handles import id_at, read as read_handles
+    ids, _ = read_handles(build_dir)
+    owned = {id_at(ids, s) for (s,) in db.execute("SELECT DISTINCT sid FROM item_section")}
+    with p.open("rb") as fh:
+        polys = pickle.load(fh)
+    return {k: g for k, g in polys.items() if k not in owned}
+
+
 def downstream_ends(channel: List[object], down: Optional[object]) -> List[object]:
     """The channel's downstream end, as a list of one, where its flow pointer says it (`down`: the shape the flow leaves it
     for); else both ends — which is downstream cannot be told."""
@@ -102,13 +117,15 @@ def downstream_ends(channel: List[object], down: Optional[object]) -> List[objec
     return ends
 
 
-def touched(ends: List[object], own: List[Tuple[int, object]], lakes: List[Tuple[str, object]]) -> Optional[tuple]:
+def touched(ends: List[object], own: List[Tuple[int, object]], lakes: List[Tuple[str, object]],
+            unnamed: Sequence[Tuple[str, object]] = ()) -> Optional[tuple]:
     """What water body of its river a channel's downstream end touches (within `TOUCH_M`): ("lake", lake item id, the
     end) for a named lake its main line runs through — first, a lake beats the river's own polygon it lies in — else
-    ("own", sid, the end) for the river's own polygon section; None when it touches neither. Ties: the lowest id."""
-    for kind, bodies in (("lake", lakes), ("own", own)):
+    ("own", sid, the end) for the river's own polygon section, else ("unnamed", lake handle, the end) for an unnamed lake
+    its main line runs through; None when it touches none. Ties: the lowest id, then the end's place."""
+    for kind, bodies in (("lake", lakes), ("own", own), ("unnamed", unnamed)):
         hits = sorted(((key, e) for e in ends for key, g in bodies if e.distance(g) <= TOUCH_M),
-                      key=lambda h: (h[0], h[1].x, h[1].y))
+                      key=lambda h: (h[0], h[1].bounds))
         if hits:
             return kind, hits[0][0], hits[0][1]
     return None
@@ -158,7 +175,8 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
 
 
 def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, *, log=print,
-          problems: Optional[List[str]] = None, added: Optional[Dict[int, str]] = None) -> None:
+          problems: Optional[List[str]] = None, added: Optional[Dict[int, str]] = None,
+          unnamed: Optional[Dict[str, object]] = None) -> None:
     """Fill the join measures `spans.compute` could not walk to, and write `part_inside` (the module's two rules).
     A channel the join rule cannot say is left without one and logged ("no join"; `problems` collects them too): only
     a part whose name needs that distance stops the build (`answers.display.builders._names`)."""
@@ -208,6 +226,14 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
         from shapely.strtree import STRtree
         lake_shape = {i: unary_union(lake_geo[i]) for i in lake_items}
         lake_tree = STRtree([lake_shape[i] for i in lake_items])
+    # the UNNAMED lakes (no water owns them: `waterbody_polys.pkl`, keyed by handle), for the touch rule
+    if unnamed is None:
+        unnamed = _unnamed_lakes(db, build_dir)
+    un_keys = sorted(unnamed)
+    un_tree = None
+    if un_keys:
+        from shapely.strtree import STRtree
+        un_tree = STRtree([unnamed[k] for k in un_keys])
     eid = dict((t, e) for e, t in db.execute("SELECT eid, token FROM span_end"))
     for o in sorted(secs):
         iid, name, kind = item[o]
@@ -228,6 +254,12 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             line = unary_union([g for _a, _b, g in stem])
             lakes = sorted((lake_items[int(j)], lake_shape[lake_items[int(j)]]) for j in lake_tree.query(line)
                            if lake_shape[lake_items[int(j)]].distance(line) <= TOUCH_M)
+        on_stem: List[Tuple[str, object]] = []
+        if un_tree is not None:
+            from shapely.ops import unary_union
+            line = unary_union([g for _a, _b, g in stem])
+            on_stem = sorted((un_keys[int(j)], unnamed[un_keys[int(j)]]) for j in un_tree.query(line)
+                             if unnamed[un_keys[int(j)]].distance(line) <= TOUCH_M)
         for comp in _components(loose, touch):
             shapes = [geo[s] for s in comp if s in geo]
             if len(shapes) != len(comp):
@@ -236,7 +268,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             inside = set(comp)
             leave = sorted({down[s] for s in comp if s in down and down[s] not in inside and down[s] in geo})
             dn = geo[leave[0]] if len(leave) == 1 else None
-            hit = touched(downstream_ends(shapes, dn), [x for x in own if x[0] not in inside], lakes)
+            hit = touched(downstream_ends(shapes, dn), [x for x in own if x[0] not in inside], lakes, on_stem)
             if hit and hit[0] == "lake":
                 # into a named lake on its river's main line: that is its lower end (rule A names it)
                 tok = f"lake_inlet:{hit[1]}"
@@ -252,7 +284,8 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             except SideChannelError as e:
                 stop(f"{e} ({iid} {name}, sections {comp})")
                 continue
-            how = (f"touching its own polygon {hit[1]}" if hit else
+            how = (f"touching {'its own polygon' if hit[0] == 'own' else 'an unnamed lake on its main line'} {hit[1]}"
+                   if hit else
                    f"from its {'downstream' if len(leave) == 1 else 'nearer'} end")
             log(f"     side channel: {iid} {name} sections {comp[0]}…({len(comp)}): joins at {m / 1000:.1f} km, "
                 f"snap {snap:.0f} m {how}")
