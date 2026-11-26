@@ -8,7 +8,7 @@
  * the header, the parts list and the screen reader all say `partName`).
  */
 import { describe, expect, it } from "vitest";
-import { entryNames, headerOf, partName, spanName, type WaterGroup } from "@app/core";
+import { entryNames, headerOf, nameUnder, partName, spanName, WATER_MAP_WORDS, type WaterGroup } from "@app/core";
 import { loadRegsInputs, loadWaterGroup, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
 import { liveReleaseAt, openReleaseDir } from "../conformance/src/fixtureRelease";
 
@@ -127,12 +127,19 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
         for (const partIx of p.pieces) {
           checked += 1;
           const want = names.get(partIx)!;
-          const own = parts[partIx]!.facts ? spanName(g.ends, it.name, p) : it.name;
+          // (T1140, owner 2026-11-25) the part's own name: its ends; with none, the release's own words for it; with no
+          // facts, "<water> outside B.C." — what the map names an unjoined entry (this group is read with no salmon)
+          const own = parts[partIx]!.facts
+            ? (p.lo === null && p.hi === null && parts[partIx]!.facts!.runs ? parts[partIx]!.facts!.runs : spanName(g.ends, it.name, p))
+            : WATER_MAP_WORDS.outside(it.name);
           const viaPart = await said(partIx, names), early = await said(partIx, null);
-          if (viaPart.short !== want) bad.push(`${it.id} part ${partIx}: map "${want}", header "${viaPart.short}"`);
-          if (viaPart.full !== want && !(viaPart.inp.item?.picker?.choices.some((c) => c.parts.includes(partIx) && c.text === viaPart.full)))
+          // (T1140, owner 2026-11-25: "Drop the repeat") the head shows a "<water> <words>" name by its words under the
+          // water's name: the same name, said under it
+          const under = (x: string) => nameUnder(it.name, x);
+          if (viaPart.short !== under(want)) bad.push(`${it.id} part ${partIx}: map "${want}", header "${viaPart.short}"`);
+          if (viaPart.full !== under(want) && !(viaPart.inp.item?.picker?.choices.some((c) => c.parts.includes(partIx) && c.text === viaPart.full)))
             bad.push(`${it.id} part ${partIx}: header's long label "${viaPart.full}" is neither the map's name nor this part's choice`);
-          if (p.pieces.length === 1 && early.short !== own) bad.push(`${it.id} part ${partIx}: before the group, "${early.short}" not "${own}"`);
+          if (p.pieces.length === 1 && early.short !== under(own)) bad.push(`${it.id} part ${partIx}: before the group, "${early.short}" not "${own}"`);
           if (parts[partIx]!.akey !== null && viaPart.inp.key?.akey !== parts[partIx]!.akey)
             bad.push(`${it.id} part ${partIx}: the page read another part's key`);
           // a tap on any of this part's sections opens this entry
@@ -145,7 +152,7 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
       }
       // a search opens the lowest keyed part, said as the map says it
       const s = await targetFor(st, it.id, null);
-      if (s.kind === "part" && names.has(s.partIx) && (await said(s.partIx, names)).short !== names.get(s.partIx))
+      if (s.kind === "part" && names.has(s.partIx) && (await said(s.partIx, names)).short !== nameUnder(it.name, names.get(s.partIx)!))
         bad.push(`${it.id}: the searched part ${s.partIx} is said otherwise`);
     }
     // r-0a9930fb8826: 1,589 parts of 562 waters (304 of them, on 206 waters, said another part's name before T700)

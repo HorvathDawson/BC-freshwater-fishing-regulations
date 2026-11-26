@@ -38,6 +38,13 @@ GAUGE_CODE = re.compile(r"\b\d{2}[A-Z]{2}\d{3}\b")
 NUMBERED = re.compile(r" \(\d+\)$")
 
 
+
+def near_name(water: str, words_: str) -> str:
+    """The app's `spanName` for lo = hi = "near:…": "<water> <words, first letter lower>" ("Squamish River inside Baynes
+    Island Ecological Reserve"); (T1140 proposal) words beginning ":" follow with no space ("Noons Creek: Turner Creek
+    (Port Moody)")."""
+    return f"{water}{words_}" if words_.startswith(":") else f"{water} {words_[:1].lower() + words_[1:]}"
+
 def words(ends: Mapping[str, Sequence[str]], token: str, side: str) -> Optional[str]:
     """The words of an end token as the app says them: the upper end its first words, the lower end its `to:` words
     when it has them. None: the token has no entry."""
@@ -72,7 +79,7 @@ def problems(waters: Iterable[Tuple[str, str, Sequence[Optional[dict]]]], ends: 
                                f"not in display.ends")
                     continue
                 # lo = hi = "near:…": a part with no main stem told apart by where it lies, "<water> near <it>"
-                name = f"{water} {b[:1].lower() + b[1:]}" if lo == hi and lo.startswith("near:") else f"{a} → {b}"
+                name = near_name(water, b) if lo == hi and lo.startswith("near:") else f"{a} → {b}"
             else:
                 name = water
             if name in said:
