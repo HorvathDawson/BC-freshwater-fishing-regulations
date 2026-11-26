@@ -61,7 +61,7 @@ describe.skipIf(!at.dir)("(T1140) a part of a water of several is named, never n
     expect([co.map, co.h.place?.short]).toEqual(["Side channel, joining 12 km from the mouth", "Side channel, joining 12 km from the mouth"]);
   }, 60_000);
 
-  it("a TAP on a tidal stretch or a part outside B.C. draws its head: no throw, no line (audit of #265)", async () => {
+  it("a TAP on a tidal stretch or a part outside B.C. draws its head: no throw, no line (the PR audit)", async () => {
     // the Capilano and the Coquitlam have tidal lower parts a map tap reaches; province-wide, every such part
     const ords = (await (await st.water()).all("SELECT item_ord FROM item WHERE shown = 1")).map((r) => Number(r.item_ord));
     const seen = { tidal: 0, outside: 0 }, bad: string[] = [];

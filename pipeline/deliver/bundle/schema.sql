@@ -1290,7 +1290,7 @@ CREATE TABLE part_inside (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area T
 CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT, how TEXT) WITHOUT ROWID;
 -- (T1140 proposal, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is
 -- fixed in hardening") a part made ONLY of added-stream lines (negative blk, `section_measure`) that carry their OWN name,
--- one name, not the water's: that name (`added_streams.json` `streams[].name` by blk) and the municipality its source
+-- one name, not the water's: that name (the atlas graph's name tuple for the blk) and the municipality its source
 -- names (from the water's `name_source.label` for it; column `label`). `answers.display` names it "<water>: <name>
 -- (<municipality>)": Noons Creek's part that is Port Moody's Turner Creek, filed with it until the refile.
 CREATE TABLE part_own_name (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, name TEXT NOT NULL, label TEXT NOT NULL,
