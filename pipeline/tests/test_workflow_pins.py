@@ -153,6 +153,22 @@ def test_no_register_only_push_trigger_and_actions_are_off_node_20():
     assert not bad, bad
 
 
+def test_the_maplibre_library_workflow_is_hand_started_and_only_publish_writes():
+    """(T1170) the stored MapLibre build: started by hand only (it adds nothing to a PR); `build` runs the Mac's own
+    build.sh --compile and never writes; `publish` alone has contents: write, and runs only on the `publish` input when
+    the key's asset is missing. Mutations: a push / pull_request trigger, write access on build, publish without its
+    condition, a forked build command -> fails."""
+    doc = _load("maplibre-android.yml")
+    assert list(_on(doc)) == ["workflow_dispatch"]
+    assert _on(doc)["workflow_dispatch"]["inputs"]["publish"]["default"] is False
+    build, publish = doc["jobs"]["build"], doc["jobs"]["publish"]
+    assert set(doc["jobs"]) == {"build", "publish"} and "permissions" not in build
+    assert any(s.get("run", "").strip().splitlines()[1:2] == ['bash app/tools/maplibre-android/build.sh --compile "$WORK"']
+               for s in build["steps"])
+    assert publish["permissions"] == {"contents": "write"} and publish["needs"] == "build"
+    assert publish["if"] == "inputs.publish && needs.build.outputs.stored == 'false'"
+
+
 def test_hydat_checks_its_key_before_it_fetches_anything():
     steps = _load("feeds-hydat.yml")["jobs"]["hydat"]["steps"]
     assert "R2 keys are not set" in steps[0]["run"]

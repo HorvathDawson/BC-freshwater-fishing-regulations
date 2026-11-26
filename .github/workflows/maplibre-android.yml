@@ -22,10 +22,6 @@ on:
         description: "attach the built file to its GitHub Release (false = build it and keep it as an artifact only)"
         type: boolean
         default: false
-  # TEMPORARY (T1170 trial only, removed before review): GitHub dispatches only a workflow file that is on the default
-  # branch, so the one trial build runs from this PR. No `publish` input on this event: the publish job is skipped.
-  pull_request:
-    paths: [".github/workflows/maplibre-android.yml"]
 
 concurrency:
   group: maplibre-android
