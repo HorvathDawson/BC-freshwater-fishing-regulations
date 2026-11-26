@@ -62,6 +62,8 @@ def test_a_channel_that_only_runs_to_an_areas_boundary_is_not_inside_it():
     # the Skeena's channel "from the Exchamsiks River confluence up to Skeena River Ecological Reserve boundary"; the
     # Okanagan River Oxbows' "source → the reserve's boundary" beside a "source → mouth" channel
     assert inside_area({"runs": [_run("source", BAYNES, 1.0, 0.5, branch=True)]}) is None
+    # …and one that runs FROM the boundary down to a confluence below it (outside, downstream)
+    assert inside_area({"runs": [_run(BAYNES, "confluence:gnis:9", 1.0, 0.5, branch=True)]}) is None
     assert inside_area({"runs": [_run(BAYNES, BAYNES, 1.0, 0.5, branch=True), _run("source", "mouth", 2.0, 0.0, branch=True)]}) is None
     W = _water([MAIN, [_run("source", BAYNES, 11.6, 11.2, branch=True)]])
     assert _said(W)[1] == "Squamish River"                       # no name invented: the water's, as before
