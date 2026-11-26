@@ -32,6 +32,9 @@ Every branch below is also a local branch of the main checkout's repository (lan
 | T1077, T1078 | `fix/T1077-bait-source-line`, `fix/T1078-all-year-closers` | built, pictures made, not reviewed; both visible: parked |
 | T1105 | `fix/T1105-yielded-closure-detail` | findings in the ticket only: a data build, or the app-only route written there |
 
+Pushes the hook refused at the close (branches stay local): T1167 (above); T1168 (the mini release, plus the frozen VM
+fixtures of `harness.parity` and `partLabel`'s byte-for-byte page text, which hold the old price note); T1166 (not read).
+
 Not started: T1172 (setup fixes: on the planning chat's word), T1123 + T1124, T1164's other app items, T1111, T1100
 (the inventory path and the owner's two answers are with the planning chat), T1169 item 3, the OpenStreetMap client
 name (`pipeline/atlas/waters/added_streams/fetch_osm.py:30`). Left on T1163: a comment in `legal.ts` still says a
