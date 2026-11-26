@@ -796,6 +796,58 @@ def test_a_changed_golden_page_stops_uncommitted_until_its_own_token_is_accepted
     assert _staging() == 0 and _latest(world) == NEW
 
 
+def test_a_moved_answer_pin_stops_with_the_pages_and_a_moved_count_is_committed(world, capsys, monkeypatch):
+    """(T1135) the re-cut records the release pins: a moved `answers: false` pin (a count) is committed with the release
+    id, no stop; a moved `answers: true` pin (words an angler reads) stops like a golden page, named, until the same
+    --accept-fixtures token (one token covers the pages and the pins)."""
+    pins = "app/fixtures/golden/release-pins.json"
+    moved = {pins: []}
+    monkeypatch.setattr(R.RF, "moved_answer_pins", lambda p, rev="HEAD": moved.get(p, []))
+    world["recut_changed"] = ["app/fixtures/golden/taps.json", pins]
+    assert R.main(["--staging", "--push"]) == 0                              # a count moved: committed, no stop
+    assert world["recuts_committed"] == [(NEW, "renumber only")] and "pins 1" in capsys.readouterr().out
+
+
+def test_a_moved_sentence_pin_stops_until_its_token(world, capsys, monkeypatch):
+    pins = "pipeline/tests/fixtures/release-pins.json"
+    monkeypatch.setattr(R.RF, "moved_answer_pins", lambda p, rev="HEAD": ["answers26.williston.applies"] if p == pins else [])
+    world["recut_changed"] = ["app/fixtures/golden/taps.json", pins]
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at follows" in err and "nothing was committed" in err and "--accept-fixtures tok-2" in err
+    assert f"{pins} — answer pin(s) moved: answers26.williston.applies" in err and "git diff -- " in err
+    assert world["recuts_committed"] == []
+    assert _staging(accept_fixtures="tok-2") == 1 and world["recuts_committed"] == [(NEW, "golden pages accepted")]
+
+
+def test_a_moved_answer_pin_still_stops_when_the_golden_pages_only_renumbered(world, capsys, monkeypatch):
+    """(T1135 review) the renumber auto-accept covers golden pages only: a moved answer pin beside them still stops."""
+    pins, page = "app/fixtures/golden/release-pins.json", "app/packages/ui-native/src/regs/fixtures/glenn_501.json"
+    monkeypatch.setattr(R.RF, "moved_answer_pins", lambda p, rev="HEAD": ["sourceLine.rowPages.glenn_501"] if p == pins else [])
+    asked = []
+    monkeypatch.setattr(R, "recut_renumbered", lambda pages: asked.append(list(pages)) or (True, "1 page renumbered"))
+    world["recut_changed"] = [pins, page]
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert asked == [[page]] and f"{pins} — answer pin(s) moved: sourceLine.rowPages.glenn_501" in err
+    assert "STOPPED at follows" in err and world["recuts_committed"] == []
+
+
+def test_a_broken_pins_file_is_a_stop_never_a_traceback_or_an_accept(world, capsys, monkeypatch):
+    pins = "pipeline/tests/fixtures/release-pins.json"
+
+    def broken(p, rev="HEAD"):
+        raise R.RF.PinsFileError(f"{p}: pin 'x' is \"y\", not {{...}}; it is written by `{R.RF.REFRESH_PINS}`")
+    monkeypatch.setattr(R.RF, "moved_answer_pins", broken)
+    world["recut_changed"] = [pins]
+    for kw in ({}, {"accept_fixtures": "tok-1"}):
+        assert _staging(**kw) == 1
+        err = capsys.readouterr().err
+        assert "STOPPED at follows" in err and "a release-pins file that is not one" in err and "pin 'x'" in err
+        assert "node app/tools/regs-recut/sync.mjs --release" in err and "Traceback" not in err
+        assert world["recuts_committed"] == []
+
+
 def test_push_never_pushes_a_commit_the_release_did_not_make(world, capsys):
     world["recut_changed"] = ["app/fixtures/golden/taps.json"]
     world["unpushed"] = ["0ther" + "0" * 35]                                 # another lane committed during the build

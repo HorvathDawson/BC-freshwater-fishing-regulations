@@ -643,10 +643,12 @@ def step_env(environ: dict[str, str] | None = None) -> dict[str, str]:
 
     (T995, 2026-11-22) A hook runs with GIT_DIR (and friends) set. A test that ran `git init` in its own temp folder
     inherited it and re-initialised THE REAL REPOSITORY instead (core.bare = true: every worktree stopped working). The
-    pre-commit framework strips the same set; so does .githooks/pre-push before it starts this."""
+    pre-commit framework strips the same set; so does .githooks/pre-push before it starts this. (T1135) PIN_RECORD is
+    set empty, as the release's `test_env` does: an exported one would turn every `pin()` into a record that passes."""
     environ = dict(os.environ if environ is None else environ)
     for k in _git_local_vars():
         environ.pop(k, None)
+    environ["PIN_RECORD"] = ""
     environ["PATH"] = f"{Path(py()).parent}{os.pathsep}{environ.get('PATH', '')}"
     environ.update(HOOK_ENV)                 # (T1144) the hook's vitest worker caps; empty outside the hook
     return environ

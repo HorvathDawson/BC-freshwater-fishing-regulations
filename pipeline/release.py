@@ -98,7 +98,9 @@ already done for this release):
                `notice_waters.json` holds only the owner's matches, and the resolve only reads it). (b) the app's release-backed
                FIXTURES are re-cut (`node app/tools/regs-recut/sync.mjs --release <candidate>`): a change that only
                renumbers (ids, handles, the fixture release) is committed with the release id; a changed GOLDEN PAGE —
-               what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5). (c) the
+               what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5); the
+               same re-cut records the release pins (T1135, row `pins`): a moved `answers: true` pin stops with the
+               pages under the same token, a moved `answers: false` one is committed like a renumber. (c) the
                TESTS THAT ASK FOR THE RELEASE UNDER TEST (found by rule, both suites) run with RELEASE_DIR = the
                candidate, so nothing compares with LATEST before the promote, and (T680) THE WHOLE APP CHECK with
                them — the app suite, the feeds worker suite and each `check:fast` gate on its own — every one runs
@@ -1877,23 +1879,30 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
         f["recut"] = {"release": rid, "at": now(), "kind": "unchanged", "paths": 0}
         save_ledger(ctx.led)
         return f"fixtures re-cut on {rid}: nothing changed"
-    pages = RF.answer_paths(changed)
+    try:
+        pages = RF.answer_paths(changed)
+    except RF.PinsFileError as e:        # (T1135) a broken pins file: a stop naming it, never a pass or an accept
+        raise Stop("follows", f"the re-cut on {rid} left a release-pins file that is not one: {e}; nothing was "
+                   "committed", f"fix the file (re-cut: {RF.REFRESH_PINS} --release {rel(release_root() / rid)}), "
+                   "then rerun") from None
     token = recut_token(changed)
     print(f"    the re-cut changed {len(changed)} path(s): " + ", ".join(
         f"{row.name} {n}" for row in RF.FOLLOWS for n in [sum(RF.row_of(x) is row for x in changed)] if n), flush=True)
-    renumbered, note = recut_renumbered(pages) if pages else (False, "")
+    pins = [x for x in pages if RF.is_pins(x)]      # (T1135) a moved answer pin is never a renumber
+    golden = [x for x in pages if x not in pins]
+    renumbered, note = recut_renumbered(golden) if golden else (False, "")
     if renumbered:
         # (T993 item 8; 0.8.5 stop 8: nine pages whose source indexes only renumbered) the same page, its sources
         # renumbered one for one: nothing an angler reads changed — committed, said, never a stop
         print(f"    golden pages: {note} — AUTO-ACCEPTED as a renumber (T993 item 8)", flush=True)
         f["renumbered"] = note
-        pages = []
+        pages = pins
     if pages and token not in (ctx.accept_fixtures, f.get("accepted")):
         why = "" if ctx.accept_fixtures is None else f" (--accept-fixtures {ctx.accept_fixtures} is not this re-cut)"
         raise Stop("follows", f"the re-cut on {rid} changed {len(pages)} golden page(s) — what an angler is told "
-                   f"changed{why}; nothing was committed:" + "".join(f"\n    {x}" for x in pages[:20])
+                   f"changed{why}; nothing was committed:" + "".join(f"\n    {x}" for x in RF.said(pages[:20]))
                    + ("\n    …" if len(pages) > 20 else ""),
-                   "read `git diff -- " + " ".join(x for row in RF.FOLLOWS if row.answers for x in row.paths)
+                   "read `git diff -- " + " ".join(RF.answer_roots())
                    + "`; if every change is intended, "
                    f"rerun with\n    --accept-fixtures {token}\n  otherwise fix the cause, commit, and rerun")
     kind = "golden pages accepted" if pages else "renumber only (source indexes)" if renumbered else "renumber only"
@@ -1974,9 +1983,18 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
             if rc:
                 return {"recut_rc": rc}
             changed = recut_changed()
-            pages = RF.answer_paths(changed)
-            renumbered, note = recut_renumbered(pages) if pages else (False, "")
-            got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else pages, "renumbered": note,
+            try:
+                pages = RF.answer_paths(changed)
+            except RF.PinsFileError as e:    # (T1135) the real run stops on it: listed as a stop, the tests still run
+                pages, broken = [], [f"a release-pins file that is not one: {e}"]
+            else:
+                broken = []
+            pins = [x for x in pages if RF.is_pins(x)]
+            golden = [x for x in pages if x not in pins]
+            renumbered, note = recut_renumbered(golden) if golden else (False, "")
+            # (T1135) said here, while the re-cut is on disk: a pins file names its moved pins
+            got = {"recut_rc": 0, "changed": changed,
+                   "pages": broken + RF.said(pins if renumbered else pages), "renumbered": note,
                    "token": recut_token(changed) if changed else None}
             got["failures"] = candidate_failures(cand, RF.test_env(release_root() / cand))
             return got
