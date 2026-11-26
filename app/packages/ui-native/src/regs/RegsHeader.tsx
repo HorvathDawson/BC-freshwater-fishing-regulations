@@ -235,9 +235,13 @@ export function Place({ place, palette, coach: coachKey = "regs:place" }: { plac
 /**
  * (T1140, a proposal for the owner: words "Other parts of this water have different rules") THE LINE TO THE OTHER PARTS,
  * under the part's name: a press opens the water's Map with its list of parts open (`onParts`, the water frame's) — the
- * list the Map tab's "Show all N parts" opens. Its own 44 px row: the tab row below leaves no room for a slop. With no
+ * list the Map tab's "Show all N parts" opens. (Owner 2026-11-25: "Keep but need to make sure it doesn't take up too much
+ * real state") ONE short line as the class line is (`PARTS_LINE_H`, 24 px, the WCAG 2.2 minimum target), full width,
+ * no slop: the place text above and the tab row below leave none — a recorded exception to 44 (`SHORT_PRESS`). With no
  * `onParts` (a frame with no Map) the words are said, not pressed.
  */
+/** (T1140) the parts line's own height, px: the style's minHeight and the press's declared box, one number */
+const PARTS_LINE_H = CLASS_LINE_H;
 export function PartsOthers({ words, palette, onParts }: { words: string; palette: Palette; onParts?: () => void }) {
   const line = (
     <>
@@ -246,10 +250,10 @@ export function PartsOthers({ words, palette, onParts }: { words: string; palett
       {onParts && <Icon name="next" colour={palette.accent} size={14} />}
     </>
   );
-  const box = { paddingLeft: GUTTER, paddingRight: 12, minHeight: 44, flexDirection: "row" as const, alignItems: "center" as const, gap: 6, marginTop: -4 };
+  const box = { paddingLeft: GUTTER, paddingRight: 12, minHeight: PARTS_LINE_H, flexDirection: "row" as const, alignItems: "center" as const, gap: 6, marginTop: -3 };
   return onParts ? (
-    <RegsPress testID="regs-parts-others" onPress={onParts} accessibilityRole="button" accessibilityLabel={words} box={{ w: 44, h: 44 }}
-               style={box}>{line}</RegsPress>
+    <RegsPress testID="regs-parts-others" onPress={onParts} accessibilityRole="button" accessibilityLabel={words} box={{ w: 44, h: PARTS_LINE_H }}
+               slop={{ top: 0, right: 0, bottom: 0, left: 0 }} style={box}>{line}</RegsPress>
   ) : (
     <View testID="regs-parts-others" accessible accessibilityLabel={words} style={box}>{line}</View>
   );
