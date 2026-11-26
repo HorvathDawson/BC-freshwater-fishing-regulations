@@ -179,10 +179,20 @@ describe("the page standards outside the tickets folder (the second cut)", () =>
     // a folder keyed to a ticket but not named as a ticket's folder outlives the ticket
     expect(run([...lean(), md(`${DOCS_DIR}/research/t9-hard-cases/NOTES.md`)]).join("\n")).toContain("a ticket's page outside its ticket's folder");
   });
-  it("the reading total: every markdown line outside tickets and look-up files, at the budget passes, one over fails", () => {
-    const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
+  it("the reading total: every markdown line outside tickets, look-up files and restart pages, at the budget passes, one over fails", () => {
+    const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`) && !f.path.startsWith(`${DOCS_DIR}/restart/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
     expect(run([...lean(), md("CHANGELOG.md", 500)], { readingBudget: total })).toEqual([]);
     says(run([...lean(), md("deploy/NOTES.md", 1)], { readingBudget: total }), "markdown outside the tickets folder", total + 1, total);
+  });
+  it("(T1144) a restart page is outside the reading total and still held by its own cap", () => {
+    const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`) && !f.path.startsWith(`${DOCS_DIR}/restart/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
+    const page = `${DOCS_DIR}/restart/another-chat.md`;
+    // a full restart page at a reading total with no room left: passes (mutation: count it -> "markdown outside the tickets folder")
+    expect(run([...lean(), md(page, max("restart"))], { readingBudget: total })).toEqual([]);
+    // one line over its own cap still fails, by its own rule
+    says(run([...lean(), md(page, max("restart") + 1)], { readingBudget: total }), page, max("restart") + 1, max("restart"));
+    // and any other page still counts
+    says(run([...lean(), md(`${DOCS_DIR}/NOTES.md`, 1)], { readingBudget: total }), "markdown outside the tickets folder", total + 1, total);
   });
   it("the real budget is set (never the 0 it is written with before a measure)", () => expect(max("readingLines")).toBeGreaterThan(1000));
 });
