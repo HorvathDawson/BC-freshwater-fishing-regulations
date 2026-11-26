@@ -3,3 +3,4 @@
  * `../engine.ts` hands the shell (`../../Map.native.tsx`). Nothing else imports this folder.
  */
 export { maplibreTiles } from "./tiles";
+export { HeldLabels } from "./HeldLabels";

@@ -20,4 +20,4 @@ export interface EngineTiles {
   onTileIds(listener: (e: TileIdsEvent) => void): () => void;
 }
 
-export { maplibreTiles as engineTiles } from "./maplibre";
+export { HeldLabels, maplibreTiles as engineTiles } from "./maplibre";

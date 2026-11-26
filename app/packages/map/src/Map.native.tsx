@@ -65,7 +65,7 @@ import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VI
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
-import { engineTiles } from "./native/engine";
+import { HeldLabels, engineTiles } from "./native/engine";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
@@ -79,7 +79,7 @@ import { GEOMETRY, SHOW_SCALE } from "./chrome";
 import { MapCredits } from "./MapCredits";
 import { LAB_ON, labStyle, useLab } from "./lab";
 import { heldLayers } from "./label-hold";
-import { HeldLabels, holdStore, useAdoptedIds } from "./native/labelHold";
+import { holdStore, useAdoptedIds } from "./native/labelHold";
 import type { MapProps } from "./map-props";
 import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
