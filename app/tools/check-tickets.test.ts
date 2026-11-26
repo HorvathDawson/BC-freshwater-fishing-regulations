@@ -97,10 +97,11 @@ describe("the guard fires (mutation)", () => {
   it("on two ticket files with the same id", () => {
     const t84 = real.tickets.find((t) => idOfFile(t.name) === "T84")!;
     const input = { ...noGit, tickets: [...real.tickets, { name: "T84-another-slug.md", text: t84.text }] };
-    expect(checkLedger(input)).toEqual([
+    // the list is sorted by its text, and that text starts with a folder name the rename changes: compare as a set (T1081)
+    expect(new Set(checkLedger(input))).toEqual(new Set([
       'T84: handoff/PLAN/app-integration/tickets/ids/T84 claims "T84-ticket-ledger-guard.md", but the ticket file is T84-another-slug.md: one number, one ticket',
       "T84: more than one ticket file (T84-another-slug.md, T84-ticket-ledger-guard.md)",
-    ]);
+    ]));
   });
 
   it("on a removed Status line", () => {
