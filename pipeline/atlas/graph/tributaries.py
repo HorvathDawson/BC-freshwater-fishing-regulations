@@ -980,8 +980,11 @@ def tributaries_of_reach(
     cuts: Iterable[tuple[str, float]] | None = None,
     own: set[str] | frozenset[str] = frozenset(),
     climb_from: set[str] | frozenset[str] = frozenset(),
+    registry=None,
 ) -> frozenset[str]:
     """Sections draining INTO `reach`, recursively. Excludes `reach` itself.
+
+    `registry` (given by `expand`): a walked water's side channels go with it (`A_SIDE_CHANNEL_GOES_WITH_ITS_WATER`).
 
     `cuts` are the reach's LOWER CUTS as `(blk, measure)` — every extent's, as `resolve_extent`
     used them (`extent` `cuts`, `build.seeding_cuts`); a tributary whose mouth sits on one is the
@@ -1072,8 +1075,90 @@ def tributaries_of_reach(
                 seen.add(x)
                 out.add(x)
                 stack.append(x)
+        if not stack and A_SIDE_CHANNEL_GOES_WITH_ITS_WATER and registry is not None and out:
+            for x in _side_channel_seeds(ctx, registry, seen, out - frozenset(passed) - ctx.own):
+                seen.add(x)
+                out.add(x)
+                stack.append(x)
 
     return frozenset(out - frozenset(passed) - ctx.own)
+
+
+#: T1146 (owner 2026-11-25 "Fix the binding in 0.10.0"): A SIDE CHANNEL GOES WITH ITS WATER. The walk climbs only UP,
+#: so a channel of a walked water that leaves it and never flows back into walked water (a distributary, a channel
+#: ending in a pond: Forsyth, Koksilah, Halfway, MacMillan) is never met, and one FWA draws a bigger order than the
+#: piece it rejoins is refused as `bigger_river` (Shelagyote, Omineca, Manson). Each stayed under the region default
+#: as a nameless part of its river. A piece of a registry STREAM item with no main-flow line
+#: (`fwa_edge_types.is_main_flow`), not a barrier, not carved out, not the entry's own water, is collected with every
+#: such piece it touches when EVERY other piece of the same item it touches was collected by this walk; the walk then
+#: climbs on from it. The registry already says the channel is that water; a channel touching the reach, a carve-out or
+#: any uncollected piece of its item stays out, and so does one another water flows into (an inflow whose watershed
+#: code is neither the channel's nor under it, or is missing). False = the mutation pin.
+A_SIDE_CHANNEL_GOES_WITH_ITS_WATER = True
+
+#: ONE SLOT, keyed by the registry object itself (held, so its id stays unique): {section: (stream items owning it)}
+_STREAM_OWNERS: list = [None, None]
+
+
+def _stream_owners(registry) -> dict:
+    if _STREAM_OWNERS[0] is registry:
+        return _STREAM_OWNERS[1]
+    got: dict = {}
+    for iid, it in registry.items():
+        k = getattr(it, "kind", "")
+        if str(getattr(k, "value", k)).lower() == "stream":
+            for s in it.section_ids:
+                got.setdefault(s, []).append(iid)
+    _STREAM_OWNERS[:] = [registry, got]
+    return got
+
+
+def _touching(graph: StreamGraph, nid: str):
+    for ei in graph.up_adj.get(nid, ()):
+        yield graph.edges[ei].from_node
+    for ei in graph.down_adj.get(nid, ()):
+        yield graph.edges[ei].to_node
+
+
+def _same_water(graph: StreamGraph, nid: str, codes: set[str]) -> bool:
+    """Is `nid`'s watershed code one of `codes` or under one of them (missing: no)?"""
+    a = getattr(graph.nodes.get(nid), "wsc", "")
+    return any(wsc.relation(a, c) in (wsc.SAME, wsc.BELOW) for c in codes)
+
+
+def _side_channel_seeds(ctx: "Reach", registry, seen: set[str], kept: set[str]) -> list[str]:
+    """`A_SIDE_CHANNEL_GOES_WITH_ITS_WATER`: the unwalked no-main-flow pieces of every stream item the walk collected
+    (`kept`) whose every touching piece of that item is in `kept`."""
+    g = ctx.graph
+    owners = _stream_owners(registry)
+    out: set[str] = set()
+    for iid in sorted({i for s in kept for i in owners.get(s, ())}):
+        mine = frozenset(registry[iid].section_ids)
+        side = {s for s in mine if s not in kept and s not in seen and s not in ctx.blocked and s not in ctx.own
+                and (n := g.nodes.get(s)) is not None and n.kind == NodeKind.stream
+                and not fwa_edge_types.is_main_flow(n) and not n.is_barrier}
+        done: set[str] = set()
+        for s0 in sorted(side):
+            if s0 in done:
+                continue
+            comp, todo = {s0}, [s0]
+            while todo:
+                for y in _touching(g, todo.pop()):
+                    if y in side and y not in comp:
+                        comp.add(y)
+                        todo.append(y)
+            done |= comp
+            # never a channel another water flows into (a code neither equal to nor under the channel's: the
+            # Pitt into Widgeon Slough, the Williamson into a Fraser slough): the walk climbs on from what it adds,
+            # and a channel refused as `bigger_river` must not lower the bar for a different water feeding it
+            codes = {g.nodes[x].wsc for x in comp if g.nodes[x].wsc}
+            if any(not _same_water(g, g.edges[ei].from_node, codes)
+                   for x in comp for ei in g.up_adj.get(x, ()) if g.edges[ei].from_node not in comp):
+                continue
+            touch = {y for x in comp for y in _touching(g, x) if y in mine and y not in comp}
+            if touch and touch <= kept:
+                out |= comp
+    return sorted(out)
 
 
 def lower_bound_cuts(graph: StreamGraph, sections) -> list[tuple[str, float]]:
@@ -1349,7 +1434,8 @@ def expand(
     excluded = frozenset(excluded)
     tribs = frozenset(
         s for s in tributaries_of_reach(graph, reach, blocked=excluded, passed=passed,
-                                        guarded=guarded, cuts=cuts, own=own, climb_from=climb_from)
+                                        guarded=guarded, cuts=cuts, own=own, climb_from=climb_from,
+                                        registry=registry)
         if not STREAMS_ONLY or kind_of(graph, registry, s) == "stream")
     base = frozenset() if only else (reach - excluded)
     return base | tribs
