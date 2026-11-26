@@ -44,7 +44,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
-  Camera, GeoJSONSource, Images, Layer, LogManager, Map as MLMap, VectorSource,
+  Camera, GeoJSONSource, Images, Layer, Map as MLMap, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitCamera, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
@@ -65,7 +65,7 @@ import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VI
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
-import { HeldLabels, engineTiles } from "./native/engine";
+import { HeldLabels, engineLog, engineTiles } from "./native/engine";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
@@ -177,7 +177,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     cb.current.onError?.(e instanceof Error ? e : new Error(String(e)));
   }, []);
   // (T418) a sprite, glyph range or source that would not load is reported once, not only logged (MapLibre's log)
-  useEffect(() => { watchStyleAssets(LogManager); }, []);
+  useEffect(() => { watchStyleAssets(engineLog); }, []);
   /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`anchorMarks`) */
   const marksNow = useRef(marks);
   marksNow.current = marks;

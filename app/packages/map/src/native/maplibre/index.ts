@@ -4,3 +4,4 @@
  */
 export { maplibreTiles } from "./tiles";
 export { HeldLabels } from "./HeldLabels";
+export { engineLog } from "./log";
