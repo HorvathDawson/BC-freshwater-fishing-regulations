@@ -159,6 +159,18 @@ describe("useMapRail", () => {
       "drop:- perm:granted err:Location is off for this app. Turn it on in your device settings, then tap again. fly:-", []]);
   });
 
+  it("(T1093) At my location with the phone's Location setting off: the same line, nothing reported, nothing thrown", async () => {
+    const reported: unknown[] = [];
+    const undo = setFailureSink((e) => reported.push(e));
+    const locate: Locate = { permission: async () => "granted",
+                             here: async () => { throw new Error("Location request failed due to unsatisfied device settings."); } };
+    const { out, text } = rig(locate, SPOTS);
+    await act(async () => { await out.r!.addMine(); });
+    undo();
+    expect([text(), reported]).toEqual([
+      "drop:- perm:granted err:Location is off for this app. Turn it on in your device settings, then tap again. fly:-", []]);
+  });
+
   it("(T864) At my location far outside B.C. (Toronto, null island): no spot starts there; the far line is said", async () => {
     const reported: unknown[] = [];
     const undo = setFailureSink((e) => reported.push(e));

@@ -22,7 +22,7 @@
  * dot is on, a far reading from the watch (a GPS glitch) is dropped and the dot stays at the last good one.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MY_LOCATION, nearBC, reportFailure, type LatLon } from "@app/core";
+import { isLocationSettingsOff, MY_LOCATION, nearBC, reportFailure, type LatLon } from "@app/core";
 import type { Locate } from "./mapRail";
 import type { Route } from "./route";
 
@@ -61,7 +61,9 @@ export interface MyLocation {
 }
 
 export const refusedLine = (e: unknown): string =>
-  e instanceof Error && /refused|denied|permission/i.test(e.message) ? MY_LOCATION.denied
+  // (T1093) the phone's Location setting is off though the app holds the permission: the same line, with its Settings action
+  isLocationSettingsOff(e) ? MY_LOCATION.denied
+  : e instanceof Error && /refused|denied|permission/i.test(e.message) ? MY_LOCATION.denied
   : typeof e === "object" && e !== null && (e as { code?: number }).code === 1 ? MY_LOCATION.denied
   : MY_LOCATION.noFix;
 

@@ -30,6 +30,17 @@ export function setFailureSink(s: ((e: unknown) => void) | null, sent?: () => Pr
 const NO_LINE = /^(?:Network request failed|Failed to fetch|Load failed|NetworkError when attempting to fetch resource\.?)$/;
 
 /**
+ * (T1093) The phone's own refusal when its Location setting is off (or not on high accuracy) though the app holds the
+ * permission: expo-location's `E_LOCATION_SETTINGS_UNSATISFIED`, "Location request failed due to unsatisfied device
+ * settings." A condition of the device, from any call that asks for a position (a fix, a watch): never a defect.
+ */
+export function isLocationSettingsOff(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false;
+  const x = e as { code?: unknown; message?: unknown };
+  return x.code === "E_LOCATION_SETTINGS_UNSATISFIED" || (typeof x.message === "string" && /unsatisfied device settings/i.test(x.message));
+}
+
+/**
  * Is this failure the ENVIRONMENT (offline, a dropped or timed-out line, a refused permission, a cancelled request)
  * rather than a defect? Marked by the thrower (`environment: true`, as `@app/data`'s NetError does for every kind but
  * `http`), or one of the platform's own words for "no connection", or an abort.
@@ -37,7 +48,7 @@ const NO_LINE = /^(?:Network request failed|Failed to fetch|Load failed|NetworkE
 export function isEnvironment(e: unknown): boolean {
   if (!e || typeof e !== "object") return false;
   const x = e as { environment?: unknown; name?: unknown; message?: unknown };
-  if (x.environment === true) return true;
+  if (x.environment === true || isLocationSettingsOff(e)) return true;
   if (x.name === "AbortError") return true;
   return typeof x.message === "string" && x.name === "TypeError" && NO_LINE.test(x.message);
 }

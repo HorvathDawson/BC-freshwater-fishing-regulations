@@ -15,6 +15,10 @@ describe("the environment is shown, never reported (T368, owner Q1)", () => {
     expect(isEnvironment(new TypeError("x is not a function"))).toBe(false);
     expect(isEnvironment(new Error("Failed to fetch"))).toBe(false);          // only the platform's TypeError
     expect(isEnvironment(Object.assign(new Error("HTTP 500"), { environment: false }))).toBe(false);
+    // (T1093) the phone's Location setting off: expo-location's refusal, as it arrives (message and code)
+    expect(isEnvironment(new Error("Location request failed due to unsatisfied device settings."))).toBe(true);
+    expect(isEnvironment(Object.assign(new Error("x"), { code: "E_LOCATION_SETTINGS_UNSATISFIED" }))).toBe(true);
+    expect(isEnvironment(new Error("Location request failed"))).toBe(false);
     expect(isEnvironment(null)).toBe(false);
     expect(isEnvironment("offline")).toBe(false);
   });

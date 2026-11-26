@@ -62,6 +62,19 @@ describe("(T303) my location", () => {
     expect(result.current).toMatchObject({ on: true, notice: null });
   });
 
+  it("the phone's Location setting off (T1093): the press and the following both say how to turn it on, nothing is thrown", async () => {
+    const off = new Error("Location request failed due to unsatisfied device settings.");
+    const { result } = renderHook(() => useMyLocation(make(async () => { throw off; })));
+    await act(async () => { result.current!.press(); });
+    expect(result.current).toMatchObject({ on: false, notice: "Location is off for this app. Turn it on in your device settings, then tap again." });
+    let fail: (e: unknown) => void = () => {};
+    const loc: Locate = { ...make(async () => fix), watch: vi.fn((_on, failed) => { fail = failed; return () => {}; }) };
+    const again = renderHook(() => useMyLocation(loc));
+    await act(async () => { again.result.current!.press(); });
+    act(() => { fail(off); });
+    expect(again.result.current!.notice).toBe("Location is off for this app. Turn it on in your device settings, then tap again.");
+  });
+
   it("no fix (timeout) is said differently from a refusal", async () => {
     const { result } = renderHook(() => useMyLocation(make(async () => { throw { code: 3 }; })));
     await act(async () => { result.current!.press(); });

@@ -24,6 +24,13 @@ describe("parkingHere", () => {
     expect(await parkingHere(make(async () => { throw environmentError(new Error("location permission refused")); })))
       .toEqual({ parking: null, notice: "Location is off for this app. Turn it on in your device settings, then tap again." });
   });
+  it("the phone's Location setting off (T1093) is the same line, is not reported, and nothing is thrown past the caller", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    const out = await parkingHere(make(async () => { throw new Error("Location request failed due to unsatisfied device settings."); }));
+    undo();
+    expect([out, seen]).toEqual([{ parking: null, notice: "Location is off for this app. Turn it on in your device settings, then tap again." }, []]);
+  });
   it("no fix sets nothing and says so, with no Settings line", async () => {
     expect(await parkingHere(make(async () => { throw new Error("timed out"); })))
       .toEqual({ parking: null, notice: "Could not find your location." });
