@@ -136,7 +136,7 @@ const native: { props: Record<string, unknown> | null; camera: Record<string, un
                 images?: Record<string, unknown>; fitOpts?: unknown[]; easeOpts?: unknown[];
                 onLog?: (e: { level: string; tag: string; message: string }) => boolean } =
   { props: null, camera: null, geojson: {}, holdRender: false };
-vi.mock("@maplibre/maplibre-react-native", () => ({
+const maplibreSdk = () => ({
   // (T418) MapLibre Native's log: the map installs one handler (the style-asset watch)
   LogManager: { onLog: (h: (e: { level: string; tag: string; message: string }) => boolean) => { native.onLog = h; } },
   Map: ({ ref, children, ...props }: { ref?: unknown; children?: ReactNode } & Record<string, unknown>) => {
@@ -198,7 +198,15 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
   },
   // a view annotation draws its children over the map
   Marker: ({ children }: { children?: ReactNode }) => <>{children}</>,
-}));
+});
+/**
+ * (T1154) THE PHONE MAP'S ENGINES, as a table: each row is an engine and its SDK mocked at its boundary (`sdkMock`),
+ * and every native case below runs the same op script against the same expected command log. One row today
+ * (MapLibre Native, `native/maplibre/`); the map reaches it through `native/engine.ts`, so a second engine is a second
+ * row with its own SDK's mock, the shell and these cases unchanged.
+ */
+const ENGINES = [{ id: "maplibre", sdk: "@maplibre/maplibre-react-native", sdkMock: maplibreSdk }] as const;
+vi.mock("@maplibre/maplibre-react-native", () => ENGINES[0].sdkMock());
 
 const { Map: WebMap } = await import("./Map.web");
 const { Map: NativeMap } = await import("./Map.native");
