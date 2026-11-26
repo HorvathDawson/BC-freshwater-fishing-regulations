@@ -5,7 +5,7 @@ declare const __DEV__: boolean | undefined;
  */
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, IMAGERY, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure } from "@app/core";
 import { webRenderer } from "../adapters/web";
 import { Colouring, LABEL_SOURCE_LAYERS } from "../colouring";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "../gestures";
@@ -126,7 +126,7 @@ export function useMapInstance(refs: WebMapRefs,
     // travels (GL JS's AJAXError carries it; a network failure has none).
     m.on("error", (e) => {
       const ev = e as { sourceId?: string; error?: Error & { status?: number } };
-      if (ev.sourceId === "imagery" && imageryError.current) {
+      if (ev.sourceId === IMAGERY.source && imageryError.current) {
         imageryError.current(typeof ev.error?.status === "number" ? ev.error.status : undefined);
         return;
       }

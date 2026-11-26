@@ -10,6 +10,9 @@
  *                 a size per region would be made up (AGENTS 32). The rows become choices when the split lands.
  *   RULE BOOK     (owner 2026-10-29) the synopsis PDF is part of a phone's first download: a row of its own, kept on the
  *                 phone (counted in storage used); on the web it is fetched when it is opened.
+ *   SATELLITE     (T1154) the satellite imagery kept on the device by region (`OfflineImagery`, the provider's offline
+ *                 method): a heading and a row per region, only when the device lists one. The provider in use (Esri)
+ *                 keeps none and no corridor product exists, so today the page has no such rows.
  *   PHONE         storage used is the installed set; a release download (T231) shows its progress, a paused one Resume;
  *                 "Download large updates on Wi-Fi only" is T231's mobile-data setting, inverted.
  */
@@ -54,7 +57,39 @@ export const OFFLINE_WORDS = {
   wifi: { label: "Download large updates on Wi-Fi only", hint: "Map and regulation updates can be hundreds of megabytes",
           on: "On", off: "Off" },
   note: "Choosing map regions one at a time comes when the map is split by region. The regulations stay whole either way.",
+  /** (T1154) the satellite imagery kept by region: drawn only when a region is listed (none can be today) */
+  imagery: {
+    head: "Satellite by area",
+    state: { kept: "Kept on this device", downloading: "Downloading", "waiting-wifi": "Waiting for Wi-Fi",
+             failed: "Download failed" } satisfies Record<ImageryRegion["state"], string>,
+  },
 } as const;
+
+/**
+ * (T1154) A REGION OF SATELLITE IMAGERY kept on this device for offline use, as `OfflineImagery.list` gives it. None
+ * exists today: the provider in use keeps nothing offline (`IMAGERY.offline`, "none").
+ */
+export interface ImageryRegion {
+  readonly id: string;
+  readonly name: string;
+  /** bytes on the device; null: not known yet */
+  readonly bytes: number | null;
+  readonly state: "kept" | "downloading" | "waiting-wifi" | "failed";
+}
+
+/**
+ * (T1154) HOW A PROVIDER'S IMAGERY IS KEPT OFFLINE, by its offline method (`ImageryProvider.offline`; the
+ * implementations are `@app/data/release` `offlineImagery`). The page never learns the method: it lists what is kept.
+ * A download is started or resumed and its progress comes back through `list()` (as the release's background jobs do),
+ * never as a promise a screen holds.
+ */
+export interface OfflineImagery {
+  list(): Promise<readonly ImageryRegion[]>;
+  /** a region's size in bytes before it is fetched; null: not known */
+  size(id: string): Promise<number | null>;
+  download(id: string): Promise<void>;
+  remove(id: string): Promise<void>;
+}
 
 /** The fishing regions' names as the synopsis prints them (short form); a region not listed is named by number alone. */
 export const REGION_NAMES: Readonly<Record<string, string>> = {
@@ -75,6 +110,8 @@ export interface OfflineInput {
   readonly update?: { readonly phase: string; readonly bytes: number; readonly of: number } | null;
   /** phone: large downloads wait for Wi-Fi (the inverse of T231's allow-on-mobile-data); null: no setting here */
   readonly wifiOnly?: boolean | null;
+  /** (T1154) the satellite imagery kept by region (`OfflineImagery.list`); null / absent / empty: none, no rows */
+  readonly imagery?: readonly ImageryRegion[] | null;
 }
 
 export interface OfflineRowVM {
@@ -103,6 +140,8 @@ export interface OfflineVM {
   readonly update: { readonly line: string; readonly progress: number | null; readonly resume: string | null } | null;
   readonly wifi: { readonly label: string; readonly hint: string; readonly on: boolean; readonly value: string } | null;
   readonly note: string;
+  /** (T1154) the satellite imagery kept by region; null: none listed */
+  readonly imagery: { readonly head: string; readonly rows: readonly OfflineRowVM[] } | null;
 }
 
 const pct = (bytes: number, of: number) => (of > 0 ? Math.min(100, Math.floor((bytes / of) * 100)) : 0);
@@ -122,7 +161,14 @@ export function offlineVM(i: OfflineInput): OfflineVM {
   const book = bookBytes > 0 ? row("book", W.book.name, megabytes(bookBytes), phone ? W.book.phone : W.book.web, phone) : null;
   const regions = i.regions.map((r) =>
     row(r, W.region(r, REGION_NAMES[r] ?? null), null, phone ? W.regionPart.phone : W.regionPart.web, phone));
-  const used = phone ? mapBytes + i.regs.bytes + bookBytes : held;
+  const kept = i.imagery ?? [];
+  const imagery = kept.length === 0 ? null : {
+    head: W.imagery.head,
+    rows: kept.map((r) => row(`imagery-${r.id}`, r.name, r.bytes === null ? null : megabytes(r.bytes), W.imagery.state[r.state],
+                              r.state === "kept")),
+  };
+  const imageryBytes = kept.reduce((n, r) => n + (r.state === "kept" && r.bytes !== null ? r.bytes : 0), 0);
+  const used = phone ? mapBytes + i.regs.bytes + bookBytes + imageryBytes : held;
   const u = phone ? i.update ?? null : null;
   const update = !u || u.phase === "current" || u.phase === "app-too-old" ? null
     : u.phase === "downloading"
@@ -135,6 +181,6 @@ export function offlineVM(i: OfflineInput): OfflineVM {
     title: W.title,
     intro: phone ? W.intro.phone : W.intro.web,
     total: used === null ? null : { label: W.total, value: megabytes(used), aloud: `${W.total}: ${megabytes(used)}` },
-    regs, book, map, regionsHead: W.regionsHead, regions, update, wifi, note: W.note,
+    regs, book, map, regionsHead: W.regionsHead, regions, update, wifi, note: W.note, imagery,
   };
 }
