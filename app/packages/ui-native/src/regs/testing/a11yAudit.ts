@@ -52,7 +52,8 @@ export interface PressOffence { readonly role: string; readonly name: string; re
  * neighbour. Held two ways: its declared box height must be the height its own style holds (computed `min-height`), so a declared
  * box that is not the real one fails; and an exception that reaches 44 is stale and fails.
  */
-const SHORT_PRESS: Record<string, string> = { "regs-class": "the class line under the name: hitSlop would overlap the date pill, sun times, place text" };
+const SHORT_PRESS: Record<string, string> = { "regs-class": "the class line under the name: hitSlop would overlap the date pill, sun times, place text",
+  "regs-parts-others": "(T1140) the other-parts line under the part's name: hitSlop would overlap the place text and the tab row" };
 /** WCAG 2.2 AA 2.5.8 Target Size (Minimum): a press under this fails even as a recorded exception to 44 */
 const MIN_TARGET = 24;
 function shortPressOffence(el: Element, area: { w: number; h: number }, box: number): string | null {

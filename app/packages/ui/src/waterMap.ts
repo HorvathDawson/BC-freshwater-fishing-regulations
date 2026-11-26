@@ -136,7 +136,7 @@ export interface WaterMapVM {
   /** (T1140, owner "Drop the repeat") the current part's name as the bar shows it under `where` (`nameUnder`); its full
    *  name (`current.name`) is the label a screen reader says */
   readonly shown: string;
-  /** "Part 2 of 4 · Chilliwack River". */
+  /** The water line above the part's name: the water's own name ("Chilliwack River"), never a part count (T1140). */
   readonly where: string;
   /** ▼ / ▲: the label, its words for a screen reader (`aria`), whether it is an end, and — where it
    *  steps into ANOTHER water (`water_continue`) — that water and its part, for the caller to open (`crossAction`). */
