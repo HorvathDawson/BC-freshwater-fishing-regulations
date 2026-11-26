@@ -1,0 +1,124 @@
+name: store shots
+
+# (T1131) THE STORE PICTURES, MADE BY HAND-STARTED RUN. Actions tab -> "store shots" -> Run workflow. Never on a schedule, a push or a
+# pull request (the flow and salmon frames show live data: a person looks at every set).
+#   scenes   -> the tool's --scenes (e.g. "18" or "01,18"); empty = every scene.      only -> --only (e.g. "play-phone,appstore-6.3"); empty = all targets.
+#   open_pr  -> false (default): the run only uploads the pictures as an artifact (the proof runs). true: a second job opens a PR with them.
+# WHAT RUNS: app-setup, then `node app/tools/store-shots.mjs --theme light`, which builds its OWN store-shots web export
+# (EXPO_PUBLIC_STORE_SHOTS=1, app/tools/store-shots/site.mjs, T1076), serves it on 127.0.0.1 and shoots every size from it in headless Chrome:
+# the Play AND the App Store sizes (appstore-6.9, 6.5, 6.3 = 1206x2622) come out of the same web renders; no simulator, no Mac runner.
+# The tool's own checks gate the job (a failed check stops the run and names the scene); then check-sizes.mjs: every picture is exactly its
+# target's size in store-shots.json.
+# NETWORK AT RUN TIME (no secrets, no store keys): the export is built with the app environment `staging`, so the page reads the PUBLIC staging
+# hosts (data-staging.canifishthis.ca and its feeds/tiles) while it is shot, and pick-river.mjs reads https://data-staging.canifishthis.ca.
+# Nothing is deployed or uploaded to a store; uploads stay the owner's.
+# CHROME: the tool starts $CHROME (cdp.mjs); here the runner's preinstalled /usr/bin/google-chrome, with CI=true (--no-sandbox) and CHROME_FLAGS
+# (software GL: the runner has no GPU, the map is WebGL). FONTS: the framing page uses the app's self-hosted WOFF2 (app/tools/seo/fonts) and the
+# app draws its own web fonts, so no font is installed here; a first Linux set will differ slightly in text rendering from the Mac's.
+# PR: the second job pushes branch chore/store-shots-<run id> and opens the PR with the job's GITHUB_TOKEN. A PR opened that way does NOT
+# start the other workflows (GitHub's rule), so its required checks stay pending: the owner closes and reopens the PR (or pushes an empty
+# commit to its branch) to get them. Runners are few: run this with open_pr=false first.
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenes:
+        description: "scenes to redo (the tool's --scenes), e.g. 01,18; empty = all"
+        type: string
+        default: ""
+      only:
+        description: "targets to make (the tool's --only), e.g. play-phone,appstore-6.3; empty = all"
+        type: string
+        default: ""
+      open_pr:
+        description: "open a PR with the changed pictures (false = upload the artifact only)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: store-shots
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TZ: America/Vancouver
+  GRAPHICS: handoff/PLAN/app-integration/store/graphics
+
+jobs:
+  shoot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CI: "true"
+      CHROME: /usr/bin/google-chrome
+      CHROME_FLAGS: --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist --disable-dev-shm-usage
+      IN_SCENES: ${{ inputs.scenes }}
+      IN_ONLY: ${{ inputs.only }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/app-setup
+        with: { python: "false" }
+      - name: Chrome is there
+        run: google-chrome --version
+      - name: Shoot and frame (the tool's checks gate this step)
+        run: |
+          # inputs come in as env, never spliced into the script; only digits, letters, dots, dashes, commas
+          for v in "$IN_SCENES" "$IN_ONLY"; do [[ "$v" =~ ^[A-Za-z0-9.,_-]*$ ]] || { echo "bad input: $v"; exit 1; }; done
+          args=(--theme light)
+          [ -n "$IN_SCENES" ] && args+=(--scenes "$IN_SCENES")
+          [ -n "$IN_ONLY" ] && args+=(--only "$IN_ONLY")
+          node app/tools/store-shots.mjs "${args[@]}"
+      - name: Every picture has its target's exact size
+        run: |
+          args=(--theme light)
+          [ -n "$IN_ONLY" ] && args+=(--only "$IN_ONLY")
+          node app/tools/store-shots/check-sizes.mjs "${args[@]}"
+      - name: Listing (the contact sheet is the artifact's pictures)
+        if: always()
+        run: |
+          { echo "### store shots (theme light)"; echo; echo '```'; (cd "$GRAPHICS/store/light" 2>/dev/null && find . -name '*.png' | sort | xargs ls -l | awk '{print $5, $9}'); echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Collect
+        if: always()
+        run: |
+          mkdir -p out && cp -R "$GRAPHICS/store/light" out/light 2>/dev/null || true
+          cp "$GRAPHICS"/raw/play-shots-report.json out/ 2>/dev/null || true
+          cp "$GRAPHICS"/raw/river-pick.json out/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: store-shots-${{ github.run_id }}
+          path: out
+          if-no-files-found: error
+
+  pr:
+    needs: shoot
+    if: inputs.open_pr
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v7
+        with:
+          name: store-shots-${{ github.run_id }}
+          path: out
+      - name: Branch, commit the changed pictures, open the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          branch="chore/store-shots-$RUN_ID"
+          git checkout -b "$branch"
+          cp -R out/light/. "$GRAPHICS/store/light/"
+          git add "$GRAPHICS/store/light"
+          if git diff --cached --quiet; then echo "no picture changed; no PR"; exit 0; fi
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(T1131): store pictures from run $RUN_ID" -m "Made by the store shots workflow, $RUN_URL"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "chore(T1131): store pictures, run $RUN_ID" \
+            --body "Store pictures made by $RUN_URL (every size from the same web renders). Look at each changed picture. Checks do not start on a PR opened by the workflow's token: close and reopen this PR, or push an empty commit, to get them."

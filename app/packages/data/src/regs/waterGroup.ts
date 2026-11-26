@@ -26,8 +26,12 @@ async function rowsOf(store: GroupStore, ord: number): Promise<ItemNavRows> {
     // (T517, owner 2026-11-09) a part is named from its two end tokens (`spanName`); with none — a lake, a whole water,
     // and AN UNKEYED PART (outside B.C.: no key, no facts, no rules) — as its water ("Blanchard River"): navReads.test.ts
     parts: parts.filter((p) => !p.tidal).map((p) => ({ partIx: p.partIx, grp: p.grp, run: p.run,
-                                                       ...(p.facts ? { label: p.facts.label, lo: p.facts.lo, hi: p.facts.hi }
-                                                         : { label: item.name, lo: null, hi: null }),
+                                                       ...(p.facts ? { label: p.facts.label, lo: p.facts.lo, hi: p.facts.hi,
+                                                                       // (T1140) no ends: the release's own words for it
+                                                                       ...(p.facts.lo === null && p.facts.hi === null && p.facts.runs
+                                                                         ? { said: p.facts.runs } : {}) }
+                                                         // (T1140) no facts, not tidal: outside B.C.
+                                                         : { label: item.name, lo: null, hi: null, outside: true }),
                                                        // (T460) a side channel has no km: a fork's branch, never a skip
                                                        ...(p.facts && p.facts.km === null ? { side: true } : {}) })),
     tidal: parts.filter((p) => p.tidal).map((p) => p.partIx),
