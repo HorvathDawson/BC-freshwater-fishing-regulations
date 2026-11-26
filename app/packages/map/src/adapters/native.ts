@@ -4,7 +4,7 @@
  *
  * Typed against the SLICE of the binding's refs it uses (the map, the atlas `VectorSource`, the camera), read through
  * getters because the binding mounts them only once the map is ready and re-creates them on a re-render. No SDK import:
- * `Map.native.tsx` is the one that does (layers.json), and `parity.test.ts` drives this with a recorder.
+ * only the engine folder `native/maplibre/` does (layers.json, T1154), and `parity.test.ts` drives this with a recorder.
  *
  * WHAT A PHONE DOES DIFFERENTLY, all of it here:
  *   - every call is async across the bridge, and a failure is reported once per pass rather than thrown;

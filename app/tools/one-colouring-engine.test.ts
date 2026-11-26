@@ -143,7 +143,7 @@ describe("one colouring engine", () => {
     expect(rs.match(/color\.highlight/g)?.length).toBe(1);                             // the route arrows' text
     expect(rs).toContain('ring(SELECTION_RINGS.lake, "lake")');
     expect(rs).toContain('ring(SELECTION_RINGS.wetland, "wetland")');
-    for (const f of ["Map.web.tsx", "Map.native.tsx", "colouring.ts", "look.ts", "adapters/contract.ts"])
+    for (const f of ["Map.web.tsx", "Map.native.tsx", "native/maplibre/View.tsx", "colouring.ts", "look.ts", "adapters/contract.ts"])
       expect([f, read(`packages/map/src/${f}`).includes("color.highlight")]).toEqual([f, false]);
     expect(webMap().includes("color.highlight")).toBe(false);
   });
