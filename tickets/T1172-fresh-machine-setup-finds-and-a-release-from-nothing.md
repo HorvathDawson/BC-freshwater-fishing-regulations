@@ -96,6 +96,13 @@ release r-c8dc7712a9c0, rc=0 (reach 11m22s, tiles 16m13s, deliver 14m52s; reach 
 comment edits). Only gnis:2123 and the Okanagan River Oxbows changed (Oxbows' name kept; its subtitle label gained
 "joining 0.2–0.3 km"). Waiting for the owner's review: Thelwood Creek p0 is 100 % inside STRATHCONA - WESTMIN PARK,
 logged as an INSIDE candidate and not offered.
+2026-11-26 the review's MERGE (after the owner's look) and the owner's picks ("Fix the measure in this PR"; Thelwood:
+"yes name it but this is something we need to fix generally") are built on PR #312. A side channel whose downstream
+end lies away from its main line is measured where it leaves it: Old Kootenay 0.4–0.6 km; Stirling 20.4 → 20.9 km and
+Theodosia 13.1 km are now "joining" rather than nearest-point. Thelwood p0 now reads "Thelwood Creek inside
+Strathcona - Westmin Park". Also: L1 docstring, L2 any-backwards rule, L3 one area per name. Clean clone release
+r-216c6f000d0b, rc=0 (deliver only, 13m34s). Still awaiting the owner's look at the words table in the PR before merge.
+Left (owner, "fix generally"): parks that bind channels but not their river (T1149).
 
 ## Acceptance
 The clean clone makes a release directory from nothing, with no copied file; deliver passes on gnis:2123, with a
