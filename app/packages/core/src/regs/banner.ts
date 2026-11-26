@@ -67,15 +67,17 @@ export function mergedOf(inp: RegsInputs): BannerVM["merged"] {
 }
 
 /** The chain of closures over the closed run holding `day`, and the stored `unless_opened` rules met on it (page
- *  closedBanner): every day of the run, first to last, its `closersAt` appended in order, each once. */
+ *  closedBanner): every day of the run, first to last, its `closersAt` appended in order, each once.
+ *  (T1078) Nothing reopens (`reopen` null): the closures that close the YEAR (`yearChain`), with no run. */
 export function chainOf(inp: RegsInputs, settled: Settled, day: Day, reopen: Day | null):
   { rules: readonly RuleView[]; unless: ReadonlySet<number>; run: { from: Day; until: Day } | null } {
   const unless = new Set<number>();
   const mark = (f: DisplayFrame | null) => { if (f && f.status !== "tidal") for (const ix of f.unless_opened ?? []) unless.add(ix); };
   mark(settled.status);
+  if (!reopen) return { rules: yearChain(inp, settled, day, mark), unless, run: null };
   const rules: RuleView[] = [];
-  const run = reopen ? runOf(waterSegs(inp), day) : null;
-  if (run && !run.all) {
+  const run = runOf(waterSegs(inp), day);
+  if (!run.all) {
     let i = bookIndex(run.from!);
     const end = bookIndex(run.until!);
     for (let g = 0; g < 366; g++) {
@@ -86,7 +88,30 @@ export function chainOf(inp: RegsInputs, settled: Settled, day: Day, reopen: Day
       i = (i + 1) % BOOK_DAYS.length;
     }
   }
-  return { rules, unless, run: run && !run.all ? { from: run.from!, until: run.until! } : null };
+  return { rules, unless, run: run.all ? null : { from: run.from!, until: run.until! } };
+}
+
+/**
+ * (T1078, Kirkup Creek: "Closed all year" cited only its Nov 1–Jun 14 closure) THE CLOSURES THAT CLOSE THE YEAR when nothing
+ * reopens, read off the stored frames' decided `closers` (display 18; nothing is chosen here). A closure that is a closer
+ * on every book day closes the year alone and is the one cited: the day's first (`settled.broad[0]`) when it is one, as
+ * the banner has always cited it, else the first met. When none does, the closures close it TOGETHER: every day's closers,
+ * from `day` round the year, each once, and the `unless_opened` of every frame met (`mark`), as a closed run is read.
+ */
+function yearChain(inp: RegsInputs, settled: Settled, day: Day, mark: (f: DisplayFrame | null) => void): RuleView[] {
+  const met: RuleView[] = [], days = new Map<number, number>(), frames: (DisplayFrame | null)[] = [];
+  for (let g = 0, i = bookIndex(day); g < BOOK_DAYS.length; g++, i = (i + 1) % BOOK_DAYS.length) {
+    const f = displayOnBookDay(inp, i);
+    frames.push(f);
+    for (const r of closersAt(inp, f)) {
+      if (!days.has(r.rix)) met.push(r);
+      days.set(r.rix, (days.get(r.rix) ?? 0) + 1);
+    }
+  }
+  const alone = met.filter((r) => days.get(r.rix) === BOOK_DAYS.length), first = settled.broad[0];
+  if (alone.length) return [alone.find((r) => r.rix === first?.rix) ?? alone[0]!];
+  for (const f of frames) mark(f);
+  return met;
 }
 
 /** page closedBanner (closed day) or tidalHtml (tidal water), before the dedupe; null where neither is drawn. */
@@ -109,7 +134,9 @@ export function rawBanner(inp: RegsInputs, settled: Settled): RawBanner | null {
   return {
     kind: "closed",
     big: reopen ? WORDS.CLOSED_OPENS_AGAIN(fmtDay(reopen)) : WORDS.CLOSED_ALL_YEAR,
-    para: reopen && run ? WORDS.NO_FISHING_RUN(rangeTxt(md(run.from), md(run.until))) + (list.length > 1 ? WORDS.TOGETHER : "") : null,
+    para: reopen && run ? WORDS.NO_FISHING_RUN(rangeTxt(md(run.from), md(run.until))) + (list.length > 1 ? WORDS.TOGETHER : "")
+      // (T1078) closed all year by closures that close it together: the run sentence for the year, then the chain
+      : !reopen && list.length > 1 ? WORDS.NO_FISHING_RUN(WORDS.ALL_YEAR_SPAN) + WORDS.TOGETHER : null,
     golink: reopen ? WORDS.OPENS_AGAIN_LINK(fmtDay(reopen)) : null,
     chain: list.map((r) => ({ text: chainText(closeTxt(r)), scope: levelOf(r), rule: r.key, book: ruleBookLine(r) })),
     reopen, merged,

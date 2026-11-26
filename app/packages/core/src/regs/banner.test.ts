@@ -27,8 +27,12 @@ const RULES: Record<number, RuleView> = {
   1: gate(1, 0, [[601, 615]]), 2: gate(2, 0, [[616, 630]]), 3: gate(3, 2, [[616, 630]], { water: "stream" }),
   4: gate(4, 3, [[601, 630]], { species: ["WSG"] }), 5: gate(5, -1, [[701, 705]], { unless: "Closed unless opened by the park." }),
   6: gate(6, 0, [[601, 615]]), 7: gate(7, 0, []), 8: gate(8, 3, [[601, 615]]), 9: gate(9, 0, [], { species: ["KO"] }),
+  // (T1078) closures that close the year only together: 10 + 11 (Nov 1–Jun 14, Jun 15–Oct 31, as Kirkup Creek's pair);
+  // 12 + 13 + 14 (Nov 1–Apr 30, May 1–Aug 31 at Region, Sep 1–Oct 31 from streams)
+  10: gate(10, 0, [[1101, 614]]), 11: gate(11, 3, [[615, 1031]]),
+  12: gate(12, 0, [[1101, 430]]), 13: gate(13, 3, [[501, 831]]), 14: gate(14, 2, [[901, 1031]], { water: "stream" }),
 };
-const R: RuleIndex = { get: (ix) => RULES[ix]!, has: (ix) => ix in RULES, size: 9 };
+const R: RuleIndex = { get: (ix) => RULES[ix]!, has: (ix) => ix in RULES, size: 14 };
 const OPEN = { status: "base", closing: [], strip: 0 } as unknown as DisplayFrame;
 /** A closed day's stored frame: `closers` is the pipeline's decided choice (display 18), written out per fixture. */
 const shut = (closing: [number, string[]][], unless: number[] = [], closers: number[] = closing.map(([ix]) => ix)) =>
@@ -44,6 +48,13 @@ function year(): (DisplayFrame | null)[] {
     return OPEN;
   });
 }
+/** (T1078) a leap year of frames, each day's closers chosen by its month-day (`md`: 101–1231) */
+const yearBy = (closers: (md: number) => number[]): DisplayFrame[] => Array.from({ length: 366 }, (_, i) => {
+  const d = new Date(2024, 0, 1 + i);
+  return shut(closers((d.getMonth() + 1) * 100 + d.getDate()).map((ix) => [ix, ALL] as [number, string[]]));
+});
+const KIRKUP = yearBy((md) => (md >= 1101 || md <= 614 ? [10] : [11]));
+const THREE = yearBy((md) => (md >= 1101 || md <= 430 ? [12] : md <= 831 ? [13] : [14]));
 function inputs(o: { day?: Day; byDay?: (DisplayFrame | null)[]; tidal?: boolean; merged?: MergedPart[] | null; closedGroup?: boolean } = {}): RegsInputs {
   return {
     day: o.day ?? D(6, 20), key: { tidal: !!o.tidal }, rules: R, partIx: 0,
@@ -76,8 +87,13 @@ describe("chainOf: the run's closures, day by day, each once; the frames' unless
     const c = chainOf(inputs(), settled(year()[170]!), D(6, 20), D(7, 6));
     expect([c.rules.map((r) => r.rix), [...c.unless], c.run]).toEqual([[1, 6, 8, 2, 3, 5], [5], { from: D(6, 1), until: D(7, 5) }]);
   });
-  it("no reopening day (closed all year): no run, no chain", () => {
-    expect(chainOf(inputs(), settled(year()[170]!), D(6, 20), null)).toEqual({ rules: [], unless: new Set(), run: null });
+  it("(T1078) no reopening day, closed all year by two closures together: both, from the day round the year; no run", () => {
+    const c = (day: Day) => chainOf(inputs({ byDay: KIRKUP, day }), settled(KIRKUP[0]!, [10]), day, null);
+    expect([c(D(11, 26)).rules.map((r) => r.rix), c(D(7, 1)).rules.map((r) => r.rix), c(D(7, 1)).run]).toEqual([[10, 11], [11, 10], null]);
+  });
+  it("(T1078) no reopening day, one closure closes every day: it alone, though another closes some days beside it", () => {
+    const both = yearBy((md) => (md >= 1101 || md <= 614 ? [7, 10] : [7]));
+    expect(chainOf(inputs({ byDay: both }), settled(both[0]!, [7, 10]), D(1, 10), null)).toEqual({ rules: [RULES[7]], unless: new Set(), run: null });
   });
 });
 
@@ -104,6 +120,19 @@ describe("rawBanner / bannerOf", () => {
     const b = rawBanner(inputs({ byDay: all }), settled(all[0]!, [7]))!;
     expect([b.big, b.para, b.golink, b.reopen, b.chain.map((c) => [c.text, c.scope])])
       .toEqual(["Closed all year", null, null, null, [["No fishing for any game fish.", "This water"]]]);
+  });
+  it("(T1078) closed all year by two closures together (Kirkup Creek's case): the year's sentence, both closures, each with its dates, level and page", () => {
+    const b = bannerOf(inputs({ byDay: KIRKUP, day: D(11, 26) }), settled(KIRKUP[0]!, [10]), null)!;
+    expect([b.big, b.paras, b.reopen]).toEqual([["Closed all year"], ["No fishing for any game fish all year. Together these closures cover it:"], null]);
+    expect(b.chain).toEqual([
+      { text: "Nov 1–Jun 14.", scope: "This water", rule: "e10::r10", book: [{ t: "book", printed: 30, pdf: 32 }] },
+      { text: "Jun 15–Oct 31.", scope: "Region", rule: "e11::r11", book: [{ t: "book", printed: 31, pdf: 33 }] }]);
+  });
+  it("(T1078) three closures together: all three, from the selected day round the year", () => {
+    const b = rawBanner(inputs({ byDay: THREE, day: D(6, 20) }), settled(THREE[0]!, [12]))!;
+    expect([b.big, b.para, b.golink, b.chain.map((c) => [c.text, c.scope, c.rule])]).toEqual(["Closed all year",
+      "No fishing for any game fish all year. Together these closures cover it:", null, [
+        ["May 1–Aug 31.", "Region", "e13::r13"], ["From streams, Sep 1–Oct 31.", "Named area", "e14::r14"], ["Nov 1–Apr 30.", "This water", "e12::r12"]]]);
   });
   it("closed all year 'unless opened': today's frame names it, so its stored proviso is the line", () => {
     const all = Array.from({ length: 366 }, () => shut([[5, ALL]], [5]));
