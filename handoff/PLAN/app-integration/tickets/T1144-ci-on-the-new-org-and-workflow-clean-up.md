@@ -54,6 +54,22 @@ Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ci-merge-queue.md` (raw 
   one required check instead of four; the title checked with its suffix before a PR. A build-ready plan is being
   written (same archive, `ci-speed-build-plan.md`).
 
+## Build plan 2026-11-25 night (read-only; every saving is an estimate, no suite was run)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ci-speed-build-plan.md` (files and lines, the YAML sketches, the CI job log).
+- The pipeline tests are mostly safe on 4 cores now: each test process already gets its own temp folder and its
+  own copy of the curated data; no fixed ports or /tmp paths; no writes into the checkout. Risks: three timed
+  tests, memory, one test that fetches old git data; each test FILE stays in one process (order-dependent tests).
+  A code PR: about 40 to about 20 min (a guess). CI only: the Mac keeps its chunked runner.
+- The push-to-main run can go: main's newest commit already has a green merge-queue run for all four workflows,
+  and `ci_status.py` finds runs by commit whatever the event, so release checks keep working; a small cache job
+  on main keeps the caches PRs restore.
+- The six release stops of 0.10.0 were literals copied from a release; four (a count, page numbers, strings) the
+  existing guard cannot see (it only catches numbers above 366). ONE pins file re-cut with the fixtures turns six
+  stops into one accept (T1135).
+- `caffeinate` probably does not stop a closed-lid sleep (not checked): the runbook says "lid open, on power"
+  (T1161).
+- Order: the title check, `caffeinate`, parallel tests, then dropping the main push run.
+
 ## Owner
 
 - [ ] 2026-11-25 — After 0.10.0 is out: turn Dependabot security updates back on (the repo switch, yours) and CodeQL back on (one field on the org security configuration); the planning chat reminds you (T1141).

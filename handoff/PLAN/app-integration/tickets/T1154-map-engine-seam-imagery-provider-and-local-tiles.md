@@ -42,6 +42,23 @@ leaks out of its folder (mutation); the MapLibre patch is unchanged or smaller. 
 Release: its own minor after the hardening release (planning chat's proposal). Model: Opus (the native map and the
 patch). Size: L (three to four lanes after the scoping). Owner: the margin in step 4 and a look at the bench.
 
+## Scoped 2026-11-25 night (read-only; nothing ran on a phone): the plan changes
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `T1154-scoping.md` (the inventory with file:line, the interfaces as they fit this code, the lanes).
+- **MapLibre must NOT move onto a 127.0.0.1 tile server** (this replaces Work step 4 above): on Android, MapLibre
+  holds every http request while the phone is offline, so airplane mode would show a blank map
+  (`online_file_source.cpp:497-504`); it writes every http tile into its 50 MB cache, pushing the Esri tiles out;
+  and our patch reads tile ids only from a `pmtiles://file` address, so the map would lose all its colours with no
+  error. MapLibre stays on `pmtiles://file://`; the server is built only for the Mapbox trial (T1155).
+- The owner's handoff is wrong about the code in about 14 places (it says "verify, the code wins"): engine code
+  is not only in `Map.native.tsx` (`labelHold.tsx`, `useColouring.ts`, `tile-hold.ts`, `styleAssets.ts` and four
+  shell plugins / modules also know MapLibre); the Android MapLibre build carries no patch of ours; the style is
+  assembled per engine at run time, not by `pnpm style:build`; the real per-engine parity test is
+  `adapter-contract.render.test.tsx`, not `parity.test.ts`.
+- The seam is four lanes, all invisible to the user: the style dialect, then the imagery provider beside the
+  native split, then the build switch. Before the split moves any code, two tests are added: none exists today
+  for the still-tap or for the per-tile event, so a move could drop either silently.
+
 ## Owner
 
 - [ ] 2026-11-25 — After the scoping pass: agree the order and the "not slower than" margin for the local tile server (default: no more than 10% slower first paint and pan frame time on a mid Android phone, else it stays as it is).
+- [ ] 2026-11-25 — Picks from the scoping (defaults first): the local tile server only in the Mapbox trial, MapLibre stays as it is / a test-only switch / move MapLibre first; the margin: refactors within noise (5% cold start, 2 fps, 10 MB) / 10% everywhere / identical numbers only; lane order as scoped / the native split first; offline imagery: the interface only for now / real downloads now; T1148 lands first / its wording folded into the imagery lane.
