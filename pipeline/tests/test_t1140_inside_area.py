@@ -20,7 +20,7 @@ from shapely.geometry import LineString, Polygon, box
 
 from pipeline.deliver.answers.common import AnswersError
 from pipeline.deliver.answers.display.builders import _flows_into, _names, reviewed_still_said
-from pipeline.deliver.answers.display.part import AT, INSIDE, SIDE, Water, end_words, side_channels
+from pipeline.deliver.answers.display.part import AT, INSIDE, OWN, SIDE, Water, end_words, side_channels
 from pipeline.deliver.bundle import side_channels as sc
 
 # --- the bundle step: join distance ------------------------------------------------------------------------------
@@ -69,6 +69,7 @@ def _db(channel_far: float = 20.0, other_item_stem: bool = False):
         CREATE TABLE part_inside (ord INTEGER, part_ix INTEGER, area TEXT, share REAL, how TEXT,
                                   PRIMARY KEY (ord, part_ix));
         CREATE TABLE span_end (eid INTEGER PRIMARY KEY, token TEXT);
+        CREATE TABLE part_own_name (ord INTEGER, part_ix INTEGER, name TEXT, label TEXT);
     """)
     db.executemany("INSERT INTO item VALUES (?,?,?,?)", [(1, "gnis:1", "One River", "stream"),
                                                         (2, "gnis:2", "Two River", "stream")])
@@ -89,8 +90,9 @@ class _Cov:
 
 def _write(db, geo, tmp_path, monkeypatch):
     monkeypatch.setattr(sc, "inside_rows", lambda *_a, **_k: [])
+    monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
     log = []
-    sc.write(db, geo, tmp_path, _Cov(), log=log.append)
+    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={})
     return dict(db.execute("SELECT sid, lo_m FROM section_span")), log
 
 
@@ -434,3 +436,71 @@ def test_the_flow_pointer_names_the_one_water_a_part_of_side_channels_flows_into
     got = _flows_into(db)
     assert got == {("gnis:21687", "flows_into", 1): "lake_inlet:gnis:8"}       # part 2 reaches two waters: none; part 0
     # has a main stem: none
+
+
+# --- a part of added city lines with its own name (T1140 PROPOSAL, coordinator 2026-11-25) --------------------------
+
+def _added_db(rows):
+    """Noons Creek (water 1): part 0 its main line (FWA blk 360000001); part 1 the sections `rows` [(sid, blk)]."""
+    db = sqlite3.connect(":memory:")
+    db.executescript("""
+        CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT, name TEXT, kind TEXT);
+        CREATE TABLE section_measure (sid INTEGER PRIMARY KEY, blk INTEGER, from_m INTEGER, to_m INTEGER);
+        CREATE TABLE name_source (item_id TEXT, name TEXT, src TEXT, label TEXT);
+        CREATE TABLE part (ord INTEGER, part_ix INTEGER, key_ix INTEGER, tidal INTEGER);
+        CREATE TABLE part_section (ord INTEGER, sid INTEGER, part_ix INTEGER, m INTEGER);
+    """)
+    db.execute("INSERT INTO item VALUES (1, 'gnis:23366', 'Noons Creek', 'stream')")
+    db.executemany("INSERT INTO name_source VALUES ('gnis:23366', ?, 'municipal', 'City of Port Moody ESA streams layer')",
+                   [("Turner Creek",), ("West Noons Creek",)])
+    db.executemany("INSERT INTO part VALUES (1, ?, ?, 0)", [(0, 1), (1, 2)])
+    db.execute("INSERT INTO section_measure VALUES (1, 360000001, 0, 900)")
+    db.execute("INSERT INTO part_section VALUES (1, 1, 0, NULL)")
+    for sid, blk in rows:
+        if blk is not None:
+            db.execute("INSERT INTO section_measure VALUES (?, ?, 0, 100)", (sid, blk))
+        db.execute("INSERT INTO part_section VALUES (1, ?, 1, NULL)", (sid,))
+    return db
+
+
+NAMES = {-2200000392: "Turner Creek", -2200000393: "Turner Creek Trib.1", -2200000394: "Noons Creek"}
+
+
+def test_a_part_of_added_lines_with_its_own_name_is_named_by_it():
+    assert sc.own_name_rows(_added_db([(22, -2200000392)]), NAMES) == \
+        [(1, 1, "Turner Creek", "City of Port Moody ESA streams layer")]
+    assert sc.own_name_rows(_added_db([(22, -2200000392), (23, -2200000392)]), NAMES)[0][2] == "Turner Creek"
+
+
+def test_no_own_name_no_row():
+    assert sc.own_name_rows(_added_db([(22, -2200000999)]), NAMES) == []          # an added line with no name
+    db = _added_db([(22, -2200000394)])
+    db.execute("INSERT INTO name_source VALUES ('gnis:23366', 'Noons Creek', 'municipal', 'City of Port Moody ESA streams layer')")
+    assert sc.own_name_rows(db, NAMES) == []                                       # its name is the water's own
+    assert sc.own_name_rows(_added_db([(22, -2200000392), (23, -2200000999)]), NAMES) == []   # one line with no name
+    assert sc.own_name_rows(_added_db([(22, -2200000392), (23, -2200000393)]), NAMES) == []    # two names
+    assert sc.own_name_rows(_added_db([(22, -2200000393)]), NAMES) == []          # no source words for the name
+
+
+def test_a_mixed_part_never_takes_the_name():
+    assert sc.own_name_rows(_added_db([(22, -2200000392), (23, 360000002)]), {**NAMES, 360000002: "Turner Creek"}) == []
+    # an FWA line too, even one a names file listed
+    assert sc.own_name_rows(_added_db([(22, -2200000392), (24, None)]), NAMES) == []          # a polygon (no line)
+
+
+def test_the_added_names_are_read_from_the_streams_by_blk(tmp_path):
+    import json
+    p = tmp_path / "added_streams.json"
+    p.write_text(json.dumps({"streams": [{"blk": "-2200000392", "name": "Turner Creek"}, {"blk": "-5", "name": " "}],
+                             "name_variants": [{"kind": "added", "name": "Other", "target_blk": "-2200000392"}]}))
+    assert sc.added_stream_names(p) == {-2200000392: "Turner Creek"}
+
+
+def test_the_part_is_said_by_its_own_name_and_source():
+    W = _water([MAIN, [_run("source", "mouth", None, None, branch=True)]], iid="gnis:23366", name="Noons Creek")
+    cr = {("gnis:23366", "own", 1): ("Turner Creek", "City of Port Moody ESA streams layer")}
+    n = _names(W, cr)[1]
+    assert n["lo"] == n["hi"] and n["lo"].startswith(OWN)
+    assert _said(W, cr)[1] == "Noons Creek — Turner Creek (City of Port Moody ESA streams layer)"
+    with pytest.raises(AnswersError, match="no join to say"):           # with no own name it is a named STOP
+        _names(W, {})

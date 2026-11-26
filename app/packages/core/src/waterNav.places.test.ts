@@ -41,6 +41,9 @@ describe("(T1140) no part is numbered, anywhere the map says one", () => {
     expect(nameUnder("Capilano River", "CN Railway Bridge (tidal boundary) → Cable Pool Bridge footbridge"))
       .toBe("CN Railway Bridge (tidal boundary) → Cable Pool Bridge footbridge");
     expect(nameUnder("Comox Creek", "Side channel, joining 12 km from the mouth")).toBe("Side channel, joining 12 km from the mouth");
+    // (T1140 proposal) a part of added city lines with its own name: the dash goes with the water's name
+    expect(nameUnder("Noons Creek", "Noons Creek — Turner Creek (City of Port Moody ESA streams layer)"))
+      .toBe("Turner Creek (City of Port Moody ESA streams layer)");
     expect(nameUnder("Vedder River", "Vedder River")).toBe("Vedder River");          // the water's own name: no words left
     expect(nameUnder("Squamish River", "Squamish Rivers end")).toBe("Squamish Rivers end");   // the whole name, then a space
     // a part named by its ends whose first end begins with the water's name is a place, never a repeat (the Skeena's reserve)

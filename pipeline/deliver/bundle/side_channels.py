@@ -24,6 +24,12 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    zone): its lines by length, its polygon sections by area. `answers.display` names it "<water> inside <area>". Its
    lines that far inside while a polygon section of it straddles the area's edge (in it, but not that far): "<water> at
    <area>" (owner 2026-11-25, the Okanagan River Oxbows at Hayne's Lease Ecological Reserve).
+3. (PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is fixed
+   in hardening") A PART OF ADDED LINES WITH ITS OWN NAME (`part_own_name`): every section an added-stream line (a
+   negative blk in `section_measure`), all one added stream's name (`added_streams.json` `streams[].name`, read at build
+   time), not the water's: named by it, with the words of its source (`name_source.label`). Noons Creek p4 is the City of
+   Port Moody's Turner Creek, Seymour River p3 the City of Burnaby's Tunnel Creek (a watershed-code collision filed them
+   there). One with no own name gets no row (and stops the build at the answers step if its name needs a distance).
 """
 from __future__ import annotations
 
@@ -152,7 +158,7 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
 
 
 def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, *, log=print,
-          problems: Optional[List[str]] = None) -> None:
+          problems: Optional[List[str]] = None, added: Optional[Dict[int, str]] = None) -> None:
     """Fill the join measures `spans.compute` could not walk to, and write `part_inside` (the module's two rules).
     A channel the join rule cannot say is left without one and logged ("no join"; `problems` collects them too): only
     a part whose name needs that distance stops the build (`answers.display.builders._names`)."""
@@ -259,9 +265,52 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             filled += len(comp)
     log(f"     side channel: {filled} sections given the join their flow does not say")
     # 2. inside an area
+    named = own_name_rows(db, added_stream_names() if added is None else added)
+    db.executemany("INSERT INTO part_own_name (ord, part_ix, name, label) VALUES (?,?,?,?)", named)
+    cov.filled("part_own_name", len(named))
     rows = inside_rows(db, geo, build_dir, span)
     db.executemany("INSERT INTO part_inside (ord, part_ix, area, share, how) VALUES (?,?,?,?,?)", rows)
     cov.filled("part_inside", len(rows))
+
+
+def added_stream_names(path: Optional[Path] = None) -> Dict[int, str]:
+    """{blk: the added stream's own name} from the promoted added-streams file (`CURATED.waters.added_streams`)."""
+    import json
+    if path is None:
+        from pipeline.common.curated import CURATED
+        path = CURATED.waters.added_streams
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {int(r["blk"]): str(r["name"]).strip() for r in data.get("streams") or [] if str(r.get("name") or "").strip()}
+
+
+def own_name_rows(db: sqlite3.Connection, names: Dict[int, str]) -> List[tuple]:
+    """(ord, part_ix, name, label) for every LISTED part made only of added-stream lines that carry one own name, not the
+    water's, with its source's words (`name_source`). A part with a section that is no added line, two names, a line with
+    no name, or no source words for the name: no row."""
+    item = {o: (i, n) for o, i, n in db.execute("SELECT ord, item_id, name FROM item")}
+    blk: Dict[int, set] = defaultdict(set)
+    for sid, b in db.execute("SELECT sid, blk FROM section_measure"):
+        blk[sid].add(int(b))
+    label = {(i, n): lb for i, n, lb in db.execute("SELECT item_id, name, label FROM name_source")}
+    parts: Dict[Tuple[int, int], List[int]] = defaultdict(list)
+    for o, s, p in db.execute("SELECT ps.ord, ps.sid, ps.part_ix FROM part_section ps JOIN part pt ON pt.ord = ps.ord "
+                              "AND pt.part_ix = ps.part_ix WHERE pt.tidal = 0 AND pt.key_ix IS NOT NULL "
+                              "ORDER BY ps.ord, ps.part_ix, ps.sid"):
+        parts[(o, p)].append(s)
+    out = []
+    for (o, p), ss in sorted(parts.items()):
+        bs = [b for s in ss for b in blk.get(s, ())]
+        if not ss or any(not blk.get(s) for s in ss) or any(b >= 0 for b in bs):
+            continue
+        own = {names.get(b) for b in bs}
+        if len(own) != 1 or None in own:
+            continue
+        nm = own.pop()
+        iid, water = item[o]
+        if nm.casefold() == water.casefold() or (iid, nm) not in label:
+            continue
+        out.append((o, p, nm, label[(iid, nm)]))
+    return out
 
 
 def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
