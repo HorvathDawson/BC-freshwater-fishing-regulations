@@ -65,6 +65,8 @@ const PAGES = {
   glenn_501: (await import("../packages/ui-native/src/regs/fixtures/glenn_501.json")).default,
   vedder_615: (await import("../packages/ui-native/src/regs/fixtures/vedder_615.json")).default,
 } as unknown as Record<string, RegsPage>;
+// (T1140) the other-parts line under the name, at 2× too: one 24 px line that must grow, never clip or cross the tabs
+PAGES.vedder_1010_parts = { ...PAGES.vedder_1010!, header: { ...PAGES.vedder_1010!.header, others: "Other parts of this water have different rules" } } as RegsPage;
 const LIC = (await import("../packages/ui-native/src/regs/fixtures/licence_vedder_1010.json")).default as unknown as Record<string, LicenceVM>;
 
 /** (T37) the vedder_1010 page with its frozen sheets, and the sheets laid out */
@@ -229,6 +231,10 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
           "vedder_1010 desktop 2×": "title 48 place 130",
           "vedder_1010 phone 1×": "title 48 place 32",
           "vedder_1010 phone 2×": "title 60 place 130",
+          "vedder_1010_parts desktop 1×": "title 48 place 32",
+          "vedder_1010_parts desktop 2×": "title 48 place 130",
+          "vedder_1010_parts phone 1×": "title 48 place 32",
+          "vedder_1010_parts phone 2×": "title 60 place 130",
           "vedder_615 desktop 1×": "title 48 place 32",
           "vedder_615 desktop 2×": "title 48 place 130",
           "vedder_615 phone 1×": "title 48 place 32",

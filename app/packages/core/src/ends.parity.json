@@ -1,5 +1,5 @@
 {
-  "about": "T517 (review finding 8): one fixture both composers read — app/packages/core/src/ends.ts spanName (ends.parity.test.ts) and pipeline/deliver/answers/display/name_check.py (test_name_check.py). Cases: a part, a lower end with to: words, ends said near / at km, a part with no ends (its water's name), a joined span (first lo -> last_hi).",
+  "about": "T517 (review finding 8): one fixture both composers read — app/packages/core/src/ends.ts spanName (ends.parity.test.ts) and pipeline/deliver/answers/display/name_check.py (test_name_check.py). Cases: a part, a lower end with to: words, ends said near / at km, a part with no ends (its water's name), a joined span (first lo -> last_hi). T1140: the new near: kinds (inside, at, own, side) as a 0.9.0 app composes them too.",
   "ends": {
     "mouth": [
       "Mouth"
@@ -29,6 +29,21 @@
     ],
     "near:water:wbk:6": [
       "Near Six Mile Lake"
+    ],
+    "near:inside:area:BAYNES ISLAND ECOLOGICAL RESERVE": [
+      "Inside Baynes Island Ecological Reserve"
+    ],
+    "near:at:area:HAYNE'S LEASE ECOLOGICAL RESERVE": [
+      "At Hayne's Lease Ecological Reserve"
+    ],
+    "near:own:[\"Turner Creek\",\"Port Moody\"]": [
+      ": Turner Creek (Port Moody)"
+    ],
+    "near:side:[[\"lake_inlet:gnis:8\",\"\",null]]": [
+      "Side channel into Olsen Lake"
+    ],
+    "near:side:[[\"\",\"\",3.6],[\"\",\"bc_border\",null]]": [
+      "Side channels: one up to the B.C. border; one joining 3.6 km from the mouth"
     ]
   },
   "cases": [
@@ -80,6 +95,36 @@
       "lo": "near:water:wbk:6",
       "hi": "near:water:wbk:6",
       "name": "Old Kootenay River Channel near Six Mile Lake"
+    },
+    {
+      "water": "Squamish River",
+      "lo": "near:inside:area:BAYNES ISLAND ECOLOGICAL RESERVE",
+      "hi": "near:inside:area:BAYNES ISLAND ECOLOGICAL RESERVE",
+      "name": "Squamish River inside Baynes Island Ecological Reserve"
+    },
+    {
+      "water": "Okanagan River Oxbows",
+      "lo": "near:at:area:HAYNE'S LEASE ECOLOGICAL RESERVE",
+      "hi": "near:at:area:HAYNE'S LEASE ECOLOGICAL RESERVE",
+      "name": "Okanagan River Oxbows at Hayne's Lease Ecological Reserve"
+    },
+    {
+      "water": "Noons Creek",
+      "lo": "near:own:[\"Turner Creek\",\"Port Moody\"]",
+      "hi": "near:own:[\"Turner Creek\",\"Port Moody\"]",
+      "name": "Noons Creek: Turner Creek (Port Moody)"
+    },
+    {
+      "water": "Theodosia River",
+      "lo": "near:side:[[\"lake_inlet:gnis:8\",\"\",null]]",
+      "hi": "near:side:[[\"lake_inlet:gnis:8\",\"\",null]]",
+      "name": "Theodosia River side channel into Olsen Lake"
+    },
+    {
+      "water": "Snehumption Creek",
+      "lo": "near:side:[[\"\",\"\",3.6],[\"\",\"bc_border\",null]]",
+      "hi": "near:side:[[\"\",\"\",3.6],[\"\",\"bc_border\",null]]",
+      "name": "Snehumption Creek side channels: one up to the B.C. border; one joining 3.6 km from the mouth"
     }
   ]
 }

@@ -125,10 +125,11 @@ describe("(T731) a step on a water's map changes the bar in place", () => {
     // (T768) no part count and no part name typed (r-46e4355a7277 made it 21 parts from 18 and ended the run above
     // the Exchamsiks at the Lakelse; the next cut moves them again): the walk is the water's own group, from its lowest
     // part four entries up and back. What makes it THE FORK is held by the ends: the second entry is the Ecological
-    // Reserve, the fourth the km-less side channel (no ends, said by the water's name)
+    // Reserve, the fourth the km-less side channel (no ends: T1140, owner 2026-11-25 17:31, said by the release's own
+    // words for it, "Side channel (…)")
     const g = await loadWaterGroup(await openRegsStore(openRegsFixtureWithLines()), "gnis:2936");
-    expect([g.parts[1]!.lo, g.parts[3]!.lo, partName(g, 3), g.parts.length > 5])
-      .toEqual(["area:SKEENA RIVER ECOLOGICAL RESERVE@km63.5", null, "Skeena River", true]);
+    expect([g.parts[1]!.lo, g.parts[3]!.lo, /^Side channel \(/.test(partName(g, 3)), g.parts.length > 5])
+      .toEqual(["area:SKEENA RIVER ECOLOGICAL RESERVE@km63.5", null, true, true]);
     const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:2936" as ItemId, part: g.parts[0]!.partIx, view: "map" })),
                                 ["up", "up", "up", "up", "down", "down", "down", "down"]);
     const walk = [1, 2, 3, 4, 3, 2, 1, 0];

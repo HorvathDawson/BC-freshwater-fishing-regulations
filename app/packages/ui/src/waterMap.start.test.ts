@@ -33,7 +33,7 @@ describe("(T517) a frame on a later piece of a joined entry opens that entry", (
     expect(g.parts.map((p) => p.pieces)).toEqual([[0], [1, 2]]);
     expect([waterMapStartIx(g, "gnis:1", 1), waterMapStartIx(g, "gnis:1", 2), waterMapStartIx(g, "gnis:1", 0)]).toEqual([1, 1, 0]);
     const vm = waterMapView(g, waterMapStart(waterMapStartIx(g, "gnis:1", 2)))!;
-    expect([vm.where, vm.current.name, vm.selected]).toEqual(["Part 2 of 2 · Test River", RUN, [11, 12]]);
+    expect([vm.where, vm.current.name, vm.selected]).toEqual(["Test River", RUN, [11, 12]]);
     expect(reports).toEqual([]);
   });
 

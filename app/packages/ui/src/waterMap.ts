@@ -23,9 +23,9 @@
  */
 import { useMemo, useRef, useState } from "react";
 import {
-  reportOnce, crossLabel, crossDown, crossUp, entryNames, entryPieces, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, mouthA11y, mouthLabel, navSections, partAt, partBounds,
-  onePartLabel, partEnds, partName, partOfSection, partRowAria, partWhere, stepDown, stepUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
-  type NavCross, type NavExit, type WaterGroup,
+  reportOnce, crossLabel, crossDown, crossUp, entryNames, entryPieces, entryPlaces, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, mouthA11y, mouthLabel, navSections, partAt, partBounds,
+  nameUnder, onePartLabel, partEnds, partName, partOfSection, partRowAria, partWhere, stepDown, stepUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
+  type NavCross, type NavExit, type PartPlaces, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import { loadRawWaterGroup, loadTidalWater, type GroupStore, type RegsStore, type TidalWater } from "@app/data/regs";
@@ -60,7 +60,8 @@ export type WaterMapAction =
   /** (T150) Open or close the list of parts. */
   | { type: "list" };
 
-export const waterMapStart = (at: number, whole = false): WaterMapState => ({ at, whole, mark: null, list: false });
+/** (T1140) `list`: the list of parts opens open (the Regulations or Conditions head's line: `WaterFrame.parts`). */
+export const waterMapStart = (at: number, whole = false, list = false): WaterMapState => ({ at, whole, mark: null, list });
 
 const go = (at: number): WaterMapState => waterMapStart(at);
 /** (T750) The one next part that way (the water's one line), or null at its end. */
@@ -132,7 +133,10 @@ export interface WaterMapStepVM {
 export interface WaterMapVM {
   readonly parts: readonly WaterMapPartVM[];
   readonly current: WaterMapPartVM;
-  /** "Part 2 of 4 · Chilliwack River". */
+  /** (T1140, owner "Drop the repeat") the current part's name as the bar shows it under `where` (`nameUnder`); its full
+   *  name (`current.name`) is the label a screen reader says */
+  readonly shown: string;
+  /** The water line above the part's name: the water's own name ("Chilliwack River"), never a part count (T1140). */
   readonly where: string;
   /** ▼ / ▲: the label, its words for a screen reader (`aria`), whether it is an end, and — where it
    *  steps into ANOTHER water (`water_continue`) — that water and its part, for the caller to open (`crossAction`). */
@@ -243,6 +247,7 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     parts: g.parts.map((_, i) => partVM(g, i)),
     current,
     where: partWhere(g, at),
+    shown: nameUnder(partWhere(g, at), current.name),
     down: step("down", down, crossDown(g, at)),
     up: step("up", up, crossUp(g, at)),
     marks: [...marks, ...mouthMark(g, down === null && ends.lo === null)],
@@ -313,15 +318,10 @@ const ids = new WeakMap<object, number>();
 let nextId = 0;
 const idOf = (o: object): number => { let i = ids.get(o); if (i === undefined) ids.set(o, i = ++nextId); return i; };
 
-/** The group of `item`, read once per (store, item, salmon key). (T228) `salmonKey`: each section's salmon reading
- *  (`@app/core` `salmonTimelineKey`, the live feed over the release) — pieces of a part join only where it reads them alike. */
-export function useWaterGroup(store: GroupStore | null, item: ItemId | null,
-                              salmonKey: ((sid: number) => string) | null = null): Async<WaterGroup | null> {
-  const { raw, g } = useWaterGroups(store, item, salmonKey);
-  return raw.state === "ready" ? { state: "ready", value: g, error: null } : { ...raw, value: null };
-}
-
-/** The group as the release cuts it (`raw`: one entry per part) and as the map joins it (`g`, the live salmon key's). */
+/** The group of `item`, read once per (store, item): as the release cuts it (`raw`: one entry per part) and as the map joins
+ *  it (`g`). (T228) `salmonKey`: each section's salmon reading (`@app/core` `salmonTimelineKey`, the live feed over the
+ *  release) — pieces of a part join only where it reads them alike. (T1140: the one group hook; `useWaterGroup`, the
+ *  joined group alone, went with its last reader.) */
 function useWaterGroups(store: GroupStore | null, item: ItemId | null, salmonKey: ((sid: number) => string) | null) {
   const key = `water-group:${store ? idOf(store) : ""}:${item ?? ""}`;
   const read = useAsync(async () => (store && item ? { key, g: await loadRawWaterGroup(store, item) } : null), key,
@@ -339,7 +339,7 @@ function useWaterGroups(store: GroupStore | null, item: ItemId | null, salmonKey
 }
 
 /**
- * (T228) `salmonKeyOf` (`salmonKey.ts`, the live salmon key) as a hook, for `useWaterGroup` / `useWaterMap`: asked again, in place, when a DFO feed is taken.
+ * (T228) `salmonKeyOf` (`salmonKey.ts`, the live salmon key) as a hook, for `useMapEntries` / `useWaterMap`: asked again, in place, when a DFO feed is taken.
  * Null until read, or where the release ships no salmon — nothing then joins.
  */
 export function useSalmonKey(loader: SalmonLoader | null, store: Pick<RegsStore, "itemOrd" | "parts"> | null,
@@ -357,20 +357,34 @@ export interface MapEntries {
   readonly names: ReadonlyMap<number, string>;
   /** each part → the pieces of the entry holding it (`entryPieces`): a page's in-season coverage */
   readonly pieces: ReadonlyMap<number, readonly number[]>;
+  /** (T1140) each part → where its entry sits in the map's list and whether another has other rules (`entryPlaces`):
+   *  the heads' line to the other parts; empty where the map shows one entry */
+  readonly places: PartPlaces;
 }
 
 /**
- * (T517) THE PARTS OF `item` AS ITS MAP SHOWS THEM — the very group the map draws (`useWaterGroup` over the live
- * `useSalmonKey`): each part's entry name (the Regulations header, the Parts sheet, the Conditions view's place label)
- * and its entry's pieces (the page's in-season coverage), so no screen names or covers a part another way. Null until
- * the group is read (a failed read is the group's, reported by its `useAsync`): `headerOf` then says each part's own
- * name and the page covers its own part — the map's own entries before a salmon reading joins any.
+ * (T517) THE PARTS OF `item` AS ITS MAP SHOWS THEM — the very group the map draws (`useWaterGroups` over the live
+ * `useSalmonKey`): each part's entry name (the Regulations header, the Parts sheet, the Conditions view's place label),
+ * its entry's pieces (the page's in-season coverage) and (T1140) where its entry sits in the list, so no screen names,
+ * covers or counts a part another way. `entries` is null until the group is read (a failed read is the group's,
+ * reported by its `useAsync`): `headerOf` then says each part's own name and the page covers its own part.
+ *
+ * (T1140) And whether the parts are READ (`settled`: the group read, or failed — reported by its `useAsync`): the
+ * Regulations view waits for it (`WaterScreen`), so no part's answer is drawn before its parts are read — a split lake's
+ * area of one part included (its group holds the other areas). It does NOT wait for the live salmon (T1049: the page
+ * draws while its salmon card is still coming): until the salmon is read nothing joins, so a part is named by its own
+ * ends, and by its joined span's once the salmon lands — the Map tab names it the same way at the same moment. No water
+ * (an unnamed reach) is settled.
  */
-export function useMapEntries(loader: SalmonLoader | null, store: RegsStore | null, item: ItemId | null): MapEntries | null {
+export function useMapEntries(loader: SalmonLoader | null, store: RegsStore | null,
+                              item: ItemId | null): { entries: MapEntries | null; settled: boolean } {
   const salmonKey = useSalmonKey(loader, store, item);
-  const g = useWaterGroup(store, item, salmonKey);
-  return useMemo(() => (g.value && item ? { names: entryNames(g.value, item), pieces: entryPieces(g.value, item) } : null),
-                 [g.value, item]);
+  const { raw, g } = useWaterGroups(store, item, salmonKey);
+  const ready = raw.state === "ready" ? g : null;
+  const entries = useMemo(() => (ready && item
+    ? { names: entryNames(ready, item), pieces: entryPieces(ready, item), places: entryPlaces(ready, item, salmonKey) }
+    : null), [ready, item, salmonKey]);
+  return { entries, settled: !store || !item || raw.state !== "loading" };
 }
 
 /**
@@ -482,7 +496,10 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
                             /** (T369 D7) ⤢ pressed: the caller toggles the frame's `whole` (the route's `whole`) */
                             onWhole?: () => void,
                             /** (T459, T517) the salmon slices, for the receiving water's own live key (its map's entries) */
-                            salmon: SalmonLoader | null = null): Async<WaterMap | null> {
+                            salmon: SalmonLoader | null = null,
+                            /** (T1140) the frame asks for the list of parts open (`WaterFrame.parts`): the map starts with it
+                             *  open, on a water of several parts (one of one part has no list) */
+                            list = false): Async<WaterMap | null> {
   const read = useRef<{ item: ItemId; g: WaterGroup } | null>(null);
   const inRead = !!item && !!read.current && read.current.g.parts.some((p) => p.item === item);
   const { raw: rawGroup, g: merged } = useWaterGroups(store, inRead ? read.current!.item : item, salmonKey);
@@ -499,7 +516,7 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   // (`useFeedVersion("dfo")`) hands a new reading that most often groups the pieces exactly as before, and keyed on its
   // identity that reset an open mark and the parts list under the reader's finger
   const grouping = useMemo(() => (g ? g.parts.map((p) => `${p.item}/${p.pieces.join("+")}/${p.sids.length}:${p.sids[0] ?? ""}`).join(",") : ""), [g]);
-  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${grouping}`;
+  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${grouping}:${list ? "list" : ""}`;
   // THIS FRAME's visit: a new number each time the key changes, so what was held on an EARLIER visit to the same frame
   // (A → B → back to A by Show regulations and back) is never taken for this one's
   const visit = useRef({ key, n: 0 });
@@ -515,7 +532,8 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   let heldS: WaterMapState | null = null;
   // (T688) a group with no part (a wholly tidal water: every piece is tidal and never listed) has no part to start on —
   // not a failure: `useTidalWaterMap` frames it
-  try { heldS = held && held.at === at ? held.s : g && item && g.parts.length ? waterMapStart(waterMapStartIx(g, item, startPart)) : null; }
+  try { heldS = held && held.at === at ? held.s : g && item && g.parts.length
+    ? waterMapStart(waterMapStartIx(g, item, startPart), false, list && g.parts.length > 1) : null; }
   // (no silent fallbacks) a frame on a part its group does not hold: the map is FAILED (shown unavailable) and reported
   catch (e) { startFailed = e instanceof Error ? e : new Error(String(e)); reportOnce(`waterMapStart:${startFailed.message}`, e); }
   // (T369 D7) ⤢ is the FRAME's (`whole`), never held: a view switch, back and a reload keep it
