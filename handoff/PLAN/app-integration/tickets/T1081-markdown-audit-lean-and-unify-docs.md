@@ -99,3 +99,16 @@ RENAME waits for 0.10.0 on production and merged back, with no other PR open, on
 **After the cut merges:** numbering is `node app/tools/ledger.mjs --next` then `--claim`; owner asks are lines
 under "## Owner" (`- [ ] date — ask`), unfiled ones in `tickets/OWNER-UNFILED.md`; the planning chat rewrites
 prompt P and closes T1080 (delivered by `views/OWNER.md`).
+
+## Result of the cut (branch `docs/T1081-lean-out`, 2026-11-25 evening; the rename and the review-tool move are still to come)
+
+| | before (`03be2862e`) | after |
+|---|---|---|
+| tracked files | 11,153 | 6,062 |
+| markdown files | 1,483 | 438 |
+| markdown lines | 143,408 | 38,648 |
+| tracked size | 1,143 MB | 349 MB |
+
+A new chat's required reading, in lines: README 64 + START-HERE 27 + AGENTS 438 + STATUS 45 + its restart page (this
+chat's: 37) + `views/OWNER.md` (about 208, built) = about 819. Review (independent, 1 blocker, 9 should-fix, 14 nits): the
+blocker and every should-fix item are done; nits applied where they were plain corrections.
