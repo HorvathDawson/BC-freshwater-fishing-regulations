@@ -63,6 +63,11 @@ def compile_links(doc: M.Matches, digest: str) -> dict:
     bad: list[str] = []
     if not doc.release:
         bad.append("the file names no release: re-resolve it (the review app's Re-resolve)")
+    elif doc.release.startswith(M.FIRST_BUILD):
+        # (T1120) a first build's resolution (`resolve --first-build`): made before any release existed, so it names
+        # an atlas, never a release; the release re-resolves on its candidate before anything is published
+        bad.append(f"the file is a first build's ({doc.release}), resolved on no release: re-resolve it on the "
+                   f"release (`{M.RESOLVE_CMD}`)")
     notices: dict = {}
     for rid in sorted(doc.matches):
         m = doc.matches[rid]

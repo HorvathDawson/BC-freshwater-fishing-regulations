@@ -1,6 +1,7 @@
 """(T520) RESOLVE THE IN-SEASON MATCHES WHERE THE ATLAS IS — to FWA ranges on one data release.
 
     python -m pipeline.regs.inseason.resolve [--release DIR] [--matches FILE] [--out FILE] [--check]
+    python -m pipeline.regs.inseason.resolve --first-build [--reaches DIR]     (T1120: no release is live yet)
 
 Every match in `data/curated/inseason/notice_waters.json` (`matches.Match.extents`) is resolved on the atlas
 (`points.resolve`: the regs' resolver, the measure-cut pick-points, the tributary walk) and written as `waters` to the
@@ -78,6 +79,14 @@ def release_dir(arg: Path | str | None = None) -> Path:
     return live(GENERATED.release)
 
 
+def release_is_live(root: Path | str | None = None) -> bool:
+    """Whether `root` (default GENERATED.release) has a LATEST pointer: a release is live. A pointer naming a broken
+    folder still counts (resolving on it then raises, naming the cause)."""
+    from pipeline.common.curated import GENERATED
+    from pipeline.deliver.release.manifest import LATEST
+    return (Path(root or GENERATED.release) / LATEST).is_file()
+
+
 def release_name(rel: Path) -> str:
     manifest = json.loads((rel / "manifest.json").read_text(encoding="utf-8"))
     return str(manifest.get("data_release") or rel.name)
@@ -121,8 +130,20 @@ class Release:
         return sorted(h for h in self.item_sections(item) if h not in self.lines)
 
 
-def read_release(rel: Path) -> Release:
+def _decode_lines(blocks: Iterable[tuple]) -> dict[int, tuple[int, int, int]]:
+    """handle -> (blk, from_m, to_m) from `section_line` blocks `(block, n, b)` — the release's `lines` file as the
+    device decodes it (`lines.decode_block`; a stream of one section ends `lines.OPEN`). Both loaders read this."""
     from pipeline.deliver.release import lines as L
+    lines: dict[int, tuple[int, int, int]] = {}
+    for block, n, b in blocks:
+        for i, (blk, lo, hi) in enumerate(L.decode_block(bytes(b), int(n))):
+            h = (int(block) << L.BLOCK_BITS) | i
+            if h:                                      # handle 0: the filler
+                lines[h] = (blk, lo, hi)
+    return lines
+
+
+def read_release(rel: Path) -> Release:
     with tempfile.TemporaryDirectory() as t:
         core = _open(_whole_file(rel, "core"), Path(t))
         water = _open(_whole_file(rel, "water"), Path(t))
@@ -134,17 +155,114 @@ def read_release(rel: Path) -> Release:
         mem: dict[int, set[int]] = {}
         for o, sid in water.execute("SELECT ord, sid FROM part_section"):
             mem.setdefault(int(o), set()).add(int(sid))
-        lines: dict[int, tuple[int, int, int]] = {}
-        for block, n, b in ln.execute("SELECT block, n, b FROM section_line ORDER BY block"):
-            for i, (blk, lo, hi) in enumerate(L.decode_block(bytes(b), int(n))):
-                h = (int(block) << L.BLOCK_BITS) | i
-                if h:                                  # handle 0: the filler
-                    lines[h] = (blk, lo, hi)
+        lines = _decode_lines(ln.execute("SELECT block, n, b FROM section_line ORDER BY block"))
         for c in (core, water, ln):
             c.close()
     handles = str(meta.get("section_handles") or "")
     return Release(release_name(rel), handles, ord_of, kind_of, {o: frozenset(s) for o, s in mem.items()}, lines,
                    fresh_regions(rel, handles))
+
+
+# --------------------------------------------------------------------------- (T1120) the FIRST BUILD
+
+#: (T1120) THE NAME A FIRST-BUILD RESOLUTION CARRIES where a release's would stand: `first-build:<atlas handles>`.
+#: A fresh machine has no release to resolve on, and deliver (which makes the first one) reads the resolution's end
+#: tokens, so `--first-build` resolves on the release-to-be's own facts, read from the atlas + its reach run
+#: (`release_from_atlas`). The name says what it was resolved against; it is never a release: publish refuses it
+#: (`publish.compile_links`), the staging sync refuses it (its LATEST check), and the review app re-resolves first.
+FIRST_BUILD = M.FIRST_BUILD
+
+
+def first_build_name(handles: str) -> str:
+    return f"{FIRST_BUILD}{handles}"
+
+
+def is_first_build(name: str | None) -> bool:
+    return str(name or "").startswith(FIRST_BUILD)
+
+
+def reach_run_problem(build: Path, reaches: Path) -> str | None:
+    """Why the reach run at `reaches` is not the one made from the atlas at `build` (its handles and its registry: the
+    bundle's own pairing, `deliver.bundle.build`), or None. A first-build resolve on a run of another atlas would place
+    the ranges on another atlas's sections."""
+    from pipeline.common.section_handles import digest_for, registry_digest_for
+    rep = Path(reaches) / "report.json"
+    if not rep.exists():
+        return f"no reach run at {reaches} (no report.json): python -m pipeline.atlas.reach.cli --build {build} " \
+               f"--out {reaches}"
+    got = json.loads(rep.read_text(encoding="utf-8"))
+    if got.get("handles") != digest_for(build):
+        return (f"the reach run at {reaches} was made from atlas handles {got.get('handles')!r}, not {build}'s "
+                f"({digest_for(build)}): re-run the reach step")
+    if got.get("registry_digest") != registry_digest_for(build):
+        return (f"the reach run at {reaches} was made against registry {got.get('registry_digest')!r}, not {build}'s "
+                f"({registry_digest_for(build)}): re-run the reach step")
+    return None
+
+
+def release_from_atlas(atlas: Atlas, build: Path, reaches: Path, registry_items: list | None = None) -> Release:
+    """(T1120) THE `Release` A FIRST BUILD'S DELIVER WILL MAKE, from what that deliver reads — the atlas and its reach
+    run — through the bundle's own functions, never a second derivation (AGENTS 56):
+
+      items / kind / members  the registry's water items (`registry_kinds.is_water`), each its `section_ids` — the
+                              bundle's `item` / `item_section`, which `part_section` partitions (`derived.part_rows`)
+      lines                   `section_measure.rows` (the bundle's table) through `release.lines.blocks` (the release's
+                              own writer: a stream of one section ends OPEN) and back (`_decode_lines`)
+      regions                 every section the reach run gives a rule set (the bundle's `section_ruleset`: "every
+                              section in B.C.", `rule_section` rows), less the run's `tidal.jsonl` (an answers key's
+                              `tidal` is its part's, whose sections must agree on the bundle's `tidal` table:
+                              `derived.part_rows`), at the region set the bundle places it in (`bundle.build
+                              ._water_places`: `registry.regions.section_regions`)
+
+    Refused (SystemExit) when the reach run is not this atlas's (`reach_run_problem`). Its `name` is
+    `first_build_name(atlas.digest)`, never a release id."""
+    from pipeline.atlas.reach.io import TIDAL_TABLE, iter_rule_sections, read_table, rule_section_file
+    from pipeline.common.registry_kinds import is_water
+    from pipeline.deliver.bundle import section_measure as SM
+    from pipeline.deliver.bundle.build import _water_places
+    from pipeline.deliver.bundle.rules.diagnostics import run_rows
+    from pipeline.deliver.release import lines as L
+    build, reaches = Path(build), Path(reaches)
+    bad = reach_run_problem(build, reaches)
+    if bad:
+        raise SystemExit(f"inseason.resolve --first-build: {bad}")
+    if registry_items is None:
+        registry_items = json.loads((build / "registry.json").read_text(encoding="utf-8"))["items"]
+    items = [i for i in registry_items if is_water(i)]
+    ord_of: dict[str, int] = {}
+    for i in items:                                    # the bundle's `ord` rule (`bundle.build._items`): first seen
+        ord_of.setdefault(i["id"], len(ord_of))
+    kind_of = {i["id"]: str(i.get("kind") or "") for i in items}
+    mem: dict[int, set[int]] = {}
+    unknown = []
+    for i in items:
+        for s in i.get("section_ids") or ():
+            h = atlas.handle.get(s)
+            if h is None:
+                unknown.append(s)
+            else:
+                mem.setdefault(ord_of[i["id"]], set()).add(h)
+    if unknown:
+        raise SystemExit(f"inseason.resolve --first-build: {len(unknown)} registry section(s) are not in the handle "
+                         f"table (e.g. {unknown[:3]}): the registry and section_handles.txt are from different builds")
+    lines = _decode_lines((b, n, bb) for b, n, _k, _m, bb in L.blocks(SM.rows(atlas.ids, atlas.g.nodes)))
+    in_bc: set[int] = set()
+    for _e, _r, s, _scope in iter_rule_sections(rule_section_file(reaches)):
+        in_bc.add(s)
+    gone = sorted(s for s in in_bc if s not in atlas.handle)
+    if gone:
+        raise SystemExit(f"inseason.resolve --first-build: the reach run binds {len(gone)} section(s) the atlas lacks "
+                         f"(e.g. {gone[:3]})")
+    in_bc_h = {atlas.handle[s] for s in in_bc}
+    tidal = {x["sid"] for x in run_rows(read_table(reaches, TIDAL_TABLE), dict(atlas.handle), TIDAL_TABLE)}
+    places = _water_places(build, atlas.g, registry_items)
+    nowhere = sorted(h for h in in_bc_h if h not in places)
+    if nowhere:
+        raise SystemExit(f"inseason.resolve --first-build: {len(nowhere)} section(s) in B.C. have no place "
+                         f"(e.g. {nowhere[:3]})")
+    regions = {h: frozenset(str(r).lower() for r in places[h][1]) for h in sorted(in_bc_h) if h not in tidal}
+    return Release(first_build_name(atlas.digest), atlas.digest, ord_of, kind_of,
+                   {o: frozenset(s) for o, s in mem.items()}, lines, regions)
 
 
 def fresh_regions(rel: Path, handles: str) -> dict[int, frozenset[str]]:
@@ -515,14 +633,33 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=None,
                     help="the generated resolution to write (default matches.resolved_path())")
     ap.add_argument("--check", action="store_true", help="resolve and compare; write nothing (exit 1 on a difference)")
+    ap.add_argument("--first-build", action="store_true",
+                    help="(T1120) no release is live yet: resolve on the atlas + its reach run (`release_from_atlas`), "
+                         "named first-build:<atlas handles>; refused while a release is live")
+    ap.add_argument("--reaches", type=Path, default=None,
+                    help="with --first-build: the atlas's reach run (default GENERATED.reaches/<build>)")
     a = ap.parse_args(argv)
     # (T679 #11) THE CURATED FILE IS ONLY READ: the owner's matches. What is derived from them goes to the GENERATED
     # resolution (`matches.resolved_path()`), never committed
     doc = M.load_curated(a.matches)
     dst = Path(a.out or M.resolved_path())
     before = dst.read_text(encoding="utf-8") if dst.exists() else None
-    rel = read_release(release_dir(a.release))
-    new, bad = resolve_doc(doc, load_atlas(), rel)
+    if a.first_build:
+        if a.release is not None:
+            raise SystemExit("inseason.resolve: --first-build resolves on no release; drop --release")
+        if release_is_live():
+            raise SystemExit(f"inseason.resolve: --first-build refused — a release is live "
+                             f"({release_dir(None).name}): resolve on it (no --first-build)")
+        from pipeline.common.curated import GENERATED
+        atlas = load_atlas()
+        build = GENERATED.require_build()
+        rel = release_from_atlas(atlas, build, a.reaches or (GENERATED.reaches / build.name))
+        print(f"inseason.resolve: FIRST BUILD — no release is live; resolving on atlas {atlas.digest} and its reach "
+              f"run, named {rel.name} (publish refuses it; the release re-resolves on its candidate)", file=sys.stderr)
+    else:
+        atlas = load_atlas()
+        rel = read_release(release_dir(a.release))
+    new, bad = resolve_doc(doc, atlas, rel)
     out = M.dumps_resolved(new)
     if a.check:
         same = out == before
