@@ -12,7 +12,7 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    line section it lands on must be orientable (its downstream or upstream neighbour on the stem says which end is the
    mouth's). (T1140 proposal, coordinator 2026-11-25, "a consistent way to handle this") A channel whose downstream end
    TOUCHES a water body of its own river joins the river AT it: a named lake its main line runs through names the
-   channel's lower end (`section_span.lo` = `lake_inlet:<lake>`: "side channel into <Lake>"); its own polygon (a wide
+   channel's lower end (only where its flow pointer says that end is the downstream one: never a lake it leaves) (`section_span.lo` = `lake_inlet:<lake>`: "side channel into <Lake>"); its own polygon (a wide
    reach) or an unnamed lake its main line runs through is measured at the main line's point nearest the touch,
    whatever the distance
    — the snap limit holds only where the end touches NO water body of its river. A channel failing one gets NO join (never a guessed distance), logged here; a part whose NAME then lacks a
@@ -272,7 +272,11 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             inside = set(comp)
             leave = sorted({down[s] for s in comp if s in down and down[s] not in inside and down[s] in geo})
             dn = geo[leave[0]] if len(leave) == 1 else None
-            hit = touched(downstream_ends(shapes, dn), [x for x in own if x[0] not in inside], lakes, on_stem)
+            # a named lake names the channel's lower end only where its flow pointer says which end is downstream
+            # (audit of #265: with no pointer the touching end may be where it LEAVES the lake: Robertson Creek's channel
+            # runs up to the Boot Lagoon outlet, so "into Boot Lagoon" would be backwards)
+            hit = touched(downstream_ends(shapes, dn), [x for x in own if x[0] not in inside],
+                          lakes if dn is not None else [], on_stem)
             if hit and hit[0] == "lake":
                 # into a named lake on its river's main line: that is its lower end (rule A names it)
                 # on the channel's lowest piece, whose lower end its run says (`spans.compose_runs`)
