@@ -13,6 +13,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useImperativeHandle, type ReactNode } from "react";
+import { DeviceEventEmitter } from "react-native";
 import { MAP_GESTURES, fitCamera, fitZoomLimit, fitZoomOf, setFailureSink } from "@app/core";
 import type { MapProps } from "./map-props";
 import type { StatusIndex } from "@app/core";
@@ -129,6 +130,8 @@ vi.mock("pmtiles", async (real) => ({ ...(await real<typeof import("pmtiles")>()
 type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] } | null };
 const native: { props: Record<string, unknown> | null; camera: Record<string, unknown> | null;
                 geojson: Record<string, unknown>; holdRender: boolean; watched?: string[];
+                /** (T1154) every `watchTiles` call, in order: each asks the binding to send every tile's ids again */
+                watches?: string[][];
                 layers?: Record<string, { type: string; paint?: unknown }>;
                 images?: Record<string, unknown>; fitOpts?: unknown[]; easeOpts?: unknown[];
                 onLog?: (e: { level: string; tag: string; message: string }) => boolean } =
@@ -178,7 +181,7 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
       setFeatureStates: async (sourceLayer: string, ids: string[], states: unknown[]) => {
         ids.forEach((fid, i) => log.push(`set ${id}/${sourceLayer} ${fid} ${JSON.stringify(states[i])}`));
       },
-      watchTiles: async (layers: string[]) => { native.watched = layers; },
+      watchTiles: async (layers: string[]) => { native.watched = layers; (native.watches ??= []).push(layers); },
       nativeTag: () => 7,
     }));
     return null;
@@ -207,6 +210,7 @@ afterEach(() => {
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
   web.fitOpts = []; web.canvasH = 800; web.data = {}; webCam.lng = -122; webCam.lat = 49;
   native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = []; native.easeOpts = [];
+  native.watches = [];
 });
 
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
@@ -1282,5 +1286,118 @@ describe.each(["web", "native"] as const)("T674 a spot's button only while its m
     await waitFor(() => expect(said()).toEqual(["Open spot Tamihi run"]));
     moveTo(HOPE.lon, HOPE.lat);
     await waitFor(() => expect(said()).toEqual(["Open spot Hope bar"]));
+  });
+});
+
+/*
+ * (T1154) THE PATCHED BINDING'S TWO OWN PATHS, pinned at the SDK boundary so an engine move cannot drop either silently:
+ * the still tap's lift (`onTapUp`, T716) and the per-tile ids (the device event `MLRNTileIds`, T74/T420). Both are
+ * driven the way the native side drives them: the lift as a prop the binding calls, the tile ids as a device event.
+ */
+describe("(T1154) native: the patched binding's still tap and per-tile ids", () => {
+  const STREAM_TAP = "query [[88,188],[112,212]] stream,lake_flowing,wetland_flowing";
+  const lift = (x: number, y: number, lon: number, lat: number) => {
+    const e: Press = { nativeEvent: { point: [x, y], lngLat: [lon, lat] } };
+    act(() => { (native.props!.onTapUp as ((e: Press) => void) | undefined)?.(e); });
+    e.nativeEvent = null;                // recycled once the handler yields, as a press is
+  };
+
+  it("(T716) a still tap's lift says what it would open at once; its click opens that, asking the map nothing again", async () => {
+    const start = vi.fn();
+    const press = vi.fn();
+    const point = vi.fn();
+    answer = (layers) => (layers.includes("stream") ? [{ id: "" }, { id: "311274" }] : []);
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onPressStart: start, onPressFeature: press,
+                                 onMapPoint: point })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    await act(async () => {});
+    log.length = 0;
+    lift(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(start.mock.calls).toEqual([["stream", 311274, 49.1, -122.3]]));
+    const atLift = { log: [...log], press: press.mock.calls.length };
+    // the map would now answer another water: the click of the same tap must not ask, it reads the lift's answer
+    answer = (layers) => (layers.includes("lake") ? [{ id: "1566515" }] : []);
+    PLATFORMS.native.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(press.mock.calls.length).toBe(1));
+    await act(async () => {});
+    expect({ atLift, start: start.mock.calls, press: press.mock.calls, point: point.mock.calls, log }).toEqual({
+      atLift: { log: [STREAM_TAP], press: 0 },
+      start: [["stream", 311274, 49.1, -122.3]],
+      press: [["stream", 311274, 49.1, -122.3]],
+      point: [[49.1, -122.3]],
+      log: [STREAM_TAP],
+    });
+  });
+
+  it("(T716) a click away from the lift's point asks for itself", async () => {
+    const start = vi.fn();
+    const press = vi.fn();
+    answer = (layers) => (layers.includes("stream") ? [{ id: "311274" }] : []);
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onPressStart: start, onPressFeature: press })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    await act(async () => {});
+    log.length = 0;
+    lift(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(start.mock.calls.length).toBe(1));
+    answer = (layers) => (layers.includes("lake") ? [{ id: "1566515" }] : []);
+    PLATFORMS.native.tap(150, 260, -122.25, 49.05);
+    await waitFor(() => expect(press.mock.calls.length).toBe(1));
+    expect({ press: press.mock.calls, log }).toEqual({
+      press: [["lake", 1566515, 49.05, -122.25]],
+      log: [STREAM_TAP, "query [[138,248],[162,272]] stream,lake_flowing,wetland_flowing",
+            "query [[138,248],[162,272]] lake,wetland"],
+    });
+  });
+
+  /** Sections 10 and 11 read profiles 0 and 1; every other section is base (as in `one-engine.render.test.tsx`). */
+  const STATUS = {
+    index: {
+      handles: "0".repeat(16), reachDigest: "0".repeat(16), sections: 2, waters: 0, profiles: 2,
+      profileOf: (s) => ({ 10: 0, 11: 1 } as Record<number, number>)[Number(s)] ?? null,
+      profileCodeOn: (p) => (p === 0 ? "closed" : "own"), codeOn: () => "base", waterCodeOn: () => "base",
+    } satisfies StatusIndex,
+    day: new Date(2026, 5, 1),
+  };
+  /** What the binding sends per requested tile, as its native side emits it (the atlas source's tag is 7 here). */
+  const tileIds = (e: { tag: number; z: number; x: number; y: number; layers?: Record<string, number[]> }) => {
+    act(() => { DeviceEventEmitter.emit("MLRNTileIds", e); });
+  };
+  const mounted = async (p: Partial<MapProps> = {}) => {
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, status: STATUS, ...p })} />);
+    await waitFor(() => expect(native.watches!.length).toBeGreaterThan(0));
+    await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
+    log.length = 0;
+  };
+
+  it("(T74) a tile's ids label its sections at once, through the batched call; another map's tile labels nothing", async () => {
+    await mounted();
+    tileIds({ tag: 8, z: 9, x: 81, y: 172, layers: { stream: [10] } });
+    tileIds({ tag: 7, z: 9, x: 81, y: 172, layers: { stream: [10, 11, 13], lake: [12] } });
+    await waitFor(() => expect(atlasLog().length).toBe(4));
+    await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
+    expect(atlasLog()).toEqual([
+      'set atlas/stream 10 {"p":"p0"}', 'set atlas/stream 11 {"p":"p1"}', 'set atlas/stream 13 {"p":"b"}',
+      'set atlas/lake 12 {"p":"b"}',
+    ]);
+  });
+
+  it("(T420) a repeat of a tile held sends nothing; a repeat of one not held is reported and the binding re-watched", async () => {
+    const errors: string[] = [];
+    await mounted({ onError: (e) => errors.push(e.message) });
+    tileIds({ tag: 7, z: 9, x: 81, y: 172, layers: { stream: [10] } });
+    await waitFor(() => expect(atlasLog()).toEqual(['set atlas/stream 10 {"p":"p0"}']));
+    log.length = 0;
+    const before = native.watches!.length;
+    tileIds({ tag: 7, z: 9, x: 81, y: 172 });
+    await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
+    const heldRepeat = { log: [...log], errors: [...errors], watches: native.watches!.length - before };
+    tileIds({ tag: 7, z: 9, x: 82, y: 172 });
+    await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
+    expect({ heldRepeat, log, errors, watches: native.watches!.slice(before) }).toEqual({
+      heldRepeat: { log: [], errors: [], watches: 0 },
+      log: [],
+      errors: ["MLRNTileIds: repeat of tile 9/82/172 not held (1 held); re-watching"],
+      watches: [["stream", "lake", "wetland"]],
+    });
   });
 });
