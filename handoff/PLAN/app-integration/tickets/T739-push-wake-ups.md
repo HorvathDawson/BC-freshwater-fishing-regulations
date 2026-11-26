@@ -8,7 +8,7 @@ Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "
 
 Source: owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?" (on the Push Notifications
 box of the App ID), "there are also time sensitive notifications?" and "can we do this same push notification style to
-android?". Audit findings F3 / G3 (`handoff/PLAN/ios/parity-audit.md`): the app's own words say checks run "about every
+android?". Audit findings F3 / G3 (git history, `handoff/PLAN/ios/parity-audit.md`, deleted 2026-11-25): the app's own words say checks run "about every
 15 minutes at best. Android may check less often while the phone is idle" (`packages/core/src/alerts.ts`), and on iPhone
 the background check runs only when iOS allows, often hours late.
 

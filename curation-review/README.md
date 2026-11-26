@@ -16,7 +16,7 @@ curl -s http://127.0.0.1:8787/api/ready      # wait for "ready": true (the warm-
 Open http://127.0.0.1:5173. Both servers bind 127.0.0.1 only; `PORT` / `CURATION_VITE_PORT` move the ports (a second copy
 beside the owner's). `run.sh` refuses a port already listening. By hand: `bash curation-review/backend/run.sh`, then
 `npm install && npm run dev` in `frontend/`. To rehearse on a copy: `CURATED_ROOT=<copy made by
-pipeline.common.curated.make_root>`; the old per-file overrides are refused (T422).
+pipeline.common.curated.make_root>`.
 
 ## What is where
 
@@ -38,10 +38,7 @@ pipeline.common.curated.make_root>`; the old per-file overrides are refused (T42
   `data/generated/regs/entries_backup/curation-review/`. In-season matches go to `data/curated/inseason/notice_waters.json`.
 - No endpoint starts a process; it never builds or promotes an atlas. Rebuilds are the owner's, run from a terminal.
 
-## Rules
-
-A mark names one VINTAGE (AGENTS 65); the review app writes one thing, a mark (66); the queue has one order and one reader
-of the run (67); a closed area inside a DFO place is a location of its own (68).
+Rules: AGENTS 65-68 (a mark names one vintage; one write, a mark; one queue order; a closed area is its own place).
 
 ## Tests
 

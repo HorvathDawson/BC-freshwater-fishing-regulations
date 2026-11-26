@@ -6,9 +6,8 @@ feeds worker and every gate. It decides nothing about a regulation: it looks ans
 
 ## Why the layers are shaped this way
 
-The two v1 apps were built apart, so four files that should have been one implementation diverged line for line (a
-1,157-line web data service against a 116-line mobile one). The layers make that impossible by construction;
-`layers.json` states the rule and `tools/check-boundaries.mjs` fails CI on it (AGENTS 22-27).
+The layers keep web and native one implementation; `layers.json` states the rule and `tools/check-boundaries.mjs`
+fails CI on it (AGENTS 22-27).
 ```
 packages/core       domain logic: pure TS, no React, no platform
 packages/data       ONE WaterSource interface, one implementation per platform
@@ -56,21 +55,18 @@ at all (AGENTS 27; `npx expo install --check` is the authority).
 
 ## How the two maps stay identical
 
-1. **One generated style.** `packages/map/style/layers.source.json` (+ `tokens.json`, `themes/`) builds `style.json`;
-   both renderers import it through `@app/map` and neither may modify it. `pnpm style` rebuilds and fails if the
-   committed output differs. The schema is `packages/map/style/schema/layers.schema.json`.
-2. **Four concepts:** a *source* (where geometry comes from), a *layer* (one drawn thing, in a toggleable group), a
-   *colour mode* (one geometry, many colourings: static, categorical over an enum, or continuous; they read
-   feature-state, so switching view refetches no tiles) and a *view* (which mode each layer uses). `pnpm style:build`
-   enforces: a mode over an enum colours every member (AGENTS 29), a continuous mode defines `missing`, colours are
-   tokens never literals, every theme defines every themeable token, an external source carries `attribution`.
-3. **An app cannot define layers:** `layers.json` bans `maplibre-gl` and `@maplibre/maplibre-react-native` outside
-   `packages/map`, and the contract exposes groups, not layers (AGENTS 28).
-4. **Parity is asserted:** `packages/map/src/parity.test.ts` drives both adapters through a recording handle and
-   requires the identical call sequence for a group toggle, every theme and a highlight.
+1. One generated style: `packages/map/style/layers.source.json` (+ `tokens.json`, `themes/`) builds `style.json`;
+   both renderers import it through `@app/map` and neither modifies it. `pnpm style` fails if the committed output
+   differs.
+2. Four concepts: a source, a layer (in a toggleable group), a colour mode (one geometry, many colourings, read from
+   feature-state so switching refetches no tiles) and a view (which mode each layer uses). `pnpm style:build`
+   enforces the rules (AGENTS 29): a mode over an enum colours every member, a continuous mode defines `missing`,
+   colours are tokens, every theme defines every token.
+3. An app cannot define layers: `layers.json` bans the map SDKs outside `packages/map` (AGENTS 28).
+4. Parity is asserted: `packages/map/src/parity.test.ts` requires both adapters to make the identical call sequence.
 
-To add a layer or colouring: edit `layers.source.json` (and `tokens.json` / `themes/*` for new colours), run
-`pnpm style:build`, commit the generated `style.json` + `style.meta.json`.
+To add a layer or colouring: edit `layers.source.json` (and `tokens.json` / `themes/*`), run `pnpm style:build`,
+commit the generated `style.json` and `style.meta.json`.
 
 ## One palette
 

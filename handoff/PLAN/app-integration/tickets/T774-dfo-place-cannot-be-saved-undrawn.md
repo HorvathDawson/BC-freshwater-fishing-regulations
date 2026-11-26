@@ -4,7 +4,7 @@ Status: OPEN (review app + marks model; related T754 one-bank places).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T774 | A DFO place cannot be saved as "not drawn, show DFO's words" (Kitimat west bank is drawn full width until T754; fallback mark 2786) | OPEN | — | second look at the DFO labels, 2026-11-15 night (`handoff/PLAN/research/second-look-fixes-2026-11-15.md`), lane B follow-up |
+| T774 | A DFO place cannot be saved as "not drawn, show DFO's words" (Kitimat west bank is drawn full width until T754; fallback mark 2786) | OPEN | — | second look at the DFO labels, 2026-11-15 night (`handoff/PLAN/research/second-look-fixes.md`), lane B follow-up |
 
 Source: second-look fix lane B follow-up, 2026-11-15 night (mark 2786).
 

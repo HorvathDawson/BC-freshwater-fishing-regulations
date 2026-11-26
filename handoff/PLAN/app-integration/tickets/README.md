@@ -79,8 +79,8 @@ checks the rows and claims, and refuses this section holding anything but this t
 Owner, 2026-11-13: "after the closed release we will do stocking and depth maps next. so add that to next after closed
 tickets." Both start once Play closed testing (T495 / T371) is running; they are not part of T495. In this order:
 
-1. **T200** stocked lakes (feasibility: `handoff/PLAN/research/stocking-feasibility.md`).
-2. **T201** depth maps / lake bathymetry (feasibility: `handoff/PLAN/research/bathymetry-feasibility.md`).
+1. **T200** stocked lakes (feasibility: `handoff/PLAN/research/stocking.md`).
+2. **T201** depth maps / lake bathymetry (feasibility: `handoff/PLAN/research/bathymetry.md`).
 
 Both ride on **T634** (the Lake tab and the owner's 2026-11-11 decisions; its "Path to ship" is the shared step list).
 T218 (28 digitised lakes) and T219 (tracing scans) stay POSTPONED: they follow T201 and its licence answer. The other

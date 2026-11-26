@@ -1,6 +1,6 @@
 # T678 — Tidal in the build: one decision, made once, read everywhere
 
-Status: IN PROGRESS (coast cut in the build + one tidal record: addbfd819, 26873ad75; built, promoted (a5fe40636) and released in r-0a9930fb8826 with T685; plan 6 answered by the owner 2026-11-12: no manual list, nothing to build; left (Claude): plan 2, plan 5 and the retirement of the polygon-rule readers (`shore.polygon_rule`, `HELD_*`, `atlas_tidal`, `inside_tidal.json`), each medium; the retirement's wait for the next promote is over (promotes 2026-11-13 onward); reasons in `T678-progress.md` 2026-11-12 next-atlas section)
+Status: IN PROGRESS (coast cut in the build + one tidal record: addbfd819, 26873ad75; built, promoted (a5fe40636) and released in r-0a9930fb8826 with T685; plan 6 answered by the owner 2026-11-12: no manual list, nothing to build; left (Claude): plan 2, plan 5 and the retirement of the polygon-rule readers (`shore.polygon_rule`, `HELD_*`, `atlas_tidal`, `inside_tidal.json`), each medium; the retirement's wait for the next promote is over (promotes 2026-11-13 onward); reasons in the deleted T678-progress.md (git history) 2026-11-12 next-atlas section)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|

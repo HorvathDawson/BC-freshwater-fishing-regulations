@@ -4,7 +4,7 @@ Status: OPEN — NEXT AFTER CLOSED TESTING (first). Was POSTPONED (deferred, own
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T200 | stocked lakes: feed the prepared Stocked mode; NEXT AFTER CLOSED TESTING, first (plan: handoff/PLAN/research/stocking-feasibility.md; matcher = lake code picks, FISS point + name confirm, frozen reviewed file) | OPEN | — | owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history … (detail: ticket file) |
+| T200 | stocked lakes: feed the prepared Stocked mode; NEXT AFTER CLOSED TESTING, first (plan: handoff/PLAN/research/stocking.md; matcher = lake code picks, FISS point + name confirm, frozen reviewed file) | OPEN | — | owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history … (detail: ticket file) |
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet".
@@ -17,7 +17,7 @@ T158: the cvd stocking ramp (navy → pale yellow) does not hold against the no-
 ## Next after closed testing (owner 2026-11-13)
 Owner, 2026-11-13, verbatim: "after the closed release we will do stocking and depth maps next. so add that to next after
 closed tickets." Starts once Play closed testing is running; stocking first, then T201. Carried with T634 (items 4-5).
-Feasibility note: [`handoff/PLAN/research/stocking-feasibility.md`](../../research/stocking-feasibility.md).
+Feasibility note: [`handoff/PLAN/research/stocking.md`](../../research/stocking.md).
 
 **Work: the note supersedes main's name-first matcher** (name picks the nearest same-named lake with no
 distance cap; code only a late fallback; 550 unnamed rows matched unchecked). Here the lake code picks and a name never does.
@@ -41,3 +41,23 @@ distance cap; code only a late fallback; 550 unnamed rows matched unchecked). He
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
 owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history depth, lag (questions in the ticket); with T634 items 4-5
+
+## Plan 2026-11-25 night (read-only; both features)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `stocking-depth-plan.md`.
+- What ships today: the Stocked and Depth colour modes, legends and the `lakes/1` reader exist (`layers.ts:150-160`,
+  `lakeFacts.ts:1-101`, `mapModes.ts:126`) but NOTHING feeds them: both toggles show "Coming soon / No data yet".
+  There is no Lake tab, stocking card or depth card (the old site had both). The credits page already claims
+  stocking and depth under OGL (`menu/licences.ts:144`, `sources.ts:121`) and the About page lists "stocking
+  records" (`html.ts:211`); the owner chose on 2026-11-25 to claim both features now (T1152).
+- Licences read 2026-11-25: bathymetric PDFs are OGL-BC (free to ship now); Stocking Reports and placed contours
+  are still "Access Only" (the owner's OGL link is still owed); open fallback: FISS release points (OGL, no counts
+  or strain); the GoFishBC report is richest and freshest but "All Rights Reserved".
+- Competitors: River Atlas has stocking reports with "follow"; BetterFish a stocked-lakes layer (third-party
+  listing only); depth contours in B.C. are paid (Fishbrain Pro, Navionics); nobody confirmed stocking alerts.
+- First slices: stocking = FISS only, lakes, 5 years, a Stocking card plus the Stocked colour through the T412
+  feed pattern; depth = the OGL PDF as a "Depth chart" card plus a tint, contours later; build the Lake tab once,
+  in the stocking release.
+
+## Owner
+
+- [ ] 2026-11-25 — Picks (defaults first): stocking v1 from open FISS records only / wait for the licence / ask the Society; the look: a card plus the map colour; alerts: later with T234 / now / never; a source lag is fine if the card says "records to <date>": yes / no.

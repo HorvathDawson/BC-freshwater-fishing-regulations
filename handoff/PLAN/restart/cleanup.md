@@ -1,37 +1,41 @@
 # Restart: the clean-up chat (T1081, chat D)
 
-Orchestrator on Fable; workers by task (Opus for data and tooling, Sonnet for mechanical edits). Branches stay local
-until the planning chat lifts the PR hold. Integration branch: `docs/T1081-cut`; each lane works in its own worktree off
-it and merges back by cherry-pick or merge, explicit paths in every commit (`type(T1081): subject`).
+Orchestrator on Fable; Sonnet lanes, at most 3, by folder; Opus only where a rule or contract is judged; lanes spawn
+no sub-agents; one review round; every PR through the merge queue, one docs PR at a time (ask the planning chat
+before queuing). No code is cut; code candidates and new finds go to the planning chat, which alone numbers tickets.
+Work in a scratchpad worktree of `origin/main`, never the main checkout.
 
-## State (2026-11-25 evening)
+## Done
 
-The cut is ONE local branch, `docs/T1081-lean-out`, ready for one PR (merge commit, not a rebase). It has merged
-`origin/main` (T1141-T1148 and the 17:00 owner asks are converted: their lines are `## Owner` lines in T1140, T1146,
-T1145, T1041, T1011 and the other tickets named in the conversion list). An independent review found 1 blocker and 9
-should-fix items; all are fixed (the archive tool now keeps folders surviving files cite, and a guard keeps that list
-true; the research open tickets plan from is back under `handoff/PLAN/research/`). Guards: `node app/tools/check-tickets.mjs`
-(includes the size guard), `node app/tools/ledger.mjs --check`, `--archive --dry` (0 folders).
+- The first cut (PR #262): closed tickets are `tickets/closed.tsv` + one tar.gz; owner asks are `## Owner` lines.
+- The second cut (branch `docs/T1081-second-cut`): markdown outside tickets 190 files / 27,442 lines to 150 /
+  14,556; the owner's picks and the counts are in T1081. The guard `app/tools/check-size.mjs` holds the page
+  standards (150 lines a page, the reading total, no dated pages, no ticket working pages outside tickets).
 
-## Next
+## Left, in order
 
-1. The planning chat lifts the PR hold: push, open the one PR, enqueue it.
-2. The RENAME: `scripts/rename_handoff.py` (`handoff/PLAN/` to `docs/`, tickets to a top-level `tickets/`, the four
-   legacy restart pages into `restart/`, `LEGACY_RESTART` goes) is rehearsed and waits for the planning chat's word:
-   0.10.0 on production and merged back, no other PR open.
-3. The curation review tool's path move (with the rename, last; a saved-mark write-through test proven before and
-   after) is still to prepare.
-4. Unfinished by design: `play-production-access/` still names `owner-todo/` (README.md:56) and `STATUS-archive.md`
-   (releases.md:9); the planning chat owns that folder. Live chats' pages (`RESTART-091-chat.md:25`, T1041's Status)
-   still name the removed `ledger.mjs --merge`.
+1. **Land the second cut** if its PR is not on main yet (review findings fixed, `scripts/before_pr.sh`, queue on the
+   planning chat's word).
+2. **The rename, now.** Fresh worktree off main; `node app/tools/check-size.mjs --measure`;
+   `python3 scripts/rename_handoff.py --dry-run`, then `--commit` on the planning chat's word (it waits for the open
+   0.10.0 PRs to be on main); guards; one PR. Agreed with the 0.10.0 chat (2026-11-25): after the rename only
+   code-only picks go onto `release/0.10.0`; its merge back first runs the same script on that branch, which must
+   also rewrite the Step 8 record files written there at old paths (`play-production-access/`). Each other branch
+   owner runs the script on their branch, then merges main. The legacy restart pages move into this folder and
+   `LEGACY_RESTART` goes. The owner gets one command for the memory notes that spell old paths (his git-ignored
+   `CLAUDE.md` spells none).
+3. **The review tool gets one home** (suggested `tools/curation-review/`; the server side may stay in
+   `pipeline/regs/review`), CI on its own files only, a README. A saved-mark write-through test is proven before
+   and after. Never the owner's marks, `data/curated/review` or `data/generated/review`.
+4. **The pages held on 2026-11-25**, one small PR after 0.10.0 is merged back: `runbooks/release.md`,
+   `release-by-hand.md`, `release-gates-explained.md` and `release/PRODUCTION.md` become one `release.md` plus a
+   short by-hand page; the T1140 page and the T1053 head-lake list go when their tickets no longer need them. Take
+   each off `PAGE_LONG` / `WORKING_PAGES` in the same PR and lower `readingLines`.
+5. Close T1081 with the final counts.
 
-## Counts (baseline before: 11,153 files, 1,483 markdown files, 143,408 markdown lines, 1,143 MB)
+## Never touch
 
-Now: 6,062 tracked files, 438 markdown files, 38,648 markdown lines, 349 MB. A new chat reads about 819 lines
-(README 64, START-HERE 27, AGENTS 438, STATUS 45, this page 37, `views/OWNER.md` about 208).
-
-## Rules for this chat
-
-Never touch `data/**`, `handoff/PLAN/sloughs/marks/`, `handoff/PLAN/curation-review/tidal/owner-decisions.json`,
-`handoff/PLAN/play-production-access/`, `handoff/PLAN/repo-move/` or `ROADMAP-after-0.9.0.md`, nor another live chat's
-restart page. Delete a file only when nothing surviving (an open ticket, running code, a guard) needs it.
+`data/**` beyond README text, `handoff/PLAN/sloughs/marks/`,
+`handoff/PLAN/curation-review/tidal/owner-decisions.json`, `handoff/PLAN/play-production-access/`,
+`handoff/PLAN/repo-move/`, `handoff/PLAN/app-integration/store/`, the roadmap (path rewrites only), another live
+chat's restart page. A lane that closes a ticket first answers or moves its open `## Owner` lines.

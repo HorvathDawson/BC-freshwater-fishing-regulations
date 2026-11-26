@@ -25,7 +25,7 @@ Source: gauges lane report 2026-11-11.
   `dailyRefillDeferred` (ECCC writes the day's first daily CSV at about 02:18 UTC).
 - HYDAT envelope rebuilt locally on STAGING (2026-11-10/11, HYDAT 20261019): clim.json 1,959 → 1,951 stations; level
   changed for exactly the 45 shifted stations; uploaded to `feeds/live/clim.json`. Owner list:
-  handoff/PLAN/app-integration/T550-datum-shift-stations.md. The bundle's copy (chart bands) still needs `pipeline
+  the T550 datum-shift list (git history: T550-datum-shift-stations.md; regenerate it with the build). The bundle's copy (chart bands) still needs `pipeline
   build` + a release.
 
 ## Work (left)

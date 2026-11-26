@@ -6,7 +6,7 @@ Status: PARTIAL — f19e26a3b (W7), 592144f2e (W1), 7f0273448 (W4), dbef7f480 (W
 |---|---|---|---|---|
 | T609 | Feeds worker: fixes from the outside-in audit (rate limits on IPv6 /64 + daily total, in-season URL pinned, no rank without the envelope, token file ignored, list truncation, upstream caps) | PARTIAL — left: W16, W17, W20; W18 + W10 tab are the review app's | f19e26a3b, 592144f2e, 7f0273448, dbef7f480, ccd044950, ed4872785, 9423258fa, d9a13521e, a09928919, c09d3c180 | T608C findings W1, W4, W5, W7, W10–W20; with T558, T559 |
 
-Source: T608 part C, `handoff/PLAN/app-integration/T608C-findings.md` (20 findings W1–W20, each with file:line,
+Source: T608 part C, its audit (git history: T608C-findings.md; 20 findings W1–W20, each with file:line,
 evidence and fix). W3, W8, W9, W13 belong to T558; W2, W6 to T559. This ticket takes the rest.
 
 Done (commits in Status): W1, W4, W5 (the ranked-share check not added), W7, W10 worker side, W11, W12, W14, W15, W19 by cap.

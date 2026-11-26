@@ -37,7 +37,53 @@ queue; a change under pipeline/ still runs the pipeline tier. Proven on a test P
 Severity: medium (slow merges on every release day). Model: Opus for the gate workflow (required checks and the
 merge queue are easy to break), Sonnet for the rest. Size: M. Owner: sees the deletion list.
 
+## Measured 2026-11-25 night (read-only: 1,000 Actions runs, every job's waiting and running time, PRs #185-#268)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ci-merge-queue.md` (raw table and the `gh` commands to re-run it).
+- A code PR takes a median 40.1 min from last push to merge: 22.4 min of PR CI + 19.7 min in the queue; both are
+  mostly the pipeline tier's `Tests` step (11-19 min, one core, `pipeline-ci.yml:126`), run twice.
+- The push to main is a THIRD run: 31 of 31 push runs after the queue went on were at a commit the queue had just
+  tested green (about 21% of all jobs).
+- Waiting for a runner: a median of 0 min per job, except the first hour after the org move. "One docs PR at a
+  time" is no longer needed; a docs PR (1.3 min to build) still waits behind any code PR ahead of it in the queue.
+- Confirmed: the PR title plus " (#NNN)" is checked against 100 characters (#266 failed at 103); a docs PR starts
+  12 tiny jobs and 8 docs PRs edited `APP-STORE-SUBMISSION.md`, which runs the whole app tier. Not seen in the
+  window: a conflicted PR starting no workflow; vitest `onTaskUpdate` timeouts on CI (all 5 failed shards were
+  real failures). Cost is $0 (public repo).
+- To add to the work: pipeline tests in parallel (pytest-xdist); the queue skips an area whose files did not
+  change since the PR's green run; `main` dropped from `on: push` (release branches and a cache-warm job stay);
+  one required check instead of four; the title checked with its suffix before a PR. A build-ready plan is being
+  written (same archive, `ci-speed-build-plan.md`).
+
+## Build plan 2026-11-25 night (read-only; every saving is an estimate, no suite was run)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ci-speed-build-plan.md` (files and lines, the YAML sketches, the CI job log).
+- The pipeline tests are mostly safe on 4 cores now: each test process already gets its own temp folder and its
+  own copy of the curated data; no fixed ports or /tmp paths; no writes into the checkout. Risks: three timed
+  tests, memory, one test that fetches old git data; each test FILE stays in one process (order-dependent tests).
+  A code PR: about 40 to about 20 min (a guess). CI only: the Mac keeps its chunked runner.
+- The push-to-main run can go: main's newest commit already has a green merge-queue run for all four workflows,
+  and `ci_status.py` finds runs by commit whatever the event, so release checks keep working; a small cache job
+  on main keeps the caches PRs restore.
+- The six release stops of 0.10.0 were literals copied from a release; four (a count, page numbers, strings) the
+  existing guard cannot see (it only catches numbers above 366). ONE pins file re-cut with the fixtures turns six
+  stops into one accept (T1135).
+- `caffeinate` probably does not stop a closed-lid sleep (not checked): the runbook says "lid open, on power"
+  (T1161).
+- Order: the title check, `caffeinate`, parallel tests, then dropping the main push run.
+
+## Finds 2026-11-25 late (from the chats)
+- A docs-only PR can break a pipeline test that nothing runs on it: the planning chat's PR #272 added a notes
+  archive under `tickets/archive/`, and `pipeline/tests/test_reports_cmd.py` reads every archive there as closed
+  tickets; docs PRs skip the pipeline tier, so main went red unseen until PR #273's queue run (fixed there: the
+  test globs `closed-*.tar.gz`). The path filter must send `tickets/archive/**` (and any docs path a pipeline
+  test reads) to the pipeline tier, or that test belongs to the docs tier (the speed chat fixes it in its
+  "no third run" PR).
+- A fresh worktree cannot commit or push until it has `app/node_modules` and a `.venv` (the commit hook:
+  "commitlint is not installed"; pre-push: build-coho needs `<worktree>/.venv`, though the hook itself falls back
+  to the main checkout's): about 5 min lost per new worktree; build-coho should take `PIPELINE_PY` like the hook.
+- A docs-guard test assumed a single restart page (`app/tools/check-tickets.test.ts`; fixed in PR #275).
+
 ## Owner
 
 - [ ] 2026-11-25 — After 0.10.0 is out: turn Dependabot security updates back on (the repo switch, yours) and CodeQL back on (one field on the org security configuration); the planning chat reminds you (T1141).
 - [x] 2026-11-25 — "clean up workflows after too. can delete bloat as part of cleanup" (2026-11-25 15:44).
+- [ ] 2026-11-25 — Picks for CI (defaults first): pytest-xdist on the same runner / shards / a larger runner; the queue skips unchanged areas / re-runs everything; drop main from on-push / keep; one required check / four; no docs-PR limit and at most two code PRs in CI / one docs PR at a time; no Team plan yet / Team; no self-hosted runner on the Mac.

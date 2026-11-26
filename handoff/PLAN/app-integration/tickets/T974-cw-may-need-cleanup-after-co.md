@@ -1,6 +1,6 @@
 # T974 — Classified Waters "may need" note: clean up once a CO answers
 
-Status: BLOCKED (owner) — waits for a Conservation Officer's answer to the T973 question (GOTCHAS.md, "Classified
+Status: BLOCKED (owner) — waits for a Conservation Officer's answer to the T973 question (`pipeline/docs/BOOK-QUESTIONS.md`, "Classified
 Waters licence").
 
 | id | title | status | commits | what's left |
@@ -23,7 +23,7 @@ Once the CO's answer is quoted in T973 with its date:
     record only if something else still reads it.
 - **Either way:**
   - Record the answer beside RU-13 and LI-2 (RULINGS, AGENTS, the `first_classified_downstream` docstring).
-  - Remove the GOTCHAS question.
+  - Remove the BOOK-QUESTIONS.md question.
   - Update the T973 mutation pins to the settled rule.
 - **The second T973 case:** a classified water whose unit does not reach its tributaries, which the walk passes
   through. Settle it the same way if the CO's answer covers it; otherwise ask the owner.

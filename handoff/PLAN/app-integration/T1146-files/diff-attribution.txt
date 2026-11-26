@@ -1,0 +1,74 @@
+== cowichan_river.r2 9
+    354088055:0 CHANNEL ['Koksilah River'] ['1100', '1350', '1450'] 3028 Koksilah River
+    354088056:0 CHANNEL ['Koksilah River'] ['1100', '1350'] 1916 Koksilah River
+    354088057:0 CHANNEL ['Koksilah River'] ['1350', '1450'] 214 Koksilah River
+    354088058:0 CHANNEL ['Koksilah River'] ['1350', '1450'] 210 Koksilah River
+    354088059:0 CHANNEL ['Koksilah River'] ['1100', '1450'] 785 Koksilah River
+    354103776:0 feeder None ['1000'] 408 
+    354113975:0 feeder None ['1000', '1450'] 1517 
+    354117072:0 feeder None ['1000'] 673 
+    354133986:0 feeder None ['1000'] 1225 
+== elk_river_s_tributaries.r1 1
+    356370830:0 CHANNEL ['Forsyth Creek'] ['1100'] 992 Forsyth Creek
+== elk_river_s_tributaries.r2 1
+== elk_river_s_tributaries.r3 1
+== elk_river_s_tributaries.r4 1
+== kootenay_river_lower.r4 1
+    356365662:1210 CHANNEL ['Old Kootenay River Channel'] ['1100', '1450'] 170 Old Kootenay River C
+== babine_river.r6 20
+    360236653:0 CHANNEL ['Shelagyote River'] ['1350', '1450'] 139 Shelagyote River
+    360313481:0 feeder None ['1000'] 428 
+    360399874:0 feeder None ['1000'] 28 
+    360608759:0 feeder None ['1000', '1050'] 965 
+    360670893:0 feeder None ['1000'] 34 
+    360680150:0 feeder None ['1000'] 1353 
+    360695928:0 feeder None ['1000'] 64 
+    360695928:159 feeder None ['1000'] 128 
+    360719688:0 feeder None ['1000', '1050'] 874 
+    360728535:0 feeder None ['1000', '1050'] 828 
+    360741246:0 feeder None ['1000', '1050'] 3046 
+    360744947:0 feeder None ['1000', '1050'] 1258 
+    360753248:0 feeder None ['1000'] 38 
+    360753248:153 feeder None ['1000'] 77 
+    360815403:0 feeder None ['1000'] 316 
+    360834731:0 feeder None ['1000'] 1829 
+    360859431:0 feeder None ['1000', '1050', '1450'] 2859 
+    360859431:3204 feeder None ['1050'] 39 
+    360859431:3399 feeder None ['1000', '1050'] 3495 
+    360867039:0 feeder None ['1000', '1050'] 1364 
+== babine_river.r7 20
+== skeena_river.r1 21
+    360244113:889 CHANNEL ['MacMillan Creek'] ['1100'] 815 MacMillan Creek
+== peace_river.r2 12
+    359007640:0 CHANNEL ['Halfway River'] ['1100', '1450'] 341 Halfway River
+    359007900:0 CHANNEL ['Halfway River'] ['1100', '1450'] 389 Halfway River
+    359009250:198 CHANNEL ['Halfway River'] ['1100'] 679 Halfway River
+    359009251:0 CHANNEL ['Halfway River'] ['1100'] 244 Halfway River
+    359011274:0 CHANNEL ['Halfway River'] ['1100', '1450'] 380 Halfway River
+    359013607:0 CHANNEL ['Halfway River'] ['1100', '1450'] 561 Halfway River
+    359013960:0 CHANNEL ['Halfway River'] ['1100', '1450'] 395 Halfway River
+    359014627:164 CHANNEL ['Halfway River'] ['1100', '1450'] 401 Halfway River
+    359027943:0 CHANNEL ['Halfway River'] ['1100', '1450'] 342 Halfway River
+    359319088:0 feeder None ['1000'] 90 
+    359362209:0 feeder None ['1000'] 1555 
+    359391406:0 feeder None ['1000'] 598 
+== peace_river.r3 12
+== williston_lake.r4 12
+    359006961:0 CHANNEL ['Manson River'] ['1100'] 3207 Manson River
+    359006963:0 CHANNEL ['Manson River'] ['1100'] 50 Manson River
+    359006963:920 CHANNEL ['Manson River'] ['1150'] 237 Manson River
+    359024302:0 CHANNEL ['Omineca River'] ['1100'] 2407 Omineca River
+    359174337:0 feeder None ['1000'] 68 
+    359376196:0 feeder None ['1000'] 1003 
+    359457164:0 feeder None ['1000'] 62 
+    359480939:0 feeder None ['1000'] 1077 
+    359480939:1127 feeder None ['1000'] 317 
+    359480939:1571 feeder None ['1050'] 124 
+    359487977:53 feeder None ['1000', '1050'] 1173 
+    359525309:47 feeder None ['1000'] 850 
+distinct sections 56 channels 22 km 47.67
+
+licensing r6:babine_river@6-8::babine_river +20 = the same 20 sections as babine_river.r6 (Shelagyote channel 360236653:0 + its 19 feeders)
+dfo 1:cowichan-river:including-tributaries-and-cowichan +9 = the same 9 sections as cowichan_river.r2 (Koksilah's 5 channel pieces + 4 feeders)
+dfo 6:f:closure: NO change (the predicted Nechako 355995054:0 is wholly in Region 7A; the place is clipped to Region 6; its only touching Nechako piece is the place's own direct extent, not walked)
+Nothing lost, no rescope, 0 unresolved/diagnostic/tidal changes (binding_diff.txt).

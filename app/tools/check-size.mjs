@@ -33,22 +33,24 @@ export const BUDGETS = {
   subReadme:    [40, "a package's README says what it is and where its parts are; detail lives in the code and its tests"],
   ticket:       [150, "an open ticket: the ask, the plan, the owner block; a long history is cut into closed.tsv's archive"],
   anyMarkdown:  [700, "past this no one reads a markdown file whole (generated / reference files are listed below)"],
+  // (owner 2026-11-25, the second cut) the standards for every page outside the tickets folder
+  page:         [150, "one page per subject, read in ten minutes: cut it to what is built, or split it by subject"],
+  readingLines: [11129, "every markdown line outside the tickets folder and the look-up files (LOOKUP): what a person reads to know the repo"],
   // the docs tree (handoff/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
-  treeLines:    [31403, "tracked markdown lines in the docs tree"],
-  treeFiles:    [1479, "tracked files in the docs tree"],
-  treePictureBytes: [152328535, "bytes of tracked png/jpg/webp/gif in the docs tree (pictures live in git forever)"],
+  treeLines:    [23000, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],
+  treeFiles:    [1600, "tracked files in the docs tree"],
+  treePictureBytes: [157660235, "bytes of tracked png/jpg/webp/gif in the docs tree (pictures live in git forever)"],
 };
 
 /** README.md files under app/ or pipeline/ allowed to pass BUDGETS.subReadme: path -> its own budget (today's size + 10%). */
 export const README_LONG = {
-  "app/README.md": 88,
-  "app/tools/maplibre-android/README.md": 74,
-  "app/tools/maplibre-android/archive-t420/upstream/README.md": 57,
-  "app/tools/testbed/README.md": 153,
-  "pipeline/README.md": 140,
-  "pipeline/atlas/waters/added_lakes/README.md": 114,
-  "pipeline/atlas/waters/added_streams/README.md": 201,
-  "pipeline/regs/dfo_salmon/README.md": 72,
+  "app/README.md": 84,
+  "app/tools/maplibre-android/README.md": 54,
+  "app/tools/testbed/README.md": 92,
+  "pipeline/README.md": 83,
+  "pipeline/atlas/waters/added_lakes/README.md": 56,
+  "pipeline/atlas/waters/added_streams/README.md": 122,
+  "pipeline/regs/dfo_salmon/README.md": 109,   // 99: the design page was merged into it (the second cut)
 };
 
 /** TEMPORARY: open tickets over BUDGETS.ticket today, each held at its size on 2026-11-25 so it can only shrink. The ticket
@@ -63,10 +65,51 @@ export const TICKET_OVER = {
 /** Markdown files allowed over BUDGETS.anyMarkdown: path -> its own budget (today's size + 10%). */
 export const MARKDOWN_LONG = {
   "handoff/PLAN/app-integration/T1140-files/multi-part-waters.md": 840,   // 763
-  "handoff/PLAN/app-integration/T678-progress.md": 1059,   // 962
-  "handoff/PLAN/design/trout-table-contract.md": 889,   // 808
   "pipeline/regs/parsing/prompts/CATALOGUE_PARSE_PROMPT.md": 777,   // 706
 };
+
+/** Markdown outside the tickets folder allowed over BUDGETS.page: path -> its own budget (its size when listed). A page
+ *  leaves the list when it is cut; a NEW long page needs an entry here, in its PR, with the reason beside it. */
+export const PAGE_LONG = {
+  "pipeline/docs/RULINGS.md": 452,                                         // the owner's rulings on how the book is read: his words, never shortened
+  "handoff/PLAN/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
+  "handoff/PLAN/play-production-access/questionnaire-draft.md": 173,       // the Play production access record
+  "handoff/PLAN/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends
+  "handoff/PLAN/repo-move/PREP.md": 262,                                   // the same
+  // held as they are while 0.10.0 ships from them (planning chat 2026-11-25): one release.md + a short by-hand page after its merge back
+  "handoff/PLAN/runbooks/release-by-hand.md": 493,
+  "handoff/PLAN/runbooks/release-gates-explained.md": 366,
+  "handoff/PLAN/runbooks/release.md": 216,
+  // long files in an open ticket's folder (the T1140 one is in MARKDOWN_LONG)
+  "handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md": 272,
+  "handoff/PLAN/app-integration/T1108-files/handoff-2026-11-25-offline-satellite-and-reversible-engine.md": 209,
+};
+
+/** PAGE_LONG entries that are a cap with room under it, not the page's size (a live page another chat keeps). */
+export const PAGE_ROOM = new Set(["handoff/PLAN/ROADMAP-after-0.9.0.md"]);
+
+/** Look-up files: text a program reads or writes, or the book's own words. Not counted in BUDGETS.readingLines and not
+ *  held to BUDGETS.page (anyMarkdown still holds them). A prefix ending in "/" is a folder. */
+export const LOOKUP = [
+  "CHANGELOG.md",                              // written by the release from the commits
+  "curation-review/API.md",                    // generated: curation-review/api_routes.py --write
+  "data/LICENSE-ODbL.md",                      // a licence text
+  "data/curated/regulations/reference/",       // the book's words, read by the parser
+  "pipeline/regs/parsing/prompts/",            // the parser's prompts
+  "pipeline/tests/fixtures/",                  // fixtures
+];
+const isLookup = (p) => LOOKUP.some((l) => (l.endsWith("/") ? p.startsWith(l) : p === l));
+
+/** A page named for a day (…-2026-11-15.md) is a record of that day: history, which git keeps. */
+const DATED_NAME = /(^|[-_./])20\d\d-\d\d-\d\d[^/]*(\/|\.md$)/;
+/** A ticket's file in ITS folder (Tnnn-files/, Tnnn-shots/) is that ticket's: it is held to the page budget, counted in the
+ *  reading total and deleted with the folder when the ticket closes (below). What is refused is a ticket-keyed page that
+ *  is NOT in such a folder (Tnnn-findings.md loose in a docs folder, a folder named t796-…): it outlives its ticket.
+ *  path -> why it stays, for the rare one that must. */
+export const WORKING_PAGES = {
+};
+const TICKET_FOLDER = /(^|\/)T\d+[a-z]?(-\d+)?-(files|shots)\//;
+const TICKET_KEYED = /(^|\/)T\d+[a-z]?-[^/]*(\/|\.md$)/i;
 
 const PICTURE = /\.(png|jpe?g|webp|gif)$/i;
 const MARKDOWN = /\.md$/i;
@@ -96,7 +139,8 @@ export function packageDirs(paths) {
  *   closedIds — the ids of closed.tsv; kept — KEPT_ASSETS (picture folders a document or a test still reads);
  *   readmeLong, ticketOver, markdownLong — the exception maps (the tests pass their own)
  */
-export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = README_LONG, ticketOver = TICKET_OVER, markdownLong = MARKDOWN_LONG }) {
+export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = README_LONG, ticketOver = TICKET_OVER, markdownLong = MARKDOWN_LONG,
+                            pageLong = PAGE_LONG, workingPages = WORKING_PAGES, readingBudget = BUDGETS.readingLines[0] }) {
   if (!Array.isArray(files) || !files.length) throw new Error("checkSize needs the tracked files: never \"no files to check\"");
   const problems = [];
   const byPath = new Map(files.map((f) => [f.path, f]));
@@ -152,6 +196,30 @@ export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = R
     else if (lines(p) <= B("anyMarkdown")) problems.push(`MARKDOWN_LONG lists ${p}, now ${lines(p)} lines (within ${B("anyMarkdown")}): take it off the list`);
     else if (max < B("anyMarkdown")) problems.push(`MARKDOWN_LONG lists ${p} at ${max}, under the general budget ${B("anyMarkdown")}: take it off the list`);
   }
+
+  // (the second cut) the standards outside the tickets folder: one page per subject, no dated pages, no ticket working pages
+  const pages = files.filter((f) => MARKDOWN.test(f.path) && !under(f.path, TICKETS_DIR) && !isLookup(f.path));
+  const ownBudget = new Set([...reading.map(([p]) => p), ...Object.keys(readmeLong)]);
+  for (const f of pages) {
+    if (!ownBudget.has(f.path) && !(f.path in markdownLong)) {   // a MARKDOWN_LONG file holds its budget there
+      const max = pageLong[f.path] ?? B("page");
+      if (f.lines > max) problems.push(over(f.path, f.lines, "lines", max, why("page")));
+    }
+    if (!under(f.path, DOCS_DIR)) continue;
+    const rel = f.path.slice(DOCS_DIR.length + 1);
+    if (TICKET_FOLDER.test(rel)) continue;   // a ticket's own file, in its folder
+    if (DATED_NAME.test(`/${rel}`) && !workingPages[f.path]) problems.push(`${f.path}: a page named for a day is history: fold what still holds into its subject's page and delete it (git keeps it)`);
+    if (TICKET_KEYED.test(rel) && !workingPages[f.path])
+      problems.push(`${f.path}: a ticket's page outside its ticket's folder: put it in Tnnn-files/ (it goes when the ticket closes), fold it into the ticket, or list it in WORKING_PAGES with why it stays`);
+  }
+  for (const [p, max] of Object.entries(pageLong)) {
+    if (!byPath.has(p)) problems.push(`PAGE_LONG lists ${p}, which is not tracked: take it off the list`);
+    else if (lines(p) <= B("page")) problems.push(`PAGE_LONG lists ${p}, now ${lines(p)} lines (within ${B("page")}): take it off the list`);
+    else if (max > lines(p) && !PAGE_ROOM.has(p)) problems.push(`PAGE_LONG holds ${p} at ${max} but it is ${lines(p)} lines: lower the entry to ${lines(p)} (it only shrinks)`);
+  }
+  for (const p of Object.keys(workingPages)) if (!byPath.has(p)) problems.push(`WORKING_PAGES lists ${p}, which is not tracked: take it off the list`);
+  const readingLines = pages.reduce((n, f) => n + (f.lines ?? 0), 0);
+  if (readingLines > readingBudget) problems.push(over("markdown outside the tickets folder", readingLines, "lines", readingBudget, why("readingLines")));
 
   // totals for the docs tree
   const tree = files.filter((f) => TREE.some((d) => under(f.path, d)));
@@ -234,7 +302,11 @@ export function measure(repoRoot) {
   const mdLines = tree.reduce((n, f) => n + (MARKDOWN.test(f.path) ? f.lines : 0), 0);
   const pics = tree.reduce((n, f) => n + (PICTURE.test(f.path) ? f.bytes : 0), 0);
   const plus = (n) => Math.ceil(n * 1.1);
-  const out = [`treeLines: [${plus(mdLines)}, …]   // today ${mdLines}`, `treeFiles: [${plus(tree.length)}, …]   // today ${tree.length}`,
+  const pages = files.filter((f) => MARKDOWN.test(f.path) && !under(f.path, TICKETS_DIR) && !isLookup(f.path));
+  const reading = pages.reduce((n, f) => n + f.lines, 0);
+  const own = new Set(["README.md", "AGENTS.md", `${DOCS_DIR}/START-HERE.md`, `${DOCS_DIR}/STATUS.md`, `${DOCS_DIR}/app-integration/decisions.md`]);
+  const long = pages.filter((f) => f.lines > BUDGETS.page[0] && !own.has(f.path) && !(f.path in MARKDOWN_LONG) && !(base(f.path) === "README.md" && /^(app|pipeline)\//.test(f.path)));
+  const out = [`readingLines: [${Math.ceil(reading * 1.05)}, …]   // today ${reading}`, "PAGE_LONG = {", ...long.map((f) => `  "${f.path}": ${PAGE_ROOM.has(f.path) ? PAGE_LONG[f.path] ?? f.lines : f.lines},   // + the reason it stays long`), "}", `treeLines: [${plus(mdLines)}, …]   // today ${mdLines}`, `treeFiles: [${plus(tree.length)}, …]   // today ${tree.length}`,
                `treePictureBytes: [${plus(pics)}, …]   // today ${pics}`, "README_LONG = {"];
   for (const f of files.filter((f) => base(f.path) === "README.md" && /^(app|pipeline)\//.test(f.path) && f.lines > BUDGETS.subReadme[0]))
     out.push(`  "${f.path}": ${plus(f.lines)},   // ${f.lines}`);

@@ -7,7 +7,7 @@ Status: IN PROGRESS — F8, F12, F13, F14 built (5502ba714, 04316bd91, c58640b86
 | T585 | Web and phone answer from the same feed and release, and say which | IN PROGRESS (F8, F12-F14 built; owner accepted the words 11-12; Data release line removed by T920; left (Claude): emulator check) | 5502ba714, 04316bd91, c58640b86, e4add6e9a | T580 F8, F12–F14; with T550; HYDAT-differs in T633 |
 
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").
-Findings, with file:line, the state that shows each and the proposed fix: `handoff/PLAN/app-integration/T580-findings.md`.
+Findings, with file:line, the state that shows each and the proposed fix: the T580 audit (git history: T580-findings.md).
 
 ## What
 F8 (the card's figure and percentile from a different file than the rows), F12 (the phone on an older release than the
