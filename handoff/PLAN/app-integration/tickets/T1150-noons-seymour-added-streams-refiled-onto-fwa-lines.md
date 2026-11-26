@@ -1,10 +1,10 @@
 # T1150 — Added city streams that drain to the sea are filed under the nearest FWA river (Noons, Seymour, Squatters): own code, own water
 
-Status: OPEN — 0.10.0 (owner 2026-11-25); the cause is found (code); a fix + an atlas rebuild
+Status: OPEN — the hardening release, all 11 lines, scoped then (owner 2026-11-25 evening); out of 0.10.0
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1150 | Added city streams that drain to the sea are filed under the nearest FWA river (Noons, Seymour, Squatters): own code, own water | OPEN — 0.10.0 (owner 2026-11-25); the cause is found (code); a fix + an atlas rebuild | — | 0.10.0 chat: the bump checks FWA codes; side atlas parity + binding diff before the PR; the two parts are a hard stop in T1140's naming until this lands |
+| T1150 | Added city streams that drain to the sea are filed under the nearest FWA river (Noons, Seymour, Squatters): own code, own water | OPEN — the hardening release, all 11 lines, scoped then (owner 2026-11-25 evening); out of 0.10.0 | — | scoping pass in the hardening release: all 11 shared codes, the regenerated curated file, the registry id resync, his two leave-out rows; 0.10.0 ships only T1140's stopgap name (a proposal) |
 
 Source: the 0.10.0 chat's T1140 naming lane, 2026-11-25. Noons Creek p4 and Seymour River p3 are added municipal
 stream lines filed under those rivers but lying 693 m and 1,068 m from them, touching other creeks; they have no
@@ -59,8 +59,36 @@ FWA's own line") is replaced by this. For the hardening release (the open owner 
 local variants of an FWA line (West Noons Creek 360595504 at 261 m; the unnamed 360548495 at 433 m), compared
 with OpenStreetMap (read only; no agent uploads to OpenStreetMap, T1129).
 
+
+## 2026-11-25 19:55: out of 0.10.0; all 11 go to the hardening release
+The refile lane stopped before any commit: the fix cannot be limited to three lines. ELEVEN of the 36 city lines
+that drain to the sea share an FWA line's exact code: 3 filed into another named water (Tunnel Creek in the
+Seymour, Turner Creek in Noons Creek, Capitol Creek in the "Squatters Creek" item); 3 the other way round (FWA
+lines sitting under the city names "Kask's Camp Creek", "Village Creek", "Mamquam Blind Channel Wetland"); 4 with
+the same code but still separate items (Kyle Creek / School House Brook, Wilkes Creek / Hett Creek, Aliceville
+Creek, Rainbow Creek); and Sheldens Creek, shared on purpose. The codes live in the stored curated file
+`added_streams.json` (the generator reruns byte-identical), so any fix is a regenerated curated file: the plain
+fix changes 83 of 320 rows (every later coastal code shifts), a no-cascade variant 31 rows; either moves the ids
+of 5 registry waters (marks and matches naming them need a resync; memory note `registry-change-entry-resync`) and
+makes the owner's two accepted "leave out" rows stale, which stops the reach run.
+
+Owner, to the 0.10.0 chat (relayed), verbatim. Scope: "just add all to hardening release". His two rows: "do
+whatever makes our current state decent until this is fixed in hardening".
+
+So: nothing curated was written, his rows are untouched, no atlas rebuild in 0.10.0. The hardening release scopes
+all 11 first (the row diff of each variant, the registry resync, what happens to his two rows: his call), then
+builds. His wishes stand: own FWA-style code, in the graph all the way down; name variants and OpenStreetMap
+checked; the build-time check that refuses an added stream filed under a river it does not touch. The lane's
+notes (refile-finding.md, the two row diffs, the unfinished diff) are in the 0.10.0 chat's scratchpad `l30/`; that
+chat keeps them or attaches them to its restart page. Stopgap in 0.10.0 (T1140, a proposal for his morning look):
+a part made only of added city lines that carry their own name reads that name (Noons p4 as Turner Creek, Seymour
+p3 as Tunnel Creek), with no distance and no "side channel".
+
 ## Owner
 
 - [x] 2026-11-25 — Noons p4 and Seymour p3 cannot be named (misfiled added streams): what to do → "We want them to be refiled properly so let's take the fwa version for now but add a gotcha to check on which one is the real stream line." (2026-11-25)
 - [x] 2026-11-25 — FWA has no line for them (real city creeks: Turner, Tunnel; Capitol the third): delete, or fix the cause → "Fix the cause but maybe they are name variants too. Maybe we should compare with osm too ? I'm not sure. What do you think is the right idea here. Either way the added streams on top of fwa need to get fwa code and stuff still and be part of the graph all the way down" (2026-11-25)
 - [ ] 2026-11-25 — Hardening release, not blocking: check which line is the real stream and whether Turner, Tunnel and Capitol creeks are local name variants of an FWA line (compared with OpenStreetMap); the before/after map pictures of the three new waters come with the 0.10.0 morning summary. Default: they stay waters of their own.
+- [x] 2026-11-25 — The fix touches 11 lines and regenerates a curated file: scope → "just add all to hardening release" (2026-11-25)
+- [x] 2026-11-25 — Your two accepted "leave out" rows would go stale → "do whatever makes our current state decent until this is fixed in hardening" (2026-11-25)
+- [ ] 2026-11-25 — Hardening release: after the scoping pass, pick the variant (83 rows change, or 31 with no cascade) and say what happens to your two "leave out" rows. Default: the no-cascade variant; your rows are kept until you say.
