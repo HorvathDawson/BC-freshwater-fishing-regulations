@@ -119,4 +119,4 @@ export interface EngineViewProps {
   marks: { data: unknown; layers: Layers };
 }
 
-export { EngineView, engineDialect, engineLog, maplibreTiles as engineTiles, useEngineRefs } from "./maplibre";
+export { EngineView, engineDialect, engineLog, engineTiles, useEngineRefs } from "./maplibre";
