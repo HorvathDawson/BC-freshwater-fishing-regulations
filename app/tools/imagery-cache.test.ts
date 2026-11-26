@@ -23,12 +23,14 @@ const text = (html: string) => html.replace(/<[^>]+>/g, "");
 
 /** the engine's cache controls, by every name they have: the binding's JS, MapLibre Android, MapLibre iOS */
 const CACHE_CONTROLS = /ambientCache|AmbientCacheSize|setMaximumAmbientCache|invalidateAmbientCache|resetDatabase|MLNOfflineStorage|OfflineManager/i;
-const SOURCE = /\.(ts|tsx|js|mjs|kt|swift|m|mm|java|patch|pro)$/;
-const SKIP = new Set(["node_modules", "android", "ios", "dist", ".expo", "dev"]);
+const SOURCE = /\.(ts|tsx|js|mjs|kt|swift|m|mm|h|cpp|java|patch|pro)$/;
+const SKIP = new Set(["node_modules", "dist", ".expo", "build", ".gradle", ".cxx", "Pods"]);
+/** the generated native projects are not source (AGENTS 31); a module's own android/ and ios/ folders are, and are read */
+const GENERATED = [join(APP, "apps/mobile/android"), join(APP, "apps/mobile/ios")];
 
 function sources(dir: string, out: string[] = []): string[] {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
-    if (e.isDirectory()) { if (!SKIP.has(e.name)) sources(join(dir, e.name), out); }
+    if (e.isDirectory()) { if (!SKIP.has(e.name) && !GENERATED.includes(join(dir, e.name))) sources(join(dir, e.name), out); }
     else if (SOURCE.test(e.name) && !/\.test\.tsx?$/.test(e.name)) out.push(join(dir, e.name));
   }
   return out;
@@ -54,6 +56,7 @@ describe("T1148 satellite pictures and the map's device cache", () => {
     const files = [...sources(join(APP, "packages")), ...sources(join(APP, "apps/mobile")), ...sources(join(APP, "patches"))];
     expect(files.length).toBeGreaterThan(200);
     expect(files.some((f) => f.endsWith("@maplibre__maplibre-react-native@11.5.0.patch"))).toBe(true);
+    expect(files.some((f) => f.endsWith("MemoryTrimModule.kt")), "the shell's own native modules are read").toBe(true);
     const named = files.filter((f) => CACHE_CONTROLS.test(readFileSync(f, "utf8"))).map((f) => f.slice(APP.length));
     expect(named, "a file names the map engine's tile cache controls: the privacy words (core imagery.ts IMAGERY_KEPT_*) must change with it").toEqual([]);
   });
