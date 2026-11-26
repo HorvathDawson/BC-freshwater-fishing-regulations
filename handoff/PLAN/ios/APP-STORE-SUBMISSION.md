@@ -136,10 +136,10 @@ the Analytics purpose and marks every type "not linked"; Apple does not compare 
 
 ## 8. Production push: not proven, not a gate
 
-The production feeds worker needs the Apple push key (`APNS_KEY`, `APNS_KEY_ID`, `APNS_TEAM_ID`; values as staging,
-`handoff/PLAN/runbooks/secrets.md`) to wake an iPhone: `npx --prefix app wrangler secret put APNS_KEY -c
-app/workers/feeds/wrangler.prod.toml`, then the other two (YOURS). Until then an iPhone learns of new data from its own
-background check and when opened; a reviewer cannot see a silent push, so review is not at risk, users get late notices.
+The production feeds worker's Apple push secrets (`APNS_KEY`, `APNS_KEY_ID`, `APNS_TEAM_ID`;
+`handoff/PLAN/runbooks/secrets.md`) are set (owner 2026-11-24). What is not proven is a wake-up arriving on an iPhone:
+the owner's test phone got no push token, so the proof waits on a second iPhone. Until then assume an iPhone learns
+of new data from its own background check and when opened; a reviewer cannot see a silent push: review is not at risk.
 To prove it: install from TestFlight, More, Notifications, turn on "New regulations data" ("Server wake-ups: this phone is
 registered"), run `POST /run/push?reason=owner-phone-test` on production (yours, or allowed once); after a minute in the
 background "Last background checks" should say "woken by our server". A fix ships as an ordinary update.

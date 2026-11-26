@@ -10,7 +10,7 @@ Source: owner 2026-11-16 (verbatim): "We want to create a future ticket to do a 
 to the webpages with a fresh agent that tries to break it and look for issues in the regulations".
 
 ## What
-Like the T796 break-it review of the 71 book closures (`handoff/PLAN/research/t796-book-closures-hard-cases/HARD-CASES.md`),
+Like the T796 break-it review of the 71 book closures (`handoff/PLAN/research/book-closures-hard-cases.md`),
 but for EVERY salmon answer: a fresh Opus agent (no prior context) reads DFO's live regional pages (cached pages
 first; no credits; never the parser), and checks every place, row, species, date range, limit, gear line and closure
 against what the app shows (the app's own core over the current release, offline and under the feed): window edges,

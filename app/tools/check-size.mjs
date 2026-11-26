@@ -101,13 +101,13 @@ export const LOOKUP = [
 const isLookup = (p) => LOOKUP.some((l) => (l.endsWith("/") ? p.startsWith(l) : p === l));
 
 /** A page named for a day (…-2026-11-15.md) is a record of that day: history, which git keeps. */
-const DATED_NAME = /(^|[-_.])20\d\d-\d\d-\d\d[^/]*\.md$/;
+const DATED_NAME = /(^|[-_./])20\d\d-\d\d-\d\d[^/]*(\/|\.md$)/;
 /** A ticket's working page outside the tickets folder (Tnnn-findings.md, Tnnn-shots/notes.md): path -> why it stays. */
 export const WORKING_PAGES = {
   "handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md": "T1053's open owner line asks him to read it",
-  "handoff/PLAN/app-integration/T1140-files/multi-part-waters.md": "T1140 is being built from it (PR #265, 0.10.0)",
+  "handoff/PLAN/app-integration/T1140-files/multi-part-waters.md": "T1140 is being built from it (PR 265, 0.10.0)",
 };
-const TICKET_KEYED = /(^|\/)T\d+[a-zA-Z]?-[^/]*(\/|\.md$)/;
+const TICKET_KEYED = /(^|\/)T\d+[a-z]?-[^/]*(\/|\.md$)/i;
 
 const PICTURE = /\.(png|jpe?g|webp|gif)$/i;
 const MARKDOWN = /\.md$/i;
@@ -204,7 +204,7 @@ export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = R
       if (f.lines > max) problems.push(over(f.path, f.lines, "lines", max, why("page")));
     }
     if (!under(f.path, DOCS_DIR)) continue;
-    if (DATED_NAME.test(base(f.path))) problems.push(`${f.path}: a page named for a day is history: fold what still holds into its subject's page and delete it (git keeps it)`);
+    if (DATED_NAME.test(f.path.slice(DOCS_DIR.length))) problems.push(`${f.path}: a page named for a day is history: fold what still holds into its subject's page and delete it (git keeps it)`);
     if (TICKET_KEYED.test(f.path.slice(DOCS_DIR.length + 1)) && !workingPages[f.path])
       problems.push(`${f.path}: a ticket's working page outside the tickets folder: what is still open goes into the ticket, then delete it (or list it in WORKING_PAGES with why it stays)`);
   }
@@ -302,7 +302,7 @@ export function measure(repoRoot) {
   const reading = pages.reduce((n, f) => n + f.lines, 0);
   const own = new Set(["README.md", "AGENTS.md", `${DOCS_DIR}/START-HERE.md`, `${DOCS_DIR}/STATUS.md`, `${DOCS_DIR}/app-integration/decisions.md`]);
   const long = pages.filter((f) => f.lines > BUDGETS.page[0] && !own.has(f.path) && !(f.path in MARKDOWN_LONG) && !(base(f.path) === "README.md" && /^(app|pipeline)\//.test(f.path)));
-  const out = [`readingLines: [${Math.ceil(reading * 1.05)}, …]   // today ${reading}`, "PAGE_LONG = {", ...long.map((f) => `  "${f.path}": ${f.lines},`), "}", `treeLines: [${plus(mdLines)}, …]   // today ${mdLines}`, `treeFiles: [${plus(tree.length)}, …]   // today ${tree.length}`,
+  const out = [`readingLines: [${Math.ceil(reading * 1.05)}, …]   // today ${reading}`, "PAGE_LONG = {", ...long.map((f) => `  "${f.path}": ${PAGE_ROOM.has(f.path) ? PAGE_LONG[f.path] ?? f.lines : f.lines},   // + the reason it stays long`), "}", `treeLines: [${plus(mdLines)}, …]   // today ${mdLines}`, `treeFiles: [${plus(tree.length)}, …]   // today ${tree.length}`,
                `treePictureBytes: [${plus(pics)}, …]   // today ${pics}`, "README_LONG = {"];
   for (const f of files.filter((f) => base(f.path) === "README.md" && /^(app|pipeline)\//.test(f.path) && f.lines > BUDGETS.subReadme[0]))
     out.push(`  "${f.path}": ${plus(f.lines)},   // ${f.lines}`);

@@ -24,7 +24,7 @@ Every visible sentence is a `Line` (`regs/line.ts`): runs of `text`, `num` (`big
 - **`plain()`, the comparison form:** within one Line the runs concatenate as they are (`num` -> its digits, `term` ->
   "ⓘ" for one id or "What these words mean" for two or more, `book` -> "Rule book p.<printed> ↗" (`bare`: "p.<printed>
   ↗"; no pdf page: unlinked), `link` -> its words); **between two Lines or fields the page draws as separate elements,
-  one space** (`plainAll`, `book.ts`); then whitespace collapses and trims (`squash`). Pinned by `line.test.ts`.
+  one space** (`plainAll`, `line.ts`); then whitespace collapses and trims (`squash`). Pinned by `line.test.ts`.
 - A one-word ⓘ says "What does <title> mean?" to a screen reader, the title from the glossary (`RegsPage.terms`).
 - **Sheet keys** (`regs/sheetKey.ts` `SheetKey`) carry NO state id: a `RegsPage` is one state. `parseSheetKey` refuses
   an unknown shape; `appKeyOf` / `goldenKeyOf` are the only bridge to the oracle's keys, which embed the state id.

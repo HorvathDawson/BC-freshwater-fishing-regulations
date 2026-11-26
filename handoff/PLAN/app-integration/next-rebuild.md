@@ -23,7 +23,7 @@ Heavy steps go through `scripts/heavy.sh` (`scripts/heavy.sh --status` first), o
    `python -m pipeline.atlas.inputs --build $SIDE/atlas/full_next`. Every removed or added item, section and boundary
    must be explained; a lost boundary of family `curated`, `length`, `area`, `border` or `lake` is a stop. Promote
    refuses while a curated id is gone or absorbed (`--accept-dead-ids`, `--accept-boundary-loss`: never pass either unread).
-4. If item ids moved, resync the entries (see GOTCHAS, "registry change -> entry resync"):
+4. If item ids moved, resync the entries (`pipeline/atlas/promote.py` names this step in its docstring):
    `python -m pipeline.regs.parsing.backfill_matched --registry $SIDE/atlas/full_next/registry.json --dry-run`, then the
    matcher (`python -m pipeline.regs.matching.matcher --registry ...`).
 5. Reach run on the side atlas and the per-rule diff:
