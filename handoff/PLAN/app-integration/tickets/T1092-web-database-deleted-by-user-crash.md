@@ -1,10 +1,10 @@
 # T1092 — Web: "Database deleted by request of the user" arrives as a crash report
 
-Status: IN REVIEW — proof: kind `790ae7cc172f9424` stops arriving from web builds that carry the fix; left (Claude): a real-browser clear of site data under an open tab.
+Status: PARTIAL — proof: kind `790ae7cc172f9424` stops arriving from web builds that carry the fix; left (Claude): a real-browser clear of site data under an open tab.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | IN REVIEW — kind 790ae7cc172f9424 stops arriving | (this branch) | proof is the kind not arriving; no real-browser clear was run |
+| T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | PARTIAL — kind 790ae7cc172f9424 stops arriving | (this branch) | proof is the kind not arriving; no real-browser clear was run |
 
 Source: production feeds worker, crash kind `790ae7cc172f9424`, 1 report, 2026-11-25 01:24Z, app 0.8.5 (web, by the
 message: it is the browser's IndexedDB error when the site's stored data is cleared while a tab is open). Read by
