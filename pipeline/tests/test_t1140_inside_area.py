@@ -228,9 +228,22 @@ def test_another_waters_polygon_never_counts(tmp_path, monkeypatch):
 
 def test_a_channel_into_a_named_lake_on_its_main_line_is_named_by_it(tmp_path, monkeypatch):
     db, geo = _touch_db("lake")
+    db.execute("INSERT INTO section_down VALUES (3, 5, 0, 1)")          # its flow pointer: into the lake (Theodosia)
     lo, log = _write(db, geo, tmp_path, monkeypatch)
     assert lo[3] is None and _lo_token(db, 3) == "lake_inlet:gnis:3"     # rule A: "side channel into Olsen Lake"
     assert any("flows into gnis:3" in x for x in log)
+
+
+def test_a_lake_with_no_flow_pointer_to_say_the_direction_never_names_the_channel(tmp_path, monkeypatch):
+    # Robertson Creek: its channel touches Boot Lagoon where it LEAVES it; with no pointer the direction is not known
+    db, geo = _touch_db("lake")
+    _write(db, geo, tmp_path, monkeypatch)
+    assert _lo_token(db, 3) == "mouth" and _how(db, 3) == "nearest"
+    db, geo = _touch_db("lake")                          # the pointer leads AWAY from the lake: its far end is downstream
+    geo[9] = LineString([(900, 700), (900, 900)])
+    db.execute("INSERT INTO section_down VALUES (3, 9, 0, 0)")
+    _write(db, geo, tmp_path, monkeypatch)
+    assert _lo_token(db, 3) == "mouth"
 
 
 def test_a_lake_the_main_line_does_not_run_through_never_counts(tmp_path, monkeypatch):
