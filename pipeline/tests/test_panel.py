@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 
 import pytest
 
@@ -224,37 +223,13 @@ def test_answering_is_the_apps_answer_shape_and_refusals():
     assert ans["ok"] and stood == frozenset({1, 2})
 
 
-def test_no_evaluation_script_rolls_its_own_combine():
-    """The handoff scripts that measured owner decisions import `answering`; none ports probit, the refusal or the
-    combine again (mutation: paste a `def probit` into one and this fails)."""
-    from pathlib import Path
-    root = Path(__file__).resolve().parents[2] / "handoff" / "PLAN" / "app-data"
-    scripts = sorted(root.rglob("scripts/*.py"))
-    users = [p for p in scripts if "estimate" in p.read_text()]
-    assert len(users) >= 4
-    for p in users:
-        src = p.read_text()
-        for copy in ("def probit", "def phi", "def _combine", "MAX_USEFUL_SPREAD", "def shares(", "def err("):
-            assert copy not in src, f"{p.relative_to(root)}: {copy}"
-    for p in users:
-        src = p.read_text()
-        assert "answering" in src or re.search(r"^from (compare|evaluate) import", src, re.M), p.relative_to(root)
-
-
-def test_every_evaluation_script_marks_the_reserve_as_the_app_does():
+def test_reserve_at_mirrors_the_apps_reserve_rule():
     """The app's `contributionsOf` (app/packages/data/src/panel.ts) marks a member past `CORE_MEMBERS` by panel rank
-    as reserve, and `answering` stands it back. Adversarial review (T125 item 7): three of the four scripts built their
-    `Contribution`s with no reserve flag, so on a panel of five or more their "app's answer" kept a reserve member the
-    app stands back. Every script that builds a `Contribution` asks `reserve_at` (mutation: drop it from one)."""
+    as reserve, and `answering` stands it back; `reserve_at` is the Python side of that rule. (T1081 retired the two
+    tests that scanned the cut evaluation scripts under handoff/PLAN; this half never read them.)"""
     from pathlib import Path
     from pipeline.gauges.consume.panel import CORE_MEMBERS, reserve_at
     assert [reserve_at(i) for i in range(CORE_MEMBERS + 2)] == [False] * CORE_MEMBERS + [True, True]
     repo = Path(__file__).resolve().parents[2]
     ts = (repo / "app/packages/data/src/panel.ts").read_text()
     assert "i >= CORE_MEMBERS ? { reserve: true }" in ts            # the rule reserve_at mirrors
-    builders = [p for p in sorted((repo / "handoff/PLAN/app-data").rglob("scripts/*.py"))
-                if "Contribution(" in p.read_text()]
-    assert len(builders) == 4
-    for p in builders:
-        calls = re.findall(r"Contribution\((?:[^()]|\([^()]*\))*\)", p.read_text())
-        assert calls and all("reserve_at(" in c for c in calls), (p.name, calls)

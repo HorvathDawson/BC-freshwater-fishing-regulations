@@ -4,7 +4,7 @@
  * pictures, the steelhead presence line, the names a rule lists, the folded "How this was decided" (decided.ts), and
  * "See every regulation line ›".
  *
- * Owner rule 2026-10-21 (decisions.md): every answer here is the PIPELINE's — the row's kind (release / closed), its
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every answer here is the PIPELINE's — the row's kind (release / closed), its
  * members, its winning rule, its stored YEAR STRIP (rows 30 `rows[].year`, decided by `pipeline/deliver/answers/year.py`:
  * keep / release / closed per book day), the water's own closed days (the stored display frames, T07 `isClosedOn`), the
  * presence line, the week split and the restates notes. This file reads the strip as runs and WORDS them (page v36

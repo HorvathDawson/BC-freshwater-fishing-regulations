@@ -11,7 +11,7 @@
     .venv/bin/python scripts/before_push.py --hook     # how to turn on the versioned hooks: printed, never installed
 
 Why: 0.8.4 and 0.8.5 stopped on failures GitHub had already found (a stale mini release, a worker test, a ticket
-ledger, tree-scanning inventory pins: 79 red runs in 30 days, `handoff/PLAN/audit-2026-11-21/t993-inventory.md`), each
+ledger, tree-scanning inventory pins: 79 red runs in 30 days, the T993 inventory, cut in T1081), each
 seen only after the push. The steps:
 
   1. EVERY named `run` step of .github/workflows/pipeline-ci.yml, read from the file at run time as fast-fail's
@@ -95,7 +95,7 @@ git config core.sshCommand "$(git config --get core.sshCommand || echo ssh) -o S
 #: (T995) the ticket guard on its own: what a push that changes no app file still runs (`pnpm check:fast` holds it)
 TICKETS = ("node", "app/tools/check-tickets.mjs")
 #: (T995 review) docs-ci.yml's vitest step, word for word (test_before_push.py pins it to the workflow)
-DOCS_TESTS = ("tools/check-tickets.test.ts", "tools/start-here.test.ts", "tools/ledger.test.ts")
+DOCS_TESTS = ("tools/check-tickets.test.ts", "tools/start-here.test.ts", "tools/ledger.test.ts", "tools/check-size.test.ts")
 #: (T995) skips every step, its reason printed: the release command's own pushes (its preflight ran these checks)
 SKIP_ENV = "BEFORE_PUSH_SKIP"
 #: (T998) the commit-message step's name: it runs first, whatever the change

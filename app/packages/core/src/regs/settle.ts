@@ -1,7 +1,7 @@
 /**
  * The day's context every box above the card reads (T07): page v36's `settle` over a tap's `RegsInputs`.
  *
- * Owner rule 2026-10-21 (decisions.md): every answer here is the PIPELINE's — the ladder verdicts (ladder_frame /
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every answer here is the PIPELINE's — the ladder verdicts (ladder_frame /
  * ladder_verdict: which rules speak, stand beside, are shown, are lifted and by what, sit in undrawn parts) and the
  * display frame's status and its decided `closing`. This file only decodes them (ladder.ts), selects (by segment, fish,
  * origin "none") and groups them into the lists the page draws; it never decides which rule governs, what is lifted or

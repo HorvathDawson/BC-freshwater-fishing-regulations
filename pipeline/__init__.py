@@ -9,7 +9,7 @@ The reg content chain plus the stream/section model (merged here from the old
     (root)       blk-chains → graph/topology → sections; curated splits; serialize/export.
 
 Build a stream section model with ``python -m pipeline.atlas.build`` (see ``build.py``).
-Design lives in ``pipeline/docs/`` — start with ``00-README.md``.
+Design lives in ``pipeline/docs/`` — start with ``MAP.md``; each stage has a README.
 
 The old matching / atlas / enrichment / tiles / graph / deploy / agent_parsing /
 recurring subpackages were archived to ``archive/pipeline/``, removed in T335 (``git show d1b36ca44:archive/pipeline/…``).

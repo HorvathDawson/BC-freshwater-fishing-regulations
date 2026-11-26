@@ -143,7 +143,7 @@ export function Shell(p: ShellProps) {
   const openItem = frame?.item ?? null;
   useWaterRegionsAhead(background.scheduler, loader, openItem);
   /*
-   * EVERY SURFACE IS UNDER THE ONE BACK (app/HANDOFF-ui.md "Back, everywhere"): whatever the Shell returns — the spot,
+   * EVERY SURFACE IS UNDER THE ONE BACK (app/BACK.md "Back, everywhere"): whatever the Shell returns — the spot,
    * the capture, the tabs and the water — is inside `BackLayerContext`, so a sheet, menu, confirm or step drawn
    * anywhere in it registers with the one back (`useBackLayer`) instead of falling back to its own close, which the
    * system back would go under.

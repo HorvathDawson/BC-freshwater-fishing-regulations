@@ -2,7 +2,7 @@
  * T31 — the Gear tab's Bait item: the ban note with its ⓘ, the bait-ban heading (T515: when it runs, from the strip), one ✓ / ✕ list of the bait elements (each its note small under
  * it) and the item's source line.
  *
- * Owner rule 2026-10-21 (decisions.md): which bait is allowed, why, the carry limit and the exception it is to are the
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): which bait is allowed, why, the carry limit and the exception it is to are the
  * PIPELINE's gear frame (`GearAnswer.bait[]`, `bait_ban`); the ban's dates are the stored strip bit 16 of each book day.
  * This file words and arranges them; it decides nothing (moveAllowances only moves words between two notes).
  *

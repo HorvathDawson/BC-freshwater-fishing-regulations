@@ -17,3 +17,7 @@ rule is the source of both; salmon by DFO or by another rule stays two statement
 
 Acceptance: the 130 show one statement, the other 166 are unchanged (a diff lists both sets), mutation-proved test.
 Severity: low (wording). Release: 0.9.2; needs a data release. Model: Opus. Size: S–M. Owner: yes (the pictures).
+
+## Owner
+
+- [ ] 2026-11-25 — Pick, from pictures, how a part-year closure reads as one statement (the 130 waters).

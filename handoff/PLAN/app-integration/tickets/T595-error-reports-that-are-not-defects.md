@@ -1,44 +1,32 @@
 # T595 — Error reports that are not defects stop arriving as errors
 
-Status: IN REVIEW — b1f252e7c, 5af74464c, 40d8abb75 (no Play service is a known state; test-bed builds tagged; the worker classes each crash kind). The worker change is deployed (staging 2026-11-12, production 2026-11-18); the emulator-install leftovers were done in T603 items 5-6 (46afd5ad1). The acceptance read is `GET /crashes`, which answers 403 without the RUN_TOKEN (checked 2026-11-20 on staging and production; the lane may not read the token). owner: OWNER-TODO "T595/T596 /crashes reads (run token)": he (or a session he gives the token) runs the two curls and records that a fresh emulator install files no error kind and the unflagged list shows only defects.
+Status: IN REVIEW — b1f252e7c, 5af74464c, 40d8abb75 (no Play service is a known state; test-bed builds tagged; the worker classes each crash kind). The worker change is deployed (staging 2026-11-12, production 2026-11-18); the emulator-install leftovers were done in T603 items 5-6 (46afd5ad1). The acceptance read is `GET /crashes`, which answers 403 without the RUN_TOKEN (checked 2026-11-20 on staging and production; the lane may not read the token). owner: see ## Owner: he (or a session he gives the token) runs the two curls and records that a fresh emulator install files no error kind and the unflagged list shows only defects.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T595 | Error reports that are not defects stop arriving as errors (no Play service, test bed untagged, network, old app) | IN REVIEW — owner: OWNER-TODO "T595/T596 /crashes reads (run token)" | b1f252e7c 5af74464c 40d8abb75 | worker deployed; leftovers done in T603 (46afd5ad1); /crashes needs the run token: the owner's two curls |
+| T595 | Error reports that are not defects stop arriving as errors (no Play service, test bed untagged, network, old app) | IN REVIEW — owner: see ## Owner | b1f252e7c 5af74464c 40d8abb75 | worker deployed; leftovers done in T603 (46afd5ad1); /crashes needs the run token: the owner's two curls |
 
 Source: worker `GET /crashes` read 2026-11-10 (40 kinds since 10-29). Owner: "get feed worker reports and errors and make
 sure all are covered."
 
-## Today
-1. **"Failed to check for updates: Failed to bind to the service"** (kind 8316104d): 11 reports, 11 installs, every
-   build 0.6.5 → 0.7.2, Android 35. Each is an install with no Play Store to answer (the test bed emulators). The app's
-   own-version check (T390) files the failure as an error on every fresh install.
-2. **Test bed installs are not tagged test**: the above, plus `SecurityException: Unsupported path /data/local/tmp/…`
-   (44215092). The test tag (T291) exists; these runs did not carry it.
-3. **Plain network failures arrive as errors**: "first run: the manifest could not be read (HTTP 504)", "update: fetch
-   failed: UnknownHostException", "Failed to fetch". They are shown to the reader already; as error kinds they hide
-   real defects.
-4. **An old app meeting a newer release** ("release r-… is not one this app reads", 4 kinds, 12 reports on 0.6.9):
-   the app is right to refuse and prompt; it is not an error.
+## Done (b1f252e7c, 5af74464c, 40d8abb75; worker deployed staging 2026-11-12, production 2026-11-18)
+- "Failed to check for updates: Failed to bind to the service" (kind 8316104d, 11 installs, the test bed emulators with
+  no Play Store): "no Play service" is a known state, not a failure (the own-version check, T390).
+- Test bed installs tagged test (T291 tag; `SecurityException: Unsupported path /data/local/tmp/…`, 44215092); the
+  emulator-install leftovers in T603 items 5-6 (46afd5ad1).
+- The worker gives each kind a `class`: `defect` / `network` / `expected` (old app meeting a newer release, no Play);
+  `GET /crashes` lists defects by default, the digest counts the others in one line. Nothing is dropped.
+- T1005 (lane L5, 2026-11-22) added a `crawler` class and more EXPECTED / NETWORK patterns: T1005 "Done".
 
-## Work
-1. Own-version check: "no Play service" is a known state, not a failure. No error report; the More tab says the check
-   could not run and why.
-2. The test bed and emulator scripts send the test tag on every run (one place, checked by a test).
-3. Give the worker a `class` on each kind: `defect` / `network` / `expected` (old app, no Play). `GET /crashes` lists
-   defects by default; the digest counts the others in one line. Nothing is dropped.
+## Left
+- The acceptance read: `GET /crashes` answers HTTP 403 without the bearer RUN_TOKEN (checked 2026-11-20 on staging and
+  production); the lane may not read the token: the owner's two curls (## Owner).
 
 ## Acceptance
 - A fresh emulator install with no Play Store files no error kind.
 - `GET /crashes` with no flags shows only kinds that need a fix.
 
 Depends: —. Size: S–M. Owner: no.
+## Owner
 
-## L3 2026-11-20 read attempt
-`GET /crashes` answers HTTP 403 without the bearer RUN_TOKEN on staging (`bc-fishing-feeds-staging.horvath-dawson.workers.dev`) and production (`feeds.canifishthis.ca`); the token is a secret the lane does not read, so no crash read was made. The owner (or a session he gives the token) runs, per worker: `curl -H "Authorization: Bearer $RUN_TOKEN" "<worker>/crashes?since=2026-11-09"` and records: only `defect` kinds listed by default, none from the 11-19/20 emulator installs.
-
-## T1005 2026-11-22: classes the triage needs (lane L5, the worker)
-A `crawler` class (platform `web (crawler)` / `web (automated)` from the app at 127296a64, and the POST's User-Agent for
-older builds); EXPECTED += no WebGL (`MapUnavailable`), an older build's "refused … HTTP 429"; NETWORK += "no whole file
-in N ms", `update: … Unexpected end of JSON input`, "The source image could not be decoded". The list with the kinds:
-T1005 "What the worker needs".
+- [ ] 2026-11-19 — Run the feeds worker's `GET /crashes` on staging (`https://bc-fishing-feeds-staging.horvath-dawson.workers.dev`) and production (`https://feeds.canifishthis.ca`) with your RUN_TOKEN (Claude may not read it): `curl -H "Authorization: Bearer $RUN_TOKEN" "<worker>/crashes?since=2026-11-09"`. Look for only `defect` kinds and none from the 11-19/20 emulator installs; tell Claude (or give a session the token).

@@ -7,8 +7,7 @@ their exact naming then"; the ten disagreeing places "river only for all ten"; (
 the Kitimat outfall strip "Heading counts here too"; 2026-11-17 17:01, on the Tatshenshini's named creeks: "only
 locating that specific tributary … that was a mistake on my mark that i wanted you to fix" (a place naming its creeks
 is those creeks only); on the three dormant saves: "dfo words but make sure it is compatible with the name tributaruies
-or not" (no exception kept). The audit:
-`handoff/PLAN/curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`.
+or not" (no exception kept). The audit (2026-11-16) was cut in T1081; git history holds it.
 
 THE RULE, in order (`derive`):
   1. the place's OWN words, when they speak (the part before a "Note:" / "except" / "unless" clause, which is about

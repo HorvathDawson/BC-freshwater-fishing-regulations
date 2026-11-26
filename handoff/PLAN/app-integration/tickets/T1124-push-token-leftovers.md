@@ -24,3 +24,7 @@ the planning chat. Related: T1116, T996 (production push proof), T1098 (the priv
 Acceptance: items 2, 3 and 5 with tests that fail without the change; item 1 after the owner's pick; item 4 a dated
 check. Severity: medium (item 1 is an untrue line; item 5 is an unproved privacy promise). Release: 0.9.2. Model: Opus
 (worker + native lifecycle). Size: S–M. Owner: yes (the wording of item 1).
+
+## Owner
+
+- [ ] 2026-11-25 — Pick, from pictures, the push line shown when notifications are blocked in the phone's settings (today it says "no notification is on", untrue then).

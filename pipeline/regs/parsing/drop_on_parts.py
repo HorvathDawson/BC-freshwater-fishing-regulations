@@ -17,7 +17,7 @@ on map 1", "within 100 m of outlet") stays undrawn; so does wording that names a
 NOT WIRED INTO run_parse.sh (memory: normalisation runs after ingest). Run by hand, dry-run first:
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.drop_on_parts --dry-run \\
-        --report handoff/PLAN/curation-review/on-parts.md
+        --report on-parts.md
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.drop_on_parts
 
 A reach + deliver rebuild picks the change up.

@@ -2,7 +2,7 @@
 host on BOTH sides of the cut (owner 2026-10-24: "a cut may only take a braid that attaches to the mainstem
 on both sides of the cut point"; South Atnarko, a network touching one side only, is never cut).
 
-The twelve R14 fixtures (`handoff/PLAN/braids/r14_braid_split_plan.md` §Tests) and the mutation pins:
+The twelve R14 fixtures (the R14 braid split plan §Tests, cut in T1081) and the mutation pins:
 the gate off cuts the one-sided South-Atnarko network; the edge pass off leaks the braid across the cut;
 the own-water check off cuts another water's network. Fixture 12 (the reach) is `test_reach_braid_cuts.py`;
 the length cuts' junction choice is `test_length_braids.py`. No data: each graph is a few hand-drawn lines.

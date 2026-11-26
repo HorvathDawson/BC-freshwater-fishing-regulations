@@ -21,3 +21,7 @@ Acceptance: one table, each data type against the page, the iPhone manifest, the
 Safety form, no row that disagrees. Severity: medium (a store form that disagrees with the app is a rejection or a
 policy strike). Release: before the App Store submission for item 2; item 1 before the Play production application
 (2026-12-07). Model: Sonnet. Size: S. Owner: yes (reads the Data Safety form out, or changes it; about 10 minutes).
+
+## Owner
+
+- [ ] 2026-11-25 — Read out Play Console's Data safety answers so they can be checked against the new privacy page (about 10 minutes, before the Play application).

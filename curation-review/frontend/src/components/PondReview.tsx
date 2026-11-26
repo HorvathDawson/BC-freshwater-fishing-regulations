@@ -304,7 +304,7 @@ function PondView({ detail, reviewer, setName, nav, onMarked }: {
                     r.ratio == null || r.ratio > 2 ? "wider than 2 × the river" : null].filter(Boolean).join(", ")})</>}</span>
             </div>
             <div className="ext-row dim" style={{ fontSize: 12 }}>
-              {r.set === "example" ? `example #${r.n} of q154-examples.md` : `random sample · ${r.stratum} (${r.why})`}
+              {r.set === "example" ? `example #${r.n} of the Q154 examples` : `random sample · ${r.stratum} (${r.why})`}
             </div>
           </div>
 

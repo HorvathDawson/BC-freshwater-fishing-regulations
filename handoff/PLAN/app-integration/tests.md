@@ -300,7 +300,7 @@ the literal in its A test (the B parity test picks it up from the regenerated go
 
 ## 4. The comprehension reader gate (manual, release-blocking)
 
-Method of rounds r20g/r20h/r20i (`handoff/PLAN/r20h_report.md` "Readers", `handoff/PLAN/r20i_report.md` §Readers):
+Method of rounds r20g/r20h/r20i (`r20h_report.md` "Readers", `r20i_report.md` §Readers, both removed (in git history at 03be2862e)):
 a **fresh** opus reader (a new agent, no history), **PNG screenshots only**, a fixed question set, answers + confidence 1–5 +
 "what confused you". The prototype's score at v33 is **39 / 39** on the 39-question set (+ 14 / 14 UR4 questions).
 

@@ -1,5 +1,7 @@
 # Next rebuild: one side atlas for T664 + T665 + the nine DFO cuts (runbook)
 
+> (T1081) The `T664-pending/` patch folder went with its closed ticket: `git show 03be2862e:handoff/PLAN/app-integration/T664-pending/<name>` reads one.
+
 Written 2026-11-11 by the T664 lane; completed the same day by the rebuild lane (T665's part, the id resync, the stops).
 **It was run on 2026-11-11 up to step 6; the numbers are in `next-rebuild-results.md`.** Nothing is promoted. The side
 atlas was built twice: the first build showed that the shore rule judged outlets on lines that are not cut yet (10
@@ -27,11 +29,11 @@ scripts/fast-fail.sh
 
 ## 1. Inputs, in this order (all on the copy)
 a. **The nine DFO cuts** (`cuts.json`, +202 lines):
-   `patch -p3 -d $SIDE/curated < handoff/PLAN/app-integration/T664-pending/nine-cuts.cuts.json.patch`
+   `patch -p3 -d $SIDE/curated < T664-pending/nine-cuts.cuts.json.patch`
    Only if the owner changed a mark since 2026-11-11: re-make it with
    `python -m pipeline.regs.review.proposals side <the 9 mark-dfo-… ids> --out $SC/side9` and diff against the patch.
 b. **T664, the eight still-water oxbow polygons** (owner 2026-11-11: streams, part of the one water):
-   `patch -p3 -d $SIDE/curated < handoff/PLAN/app-integration/T664-pending/oxbow-still-water.name_variants.patch`
+   `patch -p3 -d $SIDE/curated < T664-pending/oxbow-still-water.name_variants.patch`
    It adds `one_water_takes` (8 `wbk:` ids) to the Oxbows name record. The `one_water: true` flag itself is already live.
 c. **T665, the tidal polygon rule: no curated input.** It reads the DFO polygon (`tidal_boundary` in the build gpkg)
    and `waters/tidal_limits.json` as it is. Its lists are code, in `pipeline/atlas/splits/shore.py`:
@@ -105,7 +107,7 @@ exists. What moves is `matched` and the in-season extents.
 ```
 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --registry $SIDE/atlas/full_next/registry.json --dry-run
 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --registry $SIDE/atlas/full_next/registry.json --restamp r8:okanagan_river_oxbows@8-1
-.venv/bin/python handoff/PLAN/app-integration/T664-pending/resync_notice.py $SIDE/curated/inseason/notice_waters.json $SIDE/atlas/full_next/registry.json
+.venv/bin/python T664-pending/resync_notice.py $SIDE/curated/inseason/notice_waters.json $SIDE/atlas/full_next/registry.json
 .venv/bin/python -m pipeline.regs.matching.matcher --registry $SIDE/atlas/full_next/registry.json
 diff -u data/curated/regulations/synopsis/region-8.json $SIDE/curated/regulations/synopsis/region-8.json
 diff -u data/curated/inseason/notice_waters.json $SIDE/curated/inseason/notice_waters.json
@@ -144,9 +146,9 @@ Everything up to here wrote only under `$SIDE`. Steps 7 to 9 change live data.
 unset CURATED_ROOT
 SC=<a scratch dir>; mkdir -p $SC/backup && cp data/curated/regulations/synopsis/region-*.json data/curated/inseason/notice_waters.json \
     data/curated/waters/cuts.json data/curated/waters/name_variants.json $SC/backup/                      # AGENTS A2
-git apply handoff/PLAN/app-integration/T664-pending/nine-cuts.cuts.json.patch
-git apply handoff/PLAN/app-integration/T664-pending/oxbow-still-water.name_variants.patch
-git apply handoff/PLAN/app-integration/T664-pending/t664-references.patch
+git apply T664-pending/nine-cuts.cuts.json.patch
+git apply T664-pending/oxbow-still-water.name_variants.patch
+git apply T664-pending/t664-references.patch
 diff -r data/curated $SIDE/curated                  # nothing but files changed by someone else since the copy: read each
 .venv/bin/python -m pipeline.atlas.inputs --build $SIDE/atlas/full_next       # current against the LIVE tree now
 .venv/bin/python -m pipeline.atlas.promote $SIDE/atlas/full_next --dry-run    # parity = step 3; no dead or absorbed id

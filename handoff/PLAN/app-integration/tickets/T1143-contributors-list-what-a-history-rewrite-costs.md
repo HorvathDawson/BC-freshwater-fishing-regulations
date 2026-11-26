@@ -28,3 +28,7 @@ The repo-move chat offered a write-up of the cost; his answer: "it is a future t
 
 Acceptance: one page with the commit list, the cost, the options and a recommendation; the owner decides.
 Severity: none. Model: Sonnet. Size: S. Owner: yes (decides; nothing happens without him).
+
+## Owner
+
+- [ ] 2026-11-25 — Decide, after 0.11 and from the write-up, whether anything about the Contributors list is worth a history rewrite ("it is a future thing to write. yes. like afgter 0.11"). Nothing happens without you.

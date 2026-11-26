@@ -9,41 +9,22 @@ Status: IN PROGRESS — both built and pinned in component tests; left (Claude):
 Source: T603's recorded emulator run 2026-11-11 ("Seen on the way"), two app bugs the test bed found.
 
 ## Bugs
-a. **After "Save alert" the confirmation can be above the fold.** Steps: Coquitlam River → Conditions → Alert me → A level
-   for the day → scroll so Save sits low on the screen → Save alert. Saving collapses the editor; the pane keeps its
-   scroll place and shows what is under the gauge card, so "Saved. Manage alerts in More → Notifications." and
-   "1 alert on this gauge" are above the fold. Shot: `../T603-shots/t603-alert-saved-off-screen.jpg`.
-b. **A saved spot's map pin stays in the accessibility tree while the spot is off the map.** With the spot at Hope and
-   the map on Coquitlam the map still held a 3 px button "Open spot <title>" at its top-left corner (uiautomator
-   `spot-mark:spot:…`, bounds [0,136][3,139]): a screen reader reached it and a tap-by-label opened the spot.
+a. After "Save alert" (Coquitlam River → Conditions → Alert me, Save low on the screen) "Saved. Manage alerts in More →
+   Notifications." and "1 alert on this gauge" were above the fold. Shot: `../T603-shots/t603-alert-saved-off-screen.jpg`.
+b. A saved spot's pin stayed in the accessibility tree while off the map (spot at Hope, map on Coquitlam: a 3 px button
+   "Open spot <title>", uiautomator `spot-mark:spot:…`, bounds [0,136][3,139]).
 
-## Built
-a. `AlertMe` brings its whole block (the button row, the count, the confirmation) into its page's view after each save
-   (`coachScroll.bringIntoView`, through the pane's own `CoachScrollContext` scroller: above the fold scrolls back up,
-   below it scrolls down, in view moves nothing). A block that cannot be measured is looked at once more after 250 ms,
-   then reported (`reportOnce`), never passed over. No new words. Tests: `ui-native/src/menu/Notifications.test.tsx`
-   "(T674)" (3; the first two failed before the fix).
-b. One core function, `spotsInView` (`core/spotPins.ts`): the marks whose face reaches into the camera's box. Both maps
-   give a screen reader a button only for those (`Map.native.tsx`: the settled camera and the map's own size;
-   `web/useSpots.tsx`: also on `moveend` / `resize`). A map that has not been sized holds none. What is drawn and what a
-   tap does are unchanged. Tests: `core/spotPins.test.ts` "spotsInView" (3), `map/adapter-contract.render.test.tsx`
-   "T674" on web and native (both failed before the fix).
+## Done
+- a (04572e8d3): `AlertMe` brings its block into view after each save (`coachScroll.bringIntoView` through the pane's
+  `CoachScrollContext`; unmeasurable → retried once after 250 ms, then `reportOnce`). Tests: `ui-native/src/menu/Notifications.test.tsx` "(T674)".
+- b: `spotsInView` (`core/spotPins.ts`) — both maps give a screen-reader button only to marks in the camera's box
+  (`Map.native.tsx`, `web/useSpots.tsx`). Tests: `core/spotPins.test.ts` "spotsInView", `map/adapter-contract.render.test.tsx` "T674".
+- Emulator check 2026-11-20 (L4, `saved-spots`, build of 124d79efa): a PASS (now a failing check in `saved-spots`; shot
+  `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T674/a-after-save-alert-confirmation-on-screen.png`);
+  b PASS (step "T674 b": `b-map-away-no-spot-mark.png`, `b-map-at-spot.png`).
 
-## Not done / to check
-- Neither was seen on a device after the fix. Next emulator run: (a) the steps above with Save at the foot of the screen,
-  the confirmation and count must be on screen at rest; (b) with a spot at Hope and the map on Coquitlam, no
-  `spot-mark:` node in the uiautomator dump; pan to Hope and it is there.
-- (a) trusts the pane's scroll offset as last reported by its scroll events. If Android clamps the offset when the
-  content shrinks without a scroll event, the move could be off by the clamp; the emulator check covers it.
+## Left
 - The boundary marks' screen-reader buttons (`Map.native.tsx`, T317) are built the same way (every mark of the open
   water, wherever the camera is). They belong to the water on screen, so they were left; say if they should follow.
 
 Depends: T603. Size: S. Owner: no.
-
-## Emulator check 2026-11-20 (L4, `saved-spots`, build of 124d79efa)
-- a. The 11-11 finding is now a failing check (`saved-spots`: after Save alert the confirmation AND the "1 alert on this gauge"
-  count must be inside the pane band at rest). PASS on the emulator: the shot (`handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T674/a-after-save-alert-confirmation-on-screen.png`)
-  shows "1 alert on this gauge" and "Saved. Manage alerts in More -> Notifications." on screen under the header.
-- b. New step "T674 b" (uiautomator `spot-mark:` prefix): with the spot at Hope and the map on Coquitlam Lake, no `spot-mark:`
-  node (`b-map-away-no-spot-mark.png`); Spots -> the spot -> Show on map, the node is there and the pin is drawn
-  (`b-map-at-spot.png`, the spot's black square and its label). PASS.

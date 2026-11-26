@@ -5,7 +5,7 @@
  * It also owns the helpers every Gear / Methods item uses: `sourceLine` (who says so, from the rules' LEVELS), `closedUntil`
  * and `changeVM`.
  *
- * Owner rule 2026-10-21 (decisions.md): nothing here decides a regulation. The day's gear is the PIPELINE's gear frame
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): nothing here decides a regulation. The day's gear is the PIPELINE's gear frame
  * (`GearAnswer.summary`: its sentence, parts, terms, dated changes and cites), open/closed on a day is the stored display
  * frame's status / strip bit 1 (`displayByDay`), the levels are the rules' stored ranks. This file selects which summary
  * parts the sentence names, words them, groups the changes onto the line they talk about and names the sources.

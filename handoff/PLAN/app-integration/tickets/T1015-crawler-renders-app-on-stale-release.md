@@ -23,3 +23,7 @@ the app's error screen.
    reader whose boot fails gets.
 
 Depends: T1005 (the crawler is named in reports from 127296a64). Size: S–M. Owner: item 1 (Search Console).
+
+## Owner
+
+- [ ] 2026-11-22 — In Search Console (URL inspection) check what Google renders on `/water/` pages.

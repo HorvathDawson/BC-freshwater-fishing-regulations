@@ -106,7 +106,7 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   /*
-   * BACK, WHILE ADDING A SPOT (app/HANDOFF-ui.md "Back, everywhere"): one back is one step back — the details to the
+   * BACK, WHILE ADDING A SPOT (app/BACK.md "Back, everywhere"): one back is one step back — the details to the
    * hour, the hour to the point, the point to the water — exactly what each step's own ‹ / Back does. On the first
    * step back leaves, as Cancel does: at once when nothing was put in, else only after asking (`DRAFT_WORDS`), so
    * no back ever throws away a name, notes or photographs unasked. `asking` is answered "keep" by a back.

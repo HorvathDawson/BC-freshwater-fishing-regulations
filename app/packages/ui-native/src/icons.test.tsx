@@ -15,7 +15,7 @@ describe("<Icon>", () => {
   it("every icon names the Lucide icon it copies; the stroke is the owner's 1.75", () => {
     expect(new Set(Object.keys(LUCIDE_NAME))).toEqual(new Set(names));
     expect(ICON_STROKE).toBe(1.75);
-    // the bar's four, the rail's one, and the chrome the owner named (decisions.md 2026-10-22)
+    // the bar's four, the rail's one, and the chrome the owner named (decisions.md, "Map, colour and chrome")
     expect([LUCIDE_NAME.map, LUCIDE_NAME.conditions, LUCIDE_NAME.spots, LUCIDE_NAME.more, LUCIDE_NAME.layers,
             LUCIDE_NAME.search, LUCIDE_NAME.back, LUCIDE_NAME.close])
       .toEqual(["map", "waves", "map-pin", "ellipsis", "layers", "search", "chevron-left", "x"]);

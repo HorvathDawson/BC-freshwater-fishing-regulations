@@ -95,5 +95,10 @@ for sizing the engine question. Size: S (research). Owner: yes (the pick).
 fix when wanted is small (he creates an ArcGIS Location Platform account and key; a usage alert and a kill switch
 to the drawn map with a shown reason). Offline imagery reopens when a provider's terms allow it through MapLibre
 (candidates to ask in writing, drafts on request: Stadia s8.4, the Province for corridor rights, Esri on the
-device cache). The earlier research: `handoff/PLAN/app-data/satellite/README.md` and
-`handoff/PLAN/app-data/stream-imagery/SPEC.md` (the clean-up chat keeps them under `handoff/PLAN/research/`).
+device cache). The earlier research: `handoff/PLAN/research/satellite/README.md` and
+`handoff/PLAN/research/stream-imagery/SPEC.md`.
+
+## Owner
+
+- [ ] 2026-11-25 — Pick after the research page compares the Mapbox mobile SDK (free offline corridors, free until 25k users) with the alternatives; mobile would also switch to Mapbox online satellite and drop Esri (the web keeps Esri unless you say otherwise). The scoping above (planning chat dialogs, same day) already records: web "Web keeps Esri (Recommended)"; engine "Stay on MapLibre (Recommended)"; Esri key "Stay keyless for now"; offline imagery "Nothing now"; this line stays open until you confirm the Mapbox switch is off for now.
+- [x] 2026-11-25 — Spend if a keyed provider is used → "$0 overage + kill switch (Recommended)"; tile cache → "Keep cache, reword the page" and "Only the cache rewording" (T1148) (2026-11-25).

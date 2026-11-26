@@ -1,5 +1,5 @@
-"""AN AMBIGUOUS CUT takes the candidate NEAREST THE RULE'S OTHER END (owner 2026-10-22, decisions.md
-"the audit plan"; `extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`).
+"""AN AMBIGUOUS CUT takes the candidate NEAREST THE RULE'S OTHER END (owner 2026-10-22, decisions.md,
+"Cuts and boundaries"; `extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`).
 
 A split point can match TWO places on one blue line. A lake the river runs through is the usual
 case: "Harrison River … Harrison Lake" meets the lake where the river leaves it (km 20) and where the
@@ -204,7 +204,7 @@ def _picked(g, op, splits, pick):
 
 
 def test_a_curated_pick_outranks_the_nearest_the_other_end_rule():
-    """Owner 2026-10-22 (decisions.md "Ambiguous cuts, refinement"): where a curated record says
+    """Owner 2026-10-22 (decisions.md, "Cuts and boundaries"): where a curated record says
     which crossing a cut means, that pick stands. "Between the lake and the falls" would start at the
     lake's inlet (6,000); a curator who means the outlet (as skeena_river_2 means the reserve's LOWER
     mainstem crossing) says `cut_pick: {lake: lower}` and the stretch starts at 2,000. The diagnostic

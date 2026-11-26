@@ -1,5 +1,5 @@
 """RUN TIMING (T162, data only): the parsed PSF + DFO timings (`pipeline.runtiming.parse`, `timing.json`). Synthetic
-NuSEDS rows, plus the committed timing file's own invariants. Integration is a plan: handoff/PLAN/runtiming/PLAN.md.
+NuSEDS rows, plus the committed timing file's own invariants. Integration plan: pipeline/runtiming/README.md.
 """
 from __future__ import annotations
 

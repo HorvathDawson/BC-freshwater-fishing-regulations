@@ -3,7 +3,7 @@
     python -m pipeline.tools.audit.tile_sizes data/generated/tiles/atlas.pmtiles
     python -m pipeline.tools.audit.tile_sizes data/generated/tiles/basemap.pmtiles --json /tmp/basemap.json
 
-The S2 size table's numbers (handoff/PLAN/app-data/S2-tile-size-easy-wins.md, T64/T85): each UNIQUE tile content is
+The S2 size table's numbers (the S2 tile-size note, cut in T1081; T64/T85): each UNIQUE tile content is
 counted once (the archive's own dedupe of repeated tiles), and its compressed size is shared among its layers in
 proportion to their uncompressed bytes. ~1 minute for the 548 MB atlas.
 """

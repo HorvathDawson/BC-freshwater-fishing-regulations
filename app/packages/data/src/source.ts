@@ -208,7 +208,7 @@ export interface WaterSource {
   // ---- lakes ----------------------------------------------------------
   // PREPARED, NOT FED (owner 2026-10-22, audit wave 1): no screen calls these yet and no release ships the data
   // (the release reader answers null / []). They are kept on purpose for the stocking and bathymetry feeds — do not
-  // delete them as dead code (decisions.md "the audit plan"; T70).
+  // delete them as dead code (decisions.md, "Map, colour and chrome"; T70).
   lakeInfo(id: ItemId): Promise<LakeInfo | null>;
   stockingHistory(id: ItemId): Promise<readonly Release[]>;
 

@@ -11,7 +11,7 @@ vertices are dropped, and so are the rings and lines that collapse.
 
 Roads, places and boundaries are copied byte for byte: roads keep 4096, so a trail is never stair-stepped.
 
-Measured 2026-10-27 (handoff/PLAN/tiles/T202-basemap-audit.md):
+Measured 2026-10-27 (the T202 basemap audit, cut in T1081):
 - About −15% of the archive.
 - Shots at z10/12/14/16, light and dark, at Vancouver, Squamish backcountry, Chilcotin and Lac Le Jeune: at most
   0.19% of pixels differ (one-pixel shifts on river and coast edges). Nothing visible by eye.
@@ -51,7 +51,7 @@ GRID_SHIFT = {"landuse": 2, "water": 1, "earth": 1}
 #
 # Chosen by the render gate (app/tools/basemap-shots.mjs: the app's own basemap layers over 7 fixed BC extents at
 # z8/10/12/13/14/16, light and dark; threshold 2 % of pixels per shot). Measured 2026-10-29 on the live basemap
-# (handoff/PLAN/app-integration/tickets/T280-basemap-source-prune-stages.md):
+# (handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz:T280-basemap-source-prune-stages.md):
 #   tolerance (landuse <z13 / z13, landcover)  green vertices   worst shot   mean    archive
 #   1.5 / 1.0, 6                                −40 %            0.89 %       0.10 %  239.1 MB
 #   2.5 / 1.5, 8   <- shipped                   −52 %            1.97 %       0.23 %  225.5 MB

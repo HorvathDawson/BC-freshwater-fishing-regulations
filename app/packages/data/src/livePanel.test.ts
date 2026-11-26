@@ -1,5 +1,5 @@
 /**
- * ESTIMATES ARE CHOSEN LIVE (owner 2026-10-22, decisions.md "estimates use every gauge that could inform a section,
+ * ESTIMATES ARE CHOSEN LIVE (owner 2026-10-22, decisions.md, "Gauges and flow" (estimates use every gauge that could inform a section,
  * chosen live"): "make sure the section gauge percentage in prediction computes for all gauges we have possible so that
  * even if some drop/get added in that list it is still able to make a prediction using all available gauges".
  *

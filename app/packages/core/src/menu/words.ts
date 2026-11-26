@@ -135,7 +135,7 @@ export const MENU_WORDS = {
         + "British Columbia.",
       tiles: "Drawn for this app from the Freshwater Atlas and the regulations.",
       basemap: `${P.osm}. ${P.protomaps}.`,
-      // (owner 2026-10-23, decisions.md "data permissions") ECCC's hydrometric data — HYDAT and the real-time
+      // (owner 2026-10-23, decisions.md, "Gauges and flow") ECCC's hydrometric data — HYDAT and the real-time
       // readings — are under the Open Government Licence – Canada; the BC River Forecast Centre's forecasts (CLEVER,
       // COFFEE, ELF) are used with its permission and credited by name
       hydat: `${P.eccc}. Historical hydrometric data, under the Open Government Licence – `

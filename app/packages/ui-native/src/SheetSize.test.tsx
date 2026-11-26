@@ -1,6 +1,6 @@
 /**
  * T82 O5 — THE SHEET'S HEIGHT vs the prototype (regs v38), measured by `app/tools/regs-heights.mjs --sheets` over the
- * 192 golden sheets of vedder_1010, klwa_1010 and bc1_501 at 390 × 844 (handoff/PLAN/app-integration/tickets/T82-regs-walk-leftovers.md, As built). The
+ * 192 golden sheets of vedder_1010, klwa_1010 and bc1_501 at 390 × 844 (handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz:T82-regs-walk-leftovers.md, As built). The
  * phone sheet is already sized to its content; what made a wrapping title's sheet taller than its words was the title's
  * line (19 px on TYPE.screen's 27 px line). Pinned here:
  *   - the title: 19 px on a 23 px line, in BOTH title rows — the phone sheet's and the wide dialog's (mutation: spreading

@@ -17,7 +17,7 @@
  * left out and the rest re-normalise — and the day SAYS which were left out; it is never filled with a guess.
  *
  * FLOW WEIGHS MOST (the owner cares about flow) and is FLOW ONLY: the gauge's DISCHARGE percentile for the date, never
- * a level (decisions.md "NEVER MIX QUANTITIES"). A visit with no flow is scored on the weather alone, said as that
+ * a level (decisions.md, "Gauges and flow"). A visit with no flow is scored on the weather alone, said as that
  * ("No flow then to compare"); a coming day no forecast reaches the same ("No flow forecast for this day").
  *
  * EVERY COMING DAY'S FLOW IS A FORECAST DAY (T171): the feed ranks each of the next ten days (`aheadDays`), the model

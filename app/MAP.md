@@ -1,158 +1,75 @@
 # The app, as it is (map)
 
-The one current map of `app/` (T63). Why the layers are shaped this way is
-[`README.md`](README.md); the binding app rules are [`AGENTS.md`](../AGENTS.md) 21–34; every dependency's reason is
-[`deps.md`](deps.md). When this map and the code disagree, the code wins — fix the map.
+The one current map of `app/`. Why the layers are shaped this way: [`README.md`](README.md). The binding rules are
+`AGENTS.md` 22-34; every dependency's reason is [`deps.md`](deps.md); the back table is
+[`BACK.md`](BACK.md). When this map and the code disagree, the code wins: fix the map. Each package has its own README.
 
 ## Packages (the layer rules are `layers.json`, enforced by `tools/check-boundaries.mjs`)
 
-| package | holds | imports |
+| package | holds | may import |
 |---|---|---|
-| `packages/core` | every answer and every sentence: status, regs presenters (`src/regs/`), conditions, search, menu words, freshness, the generated vocabularies (`*.generated.ts`) | nothing platform, no React |
-| `packages/data` | the data seam: the release loader + install (`src/release/`), the regs store reader (`src/regs/`), `WaterSource` over the release (`src/release/source.ts`), SQL drivers (`src/sql/`), spots (`src/spots/`), the gauge feed (`src/feed/`) | core |
-| `packages/ui` | headless React hooks — data, never elements: boot, search session, water/regs/route hooks, layout class | core, data, react |
-| `packages/ui-native` | every component (RN primitives) and every layout: `Shell.tsx` + `shell/`, water screen, regs screen (`src/regs/`), sheets, panels (T910: on the web the water's Regulations page is a `part` in the later chunk, `later.ts`, drawn as `WaterPageLoading` while its code comes; a phone has it at once) | core, data, ui, map |
-| `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`; T409: the web map is built when first seen, `web/firstSeen.ts` — the warm map behind a water's page waits until shown, at every width), the generated style (`style/`, from `layers.source.json`) | core |
-| `apps/mobile` | the one shell for native and web (Expo + react-native-web): `src/App.tsx`, config (`config.ts` + `env.ts`: the data environment local / staging / production, T232; `eas.json` profiles), platform glue | all |
-| `conformance` | suites run against every `WaterSource` and the regs store: the fixture releases, the live release, the oracle parities (`src/regs/`) | all |
+| `packages/core` | every answer and sentence: status, regs presenters (`src/regs/`), conditions, search, menu words, freshness, the generated vocabularies (`*.generated.ts`) | nothing platform, no React |
+| `packages/data` | the data seam: release loader and install (`src/release/`), regs store (`src/regs/`), `WaterSource` over the release (`release/source.ts`), SQL drivers (`src/sql/`), spots, gauge/in-season/salmon feeds (`src/feed/`), phone notifications check (`src/notify/`) | core |
+| `packages/ui` | headless React hooks (data, never elements): boot, search, water/regs/route, layout class | core, data, react |
+| `packages/ui-native` | every component and layout (RN primitives, drawn on the web by react-native-web): `Shell.tsx`, `shell/`, water, regs, sheets, panels | core, data, ui |
+| `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`), the generated style (`style/`), the colouring engine | core, ui, the two map SDKs |
+| `apps/mobile` | the one shell for native and web: `src/App.tsx`, config (`config.ts`, `env.ts`: data environment local / staging / production), platform glue, local Expo module `modules/bg-download` | all |
+| `conformance` | suites every `WaterSource` and regs store must pass: fixture releases, the live release, oracle parities | all |
+| `workers/feeds` | the Cloudflare feeds worker (gauges, DFO salmon, in-season, run timing, push, reports); not in the pnpm workspace | `core` (generated policy) |
 
-## The data path (one path: the release, P11)
+## The data path (one path: the release)
 
 ```
-data/release/r-*/ (R2 in production)
-  └─ manifest ─▶ @app/data release loader (bootRelease; phone: install to disk; web: fetch on first need, and
-                   after first paint prefetch the region in view's regs file + core/sql-wasm on idle — T186; T910: the idle tier
-                   waits first for the load event + 5 s with no long task, ui-native `shell/settle.web.ts` —
-                   `release/prefetch.ts`, `@app/ui` `useReleasePrefetch`, the map's `onRegion`)
-                   ├─ WaterSource (release/source.ts): core, near, paint, conditions, flow-area …
-                   ├─ answer slices (T256, `release/focus.ts`): web only — core / water read ROUTED: a read the map's
-                   │    region's `core-<r>` / `water-<r>` covers goes there, anything else to the whole file
-                   ├─ ahead lane (T737, `release/lane.ts`, in `drivers/source.web.ts`): web only — every file fetched
-                   │    ahead (idle tier, background tier `release/background.ts`, the address bar's `lines`) one at a
-                   │    time at fetch priority low; a reader's download goes out at once (high) and aborts the file
-                   │    ahead it does not need (it comes again after the reader, same promise)
-                   ├─ salmon (T211, `loader.salmon`): the Salmon card (`@app/ui` `useSalmonCard`) and the map's
-                   │    Standard / Salmon toggle (`useSalmonColour` → the colouring engine's `salmon` channel)
-                   ├─ offline (T238, `release/offline.ts`): More → Offline maps — the regulations for all of B.C. (never
-                   │    per region; web: what the release cache holds), the province map, `@app/ui` `useOfflineMaps`
-                   └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid (the regs files are `regs-region/2`: a
-                         `trout` section holds the trout and char TABLE, T810; core `regs/trout.ts` `troutOf` only composes
-                         the day slot and the screen-reader labels, ui-native `regs/TroutCard.tsx` draws it; Python writes
-                         every word, number and date, a refused frame is reported, never drawn as the old card)
-                         (T910: the rules, `reads.rules()`, are inflated in a worker on the web — `regs/rulesDecode.web.ts`
-                         over fflate's own UMD build, `fflateWorker.generated.ts`; the phone's `rulesDecode.native.ts` as before)
-                         └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
-a page older than what is served (T1016, web only: apps/mobile `replaced.web.ts`; the phone's twin installs nothing) ─▶ core
-                   `setFailureTriage`: a reported 404 is asked of the live pointer (data `release/replaced.ts`), a chunk
-                   that would not load of the site's own page (ui `siteProbe`); a set the pointer no longer names / a deploy
-                   since: ui `replacedTriage` reports `ReleaseReplaced` / `SiteReplaced` (the worker's `expected`) and raises
-                   the verdict; ui `createReplacedState` refreshes BY ITSELF once its report is on the line (core
-                   `failuresSent`), once per verdict: the one in-session apply (`loadLiveRelease`), or a reload once per
-                   page code (`reloadOnce`, a sessionStorage marker); a refresh not made shows ui-native `ReplacedBanner`
-                   and reports `ReplacedRefreshNotMade`; a file the live release names, a chunk the live deploy lacks:
-                   reported as it is
-gauge feed (index.json, per-station) ─▶ packages/data/src/feed/http.ts ─▶ panels / conditions
-in-season feed + links (feeds/inseason/, T230) ─▶ packages/data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
-feed gate (T676 item 2): every feed index carries `minAppVersion` (FEED_MIN_APP, pipeline/common/feed_formats.py) ─▶
-                   core feedGate.ts `createFeedGate` (App.tsx, one) in each reader (salmon, inseason, http, runtiming):
-                   an index for a newer app is refused, the capture answers ─▶ update service `needsApp` ─▶ core
-                   `appTooOld` ─▶ the strong update prompt ("New data needs the latest app"), as a release's app-too-old;
-                   a gauge station file / obs.json refused for its own stamp holds its need by name until it reads, is
-                   asked again only by its validator (a 304; T676 L2/L3), and the More row reads the gate per feed
-background check (T234, phone only: apps/mobile notify.native.ts, expo-background-task ~15 min) ─▶ packages/data/src/notify/check.ts
-                   (obs.json via feed/http.ts `fetchObs`; the release manifest; our version file, core appUpdate.ts
-                   `appVersionFileUrl`) ─▶ core alerts.ts (`evaluateAlerts`, T527 stock-style: crosses above / below a
-                   value or a percentile for the day — the line per day kept on the alert from the chart's year envelope —
-                   once per crossing, re-armed past a 2 % margin) ─▶ local notification (expo-notifications);
-                   settings v3 + alerts + run log: packages/data/src/notify/settings.ts ─▶ ui notify.ts ─▶ More → Notifications
-                   (a plain list; Add an alert: gauge → condition → value), a gauge card's "Alert me" (ui-native
-                   AlertMe.tsx `AlertEditor`)
-changelog (T234 v1.1): core changelog.ts (the one source) ─▶ About → What's new (`changelogVM`); build-apk.sh copies a
-                   version's Android bullets (`notesOn`) into latest.json / play/<versionCode>.json (+ play.json),
-                   build-ios-testflight.sh the iPhone's into app/ios/<version>.json (+ appstore.json); a store build
-                   reads the file of what the store offers (T894, core `storeUpdateCheck`) ─▶ the bell's App update
-                   "What's new in …"
-                   and (T888, phone only) the popup on opening: core `updatePopupVM` ─▶ ui `useAppUpdate` `popup` ─▶
-                   ui-native AppUpdatePopup.tsx (the coho, the bullets, Update / Not now; once per version above the
-                   installed one, after the first-run notice, the walkthrough and any sheet; then the bell)
-tiles (atlas.pmtiles + basemap) ─▶ @app/map
+data/release/r-*/ (R2 in production) -> manifest -> @app/data release loader (phone: install to disk;
+  web: fetch on first need, prefetch the region in view when idle)
+    |- WaterSource (release/source.ts): core, near, paint, conditions, flow-area
+    |- RegsStore (regs/store.ts): water + regs-<region> + regs-sid; core regs/ composes a page, ui-native regs/ draws it
+    |- salmon (loader.salmon) -> ui useSalmonCard, the map's Standard/Salmon colouring
+    |- offline (release/offline.ts): More -> Offline maps
+    `-> @app/ui hooks -> @app/ui-native screens -> apps/mobile App.tsx
+feeds (served by the feeds worker; read by packages/data/src/feed/): gauge index + per-station files, in-season, salmon,
+  run timing. Every index carries `minAppVersion`; core `feedGate.ts` refuses an index meant for a newer app.
+phone background check (notify.native.ts, expo-background-task) -> data notify/check.ts -> core alerts.ts -> local notification
+tiles (atlas.pmtiles + basemap) -> @app/map
 ```
 
-The app decides nothing about a regulation: every answer is looked up in the release (AGENTS 23, 32, 56).
+The app decides nothing about a regulation: every answer is looked up in the release (AGENTS 23, 32, 56). A page older
+than what is served is told so (`apps/mobile/src/replaced.web.ts`, ui `replaced.ts`) and refreshes itself once.
 
 ## Fixtures
 
 | where | what | made by |
 |---|---|---|
-| `packages/data/dev/fixture-release/` | three frozen BUNDLE-half releases (plain, lakeGauged, conformance) | cut once (T61), frozen |
-| `packages/data/dev/regs-release/` | the regs fixture release, cut from a live one | `pnpm regs-fixture` (owner-run on a new release) |
-| `packages/data/dev/mini-release/` | (T667 slice 8) a whole release built by the real pipeline from an invented world: logic tests on mechanisms, no real water (`openMiniRelease()`, `@app/data/release/node`) | `python -m pipeline.tools.mini_release --write`; CI's `--check` holds it to a rebuild |
+| `packages/data/dev/fixture-release/` | three frozen bundle-half releases | cut once, frozen |
+| `packages/data/dev/regs-release/` | the regs fixture release, cut from a live one | `pnpm regs-fixture` |
+| `packages/data/dev/mini-release/` | a whole release built by the real pipeline from an invented world | `python -m pipeline.tools.mini_release --write` |
 | `packages/data/dev/feeds/` | a gauge feed for tests | `pipeline.gauges.feed.publish` |
-| `fixtures/golden/` | the release-backed regs oracles, re-cut after a release: `taps.json` (the Python decoder's answers) and `page-oracle.json` (page v36's own code over the same release, rules by durable key; a change stops the release), from `states.json` (the 134 tap questions, no answers). The prototype extracts (golden, pins, tokens, inventory) are retired (T439) | `tools/regs-recut/sync.mjs` |
-| `fixtures/reference/` | page v36 (html, js) and its calendar copy, frozen: the parity tests' and the re-cut's oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
-| `fixtures/reader-states.json` | the reader tool's states | hand / prototype |
-| `apps/mobile/assets/fish/thumbs/` | (T405) a 240 px thumbnail per fish picture, drawn by every row and chip (the fish sheet alone draws the full picture); `thumbs.json` records what each was made from, and `pnpm fish` refuses a missing or stale one | `node tools/emit-fish-thumbs.mjs` (Chrome), then `pnpm fish:build` |
-| `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served at `/assets/fonts/`: (T910) the web app draws them too (`apps/mobile` `fonts.web.ts` over `webFonts.generated.ts`; the phone keeps the TTF, `fonts.native.ts`), `tools/web-shell.mjs` copies them into the export and the water pages name the export's file; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) and web-shell refuse a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli; `--module` rewrites only the generated module) |
+| `fixtures/golden/` | release-backed regs oracles: `taps.json`, `page-oracle.json` | `node app/tools/regs-recut/sync.mjs` (the release re-cuts them, AGENTS W46) |
+| `fixtures/reference/` | page v36 (html, js) and the calendar copy, frozen: the parity oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
+| `fixtures/trout/`, `fixtures/reader-states.json`, `fixtures/dfo-feed-*.json` | test inputs for the trout table, the reader tool, the DFO feed | by hand |
 
-The design prototype (app/design) was deleted in T87 (2026-10-28); git keeps it: `git show 7fb6809f:app/design/` (regs v38).
+## Gates (`pnpm check` = `check:fast` then `test`; the order is `package.json` `scripts.check`)
 
-## Gates (`pnpm check`, the order is `package.json` `scripts.check`)
+`check:fast` runs every static gate (`scripts/fast-fail.sh` runs it too); CI (`app-ci.yml`) splits it into `gates`,
+`vitest` (4 shards, `tools/vitest-shards.mjs`) and the web and native `bundles`. In order: tickets, anchors, changelog,
+boundaries, platform, style, colours, spinner / coho / adipose / splash (generated art current), the Python-emitted files
+(`gauge-policy`, `fish`, `calendar`, `answers`, `pack`, `app-reads`, `feed-formats`: each `--check`s a generated file
+against `pipeline/`), deps, knip, typecheck (`tsc -b`), typecheck:worker, typecheck:seo, promises, inventories.
+- `pnpm anchors` fails a test that types a section number, release id or digest, or reads `data/` past the helpers
+  (`liveRelease`, `namedRelease`, `repoData`, `openRegsFixture*`); the Python twin is `pipeline/tests/anchors.py`.
+- Failures: every catch is thrown on or reported through core `failure.ts` (`reportFailure`), shown with `ui-native`
+  `ErrorState`; `tools/failures.test.ts` fails a new catch that does neither (AGENTS W46).
+- One clock: core `clock.ts` is the only reader of the device clock (`now()`, `bcNow()`, `bcToday()`); `tools/clock.test.ts` enforces it.
+- `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk
+  (`scripts/test-full.sh` sets it); `tools/no-silent-skips.test.ts` counts every skip site.
 
-`pnpm check` = `check:fast` (every gate below but vitest; `scripts/fast-fail.sh` runs it, T535) then `test`. On CI
-(`app-ci.yml`) the two halves are separate jobs, `gates` and `vitest`, beside the web and native `bundles`.
+## Tools (`tools/`, see its README)
 
-tickets → anchors (below) → changelog (app.json's version has the newest changelog entry, `scripts/check-changelog.mjs`, T538) → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → coho (T814: the coho loader's committed sheets read back against the `color.ui.coho.*` tokens; `pnpm coho:build` re-renders them with the owner's `tools/fish-loader/fish_loader.py`) → adipose (T886: the hatch sheet's two drawings, the loader's coho at rest, `packages/ui-native/src/adipose/`, read back against `color.ui.coho.*` + `color.ui.accent`; `pnpm adipose:build` redraws them with `tools/fish-loader/adipose_art.py`) → splash → gauge-policy / calendar / fish / answers / pack / app-reads (T555: app.json's version has its row in `pipeline/deliver/release/app_reads.json` and it is what the code reads; a format moved needs a version bump, then `python -m pipeline.tools.emit.app_reads`) → feed-formats
-(generated files current) → deps → **knip** (no unused file, export or dependency; allowances with reasons in
-`knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → typecheck:worker → typecheck:seo → promises → inventories, then
-test (vitest: packages, conformance, `tools/*.test.ts`).
-On CI the test step is 4 runners (`--shard=i/4`, T866); `tools/vitest-shards.mjs` proves each file runs in exactly one.
-`REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk, or when the release
-is not the one `taps.json` was cut from; `scripts/test-full.sh` (Tier 2) runs its app step with it set (T432), and a plain
-`pnpm check` does not. `tools/no-silent-skips.test.ts` counts every app skip site against its allowlist. `tools/vintage-pins.test.ts` refuses an id literal a new release would move.
-`pnpm anchors` (`tools/check-test-anchors.mjs --strict`, T667; in `check:fast`) FAILS on a test file that types a section /
-part number, a release id or a digest in a release-following test, or reads `data/…` / `RELEASE_DIR` past the helpers
-(`liveRelease`, `namedRelease`, `repoData`, `openRegsFixture*`, `sectionNames`), and says what to write instead; no
-baseline (`--report` only counts). The pipeline twin is `python -m pipeline.tests.anchors` (helper:
-`pipeline/tests/under_test.py`), in `scripts/fast-fail.sh` and the pytest suite.
-**Failures (T368):** every caught failure is thrown on or reported through core's `failure.ts` (`reportFailure`, `reported`,
-`offlineAs`, `reportOnce`; the environment — offline, a refused permission — is never reported), shown in the one face
-(`ui-native` `ErrorState`); `useAsync` reports every hook's failure; links leave through `ui-native` `openLink`.
-`tools/failures.test.ts` fails on a new catch that does neither, unless its file's `FINE` count and reason say why.
-**One clock (T382):** core `clock.ts` is the only place app source reads the device clock — `now()` for an instant, `bcNow()` / `bcToday()` for the day (the B.C. clock, UTC−7 all year from 8 Mar 2026, written in code); `tools/clock.test.ts` fails on a `new Date()` / `Date.now()` anywhere else (and lists the `performance.now()` frame timers).
+Gates (`check-*.mjs`), builders (`build-*.mjs`, `emit-*.mjs`), consistency auditors (`one-*.test.ts`), the local server
+(`serve-tiles.mjs`, `pnpm tiles`), browser walks and shots (`regs-web/`, `*-walk.mjs`, `store-shots/`), the Android test
+bed (`testbed/`), the SEO site (`build-seo.mjs` over `seo/` and `tools/seo/`), the ticket tools (`ledger.mjs`,
+`check-tickets.mjs`) and the MapLibre Android build (`maplibre-android/`).
 
-## Tools (`tools/`)
-
-The gates (`check-*.mjs`, `build-style.mjs`, `emit-*.mjs`), the consistency auditors (`one-*.test.ts`, `consistency.ts`),
-the local server (`serve-tiles.mjs`, `pnpm tiles`), and the browser drivers for shots and walks (`regs-web/`,
-`regs-census.mjs`, `regs-walk.mjs`, and `request-walk.mjs` — T129's pinned list of what a web visitor
-fetches per moment, `request-walk.pin.json`, priced against the release's `WEB_BUDGET` by `release-budget.test.ts`, and `a11y-walk.mjs` (T243: axe-core WCAG A/AA + a Tab focus walk per scene); they
-need Chrome and the running app).
-
-(T998) **The commit format:** `check-commits.mjs` (commitlint, `commitlint.config.mjs`; the types, the header length and
-the cutover in `versioning.json`, which the release command's bump reads too; the parse contract both sides are held
-to is `commits-contract.json`) runs in `.githooks/commit-msg`, `scripts/before_push.py` and docs-ci's `commits` job.
-
-Source maps (T352, `sourcemaps.mjs`): the web export (`export:web*`, `--source-maps`) and `deploy/staging/build-apk.sh`
-(the Hermes map) keep their maps per build in `data/sourcemaps/<version>-b<build>-<sha7>/` (gitignored); (T1008) the web's
-maps are also SERVED, left in the export once `checkServedMaps` passes (each big bundle names its map, the debug ids agree,
-a map names only files git tracks or node_modules holds);
-`node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a crash's stack back with them.
-
-(T752) **The water's Map tab is a split from the tablet breakpoint (900) up, on every platform:** text column left (420 px: name, Downstream / Upstream pinned, a parts list that scrolls inside it, report link), map right, inside the frame's column (`ui-native/src/WaterFrame.tsx` `WaterSplit`, `water/WaterMapView.tsx`); below 900 the phone layout, unchanged.
-
-The SEO site (`build-seo.mjs` over `seo/`, T192–T198): hub pages, sitemap, slugs (`app/seo/slug-map.json`), v1 301s. **A water
-page is the app (T269):** `seo/pane.tsx` server-renders the real `Shell` on that water's Regulations view (react-native-web;
-the hooks answered first through `@app/ui` `setPrerenderAnswers`), `seo/prerender.ts` + `seo/layouts.ts` merge the light/dark
-and phone/tablet/desktop renders into one markup, and the page is the web export's own index.html (`--app <export>`) with the
-pane before `#root`; the app takes over when its own pane is up. The app reads `/water/<slug>` as a start link and writes it
-back (`apps/mobile` `startLink.web.ts`, `systemBack.web.ts`, `waterSlugs.ts` over the build's `water-slugs/<n>.json`).
-
-(T487) **A gauge's page** is `/gauge/<station>/<slug>` (`seo/gauges.ts`, index at `/gauges`, in the sitemap): a static hub-style
-page naming the waters the gauge serves (one regulations link each, no open/closed word) whose live half (`seo/gaugeClient.ts`,
-shipped as one plain script) reads the facts the feeds worker writes beside each card (`feeds/cards/<station>.json`) and
-Open-Meteo at the gauge. (T1039) Its chart is the app's own: `seo/gaugeChart.tsx` mounts `ui-native` `StationChart` over `ui`
-`useStationChart` (the Conditions card's pair) on `data` `stationChartSource` (the live feed file over the station's `gauge_clim`
-rows, which the build writes into the page), bundled by esbuild into one deferred script (`gauges.ts` `chartScript`). Its preview card is drawn in the feeds worker's gauge run (`workers/feeds/src/gauges/card/`: a tiny
-palette rasteriser + glyphs pre-drawn from Archivo, `workers/feeds/tools/card_glyphs.py`), stored on R2, and only MAPPED by the site worker
-(`seo/legacy.ts`: `/gauge/<station>/card.png` → R2 binding CARDS; missing → `/share/gauge.png` + a `private/cards-missing/`
-marker the gauge run reports). The worker reads which gauges have pages from the site's `/gauge/stations.json`. (T530) The slug/path/URL is one core function (`core/gaugePage.ts`) used by this build and by the app's Share on the Conditions gauge card (`ui` `useGaugeShare`, `ui-native` `GaugeShare`).
+The SEO site: `app/seo/` holds slugs and legacy redirects; a water page IS the app, server-rendered
+(`tools/seo/pane.tsx`, `prerender.ts`) and taken over by the app when it loads; `/gauge/<station>/<slug>` pages come from
+`tools/seo/gauges.ts`. Source maps per build go to `data/sourcemaps/` (`tools/sourcemaps.mjs`, gitignored).

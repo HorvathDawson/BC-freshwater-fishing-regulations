@@ -1,4 +1,4 @@
-"""T796 hard cases (break-it review 2026-11-16, `handoff/PLAN/curation-review/t796-book-closures-hard-cases/`): the
+"""T796 hard cases (break-it review 2026-11-16, the t796 hard-cases folder, cut in T1081): the
 salmon card quotes THE BOOK'S LINE for a book closure, and its dates never contradict that line.
 
 S2: the ✱ tributary mark (the bundle's "[Includes Tributaries]") cut the rule's words before its dates. S4: the PDF's

@@ -13,7 +13,7 @@ export const TAPS = `${GOLDEN_DIR}taps.json`;
 
 /**
  * page_v36.html's FROZEN inputs are read with the 2026-10-26 zone daily-quota entry merge applied (owner,
- * handoff/PLAN/curation-review/zone-entry-merges.md: each region's trout/char quota and "Other daily quotas" became one
+ * the zone-entry-merge session note, cut in T1081: each region's trout/char quota and "Other daily quotas" became one
  * entry, zN:daily_quotas; every rule_id kept), because core's store-free fixtures (packages/core/src/regs/testing/
  * ruleRows.ts) were copied in the renamed form and app/tools/regs-fixtures.test.ts holds them to the page. FROZEN: it
  * never grows — a later ruling moves the release, which the parities read through page-oracle.json and pageDecode, never

@@ -611,8 +611,8 @@ OFF_LINE_PIECES_FOLLOW_THEIR_FLOW = True
 #: (`A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`). What still straddles stays unplaced with its typed reason, and
 #: the run's gate (`build.straddle_gate`) refuses it.
 
-#: AN AMBIGUOUS CUT TAKES THE CANDIDATE NEAREST THE RULE'S OTHER END (owner 2026-10-22, decisions.md
-#: "the audit plan"). One split id can land at two measures on one blue line — a lake the line runs
+#: AN AMBIGUOUS CUT TAKES THE CANDIDATE NEAREST THE RULE'S OTHER END (owner 2026-10-22, decisions.md,
+#: "Cuts and boundaries"). One split id can land at two measures on one blue line — a lake the line runs
 #: through is met at its outlet AND its inlet ("Harrison River … Harrison Lake": km 20 and km 84).
 #: `_cut_at` hands back every candidate; the one taken is the one nearest the other end of the
 #: stretch, "because this will never be a lake regulation and under-lake streams have no regs":
@@ -649,8 +649,8 @@ def _nearest_pair(a, b):
     return _take(a, x), _take(b, y)
 
 
-#: A CURATED PICK OUTRANKS THE GENERAL RULE (owner 2026-10-22, decisions.md "Ambiguous cuts,
-#: refinement"). Where a curated extent says which crossing a cut means (`Extent.cut_pick`: split id
+#: A CURATED PICK OUTRANKS THE GENERAL RULE (owner 2026-10-22, decisions.md
+#: "Cuts and boundaries"). Where a curated extent says which crossing a cut means (`Extent.cut_pick`: split id
 #: -> "lower" | "upper" | a route measure), that candidate is taken BEFORE
 #: `AMBIGUOUS_CUT_NEAREST_THE_OTHER_END` looks at the cut, and the general rule then sees only the
 #: pinned candidate (the other cut of a `between` still follows the general rule, toward the pinned

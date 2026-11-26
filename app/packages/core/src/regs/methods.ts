@@ -3,7 +3,7 @@
  * the water has boat rules) and the closed Reference fold "Handling fish · N rules that apply everywhere" (the conduct
  * rules by moment). Each item ends in its own source line; a day with no fishing says the Gear tab's sentence.
  *
- * Owner rule 2026-10-21 (decisions.md): which ways are allowed and why, their conditions (the clauses, conduct, devices,
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): which ways are allowed and why, their conditions (the clauses, conduct, devices,
  * the rules they are allowed under), the boat rules and the conduct rules are the PIPELINE's gear frame (`GearAnswer.ways`,
  * `vessel`, `conduct`, `caught`) and the rules it cites. This file words them; it decides nothing.
  *
