@@ -216,7 +216,7 @@ export function Place({ place, palette, coach: coachKey = "regs:place" }: { plac
   const coach = useCoachTarget(coachKey ?? undefined);   // (T293) the walkthrough: which part of the water this is
   return (
     <View ref={coach} collapsable={false} style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, marginTop: -2 }}>
-      <Text testID="regs-place" numberOfLines={lines} accessibilityLabel={place?.full} maxFontSizeMultiplier={CAPPED_SCALE}
+      <Text testID="regs-place" numberOfLines={lines} accessibilityLabel={place?.aria ?? place?.full} maxFontSizeMultiplier={CAPPED_SCALE}
             style={[TYPE.metaSemi, { height: lh * lines, color: palette.sub }]}>{shown}</Text>
       {place && (
         // the measuring twin: the full label at the same width, invisible (react-native-web has no onTextLayout)

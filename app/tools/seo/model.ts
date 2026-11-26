@@ -215,7 +215,7 @@ export function partModel(page: RegsPage): PartModel {
   const strip = page.keep.strip?.line.map((l) => l.text).join(" ") ?? "";
   const banner = page.keep.banner;
   return {
-    partIx: page.target.kind === "part" ? page.target.partIx : 0, label: page.header.place?.full ?? page.header.name,
+    partIx: page.target.kind === "part" ? page.target.partIx : 0, label: page.header.place?.aria ?? page.header.place?.full ?? page.header.name,
     status: page.status, today: banner?.big[0] ?? banner?.paras[0] ?? (strip || TODAY_WORDS[page.status]),
     sections: sectionsOf(bare), year: yearOf(page), yearBits: page.keep.strip?.runs.map((r) => ({ bits: r.bits, days: r.days })) ?? null,
     marks: (page.keep.strip?.legend ?? []).map((l) => ({ bit: l.bit, label: l.label })),

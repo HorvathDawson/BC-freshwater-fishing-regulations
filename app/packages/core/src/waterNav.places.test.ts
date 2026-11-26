@@ -7,7 +7,7 @@
  * key)` the map draws: two runs of one rule set are not "different".
  */
 import { describe, expect, it } from "vitest";
-import { entryPlaces, mergeNav, partName, partRowAria, partWhere, waterGroup, type ItemNavRows } from "./waterNav";
+import { entryPlaces, mergeNav, nameUnder, partName, partRowAria, partWhere, waterGroup, type ItemNavRows } from "./waterNav";
 
 const ENDS = { mouth: ["Mouth"], sp: ["Sandy Pool sign"], cb: ["Canyon Bridge"], ws: ["Watershed boundary"], source: ["Source"] };
 const piece = (partIx: number, lo: string, hi: string, grp = 0, run = 0) => ({ partIx, label: "", grp, run, lo, hi });
@@ -34,6 +34,18 @@ describe("(T1140) no part is numbered, anywhere the map says one", () => {
         expect(COUNT.test(`${partWhere(g, i)} ${partRowAria(g, i)}`)).toBe(false);
       });
     }
+  });
+
+  it("(owner: \"Drop the repeat\") a name that starts with the water's is shown by its words under it; others as they are", () => {
+    expect(nameUnder("Squamish River", "Squamish River inside Baynes Island Ecological Reserve")).toBe("Inside Baynes Island Ecological Reserve");
+    expect(nameUnder("Capilano River", "CN Railway Bridge (tidal boundary) → Cable Pool Bridge footbridge"))
+      .toBe("CN Railway Bridge (tidal boundary) → Cable Pool Bridge footbridge");
+    expect(nameUnder("Comox Creek", "Side channel, joining 12 km from the mouth")).toBe("Side channel, joining 12 km from the mouth");
+    expect(nameUnder("Vedder River", "Vedder River")).toBe("Vedder River");          // the water's own name: no words left
+    expect(nameUnder("Squamish River", "Squamish Rivers end")).toBe("Squamish Rivers end");   // the whole name, then a space
+    // a part named by its ends whose first end begins with the water's name is a place, never a repeat (the Skeena's reserve)
+    expect(nameUnder("Skeena River", "Skeena River Ecological Reserve boundary (km 63.5) → Exchamsiks River confluence"))
+      .toBe("Skeena River Ecological Reserve boundary (km 63.5) → Exchamsiks River confluence");
   });
 
   it("a water of one part is still the whole water", () => {

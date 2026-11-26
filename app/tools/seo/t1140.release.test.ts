@@ -48,10 +48,12 @@ describe.skipIf(!at.dir)("(T1140) a part of a water of several is named, never n
 
   it("the Squamish and the Gordon: their side channels named by the area they lie inside, head and map alike", async () => {
     const [sq, go] = [await lead(SQUAMISH), await lead(GORDON)];
-    expect([sq.map, sq.h.place?.short, sq.h.others]).toEqual(["Squamish River inside Baynes Island Ecological Reserve",
-      "Squamish River inside Baynes Island Ecological Reserve", WATER_MAP_WORDS.partsOthers]);
+    // the map lists the full name; the head, under the water's name, its words alone (owner: "Drop the repeat"), the full
+    // name for a screen reader
+    expect([sq.map, sq.h.place?.short, sq.h.place?.aria, sq.h.others]).toEqual(["Squamish River inside Baynes Island Ecological Reserve",
+      "Inside Baynes Island Ecological Reserve", "Squamish River inside Baynes Island Ecological Reserve", WATER_MAP_WORDS.partsOthers]);
     expect([go.map, go.h.place?.short]).toEqual(["Gordon River inside Pacific Rim National Park Reserve",
-      "Gordon River inside Pacific Rim National Park Reserve"]);
+      "Inside Pacific Rim National Park Reserve"]);
   }, 60_000);
 
   it("a side channel in no one area is said by the release's own words for it (owner 17:31: \"The data's own label\")", async () => {
@@ -82,7 +84,7 @@ describe.skipIf(!at.dir)("(T1140) a part of a water of several is named, never n
     const built = await buildAll({ loader: openReleaseDir(at.dir!), on: DAY, only: new Set([SQUAMISH, CAPILANO]), gauges: null });
     const text = (html: string) => html.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/g, " ").replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ");
-    for (const [item, name] of [[SQUAMISH, "Squamish River inside Baynes Island Ecological Reserve"],
+    for (const [item, name] of [[SQUAMISH, "Inside Baynes Island Ecological Reserve"],
                                 [CAPILANO, "From the CN Railway Bridge (tidal boundary) up to the Cable Pool Bridge footbridge"]] as const) {
       const page = built.build.pages.find((p) => p.path === `/water/${built.build.slugMap.waters[item]!.slug}`)!;
       const body = text(page.html);

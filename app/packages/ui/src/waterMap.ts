@@ -24,7 +24,7 @@
 import { useMemo, useRef, useState } from "react";
 import {
   reportOnce, crossLabel, crossDown, crossUp, entryNames, entryPieces, entryPlaces, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, mouthA11y, mouthLabel, navSections, partAt, partBounds,
-  onePartLabel, partEnds, partName, partOfSection, partRowAria, partWhere, stepDown, stepUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
+  nameUnder, onePartLabel, partEnds, partName, partOfSection, partRowAria, partWhere, stepDown, stepUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
   type NavCross, type NavExit, type PartPlaces, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
@@ -133,6 +133,9 @@ export interface WaterMapStepVM {
 export interface WaterMapVM {
   readonly parts: readonly WaterMapPartVM[];
   readonly current: WaterMapPartVM;
+  /** (T1140, owner "Drop the repeat") the current part's name as the bar shows it under `where` (`nameUnder`); its full
+   *  name (`current.name`) is the label a screen reader says */
+  readonly shown: string;
   /** "Part 2 of 4 · Chilliwack River". */
   readonly where: string;
   /** ▼ / ▲: the label, its words for a screen reader (`aria`), whether it is an end, and — where it
@@ -244,6 +247,7 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     parts: g.parts.map((_, i) => partVM(g, i)),
     current,
     where: partWhere(g, at),
+    shown: nameUnder(partWhere(g, at), current.name),
     down: step("down", down, crossDown(g, at)),
     up: step("up", up, crossUp(g, at)),
     marks: [...marks, ...mouthMark(g, down === null && ends.lo === null)],

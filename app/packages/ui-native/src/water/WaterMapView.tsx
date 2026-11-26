@@ -225,7 +225,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
             {/* (T214 item 4) two lines are kept for the name at every part: a name that wraps in one part and not in the
                 next must not move the steps when the reader steps between them (a longer name is cut; its full words are the label) */}
             <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, minHeight: 46, color: palette.ink, marginTop: 2 }}
-                  testID="water-map-name" numberOfLines={2} accessibilityLabel={dv.current.name}>{dv.current.name}</Text>
+                  testID="water-map-name" numberOfLines={2} accessibilityLabel={dv.current.name}>{dv.shown}</Text>
             {!split && steps(dv)}
             <Pressable ref={regsRing} onPress={() => onShowRegs(dv.regs.item as ItemId, dv.regs.partIx)} accessibilityRole="button"
                        accessibilityLabel={dv.regs.label} testID="water-map-regs"

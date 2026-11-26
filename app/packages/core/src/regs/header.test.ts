@@ -193,6 +193,15 @@ describe("(T1140) headerOf: the line to the other parts, never a count", () => {
     const same = new Map([[0, { differs: false }], [1, { differs: false }]]);
     expect(Object.keys(headerOf(sq(1), { today, status: "open", places: same }))).not.toContain("others");
   });
+  // (owner 2026-11-25 evening: "Drop the repeat (Recommended)") under the water's name, a part named "<water> <words>"
+  it("a part named '<water> <words>' is shown by its words under the water's name; the full name is the screen reader's", () => {
+    const names = new Map([[0, "Squamish River inside Baynes Island Ecological Reserve"], [1, "Mouth → Source"]]);
+    const h = headerOf(sq(0), { today, status: "closed", names });
+    expect([h.name, h.place]).toEqual(["Squamish River", { full: "Inside Baynes Island Ecological Reserve",
+      short: "Inside Baynes Island Ecological Reserve", aria: "Squamish River inside Baynes Island Ecological Reserve" }]);
+    // a part named by its ends is exactly as it was: no `aria` key at all
+    expect(headerOf(sq(1), { today, status: "open", names }).place).toStrictEqual({ full: "Mouth → Source", short: "Mouth → Source" });
+  });
   it("a part with no ends of a water of several is said by the release's own words for it (before the map is read too)", () => {
     const own = [part("x", null, null, { runs: "Side channel, joining 12 km from the mouth" }), part("From the mouth", "mouth", "source")];
     expect(headerOf(inputs({ name: "Comox Creek", parts: own, choices: [], partIx: 0 }), { today, status: "closed" }).place)
@@ -200,7 +209,8 @@ describe("(T1140) headerOf: the line to the other parts, never a count", () => {
   });
   it("a part with no facts that is not tidal is outside B.C.: '<water> outside B.C.'", () => {
     const out = inputs({ name: "Kettle River", parts: [part("From the mouth", "mouth", "source"), null], choices: [], partIx: 1 });
-    expect(headerOf(out, { today, status: "outside" }).place).toEqual({ full: "Kettle River outside B.C.", short: "Kettle River outside B.C." });
+    // under the water's name, by its words ("Drop the repeat"); the full name is the screen reader's
+    expect(headerOf(out, { today, status: "outside" }).place).toEqual({ full: "Outside B.C.", short: "Outside B.C.", aria: "Kettle River outside B.C." });
     const tidal = { ...out, tidalPart: true } as typeof out;
     expect(headerOf(tidal, { today, status: "tidal" }).place).toBeNull();
   });
