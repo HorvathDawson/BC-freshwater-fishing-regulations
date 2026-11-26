@@ -146,13 +146,19 @@ describe("T390: the bell's App update section", () => {
 
   it("the strong prompt: its words, the data kept, one Update button", () => {
     let pressed = 0;
-    draw({ vm: appUpdateVM({ channel: "play", check: { state: "current" }, tooOld: true, start: "idle" })!,
+    draw({ vm: appUpdateVM({ channel: "play", check: { state: "available", version: null }, tooOld: true, start: "idle" })!,
            onUpdate: () => { pressed++; } });
     expect(screen.getByText("App update")).toBeTruthy();
     expect(screen.getByTestId("notice-app-text").textContent).toBe("New data needs the latest app.");
     expect(screen.getByText("The app keeps using the data it has until it is updated.")).toBeTruthy();
     fireEvent.click(screen.getByLabelText("Update"));
     expect(pressed).toBe(1);
+  });
+  it("(T1073) the strong prompt while the store does not offer the app: whole words, no Update button", () => {
+    draw({ vm: appUpdateVM({ channel: "play", check: { state: "current" }, tooOld: true, start: "idle" })!, onUpdate: () => {} });
+    expect(screen.getByTestId("notice-app-text").textContent).toBe("New data needs a newer app. It is not available for your phone yet.");
+    expect(screen.getByText("The app keeps using the data it has, and asks the store again each time it opens.")).toBeTruthy();
+    expect(screen.queryByTestId("notice-app-action")).toBeNull();
   });
   it("the gentle prompt sits first, above the data update; a failed start is said under the button", () => {
     draw({ vm: appUpdateVM({ channel: "play", check: { state: "available", version: "0.6.0" }, tooOld: false, start: "failed" })!,

@@ -28,7 +28,9 @@ export const locate: Locate | null = {
     if (!p.granted) throw environmentError(new Error("location permission refused"));
     // a recent fix is good enough to pin a spot by (as the web's maximumAge 60 s); otherwise a fresh one
     const last = await Location.getLastKnownPositionAsync({ maxAge: 60_000, requiredAccuracy: 100 });
-    const fix = last ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+    // (T1163) no fix (services off, no signal, timed out) is the environment's, as the web half's: shown, never reported
+    const fix = last ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
+      .catch((e: unknown) => { throw environmentError(e instanceof Error ? e : new Error(String(e))); });
     return { lat: fix.coords.latitude, lon: fix.coords.longitude, accuracy: fix.coords.accuracy ?? undefined };
   },
   // (T303) following: only after the reader's tap has been allowed (`here()`), foreground only — the updates stop while
