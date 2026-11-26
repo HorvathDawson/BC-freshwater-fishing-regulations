@@ -33,10 +33,12 @@ A stage is skipped while its inputs' digests (atlas, corpus, curated tree, sourc
 last successful run (`data/generated/build-manifest.json`). Two caches, both keyed on content
 (`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`): every stage keys on the modules it really imported,
 the code files it read (`schema.sql`, `tile-contract.json`), the versions of the packages it imported (not every
-installed one), the config.yaml values it read (not the whole file), Python and SQLite, and the tiles also on
-tippecanoe's version and tile-join's binary (T1171); imports or config reads that cannot be traced stop the build. The
-atlas records the same code stamp in its meta, and `pipeline release` refuses an atlas whose code moved (an atlas built
-before T1171 is proven once by `python -m pipeline.atlas.inputs --backfill-code`). And each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
+installed one; a module no distribution owns by its file's bytes), the config.yaml values it read (not the whole
+file), Python and SQLite, and the tiles also on tippecanoe's version, tile-join's and pmtiles' binaries and the map style
+(T1171); config reads that cannot be traced stop the build. The atlas records the same code stamp in its meta (and the
+commit it was built from), and `pipeline release` refuses an atlas whose code moved. **Does the atlas need
+rebuilding?** `python -m pipeline.atlas.inputs` prints every reason (an input, a code file by name, a package, Python /
+SQLite, no code record) and exits 1, or 0 when current; `pipeline build --status` says which. And each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
 (`data/generated/deliver-cache/`). So a rule edit reruns reach and deliver; an answers or wording edit reruns
 answers onward, not the bundle. `build --force deliver` runs every delivery step afresh.
 

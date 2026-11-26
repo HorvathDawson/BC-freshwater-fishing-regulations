@@ -506,6 +506,7 @@ def main(argv: list[str] | None = None) -> None:
     # T547: a digest of every curated input, taken BEFORE any is read (an edit made during the build is not recorded as
     # built); written with graph.pkl (`graph.pkl.meta.json` `input_hashes`), checked by `pipeline release`
     b.input_hashes = _inputs.digests(_inputs.build_paths(args))
+    git_at_start = _inputs.git_state()              # (T1171) the commit it is built from, with the input digests
     _inputs.clear_complete(args.out)                # T547 §4: a build that dies here leaves no marker
     load_fwa(b)
     build_graph(b)
@@ -518,8 +519,11 @@ def main(argv: list[str] | None = None) -> None:
     write_sidecars(b)
     # (T1171) every module, code file and config value is read by now; `pipeline release` refuses an atlas whose code
     # moved since, as it refuses one behind a curated input
-    code = _inputs.record_code(b.out, Path(_CODE_TRACE[0]) if _CODE_TRACE else None)
-    print(f"  code recorded: {len(code['modules'])} modules, {len(code['reads'])} code files" if "modules" in code
+    code = _inputs.record_code(b.out, Path(_CODE_TRACE[0]) if _CODE_TRACE else None, git_at_start)
+    print(f"  code recorded: {len(code['modules'])} modules, {len(code['reads'])} code files, {len(code['packages'])} "
+          f"packages, {len(code['config'])} config values"
+          + (f", at {code['git']['commit'][:12]}{' (with uncommitted edits)' if code['git']['dirty'] else ''}"
+             if code.get("git") else "") if "modules" in code
           else f"  code NOT recorded ({code['unrecorded']}): `pipeline release` refuses this atlas — rebuild it")
     _inputs.write_complete(b.out, b.input_hashes)   # T547 §4: LAST — promote refuses a candidate without it
 

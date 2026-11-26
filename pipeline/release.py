@@ -63,8 +63,8 @@ already done for this release):
                a curated input it was built from (T547, `atlas.inputs.behind`: a cut, name, area, added water, tidal
                limit or slough call edited after the atlas build is named — and (T1171) a module or code file it
                was built from, a package it imported, a config value it read, Python or SQLite,
-               `atlas.inputs.code_behind`; an atlas built before it is proven once by `atlas.inputs --backfill-code` —
-               and the run stops unless
+               `atlas.inputs.code_behind`; an atlas built before it records no code and is rebuilt; every reason is
+               printed, as `python -m pipeline.atlas.inputs` prints it — and the run stops unless
                `--ship-stale-atlas REASON`); every review mark in
                force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); no place's
                latest review save is "wrong" / "unsure" with no extent fix (T786, `review.wrong_saves`; only a dated
@@ -1237,13 +1237,14 @@ def check_atlas(ctx: Ctx) -> Finding:
         return Finding(False, f"cannot tell whether the atlas is current with its curated inputs: {e}",
                        "run `python -m pipeline.atlas.inputs` and fix what it says")
     if behind and ctx.stale_atlas is None:
-        return Finding(False, f"the atlas is behind {len(behind)} input(s) it was built from (T547):\n    "
-                       + "\n    ".join(behind),
+        return Finding(False, f"the atlas NEEDS REBUILDING: {len(behind)} reason(s), an input or its code moved since "
+                       "it was built (T547, T1171):\n    " + "\n    ".join(behind),
                        "rebuild the atlas (`python -m pipeline build --atlas --promote`); or ship the old atlas with "
-                       "--ship-stale-atlas REASON; (T1171) an atlas that records no code: prove it once with "
-                       "`python -m pipeline.atlas.inputs --backfill-code`")
+                       "--ship-stale-atlas REASON")
     if behind:
-        return Finding(True, f"atlas behind {len(behind)} input(s), SHIPPED ANYWAY (--ship-stale-atlas): {ctx.stale_atlas}")
+        # (third review of #286, M3) every reason it ships behind, not a count: the record of what was shipped stale
+        return Finding(True, f"atlas behind {len(behind)} reason(s), SHIPPED ANYWAY (--ship-stale-atlas): "
+                       f"{ctx.stale_atlas}:\n    " + "\n    ".join(behind))
     return Finding(True, "the atlas is current with its curated inputs")
 
 

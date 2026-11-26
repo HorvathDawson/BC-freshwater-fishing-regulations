@@ -388,6 +388,11 @@ def stage_code(stage: str, m: dict | None = None) -> dict:
     return {"roots": code_digest(CODE[stage]), "env": stepcache.env_fingerprint(), "config": stepcache.config_now(["*"])}
 
 
+def _unowned_of(m: dict, stage: str) -> str | None:
+    from pipeline.common import stepcache
+    return stepcache.unowned_note((m["stages"].get(stage) or {}).get("code_packages"))
+
+
 def refused_record(stage: str, rec: dict) -> str | None:
     """(T1171, second review of #286) Why a traced stage's manifest record cannot key it, or None: one with modules but
     an EMPTY package or config set (or none at all) is a recorder miss (`stepcache.EMPTY_IS_A_MISS`) — taken as "no
@@ -465,14 +470,17 @@ def tiles_key(build_dir: Path, m: dict | None = None) -> dict:
             "obstacles": stamp(ob) if ob.exists() else None}
 
 
-#: (T1171) THE OUTSIDE PROGRAMS THE TILES STAGE RUNS (`tiles.tippe`: tippecanoe draws every pass, tile-join merges them)
-#: and how each is named in the key. The recorder sees only Python, so a `brew upgrade tippecanoe` must move the key:
+#: (T1171) THE OUTSIDE PROGRAMS THE TILES STAGE RUNS (`tiles.tippe`: tippecanoe draws every pass, tile-join merges them;
+#: `tiles.version.stamp`: pmtiles reads and rewrites the archive's metadata, `pmtiles show` / `pmtiles edit`) and how
+#: each is named in the key. The recorder sees only Python, so a `brew upgrade tippecanoe` must move the key:
 #:   * tippecanoe by what `--version` prints (v2.79.0 on the build Mac): readable, and the same on another machine with
 #:     the same release;
 #:   * tile-join by the sha256 of its resolved binary: 2.79.0 has NO version flag (`--version`: rc 101, "unrecognized
-#:     option", review of #286), and the binary's bytes change with every install of another build.
-#: (pmtiles is run by the basemap tools only, which are no build stage.)
-TILE_TOOLS = (("tippecanoe", "--version"), ("tile-join", None))
+#:     option", review of #286), and the binary's bytes change with every install of another build;
+#:   * (third review of #286) pmtiles by the sha256 of its resolved binary too: it has no `--version` flag ("unknown flag
+#:     --version", rc 1) and its `version` subcommand says nothing usable on the build Mac (Homebrew 1.31.2 prints
+#:     "pmtiles dev, commit none, built at unknown").
+TILE_TOOLS = (("tippecanoe", "--version"), ("tile-join", None), ("pmtiles", None))
 
 
 def tool_versions() -> dict[str, str]:
@@ -845,9 +853,10 @@ def _traced_key(stage: str, tdir: Path, keyd: dict):
         return None, None, None, f"NOT keyed — {code['moved'][0]} changed while it ran; the next build runs it again"
     del code["moved"]
     k2 = dict(keyd, code=stepcache.code_key(code["modules"], code["reads"], code["packages"], code["config"]))
+    unowned = stepcache.unowned_note(code["packages"])
     return _sha(k2), input_digests(k2), code, \
         (f"keyed on the {len(code['modules'])} modules, {len(code['reads'])} code files, {len(code['packages'])} "
-         f"packages and {len(code['config'])} config values it used")
+         f"packages and {len(code['config'])} config values it used" + (f" ({unowned})" if unowned else ""))
 
 
 def timings(run: dict) -> str:
@@ -900,15 +909,31 @@ def atlas_inputs_warning(build_dir: Path) -> str | None:
     """(T547) A warning naming each curated input the atlas is behind (`atlas.inputs.behind`), or None when it is
     current. A warning, not a stop: a reach rerun on the old atlas is how a curator checks a placement; `pipeline
     release` is what refuses to SHIP it."""
-    from pipeline.atlas.inputs import behind
+    from pipeline.atlas.inputs import REBUILD, behind
     try:
         bad = behind(build_dir)
     except (OSError, ValueError) as e:
-        return f"build: WARNING — cannot tell whether the atlas is current with its curated inputs: {e}"
+        return f"build: WARNING — cannot tell whether the atlas needs rebuilding: {e}"
     if not bad:
         return None
-    return (f"build: WARNING — the atlas is behind {len(bad)} input(s) or its code (T1171) since it was built; the "
-            "stages below read the OLD atlas and `pipeline release` refuses it (T547):\n  " + "\n  ".join(bad))
+    return (f"build: WARNING — the atlas NEEDS REBUILDING ({len(bad)} reason(s): an input or its code moved since it was "
+            "built, T547 / T1171); the stages below read the OLD atlas and `pipeline release` refuses it. Rebuild: "
+            f"{REBUILD}\n  " + "\n  ".join(bad))
+
+
+
+def atlas_status_line(build_dir: Path) -> str:
+    """(T1171, owner 2026-11-26: "a way to know if the atlas needs rebuilding programatically") `--status`'s atlas line:
+    current, or how many reasons it needs rebuilding and the command that lists them (`atlas.inputs.CHECK`)."""
+    from pipeline.atlas import inputs as I
+    try:
+        bad = I.behind(build_dir)
+    except (OSError, ValueError) as e:
+        return f"atlas {build_dir}: cannot tell whether it needs rebuilding: {e}"
+    if not bad:
+        return f"atlas {build_dir}: current (its inputs and its code as built)"
+    return (f"atlas {build_dir}: NEEDS REBUILDING — {len(bad)} reason(s), each listed by `{I.CHECK}` (rc 1); "
+            f"rebuild: {I.REBUILD}")
 
 
 def keep_live_baseline() -> str:
@@ -960,8 +985,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if a.status:
         mf = (a.side.resolve() / "build-manifest.json") if a.side else MANIFEST
+        side_atlas = a.side.resolve() / "atlas" / (GENERATED.build().name + "_next") if a.side else None
+        atlas_line = atlas_status_line(side_atlas if side_atlas is not None and side_atlas.is_dir() else GENERATED.build())
         if not mf.exists():
-            print(f"build: no manifest at {mf}")
+            print(f"build: no manifest at {mf}\n{atlas_line}")
             return 1
         last = json.loads(mf.read_text(encoding="utf-8"))["runs"][-1]
         print(f"build: last run {last['started']} {' '.join(last.get('argv') or [])} — {last['status']}")
@@ -970,6 +997,7 @@ def main(argv: list[str] | None = None) -> int:
         for log in sorted(logs.glob("*.log")) if logs.is_dir() else []:
             tail = log.read_text(encoding="utf-8", errors="replace").splitlines()[-1:] or [""]
             print(f"  {log}: {tail[0][:140]}")
+        print(atlas_line)           # (T1171, owner 2026-11-26) does the atlas need rebuilding: `atlas.inputs.CHECK`
         return 0
 
     build_dir = GENERATED.build()
@@ -1051,6 +1079,9 @@ def _build(a, build_dir: Path, run: dict, m: dict, t_start: float, at: dict) -> 
         skip = a.no_tiles and s == "tiles"
         print(f"  {s:<8} {key}  {'skip (--no-tiles)' if skip else 'RUN' if go else 'up to date'}"
               + (f"  ({why[s]})" if go and not skip and s in why else ""))
+        # (third review of #286) a module no distribution owns is keyed by its file: the plan says which
+        if s in TRACED and (note := _unowned_of(m, s)):
+            print(f"           {s}: {note}")
     if a.dry_run:
         return 0
     if SIDE is None and dict((s, go) for s, _k, go in rows).get("reach"):

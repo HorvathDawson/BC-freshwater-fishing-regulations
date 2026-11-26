@@ -6,17 +6,19 @@ the repo (`.test-scratch/`, git-ignored: the recorder skips the temp dir by desi
 tools are fakes on $PATH. No build runs.
 
   1. a stage's non-.py code (the bundle's schema.sql) was in no stage key;
-  2. the tiles and clim keys left out the packages, SQLite and the tippecanoe / tile-join identities;
-     owner pick A: a key holds only the packages a stage IMPORTS and the config values it READS — and a stage whose
-     imports or config reads cannot be traced stops the build, naming it;
+  2. the tiles and clim keys left out the packages, SQLite and the tippecanoe / tile-join / pmtiles identities and the
+     map style; owner pick A: a key holds only the packages a stage IMPORTS and the config values it READS — a module
+     no distribution owns is keyed by its file (third review), and config reads that cannot be traced stop the build;
   3. the atlas recorded its curated inputs but no code (the recorder now starts before the atlas module's imports, and
-     leaves the record machinery out); owner pick B: an atlas built before this is proven once by git (`--backfill-code`).
+     leaves the record machinery out); owner 2026-11-26: an atlas built before this is REBUILT (no backfill), and one
+     command says whether the atlas needs rebuilding and why (`python -m pipeline.atlas.inputs`, rc 1).
 (4, `changed_waters` against the release before, is a design question: the PR says why; no code here.)
 """
 from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -143,12 +145,15 @@ def test_hole1_a_schema_only_edit_moves_the_traced_stage_key(scratch, config_cop
 
 def test_hole1_a_reused_step_still_names_its_code_to_the_stage(scratch):
     """A REUSED bundle step writes its code into the stage's trace: its modules and (T1171) its code reads, packages and
-    config values, so a stage whose bundle was reused still keys on schema.sql."""
+    config values, so a stage whose bundle was reused still keys on schema.sql; and (M1) where a package no
+    distribution owns was loaded from."""
     mod, schema, data = _tree(scratch)
     SC.write_modules_trace(scratch / "stage", {rel(mod): "ab" * 32}, "bundle", reads=[rel(schema), rel(data)],
-                           packages=["yaml"], config={"curated": "c0ffee"})
+                           packages=["yaml", "_virtualenv"], config={"curated": "c0ffee"},
+                           package_files={"_virtualenv": "/venv/site/_virtualenv.py"})
     t = SC.Trace(scratch / "stage")
-    assert set(t.reads) == {rel(schema)} and t.packages == {"yaml"} and t.config == {"curated": "c0ffee"}
+    assert set(t.reads) == {rel(schema)} and t.packages == {"yaml", "_virtualenv"} and t.config == {"curated": "c0ffee"}
+    assert t.package_files == {"_virtualenv": "/venv/site/_virtualenv.py"}
 
 
 def test_hole1_a_code_file_edited_while_the_stage_ran_keys_nothing(scratch, config_copy):
@@ -194,14 +199,151 @@ def test_pick_a_only_a_config_value_the_stage_reads_moves_its_key(scratch, confi
     assert plan_key() != key
 
 
-def test_pick_a_an_import_no_distribution_owns_stops_the_build_naming_the_stage(scratch):
+def test_m1_an_import_no_distribution_owns_is_keyed_by_its_file_never_a_stop(scratch, tmp_path):
+    """(Third review of #286, M1) a top-level name no distribution owns STOPPED the build after the stage ran, before
+    the manifest was saved — so every build repeated it. It is keyed by its file's bytes now, and the run says so."""
+    lone = tmp_path / "no_such_package_t1171.py"
+    lone.write_text("X = 1\n")
     tr = scratch / "tr"
     tr.mkdir()
     (tr / "1.trace").write_text(f"M\t{REPO_ROOT / 'pipeline' / '__init__.py'}\t"
                                 f"{SC.code_now(['pipeline/__init__.py'])['pipeline/__init__.py']}\n"
-                                "P\tno_such_package_t1171\t\n")
-    with pytest.raises(SystemExit, match=r"build: tiles: tiles imported `no_such_package_t1171`, which no installed"):
-        B._traced_key("tiles", tr, {"x": 1})
+                                f"P\tno_such_package_t1171\t{lone}\nP\tyaml\t\n"
+                                f"C\tcurated\t{SC.config_now(['curated'])['curated']}\n")
+    key, _i, code, note = B._traced_key("tiles", tr, {"x": 1})          # raised SystemExit before the fix
+    assert key is not None and SC.unowned_entry("no_such_package_t1171", str(lone)) in code["packages"]
+    assert "keyed by their file's bytes instead of a version: no_such_package_t1171" in note
+    k = SC.code_key({}, {}, code["packages"], {})
+    assert str(lone) not in json.dumps(k)                       # the key holds the bytes, never this machine's path
+    lone.write_text("X = 2\n")
+    assert SC.code_key({}, {}, code["packages"], {}) != k       # its bytes moved: the stage runs
+    m = {"stages": {"tiles": {"code_packages": code["packages"]}}}
+    assert "no_such_package_t1171" in B._unowned_of(m, "tiles")      # the plan names it too
+
+
+#: (M1) a stage stand-in run the way a uv / virtualenv venv runs everything: its `_virtualenv.py` (installed by the venv
+#: tool into site-packages, owned by no distribution) is imported before any stage code
+VENV_RUN = textwrap.dedent("""
+    import _virtualenv                               # what a virtualenv's _virtualenv.pth imports at startup
+    import pipeline
+    from pipeline.common import curated
+    curated.GENERATED.bundle
+    import yaml
+""")
+
+
+def test_m1_a_virtualenv_s_own_module_keys_the_stage_under_the_real_recorder(scratch, tmp_path):
+    site = tmp_path / "site"
+    site.mkdir()
+    (site / "_virtualenv.py").write_text("PATCHED = True\n")
+    tr = scratch / "tr"
+    subprocess.run([PY, "-c", VENV_RUN], check=True, cwd=REPO_ROOT,
+                   env={**_env(scratch, PIPELINE_TRACE=str(tr)),
+                        "PYTHONPATH": f"{site}{os.pathsep}{REPO_ROOT}"})
+    assert "_virtualenv" not in metadata.packages_distributions()     # owned by nothing, as in a real venv
+    key, _i, code, note = B._traced_key("reach", tr, {"x": 1})        # raised SystemExit before the fix
+    assert key is not None, note
+    assert SC.unowned_entry("_virtualenv", str((site / "_virtualenv.py").resolve())) in code["packages"] \
+        or SC.unowned_entry("_virtualenv", str(site / "_virtualenv.py")) in code["packages"]
+    assert "_virtualenv" in note and "pyyaml" in code["packages"]
+
+
+#: (M1) an entry script OUTSIDE the repo with a spawn pool: the parent's `__main__` and every worker's `__mp_main__`
+#: are that script, owned by no distribution
+SPAWN_SCRIPT = textwrap.dedent("""
+    import multiprocessing as mp
+    import pipeline
+    from pipeline.common import curated
+    import yaml
+
+
+    def work(x):
+        curated.GENERATED.bundle
+        return x
+
+
+    if __name__ == "__main__":
+        curated.GENERATED.bundle
+        with mp.get_context("spawn").Pool(1) as pool:
+            assert pool.map(work, [1]) == [1]
+""")
+
+
+def test_m1_an_entry_script_outside_the_repo_and_its_spawn_workers_key_by_its_bytes(scratch, tmp_path):
+    script = tmp_path / "entry_t1171.py"
+    script.write_text(SPAWN_SCRIPT)
+    tr = scratch / "tr"
+    subprocess.run([PY, str(script)], check=True, cwd=REPO_ROOT, env=_env(scratch, PIPELINE_TRACE=str(tr)))
+    t = SC.Trace(tr)
+    assert {"__main__", "__mp_main__"} <= t.packages, sorted(t.packages)       # the case is really exercised
+    key, _i, code, note = B._traced_key("deliver", tr, {"x": 1})      # raised SystemExit before the fix
+    assert key is not None, note
+    tops = {SC.unowned_parts(d)[0] for d in code["packages"] if d.startswith(SC.UNOWNED)}
+    assert {"__main__", "__mp_main__"} <= tops
+    k = SC.code_key({}, {}, code["packages"], {})
+    script.write_text(SPAWN_SCRIPT + "\n# edited\n")
+    assert SC.code_key({}, {}, code["packages"], {}) != k
+
+
+def test_m1_an_install_with_no_ownership_record_keys_its_package_directory(tmp_path, monkeypatch):
+    """A PEP 660 editable install with no `top_level.txt`, or a conda package with no RECORD: the package is found but
+    no distribution claims it. Its directory is keyed, every file in it."""
+    pkg = tmp_path / "lonepkg"
+    pkg.mkdir()
+    (pkg / "__init__.py").write_text("")
+    (pkg / "core.py").write_text("A = 1\n")
+    monkeypatch.setattr(metadata, "packages_distributions", lambda: {})
+    got = SC.distributions_of({"lonepkg"}, "tiles", {"lonepkg": str(pkg)})
+    assert got == [SC.unowned_entry("lonepkg", str(pkg))]
+    before = SC.package_versions(got)
+    (pkg / "core.py").write_text("A = 2\n")                    # a submodule, not the __init__
+    assert SC.package_versions(got) != before
+    assert SC.package_versions([SC.unowned_entry("gone", "")]) == {SC.unowned_entry("gone", ""): "no file"}
+
+
+def test_l1_a_config_value_edited_while_the_stage_ran_keys_nothing(scratch, config_copy):
+    """(Third review of #286, L1) the config-moved guard (`traced_code`: a value read differs NOW): the run was made from
+    the value read, so it cannot be keyed on the value there now."""
+    _mod, schema, data = _tree(scratch)
+    tr = _traced_run(scratch, schema, data)
+    config_copy("data_accessor.gpkg_path", "elsewhere/fwa.gpkg")           # after the stage read it
+    key, _i, _c, note = B._traced_key("deliver", tr, {"x": 1})
+    assert key is None and "config data_accessor.gpkg_path" in note
+
+
+def test_l1_a_config_value_read_before_the_recorder_is_still_written(tmp_path):
+    """(L1) a config loader that ran at import time, before `install`, is written out by it (`_config_seen` replayed)."""
+    probe = textwrap.dedent("""
+        import sys
+        from pipeline import _trace
+        _trace.config_read("early.key", {"a": 1})        # before any recorder
+        _trace.install(sys.argv[1])
+    """)
+    d = tmp_path / "tr"
+    subprocess.run([PY, "-c", probe, str(d)], check=True, cwd=REPO_ROOT,
+                   env={k: v for k, v in os.environ.items() if k != "PIPELINE_TRACE"})
+    lines = "".join(f.read_text() for f in d.glob("*.trace")).splitlines()
+    from pipeline import _trace
+    assert f"C\tearly.key\t{_trace.config_digest({'a': 1})}" in lines
+
+
+def test_l1_the_exit_sweep_names_a_package_loaded_past_the_finders(scratch, tmp_path):
+    """(L1) a module loaded straight from its file (`spec_from_file_location`: no finder on `sys.meta_path` is asked, as
+    a plugin loader does) is named only by the sweep at exit."""
+    plug = tmp_path / "plugin_t1171.py"
+    plug.write_text("X = 1\n")
+    probe = textwrap.dedent("""
+        import importlib.util, sys
+        import pipeline
+        spec = importlib.util.spec_from_file_location("plugin_t1171", sys.argv[1])
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["plugin_t1171"] = mod
+        spec.loader.exec_module(mod)
+    """)
+    tr = scratch / "tr"
+    subprocess.run([PY, "-c", probe, str(plug)], check=True, cwd=REPO_ROOT, env=_env(scratch, PIPELINE_TRACE=str(tr)))
+    t = SC.Trace(tr)
+    assert "plugin_t1171" in t.packages and t.package_files["plugin_t1171"].endswith("plugin_t1171.py")
 
 
 def test_pick_a_config_read_with_no_value_recorded_stops_the_build(scratch):
@@ -271,7 +413,7 @@ def test_finding2_an_empty_package_or_config_set_is_refused_never_none(scratch, 
             "reads": {}, "packages": {}, "config": SC.config_now(["curated"]), **SC.stage_env()}   # all else current
     I.write_meta(atlas, {"input_hashes": {"k": "v"}, I.CODE: code})
     got = I.behind(atlas, {"k": "v"})
-    assert len(got) == 1 and "its code record names no package" in got[0] and I.REBUILD in got[0]
+    assert len(got) == 1 and "its code record names no package" in got[0]
 
 
 def test_pick_a_config_yaml_is_loaded_only_by_the_two_recording_loaders():
@@ -284,7 +426,10 @@ def test_pick_a_config_yaml_is_loaded_only_by_the_two_recording_loaders():
         if "/tests/" in r or r in allowed or SC.is_machinery(r):
             continue
         text = p.read_text(encoding="utf-8")
-        if "yaml.safe_load" in text and ("config.yaml" in text or "curated.CONFIG" in text or "import CONFIG" in text):
+        # (third review of #286, L4) any YAML loader, not only `yaml.safe_load`, in a file that names the config file
+        loads = re.search(r"\byaml\.(safe_|full_|unsafe_)?load(_all)?\b|\bYAML\(", text)
+        names = re.search(r"config\.yaml|\bCONFIG\b|config_path\(", text)
+        if loads and names:
             offenders.append(r)
     assert not offenders, f"config.yaml parsed outside the recording loaders: {offenders}"
     for r in sorted(allowed):
@@ -312,14 +457,17 @@ def test_hole2_the_step_cache_env_names_sqlite_and_no_install_path(monkeypatch):
         SC.env_fingerprint.cache_clear()
 
 
-def _fake_tools(d: Path, tippecanoe: str, tile_join_build: str = "build 1") -> None:
+def _fake_tools(d: Path, tippecanoe: str, tile_join_build: str = "build 1", pmtiles_build: str = "build 1") -> None:
     """tippecanoe says its version on stderr; tile-join, like 2.79.0's, REJECTS --version (rc 101) — its identity is
-    its binary's bytes (`tile_join_build` stands for another build of it)."""
+    its binary's bytes (`tile_join_build` stands for another build of it); pmtiles, like Homebrew's 1.31.2, has no
+    `--version` ("unknown flag", rc 1) and a `version` that says "dev": its bytes too."""
     d.mkdir(exist_ok=True)
     (d / "tippecanoe").write_text(f"#!/bin/sh\necho '{tippecanoe}' >&2\n")
     (d / "tile-join").write_text(f"#!/bin/sh\n# {tile_join_build}\n"
                                  "echo \"tile-join: unrecognized option '$1'\" >&2\nexit 101\n")
-    for n in ("tippecanoe", "tile-join"):
+    (d / "pmtiles").write_text(f"#!/bin/sh\n# {pmtiles_build}\n"
+                               "echo \"pmtiles: error: unknown flag $1\" >&2\nexit 1\n")
+    for n in ("tippecanoe", "tile-join", "pmtiles"):
         (d / n).chmod(0o755)
 
 
@@ -355,19 +503,62 @@ def test_hole2_a_tippecanoe_or_tile_join_change_moves_the_tiles_key(tmp_path, mo
     assert B.tiles_key(build) != before
     _fake_tools(bin_, "tippecanoe v2.79.0")
     assert B.tiles_key(build) == before
+    # (third review of #286, M2b) pmtiles stamps the archive's metadata (`tiles.version.stamp`): its binary is keyed
+    assert before["tools"]["pmtiles"].startswith("sha256:")
+    _fake_tools(bin_, "tippecanoe v2.79.0", pmtiles_build="build 2")
+    assert B.tiles_key(build) != before
 
 
 def test_hole2_a_missing_tool_is_said_and_a_broken_one_stops(tmp_path, monkeypatch):
     bin_ = tmp_path / "bin"
     _fake_tools(bin_, "tippecanoe v2.79.0")
     (bin_ / "tile-join").unlink()
+    (bin_ / "pmtiles").unlink()
     # ONLY the fakes on $PATH: a runner with tippecanoe installed has a real tile-join in /usr/bin (CI on #286); the
     # fakes are `#!/bin/sh` scripts using builtins only, so they need nothing else on it
     monkeypatch.setenv("PATH", str(bin_))
-    assert B.tool_versions()["tile-join"] == "missing"        # the stage runs; the preflight refuses it by name
+    got = B.tool_versions()
+    assert got["tile-join"] == "missing" and got["pmtiles"] == "missing"     # the stage runs; the preflight says
     (bin_ / "tippecanoe").write_text("#!/bin/sh\nexit 3\n")
     with pytest.raises(SystemExit, match="tippecanoe --version` failed"):
         B.tool_versions()
+
+
+STYLE = "app/packages/map/style/style.json"
+#: (M2a) the tiles stage's read of the map style, as `tiles.assets.wanted` makes it, under the real recorder
+STYLE_RUN = textwrap.dedent("""
+    import pipeline
+    from pipeline.common import curated
+    curated.GENERATED.bundle
+    from pipeline.deliver.tiles import assets
+    assets.wanted()
+""")
+
+
+def test_m2a_a_font_added_to_the_map_style_moves_the_tiles_key(tmp_path, monkeypatch):
+    """(Third review of #286, M2a) the tiles stage reads the map style (`assets.wanted` -> `style_fonts`): it was left
+    out of the code key (`CODE_READ_ROOTS` held only `pipeline/`), so a font added to the style kept the tiles
+    "up to date" and the shipped assets lacked its glyphs."""
+    assert SC.is_code_read(STYLE)
+    tr = tmp_path / "tr"
+    env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPYCACHEPREFIX", "PIPELINE_TRACE")}
+    subprocess.run([PY, "-c", STYLE_RUN], check=True, cwd=REPO_ROOT,
+                   env={**env, "PYTHONPATH": str(REPO_ROOT), "PIPELINE_TRACE": str(tr)})
+    key, _i, code, note = B._traced_key("tiles", tr, {"x": 1})
+    assert key is not None and STYLE in code["reads"], note
+    copy = tmp_path / "style.json"
+    copy.write_bytes((REPO_ROOT / STYLE).read_bytes())
+    real_abs = SC._abs
+    monkeypatch.setattr(SC, "_abs", lambda r: copy if r == STYLE else real_abs(r))   # the style as the test edits it
+    m = {"stages": {"tiles": {"key": key, "code_files": code["modules"], "code_reads": code["reads"],
+                              "code_packages": code["packages"], "code_config": code["config"]}}, "runs": []}
+    plan_key = lambda: B._sha(dict({"x": 1}, code=B.stage_code("tiles", m)))       # noqa: E731
+    assert plan_key() == key
+    style = json.loads(copy.read_text())
+    style["layers"].append({"id": "t1171", "type": "symbol", "source": "x",
+                            "layout": {"text-font": ["Noto Sans Bold T1171"]}})
+    copy.write_text(json.dumps(style))
+    assert plan_key() != key
 
 
 # ------------------------------------------------------------------------------------- hole 3: the atlas's code stamp
@@ -387,17 +578,20 @@ ATLAS = textwrap.dedent("""
     from pipeline.common import stepcache as SC
     SC.CODE_READ_ROOTS = (sys.argv[3],)
     pathlib.Path(sys.argv[1]).read_text()
+    if sys.argv[4] == "edit":                        # (L2) a code file and a module edited WHILE the atlas is built
+        pathlib.Path(sys.argv[1]).write_text("-- edited during the build")
+        pathlib.Path(t1171mod.__file__).write_text("X = 3")
     out = pathlib.Path(sys.argv[2])
     (out / I.META).write_text(json.dumps({"input_hashes": {"k": "v"}}))
     I.record_code(out, pathlib.Path(d))
 """)
 
 
-def _atlas(scratch: Path, schema: Path) -> Path:
+def _atlas(scratch: Path, schema: Path, edit: bool = False) -> Path:
     out = scratch / "atlas"
     out.mkdir()
-    subprocess.run([PY, "-c", ATLAS, str(schema), str(out), SC.CODE_READ_ROOTS[0]], check=True, cwd=REPO_ROOT,
-                   env=_env(scratch))
+    subprocess.run([PY, "-c", ATLAS, str(schema), str(out), SC.CODE_READ_ROOTS[0], "edit" if edit else "-"],
+                   check=True, cwd=REPO_ROOT, env=_env(scratch))
     return out
 
 
@@ -414,7 +608,9 @@ def test_hole3_an_atlas_code_package_or_config_change_is_behind(scratch, config_
     mod.write_text("X = 2\n")
     got = current()
     assert len(got) == 1 and got[0].startswith(f"{rel(mod)} (code): changed since the atlas was built")
-    assert I.REBUILD in got[0]
+    schema.write_text("-- both moved\n")
+    assert [g.split(" (")[0] for g in current()] == sorted([rel(mod), rel(schema)])     # every file named, no count
+    schema.write_text("CREATE TABLE t (a);\n")
     mod.write_text("X = 1\n")
     schema.write_text("-- a code file the atlas read\n")
     assert [g.split(" (")[0] for g in current()] == [rel(schema)]
@@ -428,7 +624,28 @@ def test_hole3_an_atlas_code_package_or_config_change_is_behind(scratch, config_
                 ["data_accessor"]["gpkg_path"])
     bump(monkeypatch, "pyyaml")
     got = current()
-    assert len(got) == 1 and got[0].startswith("pyyaml ") and "(code: packages)" in got[0]
+    # (L5, owner pick A) a routine bump of a package it imports is a reason, naming the package and both versions
+    assert len(got) == 1 and got[0].startswith(f"package pyyaml {code['packages']['pyyaml']} -> 999.0.0 (code: packages)")
+    monkeypatch.undo()
+    monkeypatch.setattr(I, "ATLAS_INPUTS", {"k": "a stand-in input"})
+    monkeypatch.setattr(sqlite3, "sqlite_version", "0.0.1")   # (L1) a new SQLite under the same interpreter
+    assert current() == [f"sqlite {code['sqlite']} -> 0.0.1 (code: env): the atlas was built under another sqlite"]
+
+
+def test_l2_an_edit_made_while_the_atlas_was_built_keeps_the_record_and_is_behind(scratch, monkeypatch):
+    """(Third review of #286, L2) an edit to a module or code file DURING the 32-minute build marked the whole atlas
+    `unrecorded`: the record is kept — the module as imported, the moved code file as `MOVED` — and each is a reason."""
+    mod, schema, _data = _tree(scratch)
+    atlas = _atlas(scratch, schema, edit=True)
+    code = I.read_meta(atlas)[I.CODE]
+    assert "unrecorded" not in code, code
+    import hashlib
+    assert code["reads"][rel(schema)] == I.MOVED                               # hashed at the end: not what was read
+    assert code["modules"][rel(mod)] == hashlib.sha256(b"X = 1\n").hexdigest()  # as imported, not "X = 3"
+    monkeypatch.setattr(I, "ATLAS_INPUTS", {"k": "a stand-in input"})
+    got = I.behind(atlas, {"k": "v"})
+    assert f"{rel(schema)} (code): {I.MOVED}" in got
+    assert f"{rel(mod)} (code): changed since the atlas was built" in got        # imported as X = 1, X = 3 now
 
 
 def test_finding2_the_record_machinery_is_not_the_atlas_s_code(scratch):
@@ -466,19 +683,21 @@ def test_finding3_the_atlas_module_records_what_its_own_imports_read(scratch):
     assert seen["config"], "the atlas module's imports read config.yaml before any value was recorded"
 
 
-def test_hole3_an_atlas_with_no_code_record_names_the_backfill(scratch, monkeypatch):
+def test_hole3_an_atlas_with_no_code_record_is_rebuilt(scratch, monkeypatch):
+    """Owner 2026-11-26 ("yes to rebuild"): an atlas built before T1171 is rebuilt at the next cut; no backfill."""
     monkeypatch.setattr(I, "ATLAS_INPUTS", {"k": "a stand-in input"})
     atlas = scratch / "old"
     atlas.mkdir()
     I.write_meta(atlas, {"input_hashes": {"k": "v"}})          # built before T1171
     got = I.behind(atlas, {"k": "v"})
-    assert len(got) == 1 and "records no code" in got[0] and I.BACKFILL_CODE in got[0] and I.REBUILD in got[0]
+    assert got == ["old/graph.pkl.meta.json (code): records no code (an atlas built before T1171): rebuild it"]
+    assert not hasattr(I, "backfill_code") and not hasattr(I, "BACKFILL_CODE")
     I.write_meta(atlas, {"input_hashes": {"k": "v"}, I.CODE: {"unrecorded": "x.py changed while the atlas was built"}})
     got = I.behind(atlas, {"k": "v"})
     assert len(got) == 1 and "its code was not recorded (x.py changed" in got[0]
 
 
-# ----------------------------------------------------------------- owner pick B: the one-time backfill, proven by git
+# ------------------------------- owner 2026-11-26: the atlas's commit, and "does the atlas need rebuilding" as a command
 
 def _git(root: Path, *args: str, when: str | None = None) -> str:
     env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
@@ -488,66 +707,88 @@ def _git(root: Path, *args: str, when: str | None = None) -> str:
 
 @pytest.fixture
 def repo(tmp_path, monkeypatch):
-    """A temp git repo shaped like this one: an atlas entry importing a helper, a machinery module and PyYAML; a code
-    file beside them; config.yaml. Committed 2026-01-01; the atlas below was built 2026-01-02."""
+    """A temp git repo shaped like this one (a module, a code file, config.yaml), committed; a trace of an atlas build
+    that imported the module and PyYAML, read the code file and one config value; an atlas meta beside it."""
     root = tmp_path.resolve() / "repo"
     (root / "pipeline" / "atlas").mkdir(parents=True)
-    (root / "pipeline" / "__init__.py").write_text("")
-    (root / "pipeline" / "atlas" / "__init__.py").write_text("")
-    (root / "pipeline" / "atlas" / "build.py").write_text(
-        "import yaml\nfrom pipeline.atlas import helper\nfrom . import record\n\n\ndef main():\n"
-        "    import optional_missing_t1171  # noqa: F401 (an optional import nobody installed)\n")
     (root / "pipeline" / "atlas" / "helper.py").write_text("X = 1\n")
-    (root / "pipeline" / "atlas" / "record.py").write_text("RECORD_MACHINERY = True\n")
     (root / "pipeline" / "atlas" / "contract.json").write_text("{}\n")
-    (root / "pipeline" / "atlas" / "README.md").write_text("words\n")
     (root / "config.yaml").write_text("a: 1\n")
     _git(root, "init", "-q")
     _git(root, "add", "-A")
-    _git(root, "commit", "-qm", "base", when="2026-01-01T00:00:00Z")
+    _git(root, "commit", "-qm", "base")
     for mod in (I, SC):
         monkeypatch.setattr(mod, "REPO_ROOT", root)
-    monkeypatch.delenv("CURATED_ROOT", raising=False)          # git proves the live tree only (`git_proof`)
+    monkeypatch.setattr(SC, "config_path", lambda: root / "config.yaml")
+    monkeypatch.setattr(I, "ATLAS_INPUTS", {"k": "a stand-in input"})
+    from pipeline import _trace
+    tr = tmp_path / "trace"
+    tr.mkdir()
+    helper, contract = root / "pipeline" / "atlas" / "helper.py", root / "pipeline" / "atlas" / "contract.json"
+    (tr / "1.trace").write_text(f"M\t{helper}\t{SC.sha_file(helper)}\nR\t{contract}\t{_trace.stamp(str(contract))}\n"
+                                f"P\tyaml\t\nC\ta\t{_trace.config_digest(1)}\n")
     atlas = tmp_path / "atlas"
     atlas.mkdir()
-    import datetime as dt
-    built = dt.datetime(2026, 1, 2, tzinfo=dt.timezone.utc).timestamp()
-    I.write_meta(atlas, {"input_hashes": {"k": "v"}, "build_ts": built})
-    monkeypatch.setattr(I, "ATLAS_INPUTS", {"k": "a stand-in input"})
-    return root, atlas
+    I.write_meta(atlas, {"input_hashes": {"k": "v"}})
+    return root, tr, atlas
 
 
-def test_pick_b_backfill_records_the_proven_code_and_adopts_the_packages(repo):
-    root, atlas = repo
-    said: list[str] = []
-    code = I.backfill_code(atlas, log=said.append)
-    assert sorted(code["modules"]) == ["pipeline/__init__.py", "pipeline/atlas/__init__.py",
-                                       "pipeline/atlas/build.py", "pipeline/atlas/helper.py"]   # machinery out
-    assert list(code["reads"]) == ["pipeline/atlas/contract.json"]                              # no README
-    assert list(code["packages"]) == ["pyyaml"] and list(code["config"]) == ["*"]
+def test_m4_the_atlas_records_its_commit_and_the_check_says_committed_or_uncommitted(repo):
+    """(Owner 2026-11-26, M4) `record_code` stores the commit the build started from and whether a recorded file
+    differed from it; the check then says, per moved file, whether it was committed since or is an uncommitted edit
+    (`git diff <commit> HEAD -- <file>`)."""
+    root, tr, atlas = repo
     head = _git(root, "rev-parse", "HEAD").strip()
-    assert code["backfilled"]["commit"] == head and code["backfilled"]["adopted"] == ["packages", "python", "sqlite"]
-    assert any(s.startswith("inputs: ADOPTED, NOT PROVEN") and "pyyaml==" in s for s in said)
-    assert I.behind(atlas, {"k": "v"}) == []                  # no refusal for the backfilled atlas
-    (root / "pipeline" / "atlas" / "helper.py").write_text("X = 2\n")          # a later real edit still trips it
-    got = I.behind(atlas, {"k": "v"})
-    assert len(got) == 1 and got[0].startswith("pipeline/atlas/helper.py (code): changed since the atlas was built")
-    with pytest.raises(SystemExit, match="already records its code"):
-        I.backfill_code(atlas, log=lambda *_: None)
-
-
-def test_pick_b_backfill_refuses_a_file_changed_since_the_build(repo):
-    root, atlas = repo
+    code = I.record_code(atlas, tr, I.git_state())
+    assert code["git"] == {"commit": head, "dirty": False}
+    assert I.behind(atlas, {"k": "v"}) == []
     (root / "pipeline" / "atlas" / "helper.py").write_text("X = 2\n")
-    _git(root, "commit", "-qam", "after the atlas", when="2026-01-03T00:00:00Z")
-    with pytest.raises(SystemExit, match=r"refused: git cannot prove 1 file\(s\)[\s\S]*pipeline/atlas/helper.py"):
-        I.backfill_code(atlas, log=lambda *_: None)
-    assert I.CODE not in I.read_meta(atlas)                   # nothing written
-    assert "records no code" in I.behind(atlas, {"k": "v"})[0]
+    assert I.behind(atlas, {"k": "v"}) == [
+        f"pipeline/atlas/helper.py (code): changed since the atlas was built; git: an uncommitted edit since {head[:12]}"]
+    _git(root, "commit", "-qam", "later")
+    assert I.behind(atlas, {"k": "v"}) == [
+        f"pipeline/atlas/helper.py (code): changed since the atlas was built; git: committed since {head[:12]}"]
 
 
-def test_pick_b_backfill_refuses_an_uncommitted_edit(repo):
-    root, atlas = repo
+def test_m4_an_atlas_built_on_uncommitted_code_is_dirty_and_names_no_git_reason(repo):
+    root, tr, atlas = repo
+    (root / "pipeline" / "atlas" / "contract.json").write_text('{"x": 1}\n')     # before the record, after the read
+    code = I.record_code(atlas, tr, I.git_state())
+    assert code["git"]["dirty"] is True
+    assert code["reads"]["pipeline/atlas/contract.json"] == I.MOVED              # (L2) kept, not `unrecorded`
+    assert I.behind(atlas, {"k": "v"}) == [f"pipeline/atlas/contract.json (code): {I.MOVED}"]
+
+
+def test_owner_the_check_command_prints_every_reason_and_exits_by_the_answer(repo, capsys, monkeypatch):
+    """(Owner 2026-11-26: "a way to know if the atlas needs rebuilding programatically") `python -m
+    pipeline.atlas.inputs`: rc 0 current, 1 needs rebuilding with every reason on its own line, 2 cannot tell; and
+    `pipeline build --status` / `--dry-run` say the same."""
+    root, tr, atlas = repo
+    monkeypatch.setattr(I, "digests", lambda paths=None: {"k": "v"})
+    I.record_code(atlas, tr, I.git_state())
+    assert I.main(["--build", str(atlas)]) == 0
+    assert "is current: its 1 inputs, 1 modules, 1 code files, 1 packages, 1 config values" in capsys.readouterr().out
+    (root / "pipeline" / "atlas" / "helper.py").write_text("X = 2\n")
     (root / "pipeline" / "atlas" / "contract.json").write_text('{"x": 1}\n')
-    with pytest.raises(SystemExit, match=r"pipeline/atlas/contract.json"):
-        I.backfill_code(atlas, log=lambda *_: None)
+    bump(monkeypatch, "pyyaml")
+    assert I.main(["--build", str(atlas)]) == 1
+    out = capsys.readouterr().out.splitlines()
+    assert out[0] == f"inputs: the atlas {atlas} NEEDS REBUILDING — 3 reason(s):"
+    assert [o.split(" (")[0].strip() for o in out[1:3]] == ["pipeline/atlas/contract.json", "pipeline/atlas/helper.py"]
+    assert out[3].strip().startswith("package pyyaml ") and "-> 999.0.0" in out[3]
+    assert out[-1] == f"inputs: rebuild: {I.REBUILD}"
+    assert I.main(["--build", str(atlas.parent / "nowhere")]) == 2
+    status = B.atlas_status_line(atlas)
+    assert "NEEDS REBUILDING — 3 reason(s)" in status and I.CHECK in status
+    warn = B.atlas_inputs_warning(atlas)
+    assert "pipeline/atlas/contract.json" in warn and "pipeline/atlas/helper.py" in warn and "package pyyaml" in warn
+
+
+def test_owner_the_check_writes_nothing(repo, monkeypatch):
+    root, tr, atlas = repo
+    monkeypatch.setattr(I, "digests", lambda paths=None: {"k": "v"})
+    I.record_code(atlas, tr, I.git_state())
+    before = {p: p.read_bytes() for p in atlas.iterdir()}
+    status = _git(root, "status", "--porcelain")
+    I.check(atlas, log=lambda *_: None)
+    assert {p: p.read_bytes() for p in atlas.iterdir()} == before and _git(root, "status", "--porcelain") == status

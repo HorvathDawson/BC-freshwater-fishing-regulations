@@ -14,11 +14,15 @@ between that moment and the end of the run — the output came from what was rea
                         access) — an OPTIONAL input: its appearing or going away must change the key; kind = `kind()`
     X <what>            an event that names no path this recorder can key (a directory fd, a `dir_fd=` relative path):
                         the run is NOT keyable and the consumer keeps no record — never a silent drop
-    P <name>            (T1171) a THIRD-PARTY top-level package imported (not this repo, not the standard library): the
+    P <name> <where>    (T1171) a THIRD-PARTY top-level package imported (not this repo, not the standard library): the
                         consumer keys the installed distribution that owns it, by version (`stepcache.package_versions`)
-                        — so only what a stage imports moves its key, never pytest or vulture; one no distribution
-                        owns is a raise, never an empty set. Also swept from `sys.modules` at install and at exit,
-                        each module named by its SPEC (pandas' `_cyutility` key is `pandas._libs._cyutility`).
+                        — so only what a stage imports moves its key, never pytest or vulture. `where` is the file (a
+                        module) or directory (a package) it was loaded from: one that NO distribution owns (a uv /
+                        virtualenv `_virtualenv.py`, an entry script outside the repo as `__main__` / `__mp_main__`, an
+                        editable or conda install with no ownership record) is keyed by those bytes instead, as
+                        tile-join is keyed by its binary (third review of #286). Also swept from `sys.modules` at
+                        install and at exit, each module named by its SPEC (pandas' `_cyutility` key is
+                        `pandas._libs._cyutility`).
     C <key> <digest>    (T1171) a config.yaml value read (`config_read`, called by the two config loaders): its dotted
                         key (`*` = the whole file) and the digest of its value — so a stage is keyed on the config
                         values it reads, not on the whole file
@@ -115,6 +119,16 @@ def _emit(k: str, path: str, extra: str = "") -> None:
         return
     _seen.add(key)
     os.write(_fd, f"{k}\t{path}\t{extra}\n".encode("utf-8", "surrogateescape"))
+
+
+def _package(top: str, where: str) -> None:
+    """A P line: once per package, and once more when its `where` is first known (a submodule swept before its package
+    names no file; the consumer takes the first non-empty one)."""
+    key = ("P+" if where else "P", top)
+    if key in _seen:
+        return
+    _seen.add(key)
+    os.write(_fd, f"P\t{top}\t{where}\n".encode("utf-8", "surrogateescape"))
 
 
 def _unkeyable(what: str) -> None:
@@ -219,6 +233,15 @@ def _library_roots() -> tuple[tuple, tuple]:
     return spell(sites), spell(libs)
 
 
+def _where(origin, locations) -> str:
+    """(T1171, third review of #286) What a P line names to key a package no distribution owns: the package's directory
+    (its first search location), else the module's own file; "" when it has neither (the consumer says it is unkeyed)."""
+    locs = [x for x in (locations or []) if x]
+    if locs:
+        return os.path.abspath(locs[0])
+    return os.path.abspath(origin) if origin and origin not in ("built-in", "frozen") else ""
+
+
 def _third_party(name: str, origin, locations) -> str | None:
     """The top-level package to name in a P line, or None for a module of this repo or of the standard library."""
     top = name.partition(".")[0]
@@ -261,10 +284,10 @@ def _sweep() -> None:
             # Cython / C module may register itself under a bare key (pandas 3.0.3: `_cyutility` is
             # `pandas._libs._cyutility`; scipy 1.18: `_csparsetools`, `_moduleTNC`, `_ni_label`), and no distribution
             # owns that bare name, so keying it stopped every real build after the stage had run
-            top = _third_party(_own_name(name, spec), f,
-                               getattr(spec, "submodule_search_locations", None) if spec else None)
+            locs = getattr(spec, "submodule_search_locations", None) if spec else None
+            top = _third_party(_own_name(name, spec), f, locs)
             if top is not None and (f is not None or spec is not None):
-                _emit("P", top)
+                _package(top, _where(f, locs) if top == _own_name(name, spec) else "")
     finally:
         _state.busy = busy
 
@@ -287,7 +310,7 @@ class _ModuleRecorder:
             elif spec is not None:          # (T1171) found: a third-party package is a P line (a failed optional
                 top = _third_party(name, origin, spec.submodule_search_locations)   # import names nothing)
                 if top is not None:
-                    _emit("P", top)
+                    _package(top, _where(origin, spec.submodule_search_locations) if top == name else "")
         finally:
             _state.busy = False
         return None

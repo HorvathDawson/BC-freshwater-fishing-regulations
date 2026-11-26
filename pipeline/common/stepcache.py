@@ -101,7 +101,10 @@ def env_fingerprint() -> dict:
 #: `schema.sql` / `indexes.sql`, the tiles' `tile-contract.json`). The recorder's M lines are `.py` files only; without
 #: this a commit that changed only `schema.sql` left deliver "up to date". The data a stage reads (curated, source,
 #: generated) is keyed by the stage's own key parts, and config.yaml by the VALUES it reads (C lines, `config_now`).
-CODE_READ_ROOTS = ("pipeline/",)
+#: (Third review of #286) The map style is code the tiles stage reads too: `tiles.assets.wanted` takes every font the
+#: style names (`style_fonts`, through `version.to_release` -> `assets.write`), so a font added to it changes the shipped
+#: assets and must move the tiles key.
+CODE_READ_ROOTS = ("pipeline/", "app/packages/map/style/")
 #: the settings file: keyed by the values read from it, never by its bytes
 CONFIG_FILE = "config.yaml"
 
@@ -113,8 +116,10 @@ def is_code_read(rel: str) -> bool:
 
 
 class Untraceable(RuntimeError):
-    """(T1171) A run whose imports or config reads cannot be keyed: a package no installed distribution owns, or
-    config.yaml read with no value recorded. Never an empty set: the caller raises, naming the stage."""
+    """(T1171) A run whose config reads cannot be keyed: config.yaml read with no value recorded, or a run of repo code
+    that recorded no package or no config value at all (`EMPTY_IS_A_MISS`). Never an empty set: the caller raises,
+    naming the stage. (Third review of #286) A package no distribution owns is NOT one: it is keyed by its file
+    (`distributions_of`)."""
 
 
 def stage_env() -> dict:
@@ -124,31 +129,83 @@ def stage_env() -> dict:
     return {"python": sys.version, "sqlite": sqlite3.sqlite_version}
 
 
-def distributions_of(tops, stage: str = "the run") -> list[str]:
-    """The installed distributions that own each imported top-level package (`P` lines), sorted, lower-case. One no
-    distribution owns raises `Untraceable`, naming it."""
+#: (T1171, third review of #286) the prefix of a package entry that NO installed distribution owns: `module:<top>=<where>`
+#: (`distributions_of`), keyed by the bytes at `where` (`file_identity`) instead of a version. What it covers, each found
+#: in a real setup: a uv / virtualenv venv's `_virtualenv.py` (installed by the venv tool, owned by no distribution), an
+#: entry script outside the repo (`__main__`, and `__mp_main__` in every spawn worker), a PEP 660 editable install with no
+#: `top_level.txt`, a conda package with no RECORD. Before, each STOPPED the build after the stage had run, before the
+#: manifest was saved — so every build repeated the stage and the stop.
+UNOWNED = "module:"
+
+
+def unowned_entry(top: str, where: str) -> str:
+    return f"{UNOWNED}{top}={where}"
+
+
+def unowned_parts(entry: str) -> tuple[str, str]:
+    """(top, where) of a `module:<top>=<where>` entry."""
+    top, _, where = entry[len(UNOWNED):].partition("=")
+    return top, where
+
+
+def file_identity(where: str) -> str:
+    """(T1171) A file or package directory as a key holds it: `sha256:<16 hex>` of its bytes (a directory: every file
+    under it by relative name and bytes, caches left out), "missing" for one gone, "no file" when the import named none
+    (then nothing can move it: said by `unowned_note`)."""
+    if not where:
+        return "no file"
+    p = Path(where)
+    if p.is_file():
+        return "sha256:" + hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+    if not p.is_dir():
+        return "missing"
+    h = hashlib.sha256()
+    for q in sorted(x for x in p.rglob("*") if x.is_file() and "__pycache__" not in x.parts and x.name != ".DS_Store"):
+        h.update(str(q.relative_to(p)).encode("utf-8", "surrogateescape"))
+        h.update(b"\0")
+        h.update(q.read_bytes())
+    return "sha256:" + h.hexdigest()[:16]
+
+
+def distributions_of(tops, stage: str = "the run", where: dict | None = None) -> list[str]:
+    """The installed distributions that own each imported top-level package (`P` lines), sorted, lower-case; (third
+    review of #286) one NO distribution owns is the entry `module:<top>=<where>` (`UNOWNED`: keyed by its file's bytes,
+    `file_identity`), never a stop. `where`: {top: the file or package directory it was loaded from} (the P lines')."""
     from importlib import metadata
     owners = metadata.packages_distributions()
     out: set[str] = set()
     for top in sorted(tops):
         dists = owners.get(top)
         if not dists:
-            raise Untraceable(f"{stage} imported `{top}`, which no installed distribution owns: its version cannot be "
-                              "keyed (install it as a package, or move it into the repo)")
+            out.add(unowned_entry(top, (where or {}).get(top, "")))
+            continue
         out |= {re.sub(r"[-_.]+", "-", d).lower() for d in dists}      # PEP 503: one spelling everywhere
     return sorted(out)
 
 
 def package_versions(dists) -> dict[str, str]:
-    """{distribution: its installed version NOW} ("missing" for one no longer installed: the key moves)."""
+    """{distribution: its installed version NOW} ("missing" for one no longer installed: the key moves); an `UNOWNED`
+    entry: its file's identity now (`file_identity`)."""
     from importlib import metadata
     out = {}
     for d in sorted(dists):
+        if d.startswith(UNOWNED):
+            out[d] = file_identity(unowned_parts(d)[1])
+            continue
         try:
             out[d] = metadata.version(d)
         except metadata.PackageNotFoundError:
             out[d] = "missing"
     return out
+
+
+def unowned_note(packages) -> str | None:
+    """The words a plan or a run prints for the packages it keys by their file (`UNOWNED`), or None for none."""
+    tops = sorted(unowned_parts(d)[0] for d in packages or () if d.startswith(UNOWNED))
+    if not tops:
+        return None
+    return (f"{len(tops)} imported module(s) no installed distribution owns, keyed by their file's bytes instead of a "
+            f"version: {', '.join(tops)}")
 
 
 def config_path() -> Path:
@@ -220,6 +277,7 @@ class Trace:
         self.unkeyable: list[str] = []        # X lines
         self.interpreters: set[tuple[str, str]] = set()
         self.packages: set[str] = set()       # (T1171) P lines: third-party top-level packages imported
+        self.package_files: dict[str, str] = {}   # (T1171) {top: the file / directory it was loaded from}
         self.config: dict[str, str] = {}      # (T1171) C lines: config key -> digest of the value read
         files = sorted(Path(directory).rglob("*.trace")) if Path(directory).is_dir() else []
         if not files:
@@ -236,6 +294,8 @@ class Trace:
                     continue
                 if kind == "P":
                     self.packages.add(path)
+                    if extra and not self.package_files.get(path):
+                        self.package_files[path] = extra
                     continue
                 if kind == "C":
                     if self.config.get(path, extra) != extra:
@@ -275,7 +335,7 @@ def traced_code(trace: "Trace", stage: str = "the run") -> dict:
     if CONFIG_FILE in trace.reads and not trace.config:
         raise Untraceable(f"{stage} read {CONFIG_FILE} but recorded no value of it: a reader outside the two config "
                           "loaders (`curated`, `project_config`), whose reads cannot be keyed")
-    dists = distributions_of(trace.packages, stage)
+    dists = distributions_of(trace.packages, stage, trace.package_files)
     if trace.modules and (gone := empty_parts(dists, trace.config)):
         raise Untraceable(f"{stage} recorded {' and '.join(gone)}: {EMPTY_IS_A_MISS}")
     # AFTER the content is hashed: each code file still as it was when it was read (else the hash may be of bytes the
@@ -293,8 +353,10 @@ def code_key(modules, reads, packages, config) -> dict:
     """(T1171) A stage's code key from what its record names, all taken NOW: the modules' and code files' bytes, the
     versions of the distributions it imported, the config values it read, and `stage_env`. The same function keys a
     run that just finished and the next plan, so an unchanged tree gives the same key."""
+    # an UNOWNED entry by its name, not its path: the key holds the file's bytes, never where this machine keeps it
+    pk = {(UNOWNED + unowned_parts(d)[0] if d.startswith(UNOWNED) else d): v for d, v in package_versions(packages).items()}
     return {"traced": code_digest(code_now(modules)), "reads": code_digest(code_reads_now(reads)),
-            "packages": package_versions(packages), "config": config_now(config) if config else {}, **stage_env()}
+            "packages": pk, "config": config_now(config) if config else {}, **stage_env()}
 
 
 def code_digest(files: dict[str, str]) -> str:
@@ -451,7 +513,8 @@ class StepCache:
                          "lists": sorted(filter(outside, trace.lists)),
                          "probes": sorted(filter(outside, trace.probes)),
                          # (T1171) what a reuse hands the enclosing stage's key (`write_modules_trace`)
-                         "packages": sorted(trace.packages), "config": dict(sorted(trace.config.items()))}
+                         "packages": sorted(trace.packages), "config": dict(sorted(trace.config.items())),
+                         "package_files": dict(sorted(trace.package_files.items()))}
                 fp = fingerprint(paths, self.memo)
                 # AFTER the content is hashed: every input still as it was when the step read it (else the hash may
                 # be of bytes the step never saw), every module as imported
@@ -508,14 +571,14 @@ def _place(src: Path, dst: Path) -> None:
 
 
 def write_modules_trace(directory: Path, modules: dict[str, str], name: str, reads=(), packages=(),
-                        config: dict | None = None) -> None:
+                        config: dict | None = None, package_files: dict | None = None) -> None:
     """A reused step's code, written as a trace so the enclosing stage's code key still holds it (the stage key must
     name the code of every step, run or reused): its modules, and (T1171) the code files it read (`is_code_read`;
     `reads`: the record's read paths), stamped now — `reuse` has just matched them by content — the packages it imported
-    and the config values it read."""
+    and the config values it read (`package_files`: where each package was loaded from, for one no distribution owns)."""
     Path(directory).mkdir(parents=True, exist_ok=True)
     lines = "".join(f"M\t{_abs(rel)}\t{d}\n" for rel, d in sorted(modules.items()))
     lines += "".join(f"R\t{_abs(rel)}\t{_trace.stamp(str(_abs(rel)))}\n" for rel in sorted(reads) if is_code_read(rel))
-    lines += "".join(f"P\t{top}\t\n" for top in sorted(packages))
+    lines += "".join(f"P\t{top}\t{(package_files or {}).get(top, '')}\n" for top in sorted(packages))
     lines += "".join(f"C\t{k}\t{d}\n" for k, d in sorted((config or {}).items()))
     (Path(directory) / f"reused-{name}.trace").write_text(lines, encoding="utf-8")
