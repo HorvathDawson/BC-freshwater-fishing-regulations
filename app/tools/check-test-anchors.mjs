@@ -2,7 +2,7 @@
 /**
  * (T667 work item 4) TEST ANCHORS, the app half (the pipeline half is `pipeline/tests/anchors.py`, same rule).
  *
- * A test stands on ONE of four anchors (T667-audit §3): (a) data it builds itself, (b) a frozen committed fixture (the
+ * A test stands on ONE of four anchors (ticket T667, "Rules for new tests"): (a) data it builds itself, (b) a frozen committed fixture (the
  * three `fixtureRelease(...)` releases, `makeFixtureSource`), (c) THE RELEASE UNDER TEST through the allowed helpers,
  * (d) a generated expectations file read through its reader (`taps()`, `pageOracle()`). This scanner finds the test files
  * that stand on something else, or that name a POSITION of one build. It walks the TypeScript syntax tree, so a comment

@@ -26,8 +26,17 @@ Depends: none. Size: M (research first).
 
 ## Owner 2026-11-11: benched
 "Let's bench this idea... we don't have good enough data for now and I don't have bandwidth to find fences." Findings kept in
-`handoff/PLAN/app-integration/T635-findings.md` (commit 2e92f9f0b).
+git history (commit 2e92f9f0b, T635-findings.md).
 Correction to the findings, from the owner's paste of the CABD site terms: the Canadian Aquatic Barriers Database grants
 "personal or commercial uses ... under a Creative Commons license (the specific license is CC BY-SA)". So it is NOT
 non-commercial: it can be shipped with attribution, and anything built on it must carry the same licence (share-alike). Check
 what share-alike means for our own layer before using it.
+
+## Still open (from the deleted T635-findings.md, 2026-11-25)
+Benched; the research page is in git history (commit 2e92f9f0b). What it concluded:
+- Hatcheries: DFO's licence-holder Enhancement list (Open Government Licence, Canada) names every DFO, FFSBC and about 100 community site, but its points sit 0.03 to 2.2 km off the real site: hand-place before drawing a 100 m circle.
+- Fishways: CABD has 74 B.C. fishways, no "lower entrance"; licence CC BY-SA per the owner's paste of the site terms (share-alike on anything built on it; ask CWF before more than a checklist).
+- No clean dataset for spawning channels or counting fences. The 23 m rule already applies at every T173 obstacle (FISS falls, dams); no data says where the entrance is.
+- Proposal: a hand-placed layer of 35 to 45 points (marker plus 100 m circle; a 23 m mark only where hand-placed), about 2.5 days; community sites without a circle unless the owner says so.
+- Wording never says "no restrictions here"; the layers key says not every fishway, falls or facility is shown.
+- Not verified: DFO SEP facility count (23), counting-fence details, bcfishpass fishways, whether FFSBC or community sites count as "government".

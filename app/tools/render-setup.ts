@@ -46,7 +46,7 @@ globalThis.setReduceMotion = (on: boolean) => {
  * its worker. Any test that so much as imports `@app/map` dies during collection with
  * "no tests" — which reads like a broken test file rather than a missing browser API.
  *
- * The worker never runs here (nothing mounts a real map under jsdom; see RENDER-TESTS.md),
+ * The worker never runs here (nothing mounts a real map under jsdom; see packages/ui-native/RENDER-TESTS.md),
  * so the URL only has to exist.
  */
 if (typeof URL.createObjectURL !== "function") {

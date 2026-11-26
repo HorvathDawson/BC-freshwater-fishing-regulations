@@ -28,9 +28,14 @@ Release: 0.9.2, first Opus lane (the list); fixes as the owner accepts them. Mod
 (reviews the proposals).
 
 ## First pass 2026-11-25 (0.9.1 chat, in PR #166)
-98 bindings whose note or target names another management unit; the list is the file mu-mismatch-bindings.md in the
+98 bindings whose note or target names another management unit; the list is the file mu-mismatch-bindings.md (deleted; git history) in the
 T1118-shots folder of that PR. No verdict per row yet: that is this ticket's first lane.
 
 ## Owner
 
 - [ ] 2026-11-25 — Review the proposals of the cross-unit name-binding audit when its first lane lands them (0.10.1).
+
+## Still open (from the deleted mu-mismatch-bindings.md, 2026-11-25)
+- The first-pass list (98 rows: file, printed name, bound water, printed MU, the target's MUs, why listed, note) is in git history (T1118-shots/mu-mismatch-bindings.md); regenerate it from the curated name files and the registry's item MUs instead of trusting it.
+- Every row still needs a verdict (a water straddling MUs, or an MU line drawn differently from the book's, can be listed and be right).
+- The build check (item 3) is not built.
