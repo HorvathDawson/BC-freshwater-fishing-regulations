@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
-  INSEASON_FAILURES, INSEASON_LINKS_FORMAT, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, inSeasonDates, inSeasonDating, inSeasonSpan,
-  inSeasonStatusLine, inSeasonSummary, inSeasonUnreadRanges, inSeasonWhere, inSeasonYearMarks, joinInSeason, parseInSeasonFeed, parseInSeasonLinks, type InSeasonChange, type InSeasonFeed, type InSeasonRow,
+  INSEASON_FAILURES, INSEASON_LINKS_FORMAT, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, inSeasonDates,
+  inSeasonSummary, inSeasonWhere, joinInSeason, parseInSeasonFeed, parseInSeasonLinks, type InSeasonChange, type InSeasonFeed, type InSeasonRow,
   type InSeasonRun, type InSeasonSection,
 } from "./inseason";
 // imported, never read from disk: core has no platform (AGENTS rule 22, the boundaries gate)
+import { inSeasonKeepOf } from "./inseasonKeep";
+import { INSEASON_UNDATED, inSeasonDating, inSeasonSpan } from "./inseasonWindow";
 import parity from "./inseason-cover.parity.json" with { type: "json" };
 const PARITY = parity as unknown as {
   water: InSeasonSection[]; cases: { name: string; runs: number[][]; lakes: boolean; expect: number[] }[] };
 import spanCases from "./inseason-span.parity.json" with { type: "json" };
 const SPAN = spanCases as unknown as { cases: { name: string; row: Partial<InSeasonRow> & { id: string };
-  effective?: { from?: string; to?: string }; dating: "dated" | "undated" | "unreadable"; seven?: true;
+  effective?: { from?: string; to?: string }; dating: "dated" | "undated" | "unreadable"; dated: boolean; seven?: true;
   expect: [string | null, string | null]; on: Record<string, "upcoming" | "in force" | null> }[] };
 
 const SRC = "https://www2.gov.bc.ca/fishing-regulations";
@@ -66,7 +68,7 @@ describe("one case file, two readers (T548, T1167): Python dating / span / on an
     it(c.name, () => {
       const r = row({ ...c.row, id: c.row.id });
       expect(inSeasonDating(r).kind).toBe(c.dating);
-      expect(inSeasonSpan(r, c.effective)).toEqual({ from: c.expect[0], to: c.expect[1], dated: c.dating === "dated" });
+      expect(inSeasonSpan(r, c.effective)).toEqual({ from: c.expect[0], to: c.expect[1], dated: c.dated });
       const links = c.effective ? parseInSeasonLinks({ format: INSEASON_LINKS_FORMAT,
         notices: { [r.id]: { ...c.effective, waters: { "gnis:1": { all: true } } } } }) : null;
       for (const [day, want] of Object.entries(c.on)) {
@@ -100,18 +102,12 @@ describe("(T1167) a notice's banner window: two weeks before its stated first da
     expect(joinInSeason(feed([stave]), null, "2025-11-04").unmatched).toEqual([]);
     expect(joinInSeason(feed([stave]), null, "2026-11-26").unmatched.map((c) => [c.phase, c.dated, c.to])).toEqual([["in force", false, null]]);
   });
-  it("an unreadable range is undated (shown, as before) and reported once, with why; a curated date silences the report", () => {
+  it("an unreadable range is undated (shown, as before), with why (the feeds worker tells the owner, `undatableEvent`)", () => {
     const fraser = row({ id: "is-8cd37f6e5bf9", region: "2", water: "Fraser River", from: "2025-09-16",
                          parsed: { kinds: ["closure"], window: { from_month: 8, from_day: 15, to_month: 12, to_day: 31 } } });
-    const f = feed([fraser, okanagan]);
-    expect(joinInSeason(f, null, "2026-11-26").unmatched.map((c) => [c.id, c.phase, c.dated])).toEqual([["is-8cd37f6e5bf9", "in force", false]]);
-    const odd = inSeasonUnreadRanges(f, null);
-    expect(odd).toEqual([{ id: "is-8cd37f6e5bf9", why: "its range does not open on its effective day, so its year cannot be read" }]);
-    expect(INSEASON_FAILURES.unreadRanges(odd)).toBe("in-season index.json: 1 notice prints a range this app could not date "
-      + "(is-8cd37f6e5bf9: its range does not open on its effective day, so its year cannot be read) — shown until the page drops it, never ended by a guess");
-    const curated = parseInSeasonLinks({ format: INSEASON_LINKS_FORMAT, notices: { "is-8cd37f6e5bf9": { to: "2025-12-31", waters: { "gnis:1": { all: true } } } } });
-    expect(inSeasonUnreadRanges(f, curated)).toEqual([]);
-    expect(inSeasonUnreadRanges(feed([fraser], ["is-8cd37f6e5bf9"]), null)).toEqual([]);
+    expect(joinInSeason(feed([fraser, okanagan]), null, "2026-11-26").unmatched.map((c) => [c.id, c.phase, c.dated])).toEqual([["is-8cd37f6e5bf9", "in force", false]]);
+    expect(inSeasonDating(fraser)).toEqual({ kind: "unreadable", why: INSEASON_UNDATED.notOnEffective });
+    expect(INSEASON_UNDATED.notOnEffective).toBe("its range does not open on its effective day, so its year cannot be read");
   });
 });
 
@@ -119,6 +115,8 @@ describe("(T1167) louder: the banner's words in each state, the status line's po
   const dated = { id: "is-a", region: "8", water: "Okanagan River", text: "No fishing July 30 to September 15.", from: "2026-07-30",
                   to: "2026-09-15", dated: true, source: SRC, waters: null } as const;
   const upcoming = inSeasonBanner({ ...dated, phase: "upcoming" }, { where: null });
+  /** a page that draws the game-fish strip (only whether it does is read) */
+  const STRIP = { strip: {} as never, order: ["strip" as const] };
   const inForce = inSeasonBanner({ ...dated, phase: "in force" }, { where: null });
   it("before the window: 'Upcoming', with its dates; inside: the in-force head", () => {
     expect([upcoming.head, inSeasonSummary([upcoming])]).toEqual(
@@ -129,15 +127,20 @@ describe("(T1167) louder: the banner's words in each state, the status line's po
     expect(inSeasonSummary([inForce, upcoming, { ...upcoming, id: "is-b", mark: "New" }])).toBe("3 in-season changes (1 new, 2 upcoming) · see ›");
   });
   it("the status line points at a notice in force, never at an upcoming one", () => {
-    expect([inSeasonStatusLine([inForce]), inSeasonStatusLine([inForce, { ...inForce, id: "is-b" }]), inSeasonStatusLine([upcoming]), inSeasonStatusLine([])])
+    const pointer = (bs: typeof upcoming[]) => inSeasonKeepOf(STRIP, bs).pointer;
+    expect([pointer([inForce]), pointer([inForce, { ...inForce, id: "is-b" }]), pointer([upcoming]), pointer([])])
       .toEqual(["See the in-season notice above", "See the 2 in-season notices above", null, null]);
+    // drawn on the game-fish strip when the page draws one, else at the top of the Keep tab (salmon block, trout table, banner)
+    expect([inSeasonKeepOf(STRIP, [inForce]).pointerOn, inSeasonKeepOf({ strip: null, order: ["trout"] }, [inForce]).pointerOn,
+            inSeasonKeepOf({ strip: STRIP.strip, order: ["banner"] }, [inForce]).pointerOn]).toEqual(["strip", "tab", "tab"]);
   });
   it("whole-year bars mark a dated notice's range (book days), one over the new year in two; undated: none", () => {
-    expect(inSeasonYearMarks([upcoming])).toEqual({ runs: [{ at: 210 / 365, len: 48 / 365 }], label: "In-season notice, Jul 30–Sep 15" });
+    const marks = (bs: typeof upcoming[]) => inSeasonKeepOf(STRIP, bs).marks;
+    expect(marks([upcoming])).toEqual({ runs: [{ at: 210 / 365, len: 48 / 365 }], label: "In-season notice, Jul 30–Sep 15" });
     const winter = inSeasonBanner({ ...dated, from: "2026-11-01", to: "2027-03-31", phase: "in force" }, { where: null });
-    expect(inSeasonYearMarks([winter, inForce])).toEqual({ runs: [{ at: 0, len: 90 / 365 }, { at: 210 / 365, len: 48 / 365 }, { at: 304 / 365, len: 61 / 365 }],
+    expect(marks([winter, inForce])).toEqual({ runs: [{ at: 0, len: 90 / 365 }, { at: 210 / 365, len: 48 / 365 }, { at: 304 / 365, len: 61 / 365 }],
                                                            label: "In-season notices" });
-    expect(inSeasonYearMarks([inSeasonBanner({ ...dated, dated: false, to: null, phase: "in force" }, { where: null })])).toBeNull();
+    expect(marks([inSeasonBanner({ ...dated, dated: false, to: null, phase: "in force" }, { where: null })])).toBeNull();
   });
 });
 

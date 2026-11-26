@@ -25,6 +25,8 @@ export * from "./salmonFeed";
 export * from "./salmonIssues";
 export * from "./runTiming";
 export * from "./inseason";
+export * from "./inseasonWindow";
+export * from "./inseasonKeep";
 export * from "./inseasonInbox";
 export * from "./glance";
 export * from "./method";

@@ -196,14 +196,14 @@ def _span_cases():
 @pytest.mark.parametrize("case", _span_cases(), ids=lambda c: c["name"][:60])
 def test_span_is_cores_rule(case):
     """(T548, T1167) ONE case file, two readers: `app/packages/core/src/inseason-span.parity.json` gives `dating` (the
-    range the notice's own text states, read with its year), `expect` (when it is in force) and `on` (the banner on each
-    day named: upcoming in the 14 days before a dated row, in force, or none) here and in core's `inSeasonDating` /
-    `inSeasonSpan` / `inSeasonOn`."""
+    range the notice's own text states, read with its year), `dated`, `expect` (when it is in force) and `on` (the banner
+    on each day named: upcoming in the 14 days before a dated row, in force, or none) here and in core's
+    `inSeasonDating` / `inSeasonSpan` / `inSeasonOn`."""
     eff = M.Effective(**case["effective"]) if case.get("effective") else None
     assert M.dating(case["row"])[0] == case["dating"]
     frm, to, dated = M.span(case["row"], eff)
     assert [frm, to] == case["expect"]
-    assert dated == (case["dating"] == "dated")
+    assert dated == case["dated"]
     for day, want in case["on"].items():
         assert M.on(frm, to, dated, day) == want, day
 

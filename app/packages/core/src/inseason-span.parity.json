@@ -1,8 +1,8 @@
 {
- "$comment": "T548, T1167: ONE case file for the two readers of 'when is an in-season row shown' — TS `@app/core` `inSeasonDating` / `inSeasonSpan` / `inSeasonOn` (+ `joinInSeason`) and Python `pipeline.regs.inseason.matches.dating` / `span` / `on`. Both tests read it (core inseason.test.ts, pipeline/tests/test_inseason_publish.py): `dating` is the reading of the range the notice states in its own text (`parsed.window`, its year read from the effective day `from`), `expect` the [from, to] it is in force, `on` the banner on each day named ('upcoming' / 'in force' / null). Rows marked `is-…` are real rows of the 2026-11-08 / 11-11 captures cut to the fields the rule reads; `effective` is the curated override (notice_waters.json `effective`, the links' from/to). (Owner 2026-11-25, T1167) a notice whose text states a range shows from 14 days before its first day (INSEASON_LEAD_DAYS, emitted from pipeline/common/feed_formats.py) through its last, then not at all; a notice with no range keeps the rule of 2026-11-11 (shown until the page drops it); a range whose year cannot be read is undated and reported, NEVER an end guessed. `seven`: the seven July 30-Sept 15, 2026 closures of T1157's finding.",
+ "$comment": "T548, T1167: ONE case file for the two readers of 'when is an in-season row shown' — TS `@app/core` `inSeasonDating` / `inSeasonSpan` / `inSeasonOn` (+ `joinInSeason`) and Python `pipeline.regs.inseason.matches.dating` / `span` / `on`. Both tests read it (core inseason.test.ts, pipeline/tests/test_inseason_publish.py): `dating` is the reading of the range the notice states in its own text (`parsed.window`, its year read from the effective day `from`), `dated` whether it is dated (by its text, or by an effective cell printing both ends: the same 14-day lead), `expect` the [from, to] it is in force (a text and a cell end: the later), `on` the banner on each day named ('upcoming' / 'in force' / null). Rows marked `is-…` are real rows of the 2026-11-08 / 11-11 captures cut to the fields the rule reads; `effective` is the curated override (notice_waters.json `effective`, the links' from/to). (Owner 2026-11-25, T1167) a notice whose text states a range shows from 14 days before its first day (INSEASON_LEAD_DAYS, emitted from pipeline/common/feed_formats.py) through its last, then not at all; a notice with no range keeps the rule of 2026-11-11 (shown until the page drops it); a range whose year cannot be read is undated and reported, NEVER an end guessed. `seven`: the seven July 30-Sept 15, 2026 closures of T1157's finding.",
  "cases": [
   {
-   "name": "the feed's printed dates, no range in the text: today's rule (no lead, ends on its `to`)",
+   "name": "the feed's printed dates, no range in the text: dated by its effective cell, so the same 14-day lead",
    "row": {
     "id": "is-689cae172c40",
     "from": "2025-07-04",
@@ -15,13 +15,16 @@
     }
    },
    "dating": "undated",
+   "dated": true,
    "expect": [
     "2025-07-04",
     "2025-08-31"
    ],
    "on": {
-    "2025-07-03": null,
-    "2025-08-01": "in force",
+    "2025-06-19": null,
+    "2025-06-20": "upcoming",
+    "2025-07-04": "in force",
+    "2025-08-31": "in force",
     "2025-09-01": null
    }
   },
@@ -47,6 +50,7 @@
     "to": "2026-10-01"
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-10-01"
@@ -75,6 +79,7 @@
     "to": "2026-09-01"
    },
    "dating": "undated",
+   "dated": true,
    "expect": [
     "2026-07-04",
     "2026-09-01"
@@ -82,7 +87,7 @@
    "on": {}
   },
   {
-   "name": "the text's range wins over an end its effective cell prints",
+   "name": "the text's range ends later than the end its effective cell prints: the later end",
    "row": {
     "id": "x-7",
     "from": "2026-07-30",
@@ -100,6 +105,7 @@
     }
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-09-15"
@@ -130,6 +136,7 @@
     "change": "No fishing July 30 to September 15, including tributaries."
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-09-15"
@@ -165,6 +172,7 @@
     "change": "No fishing July 30 to September 15, including tributaries."
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-09-15"
@@ -200,6 +208,7 @@
     "change": "No fishing July 30 to September 15 from 12:00 pm to midnight."
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-09-15"
@@ -235,6 +244,7 @@
     "change": "No fishing July 30-Sept 15 from 12:00 pm to midnight."
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-09-15"
@@ -270,6 +280,7 @@
     "change": "No fishing July 30 to September 15."
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-09-15"
@@ -305,6 +316,7 @@
     "change": "No fishing July 30 to September 15."
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-09-15"
@@ -340,6 +352,7 @@
     "change": "No fishing July 30 to September 15, including tributaries."
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-07-30",
     "2026-09-15"
@@ -373,6 +386,7 @@
     }
    },
    "dating": "unreadable",
+   "dated": false,
    "expect": [
     "2025-09-16",
     null
@@ -402,6 +416,7 @@
     }
    },
    "dating": "unreadable",
+   "dated": false,
    "expect": [
     "2025-09-16",
     null
@@ -431,6 +446,7 @@
     }
    },
    "dating": "unreadable",
+   "dated": false,
    "expect": [
     "2026-08-27",
     null
@@ -458,6 +474,7 @@
     }
    },
    "dating": "dated",
+   "dated": true,
    "expect": [
     "2026-11-01",
     "2027-03-31"
@@ -488,6 +505,7 @@
     }
    },
    "dating": "undated",
+   "dated": false,
    "expect": [
     "2025-05-16",
     null
@@ -513,6 +531,7 @@
     }
    },
    "dating": "unreadable",
+   "dated": false,
    "expect": [
     "2026-07-01",
     null
@@ -538,6 +557,7 @@
     }
    },
    "dating": "unreadable",
+   "dated": false,
    "expect": [
     "2026-06-01",
     null
@@ -565,6 +585,7 @@
     }
    },
    "dating": "unreadable",
+   "dated": false,
    "expect": [
     null,
     null
@@ -587,6 +608,7 @@
     }
    },
    "dating": "undated",
+   "dated": false,
    "expect": [
     "2025-11-18",
     null
@@ -595,6 +617,266 @@
     "2025-11-17": null,
     "2025-11-18": "in force",
     "2030-01-01": "in force"
+   }
+  },
+  {
+   "name": "the effective cell ends later than the text's range (cell Sept 30, text Sept 15): the later end, never early",
+   "row": {
+    "id": "x-8",
+    "from": "2026-07-30",
+    "to": "2026-09-30",
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": {
+      "from_month": 7,
+      "from_day": 30,
+      "to_month": 9,
+      "to_day": 15
+     }
+    }
+   },
+   "dating": "dated",
+   "dated": true,
+   "expect": [
+    "2026-07-30",
+    "2026-09-30"
+   ],
+   "on": {
+    "2026-09-16": "in force",
+    "2026-09-30": "in force",
+    "2026-10-01": null
+   }
+  },
+  {
+   "name": "a same-month range ending before it starts ('July 30 to 11:59 pm September 15' once read Jul 30-Jul 11) is unreadable, never a year on",
+   "row": {
+    "id": "x-9",
+    "from": "2026-07-30",
+    "to": null,
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": {
+      "from_month": 7,
+      "from_day": 30,
+      "to_month": 7,
+      "to_day": 11
+     }
+    }
+   },
+   "dating": "unreadable",
+   "dated": false,
+   "expect": [
+    "2026-07-30",
+    null
+   ],
+   "on": {
+    "2027-07-12": "in force"
+   }
+  },
+  {
+   "name": "Dec 1 to Feb 29 posted Dec 1, 2027 ends Feb 29, 2028",
+   "row": {
+    "id": "x-10",
+    "from": "2027-12-01",
+    "to": null,
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": {
+      "from_month": 12,
+      "from_day": 1,
+      "to_month": 2,
+      "to_day": 29
+     }
+    }
+   },
+   "dating": "dated",
+   "dated": true,
+   "expect": [
+    "2027-12-01",
+    "2028-02-29"
+   ],
+   "on": {
+    "2027-11-17": "upcoming",
+    "2028-02-29": "in force",
+    "2028-03-01": null
+   }
+  },
+  {
+   "name": "a range from December into January, posted on its December day",
+   "row": {
+    "id": "x-11",
+    "from": "2026-12-20",
+    "to": null,
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": {
+      "from_month": 12,
+      "from_day": 20,
+      "to_month": 1,
+      "to_day": 10
+     }
+    }
+   },
+   "dating": "dated",
+   "dated": true,
+   "expect": [
+    "2026-12-20",
+    "2027-01-10"
+   ],
+   "on": {
+    "2026-12-05": null,
+    "2026-12-06": "upcoming",
+    "2027-01-10": "in force",
+    "2027-01-11": null
+   }
+  },
+  {
+   "name": "a window written 7.0 (JSON has one number type) reads as 7",
+   "row": {
+    "id": "x-12",
+    "from": "2026-07-30",
+    "to": null,
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": {
+      "from_month": 7.0,
+      "from_day": 30,
+      "to_month": 9,
+      "to_day": 15
+     }
+    }
+   },
+   "dating": "dated",
+   "dated": true,
+   "expect": [
+    "2026-07-30",
+    "2026-09-15"
+   ],
+   "on": {}
+  },
+  {
+   "name": "a window month that is true is no number: unreadable",
+   "row": {
+    "id": "x-13",
+    "from": "2026-07-30",
+    "to": null,
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": {
+      "from_month": true,
+      "from_day": 30,
+      "to_month": 9,
+      "to_day": 15
+     }
+    }
+   },
+   "dating": "unreadable",
+   "dated": false,
+   "expect": [
+    "2026-07-30",
+    null
+   ],
+   "on": {}
+  },
+  {
+   "name": "a window that is words, not an object: unreadable",
+   "row": {
+    "id": "x-14",
+    "from": "2026-07-30",
+    "to": null,
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": "July 30 to September 15"
+    }
+   },
+   "dating": "unreadable",
+   "dated": false,
+   "expect": [
+    "2026-07-30",
+    null
+   ],
+   "on": {
+    "2026-11-26": "in force"
+   }
+  },
+  {
+   "name": "a window that is a list: unreadable",
+   "row": {
+    "id": "x-15",
+    "from": "2026-07-30",
+    "to": null,
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": [
+      7,
+      30,
+      9,
+      15
+     ]
+    }
+   },
+   "dating": "unreadable",
+   "dated": false,
+   "expect": [
+    "2026-07-30",
+    null
+   ],
+   "on": {}
+  },
+  {
+   "name": "an empty window: unreadable",
+   "row": {
+    "id": "x-16",
+    "from": "2026-07-30",
+    "to": null,
+    "parsed": {
+     "kinds": [
+      "closure"
+     ],
+     "window": {}
+    }
+   },
+   "dating": "unreadable",
+   "dated": false,
+   "expect": [
+    "2026-07-30",
+    null
+   ],
+   "on": {}
+  },
+  {
+   "name": "a reading that is not an object: undated, and a future undated row is simply not shown yet",
+   "row": {
+    "id": "x-17",
+    "from": "2026-12-01",
+    "to": null,
+    "parsed": "closure"
+   },
+   "dating": "undated",
+   "dated": false,
+   "expect": [
+    "2026-12-01",
+    null
+   ],
+   "on": {
+    "2026-11-26": null,
+    "2026-12-01": "in force"
    }
   }
  ]

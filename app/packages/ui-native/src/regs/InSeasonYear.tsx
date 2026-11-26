@@ -1,25 +1,21 @@
 /**
  * (T1167, owner 2026-11-25 "Banner only, but louder") WHAT THE KEEP BLOCKS SAY OF THE PAGE'S IN-SEASON NOTICES: the
- * status line's pointer while one is in force ("See the in-season notice above", core `inSeasonStatusLine`) and, on
+ * status line's pointer while one is in force ("See the in-season notice above", core `inSeasonKeepOf`: on the game-fish
+ * strip when the page draws it, else at the top of the Keep tab, so every page that answers carries it) and, on
  * every whole-year bar (the game-fish strip, the salmon bar, the trout table's year), a band over a dated notice's range
- * with its legend (core `inSeasonYearMarks`). The answer and the bars' own colours stay the book's: the band sits above
+ * with its legend. The answer and the bars' own colours stay the book's: the band sits above
  * the bar, never over a day's fill. No words or logic here: the regulations page hands core's values down.
  */
 import { createContext, useContext } from "react";
 import { View } from "react-native";
-import type { InSeasonYearVM } from "@app/core";
+import type { InSeasonKeepVM } from "@app/core";
 import { Text } from "../Text";
 import { TYPE } from "../type";
-import type { Palette } from "../theme";
+import { GUTTER, type Palette } from "../theme";
 
-export interface InSeasonKeep {
-  /** the status line's pointer (core `inSeasonStatusLine`); null: no notice in force */
-  readonly pointer: string | null;
-  /** the dated notices' ranges on the book year (core `inSeasonYearMarks`); null: none */
-  readonly marks: InSeasonYearVM | null;
-}
-export const InSeasonKeepContext = createContext<InSeasonKeep | null>(null);
-export const useInSeasonKeep = (): InSeasonKeep | null => useContext(InSeasonKeepContext);
+/** core `inSeasonKeepOf`: the pointer, where it is drawn, and the year bars' marks */
+export const InSeasonKeepContext = createContext<InSeasonKeepVM | null>(null);
+const useInSeasonKeep = (): InSeasonKeepVM | null => useContext(InSeasonKeepContext);
 
 const BAND = 4;
 
@@ -50,12 +46,13 @@ export function InSeasonLegend({ palette }: { palette: Palette }) {
   );
 }
 
-/** the status line's pointer, under the day's answer */
-export function InSeasonPointer({ palette }: { palette: Palette }) {
-  const pointer = useInSeasonKeep()?.pointer;
-  if (!pointer) return null;
+/** the status line's pointer, drawn where core says (`on`: the strip's status line, or the top of the Keep tab) */
+export function InSeasonPointer({ palette, on }: { palette: Palette; on: InSeasonKeepVM["pointerOn"] }) {
+  const k = useInSeasonKeep();
+  if (!k?.pointer || k.pointerOn !== on) return null;
+  const pointer = k.pointer;
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, ...(on === "tab" ? { paddingTop: 10, paddingHorizontal: GUTTER } : {}) }}>
       <View style={{ width: 4, alignSelf: "stretch", borderRadius: 1, backgroundColor: palette.attention }} />
       <Text testID="st:inseason" style={[TYPE.metaBold, { color: palette.ink }]}>{pointer}</Text>
     </View>

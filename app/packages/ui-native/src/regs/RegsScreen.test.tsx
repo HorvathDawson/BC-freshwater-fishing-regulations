@@ -83,6 +83,13 @@ describe("<RegsScreen>", () => {
     mount({ inSeason: [] });
     expect([screen.queryByTestId("inseason-banners"), screen.queryByTestId("st:inseason"), screen.queryByTestId("inseason-year-legend")])
       .toEqual([null, null, null]);
+    // a page with no game-fish strip (its answer the salmon block, a banner or the trout table): the pointer heads the Keep
+    // tab, once
+    cleanup();
+    const bare = { ...page, keep: { ...page.keep, strip: null, order: page.keep.order.filter((b) => b !== "strip") } };
+    mount({ page: bare, inSeason: [inSeasonBanner({ ...dated, phase: "in force" }, { where: null })] });
+    expect(screen.queryByTestId("keep-strip")).toBeNull();
+    expect(within(screen.getByTestId("keep-tab")).getAllByTestId("st:inseason").map((e) => e.textContent)).toEqual(["See the in-season notice above"]);
   });
 
   it("a lapsed edition: core's sentence leads the page, above Keep; in force (or no stamp) it is not drawn", () => {

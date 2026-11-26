@@ -8,12 +8,13 @@
  * A row in effect with NO match yet is listed app-wide (`inSeasonNotice`), so a reader still learns of it.
  *
  * IN EFFECT on a day: the row is on the page (not `removed`), its `from` (if any) is on or before the day and its `to`
- * (if any) on or after it. (T1167, owner 2026-11-25) A notice whose own text states a range whose year reads
- * (`inSeasonDating`: "No fishing July 30 to September 15", posted July 30, 2026) is in force from its first day through
- * its last and shown as UPCOMING the 14 days before (`inSeasonOn`), then not at all. Otherwise `to` is the curated
+ * (if any) on or after it. (T1167, owner 2026-11-25) A DATED notice — its own text states a range whose year reads
+ * ("No fishing July 30 to September 15", posted July 30, 2026), or its effective cell prints both ends — is in force from
+ * its first day through its last and shown as UPCOMING the 14 days before, then not at all (`inseasonWindow.ts`: the rule,
+ * which the feeds worker also reads to tell the owner of a range it cannot date). Otherwise `to` is the curated
  * override's, else the feed's — never guessed (owner 2026-11-11, T548: "Never invent an end date"): a row with only a
- * `from` stays in effect until the page drops it, and a range whose year cannot be read is reported. Banner only: the
- * answer and the map's colour stay the book's ("Banner only, but louder").
+ * `from` stays in effect until the page drops it. Banner only: the answer and the map's colour stay the book's
+ * ("Banner only, but louder").
  *
  * WHERE (T520; T673, owner 2026-11-13: ONE file for every release — "Why not just have a single file that does both?"):
  * per water (its durable item id), `all` or FWA RANGES — stream key + metres along it, never a release, part index or
@@ -24,9 +25,9 @@
  */
 import { MONTHS } from "./calendar.generated";
 import { SOURCE_AUTHORITIES } from "./sourceNames";
-import { FEED_FORMATS, INSEASON_LEAD_DAYS } from "./feedFormats.generated";
+import { FEED_FORMATS } from "./feedFormats.generated";
+import { inSeasonOn, inSeasonSpan, type InSeasonPhase } from "./inseasonWindow";
 import { endWords, type EndsTable } from "./ends";
-import { bookIndex } from "./regs/strip";
 
 // (T556) generated from the Python writers' one table (pipeline/common/feed_formats.py): never a literal here
 export const INSEASON_FEED_FORMAT = FEED_FORMATS.inseasonFeed;
@@ -175,102 +176,6 @@ export function isoDayOf(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** (T1167) "2026-07-30" moved `n` days (UTC arithmetic on a calendar day: no clock, no time zone) */
-function addDays(day: string, n: number): string {
-  const d = new Date(`${day}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-/** a calendar day as ISO, or null when the month has no such day */
-function isoOf(y: number, m: number, d: number): string | null {
-  const t = new Date(Date.UTC(y, m - 1, d));
-  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d ? t.toISOString().slice(0, 10) : null;
-}
-
-/** (T1167) the range a notice states in its own text, with its year (`inSeasonDating`) */
-export type InSeasonDating =
-  | { readonly kind: "dated"; readonly from: string; readonly to: string }
-  | { readonly kind: "undated" }
-  | { readonly kind: "unreadable"; readonly why: string };
-
-/**
- * (T1167, owner 2026-11-25) THE RANGE A NOTICE STATES IN ITS OWN TEXT, read with its year. The text's one range is the
- * feeds worker's `parsed.window` (month and day, its `parseChange`: a text with no range, or several, has none, and a
- * time of day — "from 12:00 pm to midnight" — is no range). Its YEAR is read, never guessed: the range must open on the
- * notice's own effective day (`from`: "July 30, 2026" with "No fishing July 30 to September 15"), and its last day is the
- * next one on or after the first (a range over the new year ends the year after). A rescind's quoted range is the
- * rescinded rule's, not the notice's: undated. Anything else that prints a range — no start day, a day the month does
- * not have, no effective day, or a range that does not open on it ("August 15 to December 31" posted Sept 16, a yearly
- * closure) — is UNREADABLE: shown as undated and REPORTED (`inSeasonUnreadRanges`), never guessed.
- * One case file pins this rule and `pipeline.regs.inseason.matches.dating` (`inseason-span.parity.json`).
- */
-export function inSeasonDating(row: InSeasonRow): InSeasonDating {
-  const w = row.parsed?.window;
-  if (!w || row.parsed?.kinds?.includes("rescind")) return { kind: "undated" };
-  const { from_month: fm, from_day: fd, to_month: tm, to_day: td } = w;
-  if (![fm, fd, tm, td].every((n) => Number.isSafeInteger(n))) return { kind: "unreadable", why: INSEASON_UNDATED.noEnds };
-  if (!row.from || !ISO_DAY.test(row.from)) return { kind: "unreadable", why: INSEASON_UNDATED.noEffective };
-  const y = Number(row.from.slice(0, 4));
-  const first = isoOf(y, fm!, fd!);
-  let last = isoOf(y, tm!, td!);
-  if (first && last && last < first) last = isoOf(y + 1, tm!, td!);
-  if (!first || !last) return { kind: "unreadable", why: INSEASON_UNDATED.noSuchDay };
-  if (first !== row.from) return { kind: "unreadable", why: INSEASON_UNDATED.notOnEffective };
-  return { kind: "dated", from: first, to: last };
-}
-
-/** (T1167) why a notice's range could not be dated: said in the report (`INSEASON_FAILURES.unreadRanges`) */
-export const INSEASON_UNDATED = {
-  noEnds: "its range has no whole start and end",
-  noEffective: "it has no effective day to give its range a year",
-  noSuchDay: "its range names a day the month does not have",
-  notOnEffective: "its range does not open on its effective day, so its year cannot be read",
-} as const;
-
-/** When a row is in force, and whether by a range its own text states (`dated`) */
-export interface InSeasonSpan { readonly from: string | null; readonly to: string | null; readonly dated: boolean }
-
-/**
- * When a row is in force: the curated override first, then (T1167) the range the notice states in its own text
- * (`inSeasonDating`), then the feed's own dates. A row with no readable range keeps the rule of 2026-11-11 (T548, "A
- * notice stops showing when the Province drops it. Never invent an end date"): in force from its `from` until the page
- * drops it or a printed / curated `to` passes. One case file pins this rule and `pipeline.regs.inseason.matches.span`
- * (`inseason-span.parity.json`).
- */
-export function inSeasonSpan(row: InSeasonRow, link?: { from?: string; to?: string }): InSeasonSpan {
-  const d = inSeasonDating(row), dated = d.kind === "dated";
-  return { from: link?.from ?? (dated ? d.from : row.from) ?? null, to: link?.to ?? (dated ? d.to : row.to) ?? null, dated };
-}
-
-/** (T1167) a notice's banner on a day: in force, upcoming (the lead days before a dated notice's first day), or none */
-export type InSeasonPhase = "upcoming" | "in force";
-
-/**
- * (T1167, owner 2026-11-25 "2 weeks before to the end (Recommended)") A ROW'S BANNER ON `day` ("YYYY-MM-DD", BC's day,
- * the caller's `bcNow()`): "in force" from its first day through its last (inclusive), "upcoming" in the
- * `INSEASON_LEAD_DAYS` before the first day of a DATED row, null otherwise (not yet, or over). Pinned with
- * `pipeline.regs.inseason.matches.on` by `inseason-span.parity.json`.
- */
-export function inSeasonOn(span: InSeasonSpan, day: string): InSeasonPhase | null {
-  if (span.to && span.to < day) return null;
-  if (span.from && span.from > day) return span.dated && addDays(span.from, -INSEASON_LEAD_DAYS) <= day ? "upcoming" : null;
-  return "in force";
-}
-
-/**
- * (T1167) The rows whose text prints a range this app could not date (`inSeasonDating` unreadable), each with why —
- * shown as undated and REPORTED (`INSEASON_FAILURES.unreadRanges`). A row the curator gave dates (`effective` in
- * notice_waters.json, the links' from / to) is dated by them, so it is not one; nor is a removed row.
- */
-export function inSeasonUnreadRanges(feed: InSeasonFeed, links: InSeasonLinks | null): { readonly id: string; readonly why: string }[] {
-  const gone = new Set(feed.removed.map((r) => r.id));
-  return feed.rows.flatMap((r) => {
-    const l = links?.notices[r.id], d = inSeasonDating(r);
-    return d.kind === "unreadable" && !gone.has(r.id) && !l?.from && !l?.to ? [{ id: r.id, why: d.why }] : [];
-  });
-}
-
 export interface InSeasonChange {
   readonly id: string;
   readonly region: string;
@@ -382,10 +287,6 @@ export const INSEASON_FAILURES = {
   /** (T517) an end the links name that this release's `display.ends` does not (publish refuses such links) */
   noWords: (id: string, e: string) => `in-season: ${id}: ${e}`,
   /** (T548 item 4) rows of the index this app could not read: dropped, the rest shown */
-  /** (T1167) rows whose text prints a range this app could not date (`inSeasonUnreadRanges`): shown as undated, until
-   *  the page drops them — a curated `effective` in notice_waters.json dates one */
-  unreadRanges: (rows: readonly { readonly id: string; readonly why: string }[]) =>
-    `in-season index.json: ${rows.length} notice${rows.length === 1 ? "" : "s"} print${rows.length === 1 ? "s" : ""} a range this app could not date (${rows.map((r) => `${r.id}: ${r.why}`).join("; ")}) — shown until the page drops ${rows.length === 1 ? "it" : "them"}, never ended by a guess`,
   unreadRows: (rows: readonly string[]) =>
     `in-season index.json: ${rows.length} row${rows.length === 1 ? "" : "s"} this app could not read (${rows.join(", ")}) — dropped, the other changes shown`,
   /** (T548 L5) more than half the rows could not be read: the index is refused whole (a change of shape, not a bad row) */
@@ -529,50 +430,6 @@ export function inSeasonBanner(change: InSeasonChange, cover: Pick<InSeasonCover
            line: `${m ? `${m} · ` : ""}${head}: ${change.text}${where ? ` ${where}.` : ""} — ${INSEASON_WORDS.source}`,
            where, note: INSEASON_WORDS.informational, mark: m, phase: change.phase,
            window: change.dated && change.from && change.to ? { from: change.from, to: change.to } : null };
-}
-
-/**
- * (T1167, owner 2026-11-25 "Banner only, but louder") THE KEEP STRIP'S POINTER while a notice is IN FORCE on the page:
- * "See the in-season notice above" (the banners sit above the answer). The answer and the map's colour stay the book's;
- * an upcoming notice points nowhere (its banner says it is coming). None in force: null.
- */
-export function inSeasonStatusLine(banners: readonly InSeasonBannerVM[]): string | null {
-  const n = banners.filter((b) => b.phase === "in force" && b.text.trim()).length;
-  return n ? INSEASON_WORDS.statusSee(n) : null;
-}
-
-/** (T1167) what the whole-year bars mark: each dated notice's range as book-year runs (fractions of the 365 days, a range
- *  over the new year in two), and the legend's words */
-export interface InSeasonYearVM { readonly runs: readonly { readonly at: number; readonly len: number }[]; readonly label: string }
-
-const BOOK = 365;
-const dayIx = (iso: string) => bookIndex({ month: Number(iso.slice(5, 7)), day: Number(iso.slice(8, 10)) });
-
-/**
- * (T1167) "Whole-year calendars mark the window": the ranges of the page's DATED notices (upcoming or in force) on the
- * book year every bar draws (365 days, Feb 29 read as Feb 28), merged where they overlap; a range of a year or more is
- * the whole bar. No dated notice: null.
- */
-export function inSeasonYearMarks(banners: readonly InSeasonBannerVM[]): InSeasonYearVM | null {
-  const dated = banners.filter((b) => b.window && b.text.trim());
-  if (!dated.length) return null;
-  const spans: [number, number][] = [];
-  for (const b of dated) {
-    const { from, to } = b.window!;
-    const a = dayIx(from), z = dayIx(to);
-    if (addDays(from, BOOK - 1) <= to) spans.push([0, BOOK]);
-    else if (a <= z && to.slice(0, 4) === from.slice(0, 4)) spans.push([a, z + 1]);
-    else spans.push([a, BOOK], [0, z + 1]);
-  }
-  spans.sort((x, y) => x[0] - y[0]);
-  const merged: [number, number][] = [];
-  for (const [a, z] of spans) {
-    const l = merged[merged.length - 1];
-    if (l && a <= l[1]) l[1] = Math.max(l[1], z); else merged.push([a, z]);
-  }
-  const one = dated.length === 1 ? inSeasonDates(dated[0]!.window!.from, dated[0]!.window!.to) : null;
-  return { runs: merged.map(([a, z]) => ({ at: a / BOOK, len: (z - a) / BOOK })),
-           label: one ? INSEASON_WORDS.yearMark(one) : INSEASON_WORDS.yearMarks };
 }
 
 /** "7a" -> "Region 7A": a region code as every surface names it (T622: the public site's water pages read it too) */

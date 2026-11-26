@@ -44,11 +44,13 @@ const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
 interface Vector { readonly name: string; readonly item: string; readonly anchor: { readonly stream: number; readonly m: number } | { readonly lake: string } }
 const read = (f: string) => JSON.parse(readFileSync(join(TROUT_FIXTURE_ROOT, f), "utf8"));
 
-const dir = mkdtempSync(join(tmpdir(), "inseason-shots-"));
-afterAll(() => rmSync(dir, { recursive: true, force: true }));
+/** the pages' working folder: made by the run (never at load: a skipped file leaves nothing behind) */
+let dir: string | null = null;
+afterAll(() => { if (dir) rmSync(dir, { recursive: true, force: true }); });
 
 describe.skipIf(!ON)("T1167 in-season banner shots", () => {
   it("photographs the page before, inside and after the window at 390 px, light and dark", async () => {
+    const work = dir = mkdtempSync(join(tmpdir(), "inseason-shots-"));
     const V = read("trout-vectors.generated.json") as { cases: Vector[] };
     const LINES = read("section-lines.json").lines as [number, number, number, number][];
     const st = await openRegsStore(openTroutFixture());
@@ -75,7 +77,7 @@ describe.skipIf(!ON)("T1167 in-season banner shots", () => {
         render(h(StripWidthHint.Provider, { value: W - 32 },
           h(WaterFrame, { palette, face: "regulations" },
             h(RegsScreen, { page, palette, actions: NOOP, onDate() {}, inSeason: banners, sources: TEST_SOURCES, troutSources: TEST_TROUT_SOURCES }))) as ReactNode);
-        const theme = dark ? "dark" : "light", file = join(dir, `${state}-${theme}.html`);
+        const theme = dark ? "dark" : "light", file = join(work, `${state}-${theme}.html`);
         writeFileSync(file, snapshot().replace("<body>", `<body style="background:${palette.card}">`));
         cleanup();
         jobs.push({ page: file, size: [W, HEIGHT], shot: join(OUT, `${state}-${theme}.png`) });

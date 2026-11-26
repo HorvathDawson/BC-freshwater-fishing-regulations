@@ -320,38 +320,51 @@ def problems(doc: Matches, *, feed_ids: Iterable[str] | None = None,
     return out
 
 
+def _whole(v) -> bool:
+    """A whole number as JSON has it (one number type: 7 and 7.0 are one value; a bool is none) — core's `whole`."""
+    return type(v) is int or (type(v) is float and v.is_integer())
+
+
+def _is_day(v) -> bool:
+    return isinstance(v, str) and bool(DATE_RE.match(v))
+
+
 def dating(row: dict) -> tuple[str, Optional[str], Optional[str]]:
     """(T1167, owner 2026-11-25) THE RANGE A NOTICE STATES IN ITS OWN TEXT, read with its year — `@app/core`
-    `inSeasonDating`, the one rule: `("dated", first, last)`, `("undated", None, None)` or `("unreadable", None, None)`
-    (why, in words, is the app's report alone: core `INSEASON_UNDATED`).
+    `inSeasonDating` (`inseasonWindow.ts`), the one rule: `("dated", first, last)`, `("undated", None, None)` or
+    `("unreadable", None, None)` (why, in words, is the feeds worker's to tell: core `INSEASON_UNDATED`).
 
-    The text's one range is the feeds worker's `parsed.window` (month and day, `parseChange`; a text with no range, or
-    several, has none). Its YEAR is read, never guessed: the range must open on the notice's own effective day (`from`:
-    "July 30, 2026" with "No fishing July 30 to September 15"), and its last day is the next one on or after it (a range
-    over the new year ends the year after). A rescind's quoted range is the rescinded rule's, not the notice's: undated.
-    Anything else that prints a range (no start day, a day the month does not have, no effective day, or a range that
-    does not open on it — "August 15 to December 31" posted Sept 16, a yearly closure) is UNREADABLE: shown as undated
-    and reported, never guessed. One case file pins this here and in core (`inseason-span.parity.json`)."""
+    The text's one range is the feeds worker's `parsed.window` (month and day). Its YEAR is read, never guessed: the range
+    must open on the notice's own effective day (`from`), and it ends on the next last day on or after the first (over the
+    new year: the year after; "Dec 1 to Feb 29" from 2027-12-01 ends 2028-02-29). A rescind's quoted range: undated. Not
+    a whole start and end, an end before the start in the same month, a day the month does not have, no effective day,
+    or a range that does not open on it: UNREADABLE (shown as undated, never guessed). One case file pins this here and
+    in core (`inseason-span.parity.json`)."""
     import datetime as _dt
-    parsed = row.get("parsed") or {}
+    parsed = row.get("parsed")
+    parsed = parsed if isinstance(parsed, dict) else {}
     w = parsed.get("window")
-    if not w:
+    if w is None:
         return "undated", None, None
-    if "rescind" in (parsed.get("kinds") or []):
+    kinds = parsed.get("kinds")
+    if isinstance(kinds, list) and "rescind" in kinds:
         return "undated", None, None
-    keys = ("from_month", "from_day", "to_month", "to_day")
-    if not all(isinstance(w.get(k), int) for k in keys):
+    if not isinstance(w, dict):
+        return "unreadable", None, None
+    fm, fd, tm, td = (w.get(k) for k in ("from_month", "from_day", "to_month", "to_day"))
+    if not all(_whole(v) for v in (fm, fd, tm, td)):
         return "unreadable", None, None
     frm = row.get("from")
-    if not frm or not DATE_RE.match(frm):
+    if not _is_day(frm):
+        return "unreadable", None, None
+    fm, fd, tm, td = int(fm), int(fd), int(tm), int(td)
+    if tm == fm and td < fd:
         return "unreadable", None, None
     year = int(frm[:4])
     try:
-        first = _dt.date(year, w["from_month"], w["from_day"])
-        last = _dt.date(year, w["to_month"], w["to_day"])
-        if last < first:
-            last = _dt.date(year + 1, w["to_month"], w["to_day"])
-    except ValueError:
+        first = _dt.date(year, fm, fd)
+        last = _dt.date(year + 1 if tm < fm else year, tm, td)
+    except (ValueError, OverflowError):
         return "unreadable", None, None
     if first.isoformat() != frm:
         return "unreadable", None, None
@@ -359,16 +372,19 @@ def dating(row: dict) -> tuple[str, Optional[str], Optional[str]]:
 
 
 def span(row: dict, effective: Optional[Effective] = None) -> tuple[Optional[str], Optional[str], bool]:
-    """WHEN A ROW IS IN FORCE — `@app/core` `inSeasonSpan`, the one rule (T520): `(from, to, dated)`. The curated
-    override first, then (T1167) the range the notice states in its own text (`dating`), then the feed's own dates.
-    A row with no readable range keeps the rule of 2026-11-11 (T548): in force from its `from` until the page drops it
-    or a printed / curated `to` passes. ONE case file pins both: `app/packages/core/src/inseason-span.parity.json`, read
-    by `inseason.test.ts` and `test_inseason_publish.py`."""
+    """WHEN A ROW IS IN FORCE — `@app/core` `inSeasonSpan`, the one rule (T520): `(from, to, dated)`. The curated override
+    first, then the row's dates. DATED (T1167): by the range its own text states (`dating`), or by an effective cell
+    printing both ends; when the text and the cell both give an end, the LATER (the banner may outstay the closure,
+    never leave it early). An undated row keeps the rule of 2026-11-11 (T548): in force from its `from` until the page
+    drops it. ONE case file pins both: `app/packages/core/src/inseason-span.parity.json`."""
     kind, first, last = dating(row)
-    dated = kind == "dated"
-    frm = (effective.from_ if effective and effective.from_ else None) or (first if dated else row.get("from")) or None
-    to = (effective.to if effective and effective.to else None) or (last if dated else row.get("to")) or None
-    return frm, to, dated
+    cell_from = row.get("from") if _is_day(row.get("from")) else None
+    cell_to = row.get("to") if _is_day(row.get("to")) else None
+    text = kind == "dated"
+    end = (max(last, cell_to) if cell_to else last) if text else cell_to
+    frm = (effective.from_ if effective and effective.from_ else None) or (first if text else cell_from)
+    to = (effective.to if effective and effective.to else None) or end
+    return frm, to, text or bool(cell_from and cell_to)
 
 
 def on(frm: Optional[str], to: Optional[str], dated: bool, day: str) -> Optional[str]:
@@ -379,8 +395,10 @@ def on(frm: Optional[str], to: Optional[str], dated: bool, day: str) -> Optional
     if to and to < day:
         return None
     if frm and frm > day:
+        if not dated:
+            return None
         lead = (_dt.date.fromisoformat(frm) - _dt.timedelta(days=INSEASON_LEAD_DAYS)).isoformat()
-        return "upcoming" if dated and lead <= day else None
+        return "upcoming" if lead <= day else None
     return "in force"
 
 

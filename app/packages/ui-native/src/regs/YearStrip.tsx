@@ -98,7 +98,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
               color: l.kind === "soonOpen" ? palette.salmon.open : palette.closed, borderColor: l.kind === "soonOpen" ? palette.salmon.open : palette.closed }]}>{l.text}</Text>)}
       </View>
       {/* (T1167) a notice in force on the page: the status line points at it (the answer stays the book's) */}
-      <InSeasonPointer palette={palette} />
+      <InSeasonPointer palette={palette} on="strip" />
       {!!hours && <Text testID="keep-daylight" style={[TYPE.metaBold, { color: palette.ink, marginTop: 2 }]}>{hours}</Text>}
       {/* (T40) the bar is one picture to a screen reader, named by the status line ("Open today"); the marker's date is the
           header pill's, so it is hidden inside it. The legend below stays text. */}

@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { AppState, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, OPEN, now as clockNow, environmentError, parseSheetKey, reportFailure, startEndSentence, withInSeason, withSalmonSheets, inSeasonStatusLine, inSeasonYearMarks, type SalmonCardVM, tabScrollY, isStartOwnScroll, startEndOf, startTick, START_FOLLOW_0, START_TICK_MS, type StartFollow, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, OPEN, now as clockNow, environmentError, parseSheetKey, reportFailure, startEndSentence, withInSeason, withSalmonSheets, inSeasonKeepOf, type SalmonCardVM, tabScrollY, isStartOwnScroll, startEndOf, startTick, START_FOLLOW_0, START_TICK_MS, type StartFollow, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { NO_SNIPPET, WaterInset } from "../WaterFrame";
@@ -323,8 +323,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // (T990) `src:all` also lists the Province's in-season changes this water shows (the screen's, not the page's)
   // (T1031) and the salmon species' sheets (the screen's card, not the page's)
   const hostPage = useMemo(() => ({ ...page, sheet: withSalmonSheets(withInSeason(page.sheet, inSeason), salmonCard) }), [page, inSeason, salmonCard]);
-  // (T1167) the Keep blocks' word of the notices: the status line's pointer while one is in force, the year bars' marks
-  const inSeasonKeep = useMemo(() => ({ pointer: inSeasonStatusLine(inSeason), marks: inSeasonYearMarks(inSeason) }), [inSeason]);
+  // (T1167) the Keep tab's word of the notices (core): the pointer while one is in force and where, the year bars' marks
+  const inSeasonKeep = useMemo(() => inSeasonKeepOf(page.keep, inSeason), [page.keep, inSeason]);
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(OPEN.terms([id]))}
                            side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {

@@ -8,7 +8,7 @@
  * kept with the captured links, never with none: an outage of one file must not turn matched changes into the
  * "not on the map yet" notice. Asked once per `ttlMs`; every answer resolves, never rejects.
  */
-import { INSEASON_FAILURES, inSeasonFeedRefusal, inSeasonRowsRefused, inSeasonUnreadRanges, isFeedTooNew, parseInSeasonFeed, reported, parseInSeasonLinks,
+import { INSEASON_FAILURES, inSeasonFeedRefusal, inSeasonRowsRefused, isFeedTooNew, parseInSeasonFeed, reported, parseInSeasonLinks,
          type FeedGate, type InSeasonFeed, type InSeasonLinks } from "@app/core";
 
 export interface InSeasonStore { read(): string | null; write(text: string): void }
@@ -44,8 +44,6 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
   let held: { at: number; p: Promise<InSeasonData | null> } | null = null;
   let failure: string | null = null;
   let failureRows: { unread: number; of: number } | null = null;
-  // (T1167) the sets of undatable notices this source has reported (`INSEASON_FAILURES.unreadRanges`): once each
-  const undatedTold = new Set<string>();
   const captured = (): InSeasonData | null => {
     try {
       const t = store?.read();
@@ -93,11 +91,6 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
     const read = parseInSeasonLinks(l);
     if (l !== null && !read) reported(null)(new Error(INSEASON_FAILURES.unreadableLinks((l as { format?: unknown } | null)?.format)));
     const links = read ?? was?.links ?? null;
-    // (T1167) a notice whose text prints a range this app could not date is shown as undated and REPORTED, once per set
-    // per app run (never guessed); a curated date in notice_waters.json dates it
-    const odd = inSeasonUnreadRanges(feed, links);
-    const told = odd.map((r) => r.id).join(",");
-    if (odd.length && !undatedTold.has(told)) { undatedTold.add(told); reported(null)(new Error(INSEASON_FAILURES.unreadRanges(odd))); }
     try { store?.write(JSON.stringify({ feed: f, links: links })); } catch { /* a cache: costs only the next offline open */ }
     return { feed, links };
   };
