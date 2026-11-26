@@ -62,6 +62,13 @@ Owner phone receives a wake-up from staging and from production; worker logs ove
 
 Depends: T994 F1 merged; a TestFlight build. Size: S. Owner: yes (the phone test; Claude runs the rest).
 
+
+## 2026-11-25: a crash kind from the owner's push proof attempt
+Crash `67a5a3a112caf554` (0.9.0 iPhone, 2026-11-25 06:39Z): no push token arrived within 30 s. It is the owner's own
+push proof attempt on TestFlight, not a tester's. It is cited here so `pipeline reports` no longer lists it as
+NEW; the push proof on a second iPhone is still owed after the App Store release (the iOS chat was retired
+2026-11-25; the planning chat holds this). Feedback log row F46.
+
 ## Owner
 
 - [ ] 2026-11-25 — After the iPhone release: install the same TestFlight build on a second iPhone and try there (your spare iPhone's push service gives no token; signing and the app's push code were checked). Your words: "we should move this to after iphone release I think. we could fix with a patch?"
