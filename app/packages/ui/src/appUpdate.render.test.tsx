@@ -63,7 +63,7 @@ describe("useAppUpdate", () => {
     await flush();
     expect(calls.check).toBe(1);
   });
-  it("a failed check is said and reported; a dropped line is neither; nothing is kept for either", async () => {
+  it("a failed check shows no notice and is reported once; a dropped line is neither; nothing is kept for either", async () => {
     const got: unknown[] = [];
     const undo = setFailureSink((e) => got.push(e));
     try {
@@ -71,7 +71,8 @@ describe("useAppUpdate", () => {
       const { p } = port({ check: () => Promise.reject(new Error("ERR_CHECK_FOR_UPDATE")) });
       render(<Probe p={p} store={store} out={out} />);
       await flush();
-      expect(out.c!.vm).toMatchObject({ text: "Could not check for a newer version of the app.", failed: true, button: null });
+      expect(out.c!.vm).toBeNull();
+      expect(out.c!.popup).toBeNull();
       expect(got).toHaveLength(1);
       expect(store.read()).toBeNull();
       cleanup();
@@ -100,7 +101,7 @@ describe("useAppUpdate", () => {
     const undo = setFailureSink((e) => got.push(e));
     try {
       const store = mem(), out: { c?: AppUpdateControl | null } = {};
-      const ok = port({ check: () => Promise.resolve({ available: false, version: null }) });
+      const ok = port({ check: () => Promise.resolve({ available: true, version: null }) });
       const r = render(<Probe p={ok.p} store={store} tooOld out={out} />);
       await flush();
       expect(out.c!.vm).toMatchObject({ strength: "strong", button: { immediate: true } });
@@ -114,6 +115,24 @@ describe("useAppUpdate", () => {
       act(() => out.c!.update());
       await flush();
       expect(out.c!.vm).toMatchObject({ said: "The update could not start.", failed: true, button: { label: "Update" } });
+      expect(got).toHaveLength(1);
+    } finally { undo(); }
+  });
+  it("(T1073) the strong prompt, the store not offering the app, or its check failing: no Update button; the failure reported once", async () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const no = port({ check: () => Promise.resolve({ available: false, version: null }) });
+      const out: { c?: AppUpdateControl | null } = {};
+      const r = render(<Probe p={no.p} store={mem()} tooOld out={out} />);
+      await flush();
+      expect(out.c!.vm).toMatchObject({ strength: "strong", button: null, offered: false });
+      expect(got).toEqual([]);
+      r.unmount();
+      const bad = port({ check: () => Promise.reject(new Error("ERR_CHECK_FOR_UPDATE")) });
+      render(<Probe p={bad.p} store={mem()} tooOld out={out} />);
+      await flush();
+      expect(out.c!.vm).toMatchObject({ strength: "strong", button: null, offered: false });
       expect(got).toHaveLength(1);
     } finally { undo(); }
   });
@@ -197,7 +216,7 @@ describe("(T888) the popup on opening", () => {
   });
   it("the strong prompt (new data needs this app) comes up on every opening; Not now hides it for this run only", async () => {
     const store = mem(), out: { c?: AppUpdateControl | null } = {};
-    const { p } = port({ check: () => Promise.resolve({ available: false, version: null }) });
+    const { p } = port({ check: () => Promise.resolve({ available: true, version: null }) });
     const first = render(<Probe p={p} store={store} tooOld out={out} />);
     await flush();
     expect(out.c!.popup).toMatchObject({ strength: "strong", title: "New data needs the latest app",

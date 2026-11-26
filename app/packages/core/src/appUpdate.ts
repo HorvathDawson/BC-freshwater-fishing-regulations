@@ -15,7 +15,7 @@
  * always the latest) or a local build. The check runs on every opening and every return to the app (T390 2026-11-05: a
  * daily cap hid 0.6.1): the APK page's `latest.json`; on Play, Play's own check (owner 2026-11-06: only once Play offers
  * this phone the build — our `play.json`, written at upload, said 0.6.4 before Play had it; it gives the bullets), never
- * offline (`shouldCheckAppUpdate`); offline says nothing (`appUpdateVM`). A check or a start that fails is shown here and reported by the hook
+ * offline (`shouldCheckAppUpdate`); offline says nothing (`appUpdateVM`). A start that fails is shown here and reported by the hook; a store check that fails shows nothing (T1073) and is reported by the hook
  * (`@app/ui` `useAppUpdate`, T368).
  */
 import { compareSemver, parseSemver, type AppVersion } from "./appVersion";
@@ -31,6 +31,10 @@ export const APP_UPDATE_WORDS = {
   /** the strong prompt: a release was refused for an app older than it needs */
   needed: "New data needs the latest app.",
   neededSub: "The app keeps using the data it has until it is updated.",
+  /** (T1073) the strong prompt while the STORE does not offer this phone the app (not yet on its track, or the check
+   *  failed): it says what is so and promises no install; the app asks again each time it opens */
+  neededNotOffered: "New data needs a newer app. It is not available for your phone yet.",
+  neededNotOfferedSub: "The app keeps using the data it has, and asks the store again each time it opens.",
   /** the one button, everywhere */
   update: "Update",
   /** a sideloaded staging build: the button opens the test-build page */
@@ -42,14 +46,14 @@ export const APP_UPDATE_WORDS = {
   /** our version file names a newer build that Play does not offer this phone yet: the button opened the listing */
   playPreparing: "Play is still preparing this version for your phone. The Play listing is open.",
   working: "Starting the update…",
-  /** failures, said under the button (the hook reports them) */
-  checkFailed: "Could not check for a newer version of the app.",
+  /** failures, said under the button (the hook reports them; a failed store CHECK says nothing, T1073) */
   /** (T595) a phone with no Google Play to answer (an emulator, a de-Googled phone): a known state, not a failure */
   noPlay: "This phone has no Google Play to ask, so the app cannot check for a newer version.",
   startFailed: "The update could not start.",
   offline: "No connection. Try again when you are online.",
   /** the bell's label aloud */
-  label: { available: "A new version of the app is available", needed: "New data needs the latest app" },
+  label: { available: "A new version of the app is available", needed: "New data needs the latest app",
+           neededNotOffered: "New data needs a newer app, not available for your phone yet" },
   /** (T234 v1.1) the incoming version's bullets under the prompt */
   whatsNew: (v: string) => `What's new in ${v}`,
   whatsNewMissing: (v: string) => `No notes were published for version ${v}.`,
@@ -58,6 +62,8 @@ export const APP_UPDATE_WORDS = {
     title: (v: string) => `Version ${v} is out`,
     /** the strong prompt's title (a release this app is too old for), with or without a version named */
     neededTitle: "New data needs the latest app",
+    /** (T1073) the same, while the store does not offer it to this phone */
+    neededNotOfferedTitle: "New data needs a newer app",
     whatsNew: "What's new",
     notNow: "Not now",
     later: "If you wait, I keep it under the bell.",
@@ -230,8 +236,20 @@ export function appUpdateChannel(i: { os: string; env: string; distribution?: st
     if (d) throw new Error(`EXPO_PUBLIC_APP_DISTRIBUTION "${d}" is not play or apk-page`);
     return i.env === "production" ? "play" : i.apkPage ? "apk-page" : "none";
   }
-  if (i.os === "ios") return i.appStoreUrl ? "app-store" : "none";
+  if (i.os === "ios") {
+    // (T1073) a TestFlight install is updated by TestFlight, which the App Store lookup knows nothing of: no notice we
+    // cannot act on
+    if (d === "testflight") return "none";
+    return i.appStoreUrl ? "app-store" : "none";
+  }
   return "none";
+}
+
+/** (T1073) The background new-version notice (a notification raised with the app closed) is made only for a build whose
+ *  own version file IS the update source: the sideloaded staging APK. A store install is told by the store's own check,
+ *  which needs the app in front (Play's API needs an Activity), so it has none; `none` has no source at all. */
+export function appUpdateBackgroundNotice(channel: AppUpdateChannel): boolean {
+  return channel === "apk-page";
 }
 
 /** What the last check found, as kept on the device: the device day it was asked, and the answer. */
@@ -312,6 +330,9 @@ export interface AppUpdateVM {
   readonly sub: string | null;
   /** the bell's label aloud */
   readonly label: string;
+  /** (T1073) the store offers this phone the install now (or the channel is our own file / has no store): false only
+   *  for the strong prompt said while a store channel does not offer it, which has no button */
+  readonly offered: boolean;
   /** counts toward the bell's badge (both prompts do; a failed check is said only when the sheet is open) */
   readonly counts: boolean;
   /** the one button, or null (no channel; a start under way) */
@@ -339,6 +360,17 @@ export function appUpdateVM(i: { channel: AppUpdateChannel; check: AppUpdateChec
   return { ...vm, whatsNew: { title: APP_UPDATE_WORDS.whatsNew(v), notes, missing: notes ? null : APP_UPDATE_WORDS.whatsNewMissing(v) } };
 }
 
+const storeChannel = (c: AppUpdateChannel): boolean => c === "play" || c === "app-store";
+
+/**
+ * (T1073) THE DECISION, in one place: the bell's App update row (`appUpdateVM`), its Update button (the row's `button`),
+ * the popup on opening (`updatePopupVM`, built from the row) and the background new-version notice
+ * (`appUpdateBackgroundNotice`) all read it. A store channel (Play, the App Store) says a newer app, and gives the
+ * button, only when THE STORE says this install can update now (`check.state === "available"` is the store's answer);
+ * a newer version in our own version file that the store does not offer yet is neither an error nor a notice, and is
+ * asked again on the next check. A failed store check shows nothing (the hook reports it). Our own version file may
+ * still say a release needs a newer app (the strong prompt), in words that promise no install.
+ */
 function appUpdateVMBare(i: { channel: AppUpdateChannel; check: AppUpdateCheck; tooOld: boolean;
                               start: AppUpdateStart }): Omit<AppUpdateVM, "whatsNew"> | null {
   const W = APP_UPDATE_WORDS;
@@ -350,25 +382,27 @@ function appUpdateVMBare(i: { channel: AppUpdateChannel; check: AppUpdateCheck; 
   const button = (immediate: boolean) => i.channel === "none" || i.start === "working" || i.start === "downloading"
     ? null : { label, immediate };
   if (i.tooOld) {
-    return { strength: "strong", title: W.title, text: W.needed, sub: W.neededSub, label: W.label.needed, counts: true,
-             button: button(true), said, failed: startFailed };
+    // (T1073) a store channel names the install only when the store offers it to this phone; otherwise the prompt says
+    // so and has no button (a store check that failed is reported by the hook, and ends here too)
+    if (storeChannel(i.channel) && i.check.state !== "available") {
+      return { strength: "strong", title: W.title, text: W.neededNotOffered, sub: W.neededNotOfferedSub,
+               label: W.label.neededNotOffered, offered: false, counts: true, button: null, said, failed: false };
+    }
+    return { strength: "strong", title: W.title, text: W.needed, sub: W.neededSub, label: W.label.needed, offered: true,
+             counts: true, button: button(true), said, failed: startFailed };
   }
   if (i.channel === "none") return null;
   if (i.check.state === "available") {
     const v = i.check.version && parseSemver(i.check.version) ? i.check.version : null;
     return { strength: "gentle", title: W.title, text: v ? W.availableVersion(v) : W.available, sub: null,
-             label: W.label.available, counts: true, button: button(false), said, failed: startFailed };
+             label: W.label.available, offered: true, counts: true, button: button(false), said, failed: startFailed };
   }
   // (T595) no Play service on this phone: said as what it is, with no button
   if (i.check.state === "failed" && i.check.noPlay) {
-    return { strength: "gentle", title: W.title, text: W.noPlay, sub: null, label: W.noPlay, counts: false,
+    return { strength: "gentle", title: W.title, text: W.noPlay, sub: null, label: W.noPlay, offered: false, counts: false,
              button: null, said: null, failed: false };
   }
-  // a check that failed for a reason other than the connection: said, quietly, with no button
-  if (i.check.state === "failed" && !i.check.offline) {
-    return { strength: "gentle", title: W.title, text: W.checkFailed, sub: null, label: W.checkFailed, counts: false,
-             button: null, said: null, failed: true };
-  }
+  // (T1073) a store check that failed shows no notice (the hook reports it once); only the strong prompt, above, stands
   return null;
 }
 
@@ -421,7 +455,8 @@ export function updatePopupVM(i: { vm: AppUpdateVM | null; channel: AppUpdateCha
   if (vm.strength === "strong") {
     if (i.dismissed === NEEDED_KEY) return null;
     // the reason is the title; the version, when the check names one, heads its bullets ("What's new in 0.8.2")
-    return { key: NEEDED_KEY, strength: "strong", title: P.neededTitle, whatsNew: vm.whatsNew, ...base };
+    return { key: NEEDED_KEY, strength: "strong", title: vm.offered ? P.neededTitle : P.neededNotOfferedTitle,
+             whatsNew: vm.whatsNew, ...base };
   }
   if (i.check.state !== "available" || !v || i.popped === v || i.dismissed === v) return null;
   if (!parseSemver(i.installed) || compareSemver(v, i.installed) <= 0) return null;

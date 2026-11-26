@@ -3,7 +3,7 @@
  * gentle for a newer version, strong for a release refused by `minAppVersion`, nothing offline, failures said.
  */
 import { describe, expect, it } from "vitest";
-import { APP_UPDATE_WORDS as W, apkIsNewer, appUpdateChannel, appUpdateOs, appUpdateVM, appVersionFileUrl, appVersionToTell, changelogVM, notesFor,
+import { APP_UPDATE_WORDS as W, apkIsNewer, appUpdateBackgroundNotice, appUpdateChannel, appUpdateOs, appUpdateVM, appVersionFileUrl, appVersionToTell, changelogVM, notesFor,
          readAppUpdateSaved, shouldCheckAppUpdate, storeUpdateCheck, storeVersionFileUrl, updatePopupVM, type AppUpdateChannel,
          type AppUpdateCheck } from "./appUpdate";
 import { CHANGELOG, notesOn, type ChangelogEntry } from "./changelog";
@@ -78,12 +78,10 @@ describe("appUpdateVM: the bell's App update section", () => {
     expect(appUpdateVM({ channel: "play", check: { state: "available", version: "57" }, tooOld: false, start: "idle" })!.text)
       .toBe(W.available);
   });
-  it("min-app refusal: the strong prompt, immediate, whatever the check said", () => {
-    for (const check of [current, avail, { state: "unknown" } as const]) {
-      const vm = appUpdateVM({ channel: "play", check, tooOld: true, start: "idle" })!;
-      expect(vm).toMatchObject({ strength: "strong", text: "New data needs the latest app.", counts: true,
-                                 button: { label: "Update", immediate: true } });
-    }
+  it("min-app refusal: the strong prompt, immediate, when the store offers the app (T1073: only then)", () => {
+    const vm = appUpdateVM({ channel: "play", check: avail, tooOld: true, start: "idle" })!;
+    expect(vm).toMatchObject({ strength: "strong", text: "New data needs the latest app.", counts: true, offered: true,
+                               button: { label: "Update", immediate: true } });
     // no channel (the web, an iOS build before T88): said, with no button
     expect(appUpdateVM({ channel: "none", check: current, tooOld: true, start: "idle" })!.button).toBeNull();
     // the staging APK: the test-build page
@@ -96,9 +94,9 @@ describe("appUpdateVM: the bell's App update section", () => {
     expect(appUpdateVM({ channel: "play", check: { state: "failed", offline: true }, tooOld: false, start: "idle" })).toBeNull();
     expect(appUpdateVM({ channel: "none", check: avail, tooOld: false, start: "idle" })).toBeNull();
   });
-  it("failures are said: a check that failed (no button, not counted), a start that failed (button again)", () => {
-    expect(appUpdateVM({ channel: "play", check: { state: "failed", offline: false }, tooOld: false, start: "idle" }))
-      .toMatchObject({ text: W.checkFailed, button: null, counts: false, failed: true });
+  it("failures: a store check that failed shows nothing (T1073, the hook reports it); a start that failed gets its button again", () => {
+    expect(appUpdateVM({ channel: "play", check: { state: "failed", offline: false }, tooOld: false, start: "idle" })).toBeNull();
+    expect(appUpdateVM({ channel: "app-store", check: { state: "failed", offline: false }, tooOld: false, start: "idle" })).toBeNull();
     expect(appUpdateVM({ channel: "play", check: avail, tooOld: false, start: "failed" }))
       .toMatchObject({ said: W.startFailed, failed: true, button: { label: "Update" } });
     expect(appUpdateVM({ channel: "play", check: avail, tooOld: true, start: "offline" })!.said).toBe(W.offline);
@@ -108,14 +106,71 @@ describe("appUpdateVM: the bell's App update section", () => {
       .toMatchObject({ said: W.downloading, button: null, failed: false });
     expect(appUpdateVM({ channel: "play", check: avail, tooOld: false, start: "working" })!.button).toBeNull();
     expect(appUpdateVM({ channel: "apk-page", check: avail, tooOld: false, start: "opened" })!.said).toBe(W.opened);
-    expect(appUpdateVM({ channel: "play", check: current, tooOld: true, start: "none" })!.said).toBe(W.notYet);
+    expect(appUpdateVM({ channel: "play", check: avail, tooOld: true, start: "none" })!.said).toBe(W.notYet);
     // (T390 11-05) our file names a newer build that Play does not offer yet: the listing opened, said so, button kept
     expect(appUpdateVM({ channel: "play", check: avail, tooOld: false, start: "listing" }))
       .toMatchObject({ said: W.playPreparing, failed: false, button: { label: "Update" } });
   });
   it("the bell says it first", () => {
-    const vm = appUpdateVM({ channel: "play", check: current, tooOld: true, start: "idle" });
+    const vm = appUpdateVM({ channel: "play", check: avail, tooOld: true, start: "idle" });
     expect(bellLabel("2 in-season changes", 1, null, vm)).toBe("New data needs the latest app; 2 in-season changes; 1 update failed");
+  });
+});
+
+describe("(T1073) the update shows only when the store says this install can update now", () => {
+  // our version file says 0.9.2 is out; the store's answer is what decides
+  const notOffered: AppUpdateCheck = { state: "current" };
+  const offered: AppUpdateCheck = { state: "available", version: "0.9.2", notes: ["A fix"] };
+  const failed: AppUpdateCheck = { state: "failed", offline: false };
+  const surfaces = (channel: AppUpdateChannel, check: AppUpdateCheck, tooOld = false) => {
+    const vm = appUpdateVM({ channel, check, tooOld, start: "idle" });
+    const pop = updatePopupVM({ vm, channel, check, installed: "0.9.1", popped: null, dismissed: null, held: false });
+    return { row: vm !== null, button: vm?.button ?? null, notice: pop !== null };
+  };
+  it("the store does not offer it (a newer version in our file, Play or the App Store says no): no notice, no row, no button", () => {
+    for (const ch of ["play", "app-store"] as const) {
+      expect(surfaces(ch, notOffered)).toEqual({ row: false, button: null, notice: false });
+      expect(surfaces(ch, { state: "unknown" })).toEqual({ row: false, button: null, notice: false });
+    }
+  });
+  it("the store offers it: the notice, the row and the button, all three", () => {
+    for (const ch of ["play", "app-store"] as const) {
+      expect(surfaces(ch, offered)).toEqual({ row: true, button: { label: "Update", immediate: false }, notice: true });
+    }
+  });
+  it("the store check failed: nothing shown (the hook reports it once)", () => {
+    for (const ch of ["play", "app-store"] as const) expect(surfaces(ch, failed)).toEqual({ row: false, button: null, notice: false });
+  });
+  it("the strong prompt while the store does not offer the app: whole words, no button, no promise of an install", () => {
+    for (const check of [notOffered, { state: "unknown" } as const, failed]) {
+      const vm = appUpdateVM({ channel: "play", check, tooOld: true, start: "idle" })!;
+      expect(vm).toMatchObject({
+        strength: "strong", title: "App update", offered: false, counts: true, button: null, failed: false,
+        text: "New data needs a newer app. It is not available for your phone yet.",
+        sub: "The app keeps using the data it has, and asks the store again each time it opens.",
+        label: "New data needs a newer app, not available for your phone yet",
+      });
+      expect(updatePopupVM({ vm, channel: "play", check, installed: "0.9.1", popped: null, dismissed: null, held: false }))
+        .toMatchObject({ key: "needed", strength: "strong", title: "New data needs a newer app", button: null,
+                         sub: "The app keeps using the data it has, and asks the store again each time it opens." });
+    }
+    // the store offers it: the strong prompt promises the install, with the button
+    expect(appUpdateVM({ channel: "app-store", check: offered, tooOld: true, start: "idle" }))
+      .toMatchObject({ text: "New data needs the latest app.", offered: true, button: { label: "Update", immediate: true } });
+  });
+  it("the sideloaded APK's own file and the web keep their rules", () => {
+    expect(surfaces("apk-page", offered)).toEqual({ row: true, button: { label: "Get the new test build", immediate: false }, notice: true });
+    expect(appUpdateVM({ channel: "none", check: notOffered, tooOld: true, start: "idle" }))
+      .toMatchObject({ text: "New data needs the latest app.", button: null });
+  });
+  it("only the sideloaded APK raises the background new-version notice; a store install is told by its store", () => {
+    expect(["play", "app-store", "apk-page", "none"].map((c) => appUpdateBackgroundNotice(c as AppUpdateChannel)))
+      .toEqual([false, false, true, false]);
+  });
+  it("a TestFlight install, or an iPhone with no listing, has no channel: no notice we cannot act on", () => {
+    expect(appUpdateChannel({ os: "ios", env: "production", distribution: "testflight", appStoreUrl: "https://apps.apple.com/x" })).toBe("none");
+    expect(appUpdateChannel({ os: "ios", env: "production", distribution: "testflight" })).toBe("none");
+    expect(appUpdateChannel({ os: "ios", env: "production", appStoreUrl: "https://apps.apple.com/x" })).toBe("app-store");
   });
 });
 
@@ -235,7 +290,7 @@ describe("(T888) the popup on opening", () => {
       .toEqual(["android", "android", "ios", null]);
   });
   it("the strong prompt keeps its rule: every opening, Not now for this run only, whatever the check said", () => {
-    for (const check of [{ state: "current" } as const, { state: "unknown" } as const, avail("0.8.2")]) {
+    for (const check of [avail("0.8.2")]) {
       expect(popup("play", check, { tooOld: true, popped: "0.8.2" })).toMatchObject({
         key: "needed", strength: "strong", title: "New data needs the latest app",
         sub: "The app keeps using the data it has until it is updated.", button: { immediate: true } });
