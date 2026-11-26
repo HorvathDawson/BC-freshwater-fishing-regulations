@@ -1,0 +1,22 @@
+{
+  "key": "bfc2ca454eb22bed3d4b927417dbc10053d0ac08e12d729551d2c16cf7bc39f0",
+  "inputs": {
+    "mln_commit": "3a6b955796b3509f184e9bf719e82cb2b432b958",
+    "mln_version": "13.7.1-main.3a6b955",
+    "build_sh": "166f1335f0254d8d6441f880fc17ece6767c1b48024be98fedfdba3c7e3576c8",
+    "jobpool_init_gradle": "6366fb4b8f027d51a940b518aa9e8d14836a2193396360412ef01a8d8fd1bafe",
+    "ndk": "28.2.13676358",
+    "cmake": "3.31.6",
+    "gradle": "9.5.1",
+    "jdk": "21",
+    "abis": "arm64-v8a x86_64",
+    "pack_format": 1
+  },
+  "tag": "maplibre-android-bfc2ca454eb22bed",
+  "file": "maplibre-android-13.7.1-main.3a6b955-bfc2ca454eb22bed.tar",
+  "url": "https://github.com/canifishthis/canifishthis/releases/download/maplibre-android-bfc2ca454eb22bed/maplibre-android-13.7.1-main.3a6b955-bfc2ca454eb22bed.tar",
+  "sha256": "6d92b31d608e9706e0ccf63f5fd9067754f9e686c784b88499c60cd97d2bf5d3",
+  "size": 10127360,
+  "run": "https://github.com/canifishthis/canifishthis/actions/runs/45783981055",
+  "published": false
+}

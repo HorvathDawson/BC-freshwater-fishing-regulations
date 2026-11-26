@@ -13,7 +13,7 @@
  * and feed join on section and station ids, and a mixed set colours nothing.
  */
 import { Platform } from "react-native";
-import { APP_ENVS, resolveAppVersion, versionLine, type AppEnv } from "@app/core";
+import { APP_ENVS, IMAGERY, resolveAppVersion, versionLine, type AppEnv } from "@app/core";
 import { imageryTiles } from "@app/map/colours";
 import { crashUrlFor, endpointsFor, pushUrlFor, reportUrlFor, resolveChannel, resolveEnv, UPDATE_CHANNELS, type UpdateChannel } from "./env";
 import { channelStore, envStore, restart } from "./envStore";
@@ -94,14 +94,14 @@ export const MENU_INFO = {
 } as const;
 
 /**
- * THE SATELLITE IMAGERY'S TILES (owner 2026-10-21: Esri World Imagery, online-only). KEYLESS BY DEFAULT — the owner's
+ * THE SATELLITE IMAGERY'S TILES, of the provider in use (`IMAGERY`; owner 2026-10-21: Esri World Imagery, online-only). KEYLESS BY DEFAULT — the owner's
  * decision (2026-10-21 late: "we used esri free without a key in original app lets do that again. this is a non profit
  * app"): unset, the template is Esri's own ArcGIS Online World_Imagery MapServer, as the original app used, and that is
  * what ships. `EXPO_PUBLIC_ARCGIS_API_KEY` is OPTIONAL config: an ArcGIS Location Platform key (restricted by referrer /
  * app in the ArcGIS dashboard) switches the tiles to Esri's keyed endpoint, counted against that account's free tier.
  * Esri's terms on the keyless path: app/packages/core/src/imagery.ts. Never a key in the code.
  */
-export const IMAGERY_TILES = imageryTiles(process.env.EXPO_PUBLIC_ARCGIS_API_KEY?.trim() || null);
+export const IMAGERY_TILES = imageryTiles(IMAGERY, process.env.EXPO_PUBLIC_ARCGIS_API_KEY?.trim() || null);
 
 /** Every URL the app reads (the release, tiles, feeds, sql.js), from `APP_ENV.origin`. T231's update service reads it. */
 export const ENDPOINTS = endpointsFor(APP_ENV.origin, UPDATE_CHANNEL);

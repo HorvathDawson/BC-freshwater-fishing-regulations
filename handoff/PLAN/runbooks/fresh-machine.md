@@ -116,7 +116,7 @@ Not mirrored on purpose: `data/source/steelhead/` (6.6 GB; only `known_waters` r
 | JDK | `deploy/staging/build-apk.sh` precheck (`JAVA_HOME`, default Android Studio's JBR) | install Android Studio |
 | Android SDK (`ANDROID_HOME`, default `~/Library/Android/sdk`) with platforms, build-tools, and NDK 27.x for the app's Gradle build | the precheck | Android Studio, SDK Manager; Gradle fetches what the app asks |
 | NDK 28.2.13676358 + CMake 3.31.6 | `app/tools/maplibre-android/README.md` | `sdkmanager --install "ndk;28.2.13676358" "cmake;3.31.6"` (JAVA_HOME set as in that README) |
-| the pinned MapLibre AAR in `cache/maplibre/<MLN_VERSION>/` (git-ignored; built, not fetched) | the precheck, `pin.env` | `bash scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir outside the repo>` (12 min) |
+| the pinned MapLibre AAR in `cache/maplibre/<MLN_VERSION>/` (git-ignored) | the precheck, `pin.env` | `bash app/tools/maplibre-android/build.sh <work dir outside the repo>` downloads it when `app/tools/maplibre-android/maplibre-android.lock.json` has `"published": true`; until then it stops, so build it: `bash scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh --compile <work dir outside the repo>` (12 min) |
 | `llvm-readelf` | the precheck (under the SDK's `ndk/`) | comes with the NDK |
 | `android/app/debug.keystore` (git-ignored) | secrets.md | made by `expo prebuild` (Expo's standard one); a new one means each phone uninstalls the staging app once |
 | `app/workers/feeds/.run-token` | `build-apk.sh` emails with it; `--no-email` skips | `deploy/staging/rotate-run-token.sh` (rotates the STAGING worker's token: the owner's) |

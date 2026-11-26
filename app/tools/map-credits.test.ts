@@ -20,8 +20,8 @@ describe("web and phone draw the same credits, and the corners never meet (T424)
     expect(native).toMatch(/attribution=\{false\}/);
     // the renderer's own control has no styling left, and nothing but the one component draws an Esri badge
     expect(css).not.toContain(".maplibregl-ctrl-attrib {");
-    expect(web).not.toContain("ESRI_BADGE");
-    expect(native).not.toContain("ESRI_BADGE");
+    expect(web).not.toMatch(/IMAGERY\.badge|esri-badge/);
+    expect(native).not.toMatch(/IMAGERY\.badge|esri-badge/);
   });
 
   it("the scale bar is bottom-LEFT on both, the credits bottom-RIGHT", () => {

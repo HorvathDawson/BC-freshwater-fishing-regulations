@@ -22,6 +22,7 @@ import { HelpPage } from "./HelpPage";
 import { GlossaryPage } from "./GlossaryPage";
 import { AboutPage, ChangelogPage, SourcesPage } from "./InfoPages";
 import { MenuPage } from "./MenuPage";
+import { ScreenBoundary } from "../ScreenBoundary";
 import { OfflinePage } from "./OfflinePage";
 import { NotificationsPage } from "./NotificationsPage";
 import { ReportPage } from "./ReportPage";
@@ -106,7 +107,8 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
   const page = (k: "offline" | "notifications" | "help" | "sources" | "about" | "report" | "changelog", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               from={s.from === "more" ? MENU_WORDS.title : undefined} testID={`menu-page-${k}`}>
-      {s.page === k ? node : null}
+      {/* (T1164) a fault in this page ends the page only: its line, Try again, Go back (closes the page); reported */}
+      {s.page === k ? <ScreenBoundary screen="page" resetKey={k} palette={palette} goBack={menu.closePage}>{node}</ScreenBoundary> : null}
     </MenuPage>
   );
 
@@ -116,8 +118,10 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
                 onBack={term ? menu.closeTerm : menu.closePage} onClose={menu.closePage} palette={palette} scroll={false}
                 backLabel={term ? MENU_WORDS.items.glossary.label : undefined} from={s.from === "more" ? MENU_WORDS.title : undefined} testID="menu-page-glossary">
         {s.page === "glossary" && (
-          <GlossaryPage glossary={glossary} term={s.term} onTerm={menu.openTerm} onCloseTerm={menu.closeTerm}
-                        palette={palette} />
+          <ScreenBoundary screen="page" resetKey="glossary" palette={palette} goBack={menu.closePage}>
+            <GlossaryPage glossary={glossary} term={s.term} onTerm={menu.openTerm} onCloseTerm={menu.closeTerm}
+                          palette={palette} />
+          </ScreenBoundary>
         )}
       </MenuPage>
       {page("offline", offline ? <OfflinePage c={offline} palette={palette} /> : null)}
