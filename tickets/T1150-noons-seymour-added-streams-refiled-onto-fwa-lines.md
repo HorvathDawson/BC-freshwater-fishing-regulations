@@ -114,3 +114,4 @@ Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `T1150-scoping.md` (the e
 - [x] 2026-11-25 — Your two accepted "leave out" rows would go stale → "do whatever makes our current state decent until this is fixed in hardening" (2026-11-25)
 - [ ] 2026-11-25 — Hardening release: after the scoping pass, pick the variant (83 rows change, or 31 with no cascade) and say what happens to your two "leave out" rows. Default: the no-cascade variant; your rows are kept until you say.
 - [ ] 2026-11-25 — Picks for the hardening release (defaults first): the third variant / no-cascade / plain bump; your two "leave out" rows: remove in the same change / keep; Kyle, Wilkes, Aliceville and Rainbow: fix too / leave; line 360767895: look first / Logger's Lane Creek / Mamquam Blind Channel; the stale Aliceville continuation: re-key / leave held.
+- [x] 2026-11-26 — The city streams in the re-cut → "Later, not in the re-cut" (2026-11-26 00:54)

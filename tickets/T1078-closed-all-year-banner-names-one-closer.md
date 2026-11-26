@@ -16,3 +16,11 @@ Source: the 0.9.1 chat, 2026-11-24, PR #131 (T1052) census: Kirkup Creek (`gnis:
 Kirkup Creek's banner names both closures; a test on a two-closer water fails without the change; the count is in the ticket.
 
 Severity: low to medium (the water is correctly closed; one source is not shown). Release: 0.9.1 if T1052's lane can take it in the same code (it rewrites this block), else 0.9.2. Model: Opus. Size: S. Owner: no.
+
+## 2026-11-26: the owner's pick changes item 1
+The banner cites ONE closer, and that one must be the primary closure (not every rule that closes the year). The
+lane checks which rule is primary on Kirkup Creek and on the other two-closer waters of the census.
+
+## Owner
+
+- [x] 2026-11-26 — Name every rule that closes the year, or one → "keep one just make sure it is the primary closure" (2026-11-26)

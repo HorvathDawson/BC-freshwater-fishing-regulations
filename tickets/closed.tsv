@@ -826,6 +826,7 @@ T1056	Harrison Lake shows a hatchery-only lake trout rule: is it right?	DROPPED 
 T1058	A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace)	DONE	551cb1ce8, e01373329, 44be58a34, b2ae0ee3d		planning chat 2026-11-24	closed-2026	
 T1059	`scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back	DONE	87e1783a3, 34c35758a		planning chat 2026-11-24	closed-2026	
 T1076	The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site	DONE	9df3a6922	0.9.0	0.9.0 chat 2026-11-24	closed-2026	
+T1080	A new owner to-do page: markdown only, short, open items only (the artifact page is retired)	DONE	2b2221278		—	closed-2026	
 T1083	The web start link refuses `wsc:` item ids, yet the app writes them into its own URL (reload and share fail)	DONE — HIGH, on production 0.9.0; fixed for 0.10.0 (lane L24)	e65bc413c, 887e21735	0.9.0	0.9.1 chat 2026-11-24	closed-2026	
 T1086	RULINGS RU-14 (the Meziadin's row stops at Meziadin Lake) is outdated by T1053's head-lake walk	DONE — rewritten in T1053's PR (lane L21)	506132e69	0.9.1	0.9.1 chat 2026-11-24	closed-2026	T1053-walk-climbs-head-lakes
 T1087	`brunette_river.r1` "No Fishing upstream of Burnaby Lake" is curated as `whole` on the Brunette itself: is the river wrongly closed?	DONE — verdict RIGHT (printed p.22), closes with T1053's PR #166	355d2cc9c	0.9.1	0.9.1 chat 2026-11-24	closed-2026	T1053-walk-climbs-head-lakes
@@ -834,3 +835,4 @@ T1101	iPhone: About and the version headers show the Android build number	DONE	5
 T1116	A push token is registered only while the phone's notification permission is on; the worker drops tokens not re-registered for ~30 days	DONE — 0.10.0 (owner 2026-11-25); needs the app build + feeds worker deploy	f4ef89f4c	0.10.0	owner via the 0.9.1 chat, T1098 item g	closed-2026	
 T1117	The book's "ANDERSON" LAKE row (MU 1-3) is bound to Anderson Lake on Dove Creek (MU 1-6): wrong rules on production	DONE — fixed in PR #166 (T1053); binding pinned by a test; ships with the 0.10.0 data release	19a8dc392	0.10.0	0.9.1 chat 2026-11-25	closed-2026	
 T1127	The store push scripts upload every picture in a size folder, leftovers included	DONE (8702e420b, PR #207)	8702e420b	0.10.0	the 0.10.0 chat clears the 34 old pictures from the main checkout (owner 2026-11-25: "we can remove old store photos")	closed-2026	
+T1139	An unattended release keeps the Mac awake	DROPPED			—	closed-2026	

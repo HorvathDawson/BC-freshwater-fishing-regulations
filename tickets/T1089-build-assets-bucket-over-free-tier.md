@@ -49,6 +49,14 @@ Depends: none. Severity: low to medium (a few cents a month over the free tier t
 version). Release: 0.9.2, or the first free lane before it. Model: Opus (pins are what builds trust), Sonnet for the
 runbook. Size: S–M. Owner: yes (confirms the delete of the old objects).
 
+## 2026-11-26 00:14: the owner adds combining and reducing R2 storage
+Owner, verbatim: "but we can upload compressed all together then it is more simple? i think this is a future ticket.
+lets sdd a ticket to combine and reduce the sotrage usage on r2". Folded in here (no new ticket): put the pinned build
+sources in one compressed, hash-named upload (or compress each: a gpkg shrinks well); list every bucket by prefix and
+size (build sources, old releases, tiles, old-site leftovers, the release history) with a keep / prune policy. The
+trade-off to state: one bundle is simpler, but any changed input re-uploads all of it. Nothing in R2 is deleted
+without his confirmation.
+
 ## Owner
 
 - [ ] 2026-11-24 — Once the compressed pins are proven, confirm the delete of the old uncompressed objects in the build-assets bucket.

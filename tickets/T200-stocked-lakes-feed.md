@@ -60,4 +60,5 @@ Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `stocking-depth-plan.md`.
 
 ## Owner
 
-- [ ] 2026-11-25 — Picks (defaults first): stocking v1 from open FISS records only / wait for the licence / ask the Society; the look: a card plus the map colour; alerts: later with T234 / now / never; a source lag is fine if the card says "records to <date>": yes / no.
+- [x] 2026-11-25 — Picks (defaults first): stocking v1 from open FISS records only / wait for the licence / ask the Society; the look: a card plus the map colour; alerts: later with T234 / now / never; a source lag is fine if the card says "records to <date>": yes / no. → "i got permission to use go fish bc data we are ok" (2026-11-26 00:50: GoFishBC data may be used, so the richer GoFishBC report, not only FISS); the first slice → "Full report on the lake page (Recommended)" (2026-11-26 00:54)
+- [ ] 2026-11-26 — The 11 picks of the stocking and depth build plan (the planning chat's notes `stocking-depth-build-plan`; mock-ups of the stocking and depth cards to be published for you). Pick 10: a scheduled fetch of GoFishBC's JSON rests on your permission (their robots.txt asks robots to stay off /wp-json/). Default: none built before you pick.

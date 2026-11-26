@@ -70,6 +70,12 @@ the entry id keeps the printed MU (`r4:mackenzie_creek@4-21`). Do not "correct" 
 errata: **Mackenzie Creek MU 4-21 -> 4-31.** Not found and not errata (`not_found` overrides): Frog Lake (MU 5-6),
 Redfern Lake (MU 5-15), Squirrel Lake (MU 6-1).
 
+## Two rows the province's newer book lost (Little Qualicum River, Lizard Lake), T1168
+
+Our copy (2025-11-18) prints LITTLE QUALICUM RIVER (1-6) and LIZARD LAKE (1-3); the gov.bc.ca copy edited 2026-08-25
+does not (rendered pp. 18-20; no notice says why) and prints PUNTLEDGE RIVER twice (pp. 19, 20). We keep both rows: a
+re-parse of the new copy must not drop them or make a second Puntledge. Sent to the province with the other questions.
+
 ## A water's undated hatchery-steelhead quota does not lift the zone's Nov-Jun release (the Kitimat)
 
 The Kitimat prints "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2" with no dates (p.51); Region 6

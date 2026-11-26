@@ -34,4 +34,4 @@ the look.
 
 ## Owner
 
-- [ ] 2026-11-25 — Picks (defaults first): photo ID not now, the guided key first / key then hybrid later / a model now; record each picture's permission in NOTICE: yes / no (and tell me what permission you hold for the WDFW and GoFishBC pictures); bull trout against Dolly Varden: the key ends on "cannot tell, see the rule" / names a species; a biologist reads the key: yes / you alone; photos never leave the phone: yes / with a notice.
+- [x] 2026-11-25 — Picks (defaults first): photo ID not now, the guided key first / key then hybrid later / a model now; record each picture's permission in NOTICE: yes / no (and tell me what permission you hold for the WDFW and GoFishBC pictures); bull trout against Dolly Varden: the key ends on "cannot tell, see the rule" / names a species; a biologist reads the key: yes / you alone; photos never leave the phone: yes / with a notice. → photo ID: "recommended but ticket for future model explorration" (2026-11-26 00:50); the pictures: "dont worry about this ... just list source location files" (2026-11-26 01:20: no permission chase; the notices list each picture's source from the manifest, T1100)
