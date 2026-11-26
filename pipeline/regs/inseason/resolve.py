@@ -657,6 +657,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"inseason.resolve: FIRST BUILD — no release is live; resolving on atlas {atlas.digest} and its reach "
               f"run, named {rel.name} (publish refuses it; the release re-resolves on its candidate)", file=sys.stderr)
     else:
+        if a.release is None and not release_is_live():
+            # (T1120 review) not `manifest.live`'s "promote one with `pipeline release`": that release needs this file
+            raise SystemExit("inseason.resolve: no release is live here, so there is none to resolve on. A fresh "
+                             "machine's `python -m pipeline build` makes this resolution itself; by hand: "
+                             "`python -m pipeline.regs.inseason.resolve --first-build`")
         atlas = load_atlas()
         rel = read_release(release_dir(a.release))
     new, bad = resolve_doc(doc, atlas, rel)

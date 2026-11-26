@@ -311,8 +311,24 @@ def inseason_stale(build_dir: Path) -> str | None:
     if on is None:
         return f"no resolution ({M.resolved_path()})"
     if on.startswith(M.FIRST_BUILD) and on != M.FIRST_BUILD + digest_for(build_dir):
+        # (T1120 review) a release made by that first build's deliver, from that same atlas, is live: the file is that
+        # release's resolution (the two loaders give one `Release`), so it stands exactly as a release's own would
+        # after an atlas promote — kept, the release's follows re-resolve it on the next candidate. Re-resolving here
+        # on that older release would be refused (`resolve_match`: another atlas) and stop the build for nothing
+        if on == M.FIRST_BUILD + str(live_release_handles() or ""):
+            return None
         return f"the resolution is a first build's on another atlas ({on}; this atlas {digest_for(build_dir)})"
     return None
+
+
+def live_release_handles() -> str | None:
+    """(T1120) The atlas handles the live release was built from (its manifest's `files.core.section_handles`), or
+    None when no release is live."""
+    from pipeline.regs.inseason.resolve import release_dir, release_is_live
+    if not release_is_live():
+        return None
+    m = json.loads((release_dir(None) / "manifest.json").read_text(encoding="utf-8"))
+    return str(((m.get("files") or {}).get("core") or {}).get("section_handles") or "") or None
 
 
 def inseason_cmd(build_dir: Path, h: "Homes") -> list[str]:

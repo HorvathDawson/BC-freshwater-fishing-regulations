@@ -405,12 +405,21 @@ def test_what_makes_the_resolution_stale(tmp_path, monkeypatch):
     monkeypatch.setattr(M, "resolved_path", lambda: res)
     monkeypatch.setattr(H, "digest_for", lambda b: "h")
     assert B.inseason_stale(Path("atlas")).startswith("no resolution")
+    monkeypatch.setattr(B, "live_release_handles", lambda: None)          # no release is live
     res.write_text(json.dumps({"release": "first-build:old"}))
     assert "a first build's on another atlas (first-build:old; this atlas h)" in B.inseason_stale(Path("atlas"))
     res.write_text(json.dumps({"release": "first-build:h"}))
     assert B.inseason_stale(Path("atlas")) is None
     res.write_text(json.dumps({"release": "r-1"}))
     assert B.inseason_stale(Path("atlas")) is None and B.inseason_state() == {"release": "r-1"}
+
+    # (T1120 review) a first build delivered (its release, from atlas "old", is live), then a new atlas was promoted
+    # before any `pipeline release`: the file is that release's resolution and stands as a release's would
+    res.write_text(json.dumps({"release": "first-build:old"}))
+    monkeypatch.setattr(B, "live_release_handles", lambda: "old")
+    assert B.inseason_stale(Path("atlas")) is None
+    monkeypatch.setattr(B, "live_release_handles", lambda: "third")      # a live release of yet another atlas
+    assert "a first build's on another atlas (first-build:old" in B.inseason_stale(Path("atlas"))
 
 
 def test_the_first_build_is_chosen_by_whether_a_release_is_live(monkeypatch, tmp_path):
@@ -504,3 +513,14 @@ def test_a_failed_stage_process_keeps_its_own_words(world, monkeypatch, tmp_path
     with pytest.raises(SystemExit, match="reach failed"):
         B.main(["--no-tiles"])
     assert json.loads(B.MANIFEST.read_text())["runs"][-1]["status"] == "failed at reach"
+
+
+def test_the_live_releases_atlas_is_read_off_its_manifest(tmp_path, monkeypatch):
+    from pipeline.regs.inseason import resolve as R
+    (tmp_path / "r-1").mkdir()
+    (tmp_path / "r-1" / "manifest.json").write_text(json.dumps({"files": {"core": {"section_handles": "abc"}}}))
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: True)
+    monkeypatch.setattr(R, "release_dir", lambda arg=None: tmp_path / "r-1")
+    assert B.live_release_handles() == "abc"
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: False)
+    assert B.live_release_handles() is None
