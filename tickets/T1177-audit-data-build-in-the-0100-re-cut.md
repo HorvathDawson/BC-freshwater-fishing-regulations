@@ -4,7 +4,7 @@ Status: OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owne
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1177 | Audit data build, inside the 0.10.0 re-cut: the rulings P5-P11 and O1-O17 | OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | a build lane (Opus): apply the rulings below with an answers diff per change; the re-cut waits for it; two asks are open |
+| T1177 | Audit data build, inside the 0.10.0 re-cut: the rulings P5-P11 and O1-O17 | OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | a build lane (Opus): apply the rulings below with an answers diff per change; the re-cut waits for it; one ask is open |
 
 Source: the owner's audit rulings of 2026-11-26, verbatim in `docs/OWNER-RULINGS.md` ("Audit rulings, batch 2"); the
 planning chat's notes `AUDIT-REVIEW-for-the-owner` (the items), `T1106-T1088-T1084-case-lists`. Timing, his pick: "Inside
@@ -31,12 +31,13 @@ diff where a binding moves), listed for his look before the build ships. Related
    ALL the lake's inflows**; sweep every such row province-wide (Connor Lake's tributaries bind to Forsyth Creek above
    the lakes). **O10: catch and release only on the Goat main stem between Leadville Creek (km 33.1) and Cameron Creek (km 42.6); the rest takes the regional quota (GOTCHAS written). O13: the closure below Healy Lake, as a GLOBAL extent on the water, not rule-level.** O16 Shuswap above
    Sugar Lake: the exemption limited to Mara Bridge-Sugar Lake (confirmed: "Yes, that is right"; no data change).
-6. Kept, no change (recorded in the rulings page): O6, O9, O11, O12, O14, O15 (to re-confirm: the book prints two Tamihi lines, see the rulings page), O17; their errors are on
+6. Kept, no change (recorded in the rulings page): O6, O9, O11, O12, O14, O15 (the book prints two Tamihi lines, closed all year below the falls and May 1-June 30 above; the data
+   matches both, only the distance differs: "Our cut is the falls" stands), O17; their errors are on
    `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`.
 7. The D6 rebinds of T1118 ride the same build (Mosquito, Bear, Twin, Hall, McDonnel, Panther, McLennan).
 8. **P7b (ruled, the strictest reading):** the Region 5 spring closure is lifted only where a row prints its own exemption or "open
    all year" (whole or part); gear or quota rows keep it. Closes 330.9 km in spring (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2,
-   Little Horsefly 17.8, Mitchell 15.4, Canim 9.2); opens nothing. GOTCHAS entry written; the Region 5 question is BOOK-ERRORS entry 22.
+   Little Horsefly 17.8, Mitchell 15.4, Canim 9.2); opens nothing. GOTCHAS entry written; the Region 5 question is BOOK-ERRORS entry 19.
 9. O16 is confirmed (no change). The Oxbows label follows the general label rule (the final table goes to him).
 10. **The tributary walk (own work item; a walk change, needs a reach rerun and a rule-bindings diff):** "everything in is a tributary and only shouldnt be if an exception is listed
     saying otherwise". A lake's tributaries row covers every inflow, climbing through every lake, even a river with its own row; a stream is not a tributary of itself (a row "stream A
@@ -46,6 +47,9 @@ diff where a binding moves), listed for his look before the build ships. Related
     47.9 km, Connor 50.5 km, Buttle 2.4 km (and the Campbell and Arrow chains). Covers O2 and O7.
 11. The year-bar fix (partial-closure line type) is wanted in the re-cut but waits on the design chat's look (T1180).
 12. Not in this build: O11 (ruled, no change), the Oxbows label, lake zones (T1180; nothing is built), the August 2026 book (T1179), the Nation Arm reach (T1178).
+13. Not in this build, cross-link only: the owner's ~17:35 rulings on #312's final side-channel table (Snehumption: "Plain \"2 side
+    channels\" (Recommended)"; Klinaklini / MacMillan: "Plain \"Side channel\" / \"3 side channels\" (Recommended)"; "Shorten Ecological
+    Reserve to \"Eco Reserve\"") are PR #312's words (T1172, round 4); the area in the app subtitle is T1181.
 
 ## Acceptance
 Each change has its answers diff and every moved binding is explained; unchanged items are proved unchanged; he has seen
@@ -53,5 +57,4 @@ the lists before the re-cut ships. Severity: medium (several are "A": an angler 
 
 ## Owner
 
-- [ ] 2026-11-26 — O15 Tamihi Creek: re-confirm. You ruled "Our cut is the falls" on the audit's paraphrase; the book prints two lines (closed below the falls all year; closed above May 1-June 30). Default: as built (the cut at the falls, 0.66 km).
 - [ ] 2026-11-26 — The Oxbows label follows the general label rule: look at it in the final label table before #312 merges ("Follow the rule, show me in the final table (Recommended)"). Default: the rule's words.

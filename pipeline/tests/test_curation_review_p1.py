@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 sys.path.insert(0, str(BACKEND))
 
 import p1  # noqa: E402

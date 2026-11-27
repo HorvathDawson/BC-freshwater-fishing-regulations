@@ -4,7 +4,7 @@
 # 1. a fresh 48-hex-character token (openssl rand -hex 24)
 # 2. `wrangler secret put RUN_TOKEN` on the staging worker (a new version goes live with it; nothing else changes)
 # 3. app/workers/feeds/.run-token (git-ignored, mode 600) gets the new value — the one place local tools read it
-#    (curation-review/backend/reports.py for GET /reports, and the owner's curl for POST /run/*)
+#    (tools/curation-review/backend/reports.py for GET /reports, and the owner's curl for POST /run/*)
 # 4. VERIFY on the live worker: the new token is accepted (POST /notify/preview → 200: reads state, sends nothing) and
 #    the old one is refused (403). Exit 1 if either fails.
 # Nothing else holds the token (no GitHub secret, no other worker). Production: the same steps with its own worker

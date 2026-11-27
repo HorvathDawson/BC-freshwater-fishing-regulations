@@ -278,7 +278,7 @@ def test_the_changes_action_reads_ci_paths_and_takes_no_event_field_through_shel
 # skipped every job and passed all four `ok` checks (feeds-hydat.yml, deploy/staging/upload.sh: false green). Derived
 # from the test sources: quoted repo-relative paths, and `ROOT / "a" / "b"` / `join(REPO, "a", "b")` chains, that exist
 # in the tree (a file, a folder, or a glob that matches). Only these may stay out, each with why:
-_TOP = r"(?:\.github|\.githooks|app|data|deploy|scripts|curation-review|docs|tickets|pipeline)"
+_TOP = r"(?:\.github|\.githooks|app|data|deploy|scripts|tools/curation-review|docs|tickets|pipeline)"
 _FILES = (r"(?:README\.md|AGENTS\.md|config\.yaml|project_config\.py|requirements\.txt|constraints\.txt|pytest\.ini"
           r"|conftest\.py|\.gitignore)")
 _LIT = re.compile(rf"""["']({_TOP}/[\w./*{{}}-]*|{_FILES})["']""")

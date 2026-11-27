@@ -1,6 +1,6 @@
 """Curation review phase 3 (T134) THROUGH THE REVIEW APP, in REVIEW MODE (the only mode, T185).
 
-The FastAPI app (curation-review/backend) runs with `TestClient` over TEMP COPIES of the catalogue,
+The FastAPI app (tools/curation-review/backend) runs with `TestClient` over TEMP COPIES of the catalogue,
 splits.json and the marks store, and the real atlas, bundle and synopsis extraction (read only).
 The row-box sidecar is made here by the one-off helper itself, for page 16 (no credits).
 
@@ -30,7 +30,7 @@ from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need, one_vintage
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 ADAM = "r1:adam_river_except_eve_river@1-10"
 ZONE = "z4:daily_quotas"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence",
@@ -259,7 +259,7 @@ def test_the_within_op_lists_the_atlas_areas_and_an_area_row_is_matched_by_area(
     assert d["item"] is None and [a["id"] for a in d["matched_areas"]] == [chil]
     row, = [r for r in c.get("/api/entries", params={"region": "6"}).json() if r["entry_id"] == eid]
     assert row["status"] != "no_registry" and row["severity"] != "high", row
-    src = (REPO / "curation-review/frontend/src/components/ExtentFixEditor.tsx").read_text()
+    src = (REPO / "tools/curation-review/frontend/src/components/ExtentFixEditor.tsx").read_text()
     assert "<AreaSearch" in src and "api.searchAreas" in src
 
 

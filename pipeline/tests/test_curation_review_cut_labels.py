@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace as NS
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
 import reuse  # noqa: E402
 
 

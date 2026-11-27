@@ -60,7 +60,7 @@ REPO = Path(__file__).resolve().parents[3]
 OUT_DIR = GENERATED.review / "proposals"
 INDEX = "index.json"
 #: the review app's backend: the in-memory binding path (`reuse.binding_change`) lives there
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 #: the proposal kinds — T166: `tidal_flag` flags a cut already in splits.json a TIDAL BOUNDARY;
 #: `tidal_mouth` lists a tidal boundary the owner put at the stream's mouth (nothing is tidal, no edit)
 KINDS = ("new_split", "tidal_flag", "extent", "lake_split_later", "tidal_mouth", "tidal_followup")
@@ -1619,7 +1619,7 @@ def side_commands(p: Mapping, props: Iterable[Mapping]) -> list[str]:
             return ["# a DFO location is not in the reach run: the in-memory check above IS its "
                     "binding (no side rebuild)"]
         cmds.append(f"CURATION_BUILD={side}/atlas CURATED_ROOT={root} "
-                    "bash curation-review/backend/run.sh"
+                    "bash tools/curation-review/backend/run.sh"
                     "   # the DFO location on the side atlas (stop the live app first, or set "
                     "its port)")
         # T779: apply binds the place AND the pieces it withholds on this side atlas (`apply_proposals.side_check`)

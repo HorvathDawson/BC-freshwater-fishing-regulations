@@ -32,7 +32,7 @@ from pipeline.regs.review import vintage as V
 from pipeline.tests import under_test
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 SHA = "0" * 64
 
 

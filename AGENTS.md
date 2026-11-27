@@ -55,7 +55,7 @@ W46. **The guards stay in. A change that trips one fixes the cause; it never loo
       `|| true` and always `set -o pipefail`.
     - **Review write-through refuses a shrink of more than 10 rows** (`pipeline/regs/review/apply.py`);
       `--accept-shrink` only for one the owner asked for.
-    - **The review app's route table** `curation-review/API.md` is regenerated (`curation-review/api_routes.py
+    - **The review app's route table** `tools/curation-review/API.md` is regenerated (`tools/curation-review/api_routes.py
       --write`) in the same commit as a route change.
     - **Fixtures are release-backed.** The release re-cuts them on its candidate (rule 62); when LATEST moved any
       other way, `node app/tools/regs-recut/sync.mjs` re-cuts them all before an app build.

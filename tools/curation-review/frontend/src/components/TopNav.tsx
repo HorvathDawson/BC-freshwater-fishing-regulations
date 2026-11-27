@@ -116,7 +116,7 @@ function BackendBanner() {
     <div className="topnav-row pending-build" role="alert" data-testid="backend-stale">
       {b.head_moved
         ? <>This backend (pid {b.pid}) started on commit {short(b.started_commit)}; the repo is now at {short(b.head_now)}, so it
-            may be serving old code. Stop it (Ctrl-C in its terminal) and run <code className="cmd">bash curation-review/run.sh</code> again.</>
+            may be serving old code. Stop it (Ctrl-C in its terminal) and run <code className="cmd">bash tools/curation-review/run.sh</code> again.</>
         : <>Cannot tell whether this backend (pid {b.pid}) is the repo's current code: {b.git_error ?? "git gave no commit"}.</>}
     </div>
   );

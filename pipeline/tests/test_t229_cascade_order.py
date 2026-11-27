@@ -72,14 +72,14 @@ def test_an_other_places_place_sorts_after_the_one_sibling_it_rides_on():
 
 
 def test_the_review_apps_cascade_view_orders_an_other_places_place_as_the_bundle_does(monkeypatch):
-    """T611: the review app's cascade view (`curation-review/backend/cascade.py`) sorts a chain with the bundle's key,
+    """T611: the review app's cascade view (`tools/curation-review/backend/cascade.py`) sorts a chain with the bundle's key,
     `rides` included, from the places as STORED (dicts) — so "all the other places" with one placed sibling shows after
     that sibling and the sibling's closure answers, as in the release. MUTATION: drop the `rides` argument there and the
     view's chain is [open, shut] and coho reads open."""
     import sys
     from pathlib import Path
     from types import SimpleNamespace
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     sys.modules.pop("cascade", None)
     import cascade as C
     sys.modules.pop("cascade", None)

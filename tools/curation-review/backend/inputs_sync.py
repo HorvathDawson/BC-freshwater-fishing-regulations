@@ -17,7 +17,7 @@ In the background, debounced (several saves -> one run), one run at a time (in-p
 serialises it with a hand run and upload.sh). It runs with SYNC_INPUTS_FROM_REVIEW=1: matches resolved on another release
 are REFUSED there (re-resolve here, then commit), never rewritten outside `writes.commit`. Each input is staged on its own:
 `status()["inputs"]` names the ones that failed (`FAILED <name>: …` lines), so a refused match never hides that the DFO
-entries went up. FAILS CLOSED: off unless `CURATION_SYNC_INPUTS=1` (curation-review/run.sh sets it for the live tree).
+entries went up. FAILS CLOSED: off unless `CURATION_SYNC_INPUTS=1` (tools/curation-review/run.sh sets it for the live tree).
 `CURATION_SYNC_CMD` replaces the command (tests).
 
 SPAWNED, NEVER FORKED (2026-11-09): this process has loaded PROJ (`reuse` maps through pyproj), and PROJ registers a

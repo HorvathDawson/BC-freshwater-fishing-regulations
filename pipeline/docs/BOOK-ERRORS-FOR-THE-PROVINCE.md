@@ -46,24 +46,30 @@ Vessel Operation Restriction Regulations, SOR/2008-120 (Transport Canada TP 1558
 9. **R2, Tamihi Creek, p.26 (PDF 28).** Printed, two lines under "TAMIHI CREEK 2-3": "No Fishing downstream of the falls situated approximately 200 m
    upstream of Chilliwack River" and "No Fishing upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30".
    The falls we found (FISS) are 0.66 km up, not about 200 m. Meanwhile: cut at the falls; below it closed all year, above it May 1-June 30
-   (the curated rules `tamihi_creek.r1` / `.r2`). The owner's O15 ("Our cut is the falls") was given on a wrong paraphrase: to re-confirm.
-   Found 2026-11-26. To send.
+   (the curated rules `tamihi_creek.r1` / `.r2`). The data matches both lines; only the distance differs, so the owner's O15 ("Our cut is the falls")
+   stands. Found 2026-11-26. To send.
 10. **R8, Okanagan River Oxbows, p.70 (PDF 76).** Printed: "OKANAGAN RIVER OXBOWS 8-1 ... These isolated oxbows adjacent to Okanagan River downstream of the
     McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the spring closure". No water is both: McIntyre Dam is below Vaseux Lake. Meanwhile: both
     stretches (49.5 km) stay exempt (owner: "Keep both exempt, list it for the Province"). Evidence: the dam and lake positions on the map. Found 2026-11-26. To send: "which oxbows?".
 11. **R4, Goat River, p.37 (PDF 39).** Printed: "GOAT RIVER 4-6 Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek" (no linking word; the Findlay Creek row
     prints "(mainstem only) from ... to ..."). Meanwhile (owner 2026-11-26, "between the 2 only with a gotcha added"): catch and release only on the main stem between
     Leadville Creek (km 33.1) and Cameron Creek (km 42.6); the rest of the main stem takes the regional quota. Evidence: `one-offs-evidence/A-goat-river.md`. Found 2026-11-26. To send: "a stretch between the two creeks?".
-12. **R7B, Hay River basin, map p.63.** Printed: the Liard row says "see map p.63" (the map is an image; the row's words were not found in the text layer). The map puts everything north of its dotted line, the Hay
-    basin included (Kotcho Lake, Hay, Kotcho and Shekilie rivers, 1,547 km), in the "Liard River Watershed". Meanwhile: the true basin is kept, so all bull trout must be released (owner: "leave it stricter").
-    Evidence: the map key (audit). Found 2026-11-26. To send: is the Hay basin in the Liard Watershed?
+12. **R7B, Hay River basin, row p.65 (PDF 71), map p.63 (PDF 69).** Printed, the row (its MU cell says only "7-53"): "LIARD RIVER WATERSHED (see map on page 63)"
+    "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15" / "Bull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14".
+    Zone B's list, p.64 (PDF 70): "Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year (See tables for exceptions)".
+    The map is vector art with a text layer (no raster image on the page). Its "Key to Peace Watersheds" names "Liard River Watershed" above a dotted line and "Peace River Watershed"
+    below it; on the main map that line runs east to the Alberta border south of MU 7-47, so everything north of it, the Hay basin included (the map labels "Kotcho L" and "Kotcho R" in
+    7-56; it prints no "Hay"; the audit's count: Kotcho Lake, Hay, Kotcho and Shekilie rivers, 1,547 km), reads as "Liard River Watershed". Meanwhile: the true basin is kept, so all
+    bull trout must be released (owner: "leave it stricter"). Evidence: the map and its key, read from the rendered page. Found 2026-11-26. To send: is the Hay basin in the Liard Watershed?
 13. **R1, Healy Lake's outlet stream, p.16 (PDF 18).** Printed: "HEALY LAKE'S OUTLET STREAM 1-5 No Fishing". Which stream, from where? Meanwhile: cut below Healy Lake only (owner O13, a global extent). Evidence: the
     whole South Englishman River (26.7 km) was closed. Found 2026-11-26. To send.
 14. **R3, Maka Creek, p.31 (PDF 33).** Printed: "MAKA CREEK 3-13 No trout under 25 cm". Two Maka creeks exist in the same MU. Meanwhile: the rule is kept on both (owner: "keep on both because they are same MU").
     Evidence: BC Geographical Names; the curated "most likely" is the Spius Creek one. Found 2026-11-26. To send: which one?
-15. **R1, Nanaimo River, p.17 (PDF 19).** Printed (text layer): "No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15"; on the rendered page the 15 is struck through with nothing in its place (the text layer does not show the strike).
+15. **R1, Nanaimo River, p.17 (PDF 19).** Printed (text layer): "No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15"; on the rendered page the 15 is visibly struck through with nothing in its place. The strike is a drawn black line 0.14 pt wide (x 392.1-397.8 pt, 477.6 pt
+    from the top of PDF 19) across the middle of the "15", not a character, so the text layer does not show it.
     Meanwhile: Oct 15 stays (owner: "it is probably a format issue and is okay"). Found 2026-11-26. To send, low priority.
-16. **R1, Mine Lake, Quadra Island (MU 1-15), page not recorded.** Not an error in the book: the Main Lake row binds both polygons because FWA labels the Mine Lake shape "Main Lake" (same GNIS id 12126); the gazette's
+16. **R1, Mine Lake and Main Lake, Quadra Island (MU 1-15), both p.17 (PDF 19).** Printed: "MINE LAKE 1-15 Engine power restriction - 7.5 kW (10 hp)" and
+    "MAIN LAKE (Quadra Island) 1-15" "Bait ban and single barbless hook, Nov 1-Apr 30;" / "Engine power restriction - 7.5 kW (10 hp)" (LITTLE MAIN LAKE (Quadra Island) is p.16, PDF 18). Not an error in the book: the Main Lake row binds both polygons because FWA labels the Mine Lake shape "Main Lake" (same GNIS id 12126); the gazette's
     Mine Lake is an alternate name for that part of Main Lake (owner 2026-11-26). Kept on both; see GOTCHAS. Not for sending.
 
 ## C. Rows the newer book lost, or loosely printed
@@ -74,11 +80,20 @@ Vessel Operation Restriction Regulations, SOR/2008-120 (Transport Canada TP 1558
     print "Nov 15-June 30". Meanwhile (owner P7a): the row's Nov 15-May 14 replaces the spring closure; it opens May 15. Found 2026-11-26. To send: is May 14 intended?
 19. **R5, spring closure "other streams listed in the tables", p.42 (PDF 48).** Printed: "Spring closure: No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed)
     from Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables. See definition of “streams” on page 80." The tables never print "exempt from spring closure", only "Open all year" and
-    similar. Unclear: (1) where a row names a stream but its words describe only a stretch (Moffat Creek "downstream of falls 8 km from Horsefly River"; Blue Lead Creek "downstream of falls ~2 km from Quesnel Lake";
-    Chimney Creek "Open all year downstream of Brunson Lake"; Mitchell River upstream of Mitchell Lake), is the whole stream excepted, or only that stretch? (2) Are the streams inside Bowron Lake Park
+    similar. The four rows, read from the PDF (2026-11-26): "MOFFAT CREEK 5-2 Trout/char catch and release and bait ban downstream of falls 8 km from Horsefly River"
+    (p.46, PDF 52); "BLUE LEAD CREEK 5-15 No Fishing downstream of falls situated approximately 2 km from Quesnel Lake, Aug 15-Oct 31" (p.43, PDF 49); "CHIMNEY CREEK 5-2
+    Open all year downstream of Brunson Lake" (p.44, PDF 50); "MITCHELL RIVER" (with the "Includes tributaries" symbol) "5-15" "No Fishing within 100 m radius of the weir at the
+    outlet of Michell Lake" / "No Fishing from Michell Lake to Cameron Creek" / "No Fishing downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30" / "Trout/char catch and
+    release, bait ban, artificial fly only downstream of Cameron Creek (including Cameron Creek)" (p.46, PDF 52; the row prints no words for the river above Mitchell Lake).
+    Unclear: (1) where a row names a stream but its words describe only a stretch (Moffat below the falls, Blue Lead below the falls, Chimney below Brunson Lake, Mitchell from the
+    lake down; the river above Mitchell Lake has no words), is the whole stream excepted, or only that stretch? (2) Are the streams inside Bowron Lake Park
     ("Bowron Lake Park waters other than Bowron Lake") and Beaver Creek ("Beaver Creek chain of lakes") "listed"? (3) Does the exception extend to the tributaries of a listed stream marked with the tributaries symbol,
     such as Mitchell River? Meanwhile (owner, strictest reading): lifted only where a row prints its own exemption or "open all year", whole or part; closes 330.9 km in spring (Cariboo 143.7, Moffat 88.1, McKinley 38.5,
-    Blue Lead 18.2, Little Horsefly 17.8, Mitchell 15.4, Canim 9.2). Evidence: audit note `P7b-region5-spring-closure` (the row quotes there are the audit's). Found 2026-11-26. To send to the Region 5 office.
+    Blue Lead 18.2, Little Horsefly 17.8, Mitchell 15.4, Canim 9.2). Evidence: audit note `P7b-region5-spring-closure`; the quotes above are the PDF's. Found 2026-11-26. To send to the Region 5 office.
+
+24. **R5, Mitchell River, p.46 (PDF 52).** Printed twice in the row: "No Fishing within 100 m radius of the weir at the outlet of Michell Lake" and "No Fishing from Michell Lake to
+    Cameron Creek"; the row above it is "MITCHELL LAKE 5-15 No Fishing within 100 m radius of the weir at the lake’s outlet". A misspelling (Michell for Mitchell). Meanwhile: read as Mitchell
+    Lake (the cut `mitchell_river__mitchell_lake`). Found 2026-11-26 (re-reading entry 19). To send, low priority. (Numbered after section D's entries: numbers are never reused.)
 
 ## D. Already known and tracked in the gotchas or questions (cross-links, not copies)
 20. **R4, Mackenzie Creek, p.38 (PDF 40).** Printed: "MACKENZIE CREEK 4-21 No Fishing"; the only one is in 4-31. Built: 4-31 (GOTCHAS "Book errata"). To send; wrong since at least 2015-17.

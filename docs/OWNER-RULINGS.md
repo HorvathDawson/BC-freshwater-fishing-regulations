@@ -171,7 +171,7 @@ park-rule fix (Recommended)" (T1149).
 - **O13 Healy Lake outlet:** "yes to bleow the lake but make sure you use global extent for this not rule level".
   Build: the closure is cut below Healy Lake as a global extent on the water.
 - **O14 Maka Creek:** "keep on both because they are same MU and everything make sure the gotcha is there for this". Build: none; GOTCHAS.
-- **O15 Tamihi Creek (TO RE-CONFIRM: the audit's paraphrase had the direction wrong):** "Our cut is the falls". The book prints two lines: "No Fishing downstream of the falls situated approximately 200 m upstream of Chilliwack River" and "No Fishing upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30". Data: below the falls closed all year (0.66 km), above it May 1-Jun 30 (13.1 km). Asked again; not settled. Province list entry 9.
+- **O15 Tamihi Creek:** "Our cut is the falls". The book prints two lines: "No Fishing downstream of the falls situated approximately 200 m upstream of Chilliwack River" and "No Fishing upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30". The data matches both lines (below the falls closed all year, 0.66 km; above it May 1-Jun 30, 13.1 km); only the distance differs (0.66 km, not "approximately 200 m"). So the ruling stands: no data change. Province list entry 9.
 - **O16 Shuswap above Sugar Lake:** "it is a better more cautious reading to limit it so that it is not exempoting the
   whole river so exempt here". Confirmed (below): no data change.
 - **O17 Nanaimo River:** "it is probably a format issue and is okay add to gotchas." Build: none (Oct 15 stays); GOTCHAS.
@@ -212,7 +212,7 @@ include all inflows; a stream "from x to y, incl. tributaries" does not include 
 A walk change: needs a reach rerun and a rule-bindings diff (T1177 item 10).
 
 ### OPEN, not ruled
-- **O15 Tamihi** (re-confirm, above). **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
+- **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".

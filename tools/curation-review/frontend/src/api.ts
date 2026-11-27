@@ -1,4 +1,4 @@
-// Tiny typed API client matching curation-review/API.md.
+// Tiny typed API client matching tools/curation-review/API.md.
 // All calls are relative to /api (Vite proxies to http://127.0.0.1:8787).
 
 import type { ExtentSize, InputsSync, CheckPlace, CheckProgress, PlaceCheck, WaterReach, WaterView,

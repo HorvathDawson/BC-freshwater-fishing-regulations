@@ -20,7 +20,7 @@ on:
   push:
     branches: [main, "release/**"]
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py", "requirements.txt", "constraints.txt",
-            "curation-review/**", "scripts/**", ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md",
+            "tools/curation-review/**", "scripts/**", ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md",
             "pytest.ini", "conftest.py", ".gitignore", "docs/runbooks/**",
             "docs/app-integration/store/graphics/store/light/**", ".github/actions/changes/**", "scripts/ci_paths.py"]
   # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
@@ -157,7 +157,7 @@ jobs:
       # curated cuts from three full builds and nothing looked wrong.
       - name: No hardcoded curated or source paths
         run: |
-          DIRS="pipeline data curation-review project_config.py"
+          DIRS="pipeline data tools/curation-review project_config.py"
           fail=0
           # Tracked files only: an untracked scratch file under data/generated/ is machine state CI never sees.
           hits () { git ls-files -- $DIRS | grep '\.py$' \

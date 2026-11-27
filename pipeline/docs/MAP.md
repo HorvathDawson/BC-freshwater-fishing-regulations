@@ -83,7 +83,7 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | a new synopsis | `tools/synopsis_book.py` (carry / replay), `tools/synopsis_diff.py` | the annual update: carry unchanged rows, diff two books; runbook `docs/runbooks/annual-synopsis.md` (T239) |
 | **the LLM parse** | `regs/parsing/` (`run_parse.sh`, `dispatch`) | **HUMAN-ONLY, spends credits** (AGENTS A1); writes the catalogue |
 | catalogue model + gate | `regs/parsing/catalogue.py`, `validate_catalogue.py` | what ingest refuses |
-| curation review | `regs/review/` + `curation-review/` (FastAPI + frontend) | marks only in review mode (AGENTS 65–67) |
+| curation review | `regs/review/` + `tools/curation-review/` (FastAPI + frontend) | marks only in review mode (AGENTS 65–67) |
 | classified waters gate | `regs/classified_waters.py` (`BOOK`: the book's 73 classified rows with each designation's printed period, place, carve-outs, sleep; `NAMED`: the Li5/Li5a waters; `classified_pins.json`: each designation's measured stretch and walk) | T841: `--check` holds the corpus to the book (fast-fail, release preflight); `--bundle` holds the candidate: the Classified Waters Licence on every section a designation binds, `holds.considered` naming every designation (the card's Class badge), the named waters, the pins (release checks stage); `--write-pins BUNDLE` re-cuts the pins after a reviewed change |
 | steelhead list | `regs/steelhead/known_waters.py`, `regs/steelhead/accept.py` | generates the list; `accept` prints added / dropped and `--write`s `data/curated/waters/steelhead_waters.json` (AGENTS 54, T324) |
 | DFO salmon | `regs/dfo_salmon/` | [`README`](../regs/dfo_salmon/README.md) |

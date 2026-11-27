@@ -8,10 +8,10 @@ editors.
 ## Run
 
 ```bash
-bash curation-review/run.sh      # backend :8787 + this screen on http://127.0.0.1:5173 (loopback only)
+bash tools/curation-review/run.sh      # backend :8787 + this screen on http://127.0.0.1:5173 (loopback only)
 ```
 
-or the two halves by hand: `bash curation-review/backend/run.sh`, then `npm install && npm run dev`
+or the two halves by hand: `bash tools/curation-review/backend/run.sh`, then `npm install && npm run dev`
 here. The Vite dev server proxies `/api/*` and `/basemap/*` to the backend (`CURATION_API` moves it).
 
 ## Check

@@ -3,7 +3,7 @@
 #   run.sh          review mode, the only mode: reads, and one write — a reviewer's mark
 set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
-cd "$ROOT/curation-review/backend"          # so `import reuse` resolves (hyphenated dir can't be a package)
+cd "$ROOT/tools/curation-review/backend"          # so `import reuse` resolves (hyphenated dir can't be a package)
 export PYTHONPATH="$ROOT"                    # so `import pipeline...` resolves
 export CURATION_WARM="${CURATION_WARM:-1}"   # load the caches at startup; GET /api/ready says when (T136)
 # (T520) a saved input goes to STAGING by deploy/staging/sync-inputs.sh (backend/inputs_sync.py); off unless set

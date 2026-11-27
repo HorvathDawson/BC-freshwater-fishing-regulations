@@ -69,7 +69,7 @@ bash pipeline/regs/parsing/run_parse.sh parse-dry         # export batches only 
 ```bash
 python -m pipeline.regs.review.apply [--dry-run]   # every open domain: marks.jsonl to its final curated file
 python -m pipeline.regs.review.export              # the decisions in force per domain, in memory
-bash curation-review/run.sh                        # the review app (curation-review/README.md)
+bash tools/curation-review/run.sh                        # the review app (tools/curation-review/README.md)
 python -m pipeline.tools.audit.check_curated       # are the committed match artifacts fresh?
 ```
 

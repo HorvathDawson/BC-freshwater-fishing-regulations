@@ -14,7 +14,7 @@ looks answers up. Not affiliated with the Government of British Columbia: always
 | `pipeline/` | Python. The water network, the rules and the release: `atlas/` (FWA graph, sections, reach builder), `regs/` (reading the book, DFO salmon, review library), `gauges/`, `deliver/` (bundle, verdicts, answers, tiles, release), `common/`, `runtiming/`, `tools/`, `tests/`; `bathymetry/` and `stocking/` are prepared, not fed |
 | `app/` | pnpm workspace: the Expo / React Native app for iOS, Android and web (`apps/mobile`, `packages/{core,data,ui,ui-native,map}`), `conformance/`, the feeds worker (`workers/feeds`), the gates and tools (`tools/`) |
 | `data/` | `source/` fetched inputs, `curated/` human-owned decisions (never regenerable), `generated/` what the pipeline writes (not in git) |
-| `curation-review/` | the owner's review tool (FastAPI backend + Vite frontend); writes the owner's marks |
+| `tools/curation-review/` | the owner's review tool (FastAPI backend + Vite frontend); writes the owner's marks |
 | `deploy/` | staging and production uploads, site and worker deploys, store builds |
 | `scripts/` | dev and CI helpers: `heavy.sh`, `before_push.py`, the test tiers, bootstrap |
 | `docs/` | the plans, runbooks, restart pages and decisions |

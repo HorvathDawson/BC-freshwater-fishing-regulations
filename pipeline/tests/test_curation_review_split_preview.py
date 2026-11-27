@@ -12,7 +12,7 @@ from pipeline.common.curated import SOURCE
 from pipeline.regs.review import marks as M
 from pipeline.tests.conftest import GPKG_HINT, need
 
-BACKEND = __import__("pathlib").Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+BACKEND = __import__("pathlib").Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 LQ = "gnis:10886"                                          # Little Qualicum River
 pytestmark = [pytest.mark.needs_source, pytest.mark.needs_atlas]
 

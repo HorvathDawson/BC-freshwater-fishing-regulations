@@ -1,6 +1,6 @@
 /* T525 (owner 2026-11-09: "extents already defined get lost when confirming vs redo … feels like i will make bad data"):
    WHAT A DFO MARK DOES TO THE PLACE'S CURATED EXTENT, as pure functions — the review screen (`DfoReview`) renders them,
-   and `curation-review/frontend/tests/dfoExtent.test.ts` runs them (node --test).
+   and `tools/curation-review/frontend/tests/dfoExtent.test.ts` runs them (node --test).
 
    The owner's call is one of four. Keep, Not sure and Wrong never carry an extent fix: the curated extent stays as it
    is. Change starts FROM the curated extent (`DfoExtentNow.pieces`), and its effect — keep (nothing differs), replace

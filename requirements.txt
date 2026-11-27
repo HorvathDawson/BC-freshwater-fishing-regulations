@@ -52,7 +52,7 @@ python-dotenv
 requests
 
 # Curation-review API (pipeline/tests/test_curation_review_api.py; TestClient needs httpx); uvicorn serves it
-# (curation-review/backend/run.sh). (T994 #21) The backend's requirements.txt is this file + constraints.txt.
+# (tools/curation-review/backend/run.sh). (T994 #21) The backend's requirements.txt is this file + constraints.txt.
 fastapi
 httpx
 uvicorn[standard]

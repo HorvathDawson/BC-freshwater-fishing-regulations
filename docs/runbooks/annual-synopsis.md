@@ -106,7 +106,7 @@ pipeline/tests/test_catalogue_entries.py`. A figure the new book does not print 
 never edited to pass. If the new layout moves the column gutters, fix `synopsis_print.GUTTERS`
 (`python -m pipeline.common.synopsis_print 13` prints a page as read).
 
-After step 10 the owner reviews in the app: `bash curation-review/run.sh`, then
+After step 10 the owner reviews in the app: `bash tools/curation-review/run.sh`, then
 `http://127.0.0.1:5173/?ids=<repo path of review_ids.txt>`.
 
 ## 9. Adopt the new book (Claude, after the owner says go)
