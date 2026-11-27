@@ -510,11 +510,20 @@ describe("(T1194) a gauge page is one back layer, and a water opened off it is a
     expect(water(conditions)).not.toHaveProperty("via");
     expect(reduceRoute(water(conditions), { type: "back" })).toBe(conditions);
   });
-  it("MUTATION PIN: a gauge that back does not leave, or a via that is dropped, fails", () => {
+  it("MUTATION PIN: the real reducer's gauge walk is the expected one; a gauge back never leaves, a dropped `via` and a close that only backs each change it", () => {
+    // tap -> page -> a water off the page -> back -> back -> back, as the layers a reader steps through
+    const walk = (red: Reduce): string[] => {
+      const g = red(conditions, openGauge("08MH024" as StationId));
+      const w = red(g, openWater({ item: "gnis:11481" as ItemId, view: "conditions" }));
+      const b1 = red(w, { type: "back" }), b2 = red(b1, { type: "back" }), c = red(w, { type: "close" });
+      const at = (r: Route) => (r === conditions ? "map" : r === g ? "gauge" : r.mode);
+      return [g.mode, w.mode, `back: ${at(b1)}`, `back again: ${at(b2)}`, `close: ${at(c)}`];
+    };
+    const EXPECTED = ["gauge", "water", "back: gauge", "back again: map", "close: gauge"];
+    expect(walk(reduceRoute)).toEqual(EXPECTED);
     const stuck: Reduce = (r, a) => (r.mode === "gauge" && a.type === "back" ? r : reduceRoute(r, a));
-    expect(stuck(gauge, { type: "back" })).toBe(gauge);                       // the mutant is seen to differ
-    expect(reduceRoute(gauge, { type: "back" })).not.toBe(gauge);
     const dropVia: Reduce = (r, a) => { const n = reduceRoute(r, a); return n.mode === "water" ? { ...n, via: undefined } : n; };
-    expect(reduceRoute(dropVia(gauge, openWater({ item: "gnis:11481" as ItemId })) as Route, { type: "back" })).not.toBe(gauge);
+    const closeBacksToMap: Reduce = (r, a) => (r.mode === "water" && a.type === "close" ? r.from : reduceRoute(r, a));
+    for (const [name, mutant] of Object.entries({ stuck, dropVia, closeBacksToMap })) expect(walk(mutant), name).not.toEqual(EXPECTED);
   });
 });
