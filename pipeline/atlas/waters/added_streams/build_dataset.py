@@ -31,7 +31,7 @@ from pipeline.atlas.waters.added_streams.fwa_match import _FwaIndex, classify, N
 from pipeline.atlas.waters.added_streams.ingest import ConnectorSpec, added_fidrows
 from pipeline.atlas.waters.added_streams.merge import merge_channels
 from pipeline.atlas.waters.added_streams.underlake import LakeIndex, assign_under_lake
-from pipeline.atlas.waters.added_streams.validate import validate_propagation
+from pipeline.atlas.waters.added_streams.validate import fwa_code_collisions, validate_propagation
 from pipeline.atlas.waters.added_streams.wsc import mint_wsc
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
@@ -912,6 +912,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     fwa_by_blk = {str(c.blk): c for c in fwa_chains}
     coastal_streams = [(Point(c.geometry.coords[0]), c.fwa_watershed_code)
                        for c in fwa_chains if coastal.is_coastal_wsc(c.fwa_watershed_code)]
+    fwa_held = coastal.fwa_level12_held(c.fwa_watershed_code for c in fwa_chains)   # (T1246) never an FWA line's code
     tidal_union = unary_union(tidal_geoms) if tidal_geoms else None
 
     # 1. classify (name-aware: a same-named FWA stream nearby is a duplicate even if offset)
@@ -1109,7 +1110,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
         line = geom[ch.blk]
         mouth = Point(line.coords[0])
         if kind == "tidal":
-            wsc = coastal.estimate_coastal_wsc(mouth, coastal_streams, used_coastal)
+            wsc = coastal.estimate_coastal_wsc(mouth, coastal_streams, used_coastal, fwa_held)
             proj_of[ch.blk] = 0.0; connector_of[ch.blk] = None
         else:
             to_blk = rblk
@@ -1292,6 +1293,10 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                                base_measure=em["base_measure"], connector=conn))
 
     violations = validate_propagation(streams)
+    # (T1246) the twin of the atlas build's check: a city line on an FWA line's code is never written. The bumps above
+    # look only at city codes, so a regeneration that mints a tidal code onto an FWA river's stops here, by name.
+    violations += fwa_code_collisions(streams, ((trim_wsc(c.fwa_watershed_code or ""), str(c.blk)) for c in fwa_chains),
+                                      whole_province=False)
     if violations:
         raise ValueError("added-streams propagation violations:\n  " + "\n  ".join(violations))
 

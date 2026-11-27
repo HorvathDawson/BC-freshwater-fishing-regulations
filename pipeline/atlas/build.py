@@ -308,6 +308,18 @@ def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:
     return kept, len(fids) - len(kept)
 
 
+def _refuse_fwa_code_collisions(streams: list[dict], fwa_fids: list, *, whole_province: bool) -> None:
+    """(T1246) REFUSE the build when a city line holds an FWA line's watershed code (the atlas would file the city creek
+    as a part of that FWA water: Turner Creek under Noons Creek), naming each line. ``fwa_fids`` = the FWA lines only
+    (before the added fids join them). The stored curated file is what the atlas reads, so this is the check that
+    matters; the generator runs its twin."""
+    from pipeline.atlas.waters.added_streams.validate import fwa_code_collisions
+    bad = fwa_code_collisions(streams, ((f.wsc, f.blk) for f in fwa_fids), whole_province=whole_province)
+    if bad:
+        raise SystemExit("atlas build: added_streams.json holds city lines on FWA watershed codes (T1246):\n  "
+                         + "\n  ".join(bad))
+
+
 def _streams_in_bbox(streams: list[dict], bbox) -> list[dict]:
     """Keep added streams with a vertex inside ``bbox`` (EPSG:3005) PLUS their added-receiver ancestors, so a
     bbox-limited build doesn't add another region's streams as orphans, yet never severs an added->added chain
@@ -497,6 +509,7 @@ class _Build:
         self.tidal_ids: dict = {}       # {blk: id} of every mouth alias and tidal cut (`tidal.ids`)
         self.tidal_placed: dict = {}    # {blk: where each mouth alias went} (alias_tidal_mouths)
         self.input_hashes: dict = {}    # T547: {input key: digest} (`atlas.inputs`), set by main before any read
+        self.city_mouths: list = []     # T1246: the added city creeks' own tidal mouths (load_fwa), for their Areas
 
     def tick(self, label: str) -> None:
         now = self._clock()
@@ -543,7 +556,7 @@ def load_fwa(b: _Build) -> None:
     added streams merged into them.
 
     Reads: args, fwa, bbox. Writes: lake_kind, lake_names, lake_wsc, fids, added_lake_polys,
-    added_lake_parts, add_specs, add_nv."""
+    added_lake_parts, add_specs, add_nv, city_mouths."""
     args, fwa, bbox = b.args, b.fwa, b.bbox
     _tick = b.tick
     print("loading lake/manmade waterbody keys ...")
@@ -588,8 +601,11 @@ def load_fwa(b: _Build) -> None:
         add_streams = _streams_in_bbox(data["streams"], bbox)
         add_fids, add_specs = to_graph_inputs(add_streams)
         fids, n_excl = _apply_fwa_exclude(fids, data.get("fwa_exclude", []))
+        _refuse_fwa_code_collisions(add_streams, fids, whole_province=bbox is None)
         fids += add_fids
         add_nv = data.get("name_variants", [])
+        from pipeline.atlas.splits.pfma_drainage import city_tidal_mouths
+        b.city_mouths = city_tidal_mouths(add_streams)     # T1246: each takes the Area its own mouth lies in
         print(f"  added streams: -{n_excl} superseded FWA fids, +{len(add_fids)} added fids, "
               f"{len(add_specs)} connectors, {len(add_nv)} name variants")
     _tick("load fids + lakes")
@@ -1736,14 +1752,15 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     stamped after every cut (`mark_membership`), so no closure area is an item yet and `outside_area_items`, which
     refuses a missing area, is left out; no tidal answer reads an area item.
 
-    Reads: splits, lake_names, wetland_names, _nv_all, wb_polys, _mined, added_lake_parts, area_defs."""
+    Reads: splits, lake_names, wetland_names, _nv_all, wb_polys, _mined, added_lake_parts, area_defs, city_mouths."""
     from pipeline.atlas.registry import (add_boundary_confidence, add_curated_wbk_items, add_lake_parts,
                                          add_waterbody_items, build_registry as _items, outside_area_items)
     info: dict = {}
     # `build_registry` reads overrides.json itself for the waterbody keys a curator pinned by
     # hand, so an FWA-unnamed water a regulation names still becomes an item. See
     # `pipeline.atlas.registry.build.pinned_by_override`.
-    registry = _items(graph, gpkg=b.args.gpkg)       # the drainage areas read the build's own gpkg (T667 slice 8)
+    registry = _items(graph, gpkg=b.args.gpkg,       # the drainage areas read the build's own gpkg (T667 slice 8)
+                      city_mouths=b.city_mouths)    # T1246: the city creeks' own mouths take their Areas
     info["named"] = len(registry)
     # T207: each curated boundary carries its split's authored confidence (display only)
     registry = add_boundary_confidence(registry, b.splits)
