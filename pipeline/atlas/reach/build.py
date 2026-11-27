@@ -130,6 +130,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # The waters the tables print a row of their own for: a confluence cut's joining water with
     # none goes with the cut, one with its own row stays out (`confluence_excludes`).
     owned = rowed_waters(ents)
+    # Every lake tributaries row's printed exception, which holds for every walk through that lake (T1177,
+    # `A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`).
+    stops = lake_row_stops(ents, registry, graph, covered_fn)
     # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_owner`), and
     # the atlas's tidal water (T678, `tidal_record`) out of every row — both after the walk. Written
     # with the run as `tidal.jsonl`; `tidal` maps each section to its owner.
@@ -177,7 +180,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                 continue
             binding, diags = build_reach(e, rule, registry, graph,
                                          covered=covered, clip=clip, outside=outside,
-                                         shared=shared, tidal=tidal, owned=owned)
+                                         shared=shared, tidal=tidal, owned=owned, stops=stops)
             bindings.append(binding)
             diagnostics.extend(diags)
 
@@ -201,7 +204,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             # `regional=False`: a designation is the water's, not the region's (`build_reach`).
             reach = (lambda r, e=e, covered=covered, clip=clip: build_reach(
                 e, r, registry, graph, covered=covered, clip=clip, outside=outside,
-                regional=False, tidal=tidal, owned=owned, head_lakes=LICENSING_CLIMBS_HEAD_LAKES))
+                regional=False, tidal=tidal, owned=owned, head_lakes=LICENSING_CLIMBS_HEAD_LAKES, stops=stops))
             placed, diags = place_record(e, rec, reach)
             placed, parked = without_national_parks(placed, parks)
             diags = list(diags) + parked
@@ -417,7 +420,7 @@ def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry,
 def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
                 clip=None, outside=None, shared=None,
                 regional: bool = True, tidal=None,
-                owned=None, head_lakes: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
+                owned=None, head_lakes: bool = True, stops=None) -> tuple[RuleBinding, list[Diagnostic]]:
     """THE public answer to "what does this rule cover" — resolve, clip, classify, expand.
 
     One call, so no caller has to remember the order, or that tributaries need expanding.
@@ -469,7 +472,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     if lim:
         binding, diags = build_reach(entry, rule, registry, graph, covered=covered, clip=clip,
                                      outside=outside, shared=shared, regional=regional,
-                                     owned=owned, head_lakes=head_lakes)
+                                     owned=owned, head_lakes=head_lakes, stops=stops)
         # the LIMIT, not every tidal section: a row marked tidal (Nitinat Lake) keeps its own water even
         # when a tidal split elsewhere makes the limit non-empty (it lost it, 2026-10-28..29 releases)
         return _without_tidal(entry, rule, binding, diags, lim)
@@ -487,11 +490,13 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     rest = _rest_of(rule)
     if rest is not None:
         return _build_rest(entry, rule, rest, registry, graph, covered=covered, clip=clip,
-                           outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes)
+                           outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes,
+                           stops=stops)
     others = _others_of(rule)
     if others is not None:
         return _build_others(entry, rule, others, registry, graph, covered=covered, clip=clip,
-                             outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes)
+                             outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes,
+                             stops=stops)
     region = region_limit(entry, registry, shared, graph=graph) if regional else None
 
     per: list[dict | None] = []
@@ -515,7 +520,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
 
     expander = _expander(
         graph, registry, covered, rule, entry, cuts=seeding_cuts(graph, per), owned=owned,
-        resolved=per, heads=head_lakes and climbs_head_lakes(rule),
+        resolved=per, heads=head_lakes and climbs_head_lakes(rule), stops=stops,
         region=region if any(_row_water(ex, entry.get("matched") or ())
                              for ex in rule.get("extents") or []) else None)
     binding, diags = classify(
@@ -557,6 +562,10 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
             continue
         seen_through.add((row["lake"], row["inlet"]))
         diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], "through_river", dict(row)))
+    if getattr(expander, "stopped", None):
+        # REPORTED, never silent (T1177): the lake rows' printed exceptions that stopped this walk in their lake
+        diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], LAKE_STOP,
+                                {"rows": [list(x) for x in expander.stopped]}))
     if getattr(expander, "heads", None):
         # REPORTED, never silent (T1053, W46): each head lake of the whole water, climbed or not, and why not
         diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], HEAD_LAKE, {"lakes": expander.heads}))
@@ -609,7 +618,7 @@ def _others_of(rule: dict) -> dict | None:
 
 def _build_others(entry: dict, rule: dict, others: dict, registry, graph, *, covered, clip,
                   outside, shared, regional, owned=None,
-                  head_lakes: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
+                  head_lakes: bool = True, stops=None) -> tuple[RuleBinding, list[Diagnostic]]:
     """"ALL THE OTHER PLACES ON THIS WATER" (T607, owner 2026-11-10: a DFO "all open portions of …" wording "has to
     apply to all already matched items instead"): the UNION of what the named siblings bind — each resolved by this
     same function with its OWN extents, tributary walk and carve-outs (a `rest` among them resolves against its own
@@ -628,7 +637,8 @@ def _build_others(entry: dict, rule: dict, others: dict, registry, graph, *, cov
             return RuleBinding(eid, rid, Outcome.unresolved, (), Reason.complement_unknown,
                                f"other_places sibling {sid!r} is not another placed rule of this entry"), []
         b, _d = build_reach(entry, sib, registry, graph, covered=covered, clip=clip,
-                            outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes)
+                            outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes,
+                            stops=stops)
         if b.outcome is not Outcome.bound:
             unbound[sid] = b.reason.value if b.reason is not None else b.outcome.value
             continue
@@ -657,7 +667,7 @@ def _rest_of(rule: dict) -> dict | None:
 
 def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered, clip,
                 outside, shared, regional, owned=None,
-                head_lakes: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
+                head_lakes: bool = True, stops=None) -> tuple[RuleBinding, list[Diagnostic]]:
     """"OTHER PARTS": the rule's water MINUS every section its named siblings bind.
 
     The water is what `whole` (with the rest extent's own item scope) selects for THIS rule —
@@ -700,7 +710,8 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
             return unknown(f"rest sibling {sid} does not draw its place, so the rest of the "
                            f"water around it is unknown")
         b, d = build_reach(entry, sib, registry, graph, covered=covered, clip=clip,
-                           outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes)
+                           outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes,
+                           stops=stops)
         if _policy.COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND and (
                 b.outcome is not Outcome.bound or b.tributaries_pending):
             why = (f"{b.reason.value}: {b.detail}" if b.reason is not None
@@ -725,7 +736,7 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
                  "cut_pick": dict(bounds.get("cut_pick") or {})}
     base, diags = build_reach(entry, {**rule, "extents": [whole]}, registry, graph,
                               covered=covered, clip=clip, outside=outside, shared=shared,
-                              regional=regional, owned=owned, head_lakes=head_lakes)
+                              regional=regional, owned=owned, head_lakes=head_lakes, stops=stops)
     if base.outcome is not Outcome.bound:
         return base, diags
     held = set(base.sections) & withheld
@@ -1185,13 +1196,16 @@ def _runs_down_from(graph, reach, row) -> bool:
 
 
 def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, owned=None,
-              resolved=None, heads: bool = False):
+              resolved=None, heads: bool = False, stops=None):
     """A closure that expands one rule's reach to its tributaries.
 
     The rule's `tributary_excludes` are resolved to sections and passed as BLOCKED, so each
     removes the named stream *and everything above it*. Blocking during the walk rather than
     subtracting afterwards also stops the walk descending through excluded water into
     catchments that drain only through it.
+
+    `stops` (`lake_row_stops`, the corpus's): every lake row's printed exception, which also stops this walk where
+    it climbs through that lake (`A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`); None: none.
 
     `region` holds a REGIONAL ROW's walk to its region(s), applied to what the walk returns — the
     walk is what leaves the region, as it is what leaves a `within_area` (`outside.region_limit`).
@@ -1231,6 +1245,21 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
             expand.confluence = rows
         joining = {s for row in expand.confluence for s in row["sections"]}
         blocked = excluded | (joining - set(reach))
+        walk_passed = set(passed)
+        applied: list = []
+        if stops and A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT:
+            # ANOTHER LAKE ROW'S PRINTED EXCEPTION holds for this walk too where it climbs through that lake: never on a
+            # walk whose own reach or water is that lake or the excepted water (it is that row's, or its own)
+            mine = set(reach) | own_water
+            for st in stops:
+                if not ((st.lakes | st.excluded | st.passed) & mine):
+                    blocked = blocked | st.excluded
+                    walk_passed |= st.passed
+                    applied.append(st)
+        # EVERY INFLOW OF THE RULE'S LAKE IS ITS TRIBUTARY (T1177): the river on the lake's own line, unless a printed
+        # exception keeps it out (`_through_rivers`)
+        inflows, drop, expand.through = _through_rivers(graph, registry, owned, entry, rule, reach, own_water,
+                                                        blocked)
         # A JOINING WATER WITH A ROW OF ITS OWN THAT THE SIGNS PULL INTO THE CUT IS BOUNDED LIKE
         # A `between` (user ruling 2026-10-03, RU-14): its own stem from its mouth up to its
         # FIRST LAKE, walked with the reach — so its tributaries below the lake come with it and
@@ -1249,8 +1278,8 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
                 stems |= stem
         climb = frozenset(reach) if heads else frozenset()
         got = _tribs.expand(graph, frozenset(reach) | stems, only=only, excluded=blocked,
-                            passed=passed, cuts=cuts, registry=registry,
-                            own=own_water - set(reach) - stems, climb_from=climb)
+                            passed=walk_passed, cuts=cuts, registry=registry,
+                            own=own_water - set(reach) - stems, climb_from=climb, inflows=inflows)
         if climb:
             expand.heads = [{**v, "name": graph.nodes[v["lake"]].display_name or "(unnamed)"}
                             for v in _tribs.head_lake_verdicts(graph, frozenset(reach) | stems, climb_from=climb,
@@ -1266,17 +1295,22 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
                 continue
             if row.get("with_cut") and not row.get("own_row"):
                 add = {s for s in row["subtree"]
-                       if s not in blocked and s not in passed and s not in own_water
+                       if s not in blocked and s not in walk_passed and s not in own_water
                        and (not _tribs.STREAMS_ONLY
                             or _resolve._kind_of(graph, s, registry) == "stream")}
                 row["joined"] = len(add)
                 with_cut |= add
             elif row.get("with_cut"):
                 row["joined"] = len(set(row["subtree"]) & got)
-        drop: set[str] = set()
-        got = frozenset((got | with_cut | _through_river_with_the_lake(
-            graph, registry, owned, entry, rule, reach, own_water, blocked, passed, expand, drop=drop))
-            - (drop - set(reach) - own_water))
+        got = frozenset((got | with_cut) - (drop - set(reach) - own_water))
+        for row in expand.through:
+            if row["inlet"] in inflows:
+                # what the walk took through it: the through-river and everything above it the walk reached
+                row["joined"] = len(set(_tribs.subtree(graph, {row["inlet"]})) & (got - set(reach)))
+        # a lake row's exception this walk met: it climbed through that lake (an inflow of it is the walk's)
+        expand.stopped = sorted({(st.entry_id, st.rule_id) for st in applied
+                                 if any(graph.edges[ei].from_node in got for lk in st.lakes
+                                        for ei in graph.up_adj.get(lk, ()))})
         if region is None:
             return got
         kept = {s for s in got if s in region}
@@ -1287,6 +1321,7 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
     expand.confluence = None
     expand.through = []
     expand.heads = []
+    expand.stopped = []
     return expand
 
 
@@ -1315,29 +1350,83 @@ def climbs_head_lakes(rule: dict) -> bool:
 #: WITH ITS SIDE CHANNELS. The walk refuses the river entering the lake on its outlet line (`through_inlets`), but a side
 #: channel of that river — a piece carrying the RIVER'S OWN watershed code — that enters the lake by a mouth of its own
 #: came in as a lake tributary, with what feeds it: "Kitsumkalum Lake, including tributaries" took 16 side-channel
-#: pieces (14.6 km) of the Kitsumkalum River above the lake. When the through-river stays out (a row of its own, the
-#: rule's words, or a DFO place's T743), the river and its side channels entering the lake, and everything above them,
-#: are taken out of the walk (`drop`; never the lake's own water or the reach). Reported as `channels_out` on the
-#: `through_river` diagnostic. False = the mutation pin.
+#: pieces (14.6 km) of the Kitsumkalum River above the lake. When the through-river stays out (the rule's words, or a DFO
+#: place's T743; since T1177 a row of its own no longer keeps it out), the river and its side channels entering the
+#: lake, and everything above them, are taken out of the walk (`drop`; never the lake's own water or the reach).
+#: Reported as `channels_out` on the `through_river` diagnostic. False = the mutation pin.
 A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS = True
 
+#: POLICY (T1177, the narrower reading of the owner's chain ruling, pending his word): A LAKE ROW'S PRINTED EXCEPTION
+#: STOPS EVERY WALK THAT CLIMBS THROUGH THAT LAKE. Since every inflow of a rule's lake is its tributary
+#: (`tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`), a lower lake's walk climbs through the reservoirs above
+#: it: Lake Revelstoke's (and Lower Arrow Lake's) "Bull trout catch and release" through Mica Dam into Kinbasket Lake —
+#: and, read literally, on up the Columbia River above Kinbasket, the water Kinbasket's own row prints "Does not include
+#: Columbia River upstream of Kinbasket Reservoir" for (about 20,800 km). The rulings say "climb through everything" and
+#: "only shouldnt be if an exception is listed saying otherwise"; whether an exception printed on the UPPER lake's row
+#: also holds for the lower rows is not ruled, so the narrower answer is built: a carve-out (`tributary_excludes`) of a
+#: lake's tributaries row (`tributaries_only`, every water it binds a lake) blocks every other walk where it climbs
+#: through that lake (`lake_row_stops`, handed to every walk by `build_reaches`), as it blocks the row's own walk. Never
+#: a walk whose own reach or water is that lake or the excepted water. Reported per rule (`lake_stop` diagnostic).
+#: False = the literal reading (the mutation pin).
+A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT = True
+#: (T1177) the diagnostic a walk writes for the lake rows' printed exceptions it was stopped by: `{rows: [[entry, rule]]}`
+LAKE_STOP = "lake_stop"
 
-def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own_water, blocked,
-                                 passed, expand, drop: set | None = None) -> set[str]:
-    """A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE, when it has no row of its own
-    (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`, T468): the river entering each
-    of the entry's own lakes on the lake's outlet line, and everything above it — streams only, never
-    a carve-out's water or the entry's own. A river with a row of its own, or one the rule's words
-    keep out ("not including X River"), stays out as before. Each lake's answer is reported
-    (`expand.through`, the `through_river` diagnostic)."""
-    if not _tribs.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY:
-        return set()
+
+@dataclass(frozen=True)
+class LakeStop:
+    """One lake row's printed exception (`A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`): the row's lake
+    sections, and what its carve-outs block (`excluded`) and walk past (`passed`), as `resolve_carve_outs` resolves them."""
+    entry_id: str
+    rule_id: str
+    lakes: frozenset
+    excluded: frozenset
+    passed: frozenset
+
+
+def lake_row_stops(ents, registry, graph, covered_fn=None) -> tuple[LakeStop, ...]:
+    """Every lake tributaries row's printed exception, for every walk of the run
+    (`A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`): a rule with `tributaries_only` and `tributary_excludes`
+    whose extents bind lakes only (`extent.resolve_extent`, the registry's water kind). Sorted: one answer per corpus."""
+    out: list[LakeStop] = []
+    for e in sorted(ents, key=lambda x: x["entry_id"]):
+        covered = covered_fn(e, registry) if covered_fn else _covered_ids(e, registry)
+        for rule in e.get("rules") or []:
+            if not (rule.get("tributaries_only") and rule.get("tributary_excludes") and rule.get("extents")):
+                continue
+            lakes: set[str] = set()
+            for ex in rule["extents"]:
+                got = _resolve.resolve_extent(registry, graph, covered, ex) if isinstance(ex, dict) else None
+                lakes |= set((got or {}).get("sections") or ())
+            if not lakes or any(_resolve._kind_of(graph, s, registry) != "lake" for s in lakes):
+                continue
+            detail, excluded = resolve_carve_outs(e, rule, registry, graph, covered)
+            passed = carve_out_passed(detail)
+            if excluded or passed:
+                out.append(LakeStop(e["entry_id"], rule["rule_id"], frozenset(lakes), frozenset(excluded),
+                                    frozenset(passed)))
+    return tuple(out)
+
+
+def _through_rivers(graph, registry, owned, entry, rule, reach, own_water, blocked):
+    """THE THROUGH-RIVER OF EVERY LAKE THE RULE BINDS (`tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`,
+    T1177; T468 before it): for each lake of `reach`, each inflow the walk would refuse as the river running through it
+    (`tributaries.through_inlets`: the stream on the lake's outlet line, or the next lake up it). Returns
+    `(inflows, drop, rows)`: the inflows the walk takes as tributaries; what is taken out of the walk with a through-river
+    that stays out (`A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS`); one `through_river` diagnostic row per inflow
+    (`joined` is filled after the walk). Only a printed exception keeps an inflow out: a carve-out (`blocked`), the rule's
+    words ("not including X River"), a DFO place's T743 (`DFO_THROUGH_RIVER_STAYS_OUT`); the entry's own water is its
+    extents' (AGENTS 63). A row of its own is reported (`own_row`), and keeps the river out only with the policy off (the
+    mutation pin: T468's rule)."""
     words = " ".join(str(rule.get(k) or "") for k in ("verbatim", "extent_text"))
     # T743: a DFO place has no rows to say which through-river is a water of its own — it stays out unless named
     stays_out = bool(rule.get(JOINING_WATER_STAYS_OUT_KEY)) and DFO_THROUGH_RIVER_STAYS_OUT
-    add: set[str] = set()
-    for lake in sorted(s for s in reach if s in own_water):
-        if _resolve._kind_of(graph, lake, registry) != "lake":
+    every = _tribs.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY
+    inflows: set[str] = set()
+    drop: set[str] = set()
+    rows: list[dict] = []
+    for lake in sorted(reach):
+        if (not every and lake not in own_water) or _resolve._kind_of(graph, lake, registry) != "lake":
             continue
         for inlet in sorted(_tribs.through_inlets(graph, reach, lake)):
             if inlet in blocked or inlet in own_water:
@@ -1346,17 +1435,11 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
             own = own_rows(registry, owned, {inlet}, entry.get("entry_id"))
             negated = bool(water) and _rule_excludes(words, water)
             held = stays_out and not (bool(water) and _rule_includes(words, water))
-            joined = 0
-            if not own and not negated and not held:
-                got = {s for s in _tribs.subtree(graph, {inlet})
-                       if s not in blocked and s not in passed and s not in own_water
-                       and s not in reach
-                       and (not _tribs.STREAMS_ONLY
-                            or _resolve._kind_of(graph, s, registry) == "stream")}
-                joined = len(got - add)
-                add |= got
+            out = negated or held or (bool(own) and not every)
+            if not out:
+                inflows.add(inlet)
             channels: set[str] = set()
-            if (own or negated or held) and drop is not None and A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS:
+            if out and A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS:
                 # the river's side channels entering the lake by mouths of their own: the river's own code, a stream
                 code = graph.nodes[inlet].wsc
                 channels = {e.from_node for e in (graph.edges[i] for i in graph.up_adj.get(lake, []))
@@ -1365,11 +1448,11 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
                             and e.from_node not in own_water} if code else set()
                 if channels:
                     drop |= set(_tribs.subtree(graph, channels)) - set(reach) - own_water
-            expand.through.append({"lake": lake, "inlet": inlet, "water": water or "(unnamed)",
-                                   "own_row": list(own), "negated": negated, "joined": joined,
-                                   **({"stays_out": True} if held else {}),
-                                   **({"channels_out": len(channels)} if channels else {})})
-    return add
+            rows.append({"lake": lake, "inlet": inlet, "water": water or "(unnamed)",
+                         "own_row": list(own), "negated": negated, "joined": 0,
+                         **({"stays_out": True} if held else {}),
+                         **({"channels_out": len(channels)} if channels else {})})
+    return frozenset(inflows), drop, rows
 
 
 def scope_resolutions(e: dict, covered: list[str], registry, graph) -> list[tuple[dict, dict | None]]:

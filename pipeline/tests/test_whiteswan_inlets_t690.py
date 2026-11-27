@@ -11,6 +11,12 @@ inlet) trout daily quota = 5 (catch and release all other species) when open)".
 So: every inlet stream and the outlet from the lake down to the falls are No Fishing all year; the outlet BELOW the
 falls is No Fishing Aug 1-Mar 31 and, when open, rainbow trout 5 a day, every other game fish released.
 
+T1177 (owner 2026-11-26, O7: "it needs to apply to all tributaries of the lake need to make sure this is true for all items
+like this"): the inlet streams are every stream flowing into the lake BY THE TRIBUTARY WALK (r5, a lake's tributaries
+row's shape: the lake whole, tributaries only), their feeders too — no longer T690's hand list of 14 inlet items, which
+left the feeders out (RULINGS E26, Claude's reading then). r1 keeps the outlet from the falls up (its item also holds the
+line above the lake, an inlet).
+
 The world here is Whiteswan's shape in the atlas: the outlet blue line W cut at the falls (W:0 below, W:599 lake to
 falls), the lake L, the same line above the lake (W:8623, an inlet fed by Moose Lake M), one inlet per kind the row
 names (Inlet Creek, gnis; an unnamed inlet named "Whiteswan Lake inlet stream" by name_variants, wsc-keyed) and a
@@ -101,10 +107,12 @@ def _bind(world, rid):
 
 
 def test_every_inlet_and_the_outlet_above_the_falls_are_closed(whiteswan):
-    """r1, "No Fishing EXCEPT the outlet stream downstream of the falls": the outlet from the lake to the falls, the
-    line above the lake, Inlet Creek and the unnamed inlet. Never the outlet below the falls, the lake, an inlet's own
-    tributary or Moose Lake upstream."""
-    assert _bind(whiteswan, "r1") == {"W:599", "W:8623", "IC", "U"}
+    """r1 + r5, "No Fishing EXCEPT the outlet stream downstream of the falls": r1 the outlet from the lake to the falls
+    and the line above the lake (one item); r5 every other inlet by the walk — Inlet Creek, the unnamed inlet AND the
+    creek T feeding Inlet Creek (T1177, O7). Never the outlet below the falls or the lake (T1). Moose Lake's water above
+    the outlet item's line is that item's (AGENTS 63): the walk does not climb the entry's own water."""
+    assert _bind(whiteswan, "r1") == {"W:599", "W:8623"}
+    assert _bind(whiteswan, "r5") == {"IC", "T", "U"}
 
 
 @pytest.mark.parametrize("rid", ["r2", "r3", "r4"])
@@ -113,23 +121,22 @@ def test_the_exception_binds_only_the_outlet_below_the_falls(whiteswan, rid):
 
 
 def test_the_closure_is_all_year_and_the_exception_is_seasonal_with_its_quota():
-    r1, r2, r3, r4 = (_rule(r) for r in ("r1", "r2", "r3", "r4"))
-    assert r1["species"] == ["ALL_GAME_FISH"] and r1["take"] == 0 and r1["may_target"] is False and not r1.get("when")
+    r1, r2, r3, r4, r5 = (_rule(r) for r in ("r1", "r2", "r3", "r4", "r5"))
+    for r in (r1, r5):
+        assert r["species"] == ["ALL_GAME_FISH"] and r["take"] == 0 and r["may_target"] is False and not r.get("when")
     assert r2["may_target"] is False and r2["when"] == {"dates": [
         {"from_month": 8, "from_day": 1, "to_month": 3, "to_day": 31}]}
     assert r3["species"] == ["RB"] and r3["take"] == 5
     assert r4["take"] == 0 and r4["may_target"] is True and set(r4["species_except"]) == {"RB", "CRA"}
 
 
-def test_the_closure_names_every_inlet_of_the_lake():
-    """The 15 streams that flow straight into Whiteswan Lake (lake_in edges of lake:329247790, atlas read 2026-11-12):
-    the outlet line above the lake (in the outlet's item, cut by the falls extent), Cave Creek, Inlet Creek and the 12
-    unnamed lines. Changing this list is an owner call, not a refactor."""
-    whole = [x for x in _rule("r1")["extents"] if x["op"] == "whole"]
-    assert len(whole) == 1
-    want = {INLET_CREEK, CAVE_CREEK} | {f"wsc:300-625474-814939-312002-{c}" for c in UNNAMED_INLET_BLKS.values()}
-    assert set(whole[0]["item_ids"]) == want
-    assert {x["op"]: x.get("item_id") for x in _rule("r1")["extents"]}["upstream_of"] == OUTLET
+def test_the_inlets_are_the_lakes_walk_never_a_hand_list():
+    """T1177 (O7): r5 names the LAKE, tributaries only — every stream flowing into Whiteswan Lake, as the walk finds them
+    (Cave Creek, Inlet Creek, the 12 unnamed lines and what feeds them) — and r1 the outlet item above the falls. No
+    hand list of inlet items is left to go stale."""
+    assert _rule("r5")["extents"] == [{"op": "whole", "item_id": "wbk:329247790"}] and _rule("r5")["tributaries_only"]
+    assert [(x["op"], x.get("item_id")) for x in _rule("r1")["extents"]] == [("upstream_of", OUTLET)]
+    assert not any(x.get("item_ids") for r in _entry()["rules"] for x in r.get("extents") or [])
 
 
 def test_the_unnamed_inlets_are_named_whole_so_they_become_items():

@@ -388,8 +388,10 @@ def test_policy_version_is_bumped_when_classify_changes():
         "straddlers_in_every_region": regions.STRADDLERS_IN_EVERY_REGION,
         "unnamed_lakes_on_the_river_are_the_river": extent.UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER,
         "a_steelhead_rivers_widening_is_anadromous": steelhead.A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS,
-        "a_lake_rows_unrowed_through_river_is_a_tributary":
-            tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY,
+        # (T1177) pinned at 52: replaces T468's "a_lake_rows_unrowed_through_river_is_a_tributary"
+        "every_inflow_of_a_rules_lake_is_its_tributary": tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY,
+        "a_lakes_printed_exception_stops_every_walk_through_it":
+            reach_build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT,
         "a_failed_scope_unbinds_the_row": reach_build.A_FAILED_SCOPE_UNBINDS_THE_ROW,
         "dfo_joining_water_stays_out": reach_build.DFO_JOINING_WATER_STAYS_OUT,
         "dfo_through_river_stays_out": reach_build.DFO_THROUGH_RIVER_STAYS_OUT,
@@ -434,7 +436,8 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "straddlers_in_every_region": True,
                      "unnamed_lakes_on_the_river_are_the_river": True,
                      "a_steelhead_rivers_widening_is_anadromous": True,
-                     "a_lake_rows_unrowed_through_river_is_a_tributary": True,
+                     "every_inflow_of_a_rules_lake_is_its_tributary": True,
+                     "a_lakes_printed_exception_stops_every_walk_through_it": True,
                      "a_failed_scope_unbinds_the_row": True,
                      "dfo_joining_water_stays_out": True,
                      "dfo_through_river_stays_out": True,
@@ -458,7 +461,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_whole_waters_walk_climbs_its_head_lake": True,
                      "licensing_climbs_head_lakes": False,
                      "a_side_channel_goes_with_its_water": True})
-    assert cache.POLICY_VERSION == "51", "update this pin with the version it was taken at"
+    assert cache.POLICY_VERSION == "52", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

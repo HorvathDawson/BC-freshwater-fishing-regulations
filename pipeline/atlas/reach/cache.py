@@ -121,7 +121,7 @@ from __future__ import annotations
 #:     never merged by distance, `at_edge` replaces the per-split pickup radii — so the sections a rule
 #:     binds move. No classify.py outcome changed; the bump marks the binding diff.
 #: 35: (T468, owner 2026-11-07) A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE IS ITS TRIBUTARY when the river
-#:     has no row of its own (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`): Powell Lake's
+#:     has no row of its own (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`, retired at 52): Powell Lake's
 #:     closure takes the Powell River above the lake. Depends on OTHER entries (`rowed_waters`), as 14 does.
 #: 36: (T546) A ROW WHOSE SCOPE DOES NOT RESOLVE BINDS NOTHING: a scope extent that fails, or a scope placing no
 #:     section, holds every rule of the row unresolved `scope_unresolved` (`build.A_FAILED_SCOPE_UNBINDS_THE_ROW`) —
@@ -210,5 +210,15 @@ from __future__ import annotations
 #:     pieces (not a barrier, not carved out, not own water) that touch only collected pieces of that item, and climbs
 #:     on from them — the distributaries and bigger-order channels the upward walk never met (Forsyth, Koksilah,
 #:     Halfway, MacMillan, Manson, Omineca, Shelagyote). No classify.py outcome changed; the bump marks the binding diff.
-POLICY_VERSION = "51"
+#: 52: (T1177, owner 2026-11-26 17:10 "everything in is a tributary and only shouldnt be if an exception is listed saying
+#:     otherwise"; O2, O7) EVERY INFLOW OF A LAKE THE RULE BINDS IS ITS TRIBUTARY
+#:     (`tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`, replacing T468's
+#:     `A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`): the river on the lake's own line is taken whether or not it
+#:     has a row of its own, and the walk climbs on through every lake above (Chehalis Lake's "No Fishing" closes the
+#:     Chehalis River above the lake; Connor Lake's takes Forsyth Creek; the Campbell and Arrow reservoir chains climb).
+#:     Only a printed exception keeps water out, and a lake row's printed exception also stops every walk through that
+#:     lake (`build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`, the narrower reading: Kinbasket's "Does not
+#:     include Columbia River upstream" holds for Lake Revelstoke's and Lower Arrow Lake's walks). No classify.py outcome
+#:     changed; the bump marks the binding diff.
+POLICY_VERSION = "52"
 
