@@ -45,6 +45,12 @@ are short and neutral, in our words; no quotes that identify anyone (the tickets
 | F14 | 2026-11-21 | in person | T-4 | 0.8.x | The Trout / Salmon switch did not show clearly which one was on | T986 | fixed | 0.8.5 |
 | F15 | 2026-11-22 | in person | CT-1 | 0.8.4–0.8.5 Android | Switching regulation sub-tabs (keep ↔ licence) scrolled through every section in between. Same message: positive overall on how much fits on a screen while staying readable | T1025 | fixed | 0.9.0 |
 | F16 | 2026-11-22 | in person | CT-2 | 0.8.4–0.8.5 | The day picker stopped at December 2026 though the rule book is valid to March 31, 2027 | T1026 | fixed | 0.9.0 |
+| F47 | 2026-11-26 | email | CT-3 | 0.9.0 Android | Zoomed out, the map shows almost no lake or river names, so a particular water is hard to find. Same message: positive overall (everything for a river system in one place; the rules looked accurate on the rivers checked; no bugs met) | T1200 #1 | open (options as pictures first) | 0.10.0 (pending) |
+| F48 | 2026-11-26 | email | CT-3 | 0.9.0 Android | Asked for a few more main towns on the zoomed-out map, as landmarks | T1200 #2 | open (options as pictures first) | 0.10.0 (pending) |
+| F49 | 2026-11-26 | email | CT-3 | 0.9.0 Android | The tapped water does not stand out enough; suggested a colour change to accent it | T1200 #3 | open (options as pictures first) | 0.10.0 (pending) |
+| F50 | 2026-11-26 | email | CT-3 | 0.9.0 Android | The many lines on the zoomed-out map (read as roads) made it hard to tell what everything is | T1200 #4, #5 | open (options as pictures first) | 0.10.0 (pending) |
+| F51 | 2026-11-26 | email | CT-3 | 0.9.0 Android | A water's regulations page is accurate but a lot at first glance; suggested very distinct headings or a slight colour change between sections (less so on a second look) | T890 #4 | open | 0.10.0 (pending) |
+| F52 | 2026-11-26 | email | CT-3 | 0.9.0 Android | Another map app the tester uses is easier on the eyes and shows the water more clearly (but has no labels); the tester finds a lake by scrolling and zooming, not by search | T1200 #6, #7 | open (options as pictures first) | 0.10.0 (pending) |
 
 ## In-app reports (Report a problem)
 
@@ -115,6 +121,8 @@ leave them out.
 | D18 | 2026-11-25 | found in development | owner | 0.9.0 data | A lake and its creek showed another, same-named lake's stricter rules (a name bound across management units) | T1117 (audit: T1118) | open | — |
 | D19 | 2026-11-25 | in person | owner | 0.9.0 web | A river's plain link opened the rules of one unnamed part (an ecological reserve side channel) and read "Closed"; parts were numbered instead of named | T1140 (T1146, T1149) | open | 0.10.0 (names); the landing in the next patch |
 | D20 | 2026-11-25 | in person | owner | 0.10.0 candidate | The game-fish status bar showed "open" in a different colour from the salmon bar | T1145 | fixed (#260) | 0.10.0 |
+| D21 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | At a larger system font the Salmon label of the mode switch wrapped onto two lines and the Conditions tab label was cut short | T1201 | open | 0.10.0 (pending) |
+| D22 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | A lake with no salmon (Arctic drainage) led with a Salmon status bar (the regional rule applies; the question is whether to show it) | T1202 | open (owner's call) | — |
 
 ## Counts (refresh before applying)
 
@@ -124,5 +132,6 @@ the owner's read pending (F34), 6 fixed in 0.9.0 (shipped 2026-11-24, r-0aec88ed
 owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 10 open (F40–F44 added 2026-11-24, F45 on 11-25).
 Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
 answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2); D14 open (0.9.1); D15–D17 open (0.9.2); D18 open (0.9.1).
+2026-11-26: F47–F52 added (tag CT-3, by email; all open, for the 0.10.0 re-cut) and D21, D22; not in the numbers above.
 Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not
 know how to use the Play form). Recount before applying.
