@@ -4,7 +4,7 @@ Status: OPEN. BEFORE the 0.10.0 re-cut (owner: "should do before recut"). Visibl
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1194 | Conditions map: tap a gauge dot to open that gauge's page, tidal and water-less gauges included | OPEN | — | build per Work (app-only, no release file change); owner looks at shots before merge |
+| T1194 | Conditions map: tap a gauge dot to open that gauge's page, tidal and water-less gauges included | OPEN | on feat/T1194 (see Built) | built; owner looks at the last sheet; OWED: the tap checked on a device (emulator run); T1206 after the re-cut |
 
 Source: owner 2026-11-26, verbatim: "also we should make it so that in the conditions map add a way to click on the gauegs to
 get the gauge page itself. that way even the lower tidal fraser gaguges are accessible etc. should do before recut".
@@ -122,17 +122,20 @@ row stay undrawn until a release carries them; listed so the owner knows.)
    release that loses a page is a red test.
 10. Owner looks at the shots (item 5) before merge.
 
-## Risks
+## Risks (as built)
+Two dots under one finger: the nearest, never a list. The phone's tap waits out a double tap (T716): the lift asks the gauge in the same round trip as the water. No release file or worker change; it merges before the 0.10.0 re-cut and does not move the release id.
 
-- A 44 px target on a dense valley: two dots under one finger. Take the nearest dot, never open a list; revisit only if the shots show it.
-- The tap precedence on the phone is async (`Map.native.tsx` waits out a double tap, T716): the gauge query must join that
-  ordering so a double tap still zooms.
-- The new route mode touches `route.ts`, back, the address and `Shell.tsx`: the bulk of the size and of the regression surface.
-- Release re-cut timing: this must merge BEFORE the 0.10.0 re-cut (owner). It needs no release file change, so it does not move the release id.
+## Built (2026-11-27)
 
-Depends: none (T1010 shipped the address pattern; T530/T1039 the share and chart parts). Size: M (about 3 to 4 packages, one new
-screen, one new route mode, tests across map / ui / ui-native / back). Owner: yes (screenshots before merge, see below).
-Default: the design above.
+Where it differs from the Design above (sheets: the build lane's `T1194-pictures/final/`):
+- **Tap** (`map/src/gauge-hit.ts`, both engines): the DOT's target is a 44 px square centred on it; a PILL is hit at its own drawn size and opens ITS station; a river beside a pill or 30 px from a dot opens the water. On the phone the lift asks gauge, obstacle and water in ONE round trip (T716). Conditions tab only.
+- **Route and back**: mode `gauge` (`?gauge=`, one load path); a water opened off the page has `via`; the Conditions map stays MOUNTED under the page (`pageOpen`, `Shell.tsx`), so Back never rebuilds it. The phone opens a web `?gauge=` link; `?gauge=` beside a water, box, `show`, `spot` or `browse` is refused by name.
+- **Page** (owner's pick A): `ui-native/GaugeReading.tsx`, shared by the app and the website (`tools/seo/gaugeChart.tsx`): reading, standing, trend word, the Conditions colour bar (the mark says "This gauge: …" aloud) and chart, judged by the clock (T1205: over 8 h old is "No current reading. Last reported …", with no figure, standing, mark or trend). App-only: Back, the waters served, the tide note, Share and "Open on the website".
+- **Website**: no intro paragraph; the foot is one soft card; a chart script that never loads or hangs (15 s) says so with the source's link and reports. Gauge-page JS against r-71d09ad82e81: before 986,440 B raw (gzip 306,554), after 997,366 B (gzip 309,934): +10.9 KB raw, +3.4 KB gzip. The reading was never in the static HTML.
+- **A `?gauge=` link to a gauge with no current reading or no water** opens the page ("No current reading. Last reported …"; "not matched to a water we cover"): built, not silent. By tap a dead gauge has no dot (a dot needs a current ranked reading).
+- **Trend word**: Flow by the ratio (`STEADY_RATIO` 1.25) against the value a day earlier; Level (owner: "Yes, on Level too") by the CHANGE in the stage over the same day, **2 cm deadband** (`LEVEL_DEADBAND_M`): from the feed's levels (2026-10-28, 424 stations) a 30-minute reading moves a median 1 mm (p90 4 mm), the 24 h change is a median 1 cm and 2.2 cm at p75. Kootenay Lake 0.1 cm: steady; Harrison Lake 3.4 cm down: falling. **Tidal gauges have no Level trend word** (the stage swings metres with the tide; the page carries the tide's note). None either when not current, no look-back within 3 h of the 24 h mark, or across a gap.
+- **Pinned**: the drawn dots (422 over the frozen 2026-10-23 index) and each of the 15 gauges the water cannot reach is drawn and its tap opens that station (`tools/gauge-page.release.test.ts`). The ticket's 430 (live 2026-10-28 index) was measured by hand, not pinned.
+- **OWED**: the tap on a device or emulator (native: typechecked and run through the contract's mocked binding only); T1206 after the re-cut.
 
 ## Owner
 
@@ -143,4 +146,4 @@ Default: the design above.
 - [x] 2026-11-26 — Changes to the gauge page after the sheet (the website's intro, the trend word)? → "yes we want a few changes first the web has a big \"live level and flow, nd the weather ...\" at the top this is bloated and can be in sources at bottom. or actually just removed.... the app is much cleaner here. i like app design. the trend word seems good to have? can be big near the big units." (2026-11-26)
 - [x] 2026-11-26 — One more look at the re-shot app and website pages before merge (`T1194-owner-sheet-2.png`). → "way better please make the open on the website button and get the app stff look a lot better at the bottom it looks janky rn ..." (2026-11-26)
 - [x] 2026-11-26 — OK on the redesigned foot of the gauge page, website and app (`T1194-owner-sheet-3.png`; variant A calm section or B soft card)? → "Variant B" (2026-11-26)
-- [ ] 2026-11-26 — Should a Level reading get a trend word too? Built Flow-only (a ratio of stages is not a ratio of water, as in the Change view); he has not answered. Default: Flow only.
+- [x] 2026-11-26 — Should a Level reading get a trend word too? Built Flow-only (a ratio of stages is not a ratio of water, as in the Change view). → "Yes, on Level too (Recommended)" (2026-11-27)

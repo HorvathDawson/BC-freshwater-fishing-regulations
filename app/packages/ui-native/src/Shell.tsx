@@ -715,7 +715,7 @@ export function Shell(p: ShellProps) {
       <PaneReadyContext.Provider value={pane.hold}>{water}</PaneReadyContext.Provider>
     </View>
   );
-  // (T1194) a gauge's own page, over the kept Conditions map (a placeholder no more: `GaugeScreen`); Back returns to the map as it was
+  // (T1194) a gauge's own page, over the kept Conditions map (`GaugeScreen`); Back returns to the map as it was
   const gaugeView = route.mode === "gauge" && (
     <View key="gauge" collapsable={false} style={{ flex: 1 }}>
       {screen("gauge", route.station, <GaugeScreen station={route.station} source={source} loader={loader} palette={palette} theme={theme} feed={feed}
