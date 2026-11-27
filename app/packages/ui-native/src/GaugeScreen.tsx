@@ -23,7 +23,8 @@ import { SourceRow } from "./SourceRow";
 import { Text } from "./Text";
 import { Icon } from "./icons";
 import { hitProps } from "./regs/hit";
-import { TYPE } from "./type";
+import { LABEL_PROPS, LABEL_SCALE, TYPE, labelMinWidth } from "./type";
+import { useScaleUpTo } from "./textScale";
 import { GUTTER, SPACE, type Palette } from "./theme";
 
 export function GaugeScreen({ station, source, loader, palette, theme, feed, onBack, onOpenWater }: {
@@ -35,6 +36,7 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
 }) {
   const page = useGaugePage(loader, station);
   const [all, setAll] = useState(false);
+  const labelScale = useScaleUpTo(LABEL_SCALE);
   const ports = useContext(SharePortContext);
   // the website's page for this gauge (only where the site has one: the same rule as Share) — its Open and Share
   const share = useGaugeShare(ports.port, { station, name: page.state === "ready" && page.value ? page.value.name : null }, ports.hasGaugePage);
@@ -44,9 +46,12 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
       <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, minHeight: 56, justifyContent: "center" }}>
         <Pressable testID="gauge-back" onPress={onBack} accessibilityRole="button" accessibilityLabel={GAUGE_PAGE_WORDS.back}
                    {...hitProps({ w: 44, h: 44 })}
-                   style={{ minWidth: 44, minHeight: 44, flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: SPACE.s1 }}>
+                   // (T1201 rule, review 2026-11-27) a label in a fixed control follows the text size to `LABEL_SCALE`, one line, whole: the
+                   // control GROWS to hold it (`labelMinWidth`), never cuts it
+                   style={{ minWidth: Math.max(44, 20 + SPACE.s1 + labelMinWidth(GAUGE_PAGE_WORDS.back, TYPE.bodyStrong, labelScale, 0, 0.6)),
+                            minHeight: 44, flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: SPACE.s1 }}>
           <Icon name="back" colour={palette.accent} size={20} />
-          <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{GAUGE_PAGE_WORDS.back}</Text>
+          <Text {...LABEL_PROPS} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{GAUGE_PAGE_WORDS.back}</Text>
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s4 * 3, gap: SPACE.s4 }}>
@@ -70,9 +75,10 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
                 : (all ? facts.serves : facts.serves.slice(0, GAUGE_SERVES_SHOWN)).map((w) => (
                   <Pressable key={w.item} testID="gauge-serves-row" onPress={() => onOpenWater(w.item)} accessibilityRole="button"
                              accessibilityLabel={GAUGE_PAGE_WORDS.open(w.name)} {...hitProps({ w: 120, h: 44 })}
-                             style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line }}>
-                    <Text numberOfLines={1} style={{ ...TYPE.body, color: palette.ink, flex: 1 }}>{w.name}</Text>
-                    <Text numberOfLines={1} style={{ ...TYPE.meta, color: palette.sub }}>{GAUGE_PAGE_WORDS.trust[w.trust]}</Text>
+                             style={{ minHeight: 44, paddingVertical: SPACE.s2, flexDirection: "row", alignItems: "center", gap: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line }}>
+                    {/* reading text: it wraps and follows the text size in full; nothing is cut */}
+                    <Text style={{ ...TYPE.body, color: palette.ink, flex: 1 }}>{w.name}</Text>
+                    <Text style={{ ...TYPE.meta, color: palette.sub, maxWidth: "40%", textAlign: "right" }}>{GAUGE_PAGE_WORDS.trust[w.trust]}</Text>
                     <Icon name="next" colour={palette.accent} size={16} />
                   </Pressable>
                 ))}
