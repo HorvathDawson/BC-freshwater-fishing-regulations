@@ -60,7 +60,9 @@ describe("T487 gauge pages", () => {
     const m = built.build.models, path = (id: string) => `/water/${built.build.slugMap.waters[id]!.slug}`;
     const links = [...p.html.matchAll(/<a href="(\/water\/[^"?]+)">([^<]*) fishing regulations<\/a>/g)].map((x) => x[1]);
     expect(links).toEqual([path(ids[0]!), path(ids[1]!)]);                 // own water first, then the fair one; the weak duplicate folded
-    expect(p.html).toContain(`<a class="app" href="${path(ids[0]!)}?view=conditions">Open on the website</a>`);
+    // (T1194) the foot: the sources over ONE action, named for what it is (the website opens the web app, never "Open on the website")
+    expect(p.html).toMatch(new RegExp(`<section class="gfoot"><p class="small gl">Sources</p><div id="gauge-credit"></div><a class="app" href="${path(ids[0]!)}\\?view=conditions">Open [^<]+ in the web app</a><div id="gauge-get-app"></div></section>`));
+    expect(p.html).not.toContain("Open on the website");
     // (T1039) the "Get the app" block is the web app's own, drawn by the chart's script (gaugePage.parity.test.ts)
     expect(p.html).toContain(`<div id="gauge-get-app"></div>`);
     const q = gaugePages().find((x) => x.path.startsWith("/gauge/08MH016"))!;

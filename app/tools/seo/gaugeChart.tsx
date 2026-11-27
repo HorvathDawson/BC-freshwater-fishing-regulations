@@ -32,6 +32,8 @@ import { THEMES } from "../../packages/ui-native/src/theme";
 import { CHART_FAILED, pageReporter, type GaugeConfig } from "./gaugeClient";
 
 export { CHART_FAILED };
+/** (T1194) the gauge page's Get the app is the quiet closing form */
+const GAUGE_FOOT_COMPACT = true;
 
 
 /** the config's climatology (base64 bands) as the rows the source reads */
@@ -114,6 +116,6 @@ export function renderInto(container: Element, element: ReactElement): void {
 /** the Spots tab's "Get the app" block, in the page's theme */
 export function GaugePageGetApp({ contact }: { contact: string | null }) {
   const palette = THEMES[useColorScheme() === "dark" ? "dark" : "light"];
-  return h(GetAppBlock, { palette, contact });
+  return h(GetAppBlock, { palette, contact, compact: GAUGE_FOOT_COMPACT });
 }
 

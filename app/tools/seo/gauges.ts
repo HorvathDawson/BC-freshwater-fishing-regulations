@@ -295,14 +295,12 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     (g.more.length ? `<details><summary>${esc(moreSummary(g))}</summary>` +
       `<ul class="cols">${g.more.map(line).join("")}</ul></details>` : "") +
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
-    // (T1194) the sources at the foot, as every page has them: the readings' and the forecast's credit (gaugeClient.ts `creditHtml`)
-    `<div id="gauge-credit"></div>` +
-    `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
-    // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
-    `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a></div>` +
-    // (T1039, owner 2026-11-23: "chart should use same buttons as spots too for now") the web app's own "Get the app"
-    // block (ui-native `GetAppBlock`), drawn by the chart's script
-    `<div id="gauge-get-app"></div></div></div>` +
+    // (T1194, owner 2026-11-26: "the open on the website button and get the app stuff … janky") ONE CLOSING SECTION: the sources (the readings'
+    // and the forecast's credit, gaugeClient.ts `creditHtml`) directly over one primary action, then the quiet Get the app (ui-native
+    // `GetAppBlock` compact, drawn by the chart's script). The action is the web app on the first water, named for what it is
+    `<section class="gfoot"><p class="small gl">Sources</p><div id="gauge-credit"></div>` +
+    `<a class="app" href="${esc(`${first.path}?view=conditions`)}">Open ${esc(first.name)} in the web app</a>` +
+    `<div id="gauge-get-app"></div></section></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
     `<script src="${esc(chartHref)}" defer></script>`;
 }

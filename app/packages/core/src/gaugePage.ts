@@ -82,6 +82,8 @@ export const GAUGE_PAGE_WORDS = {
   back: "Back to Conditions",
   stationLine: (station: string): string => `Station ${station}`,
   servesHeading: "Waters this gauge serves",
+  /** the app's foot: this gauge's page on the website (the website's own foot says "Open … in the web app") */
+  openOnSite: "Open on the website",
   /** a gauge serving no water: the page opens and says so (owner 2026-11-26: "yes as long as they have up to date data") */
   notMatched: "This gauge is not matched to a water we cover.",
   /** a station the release does not hold (a stale link): shown, never the map and never a neighbour */

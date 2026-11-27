@@ -550,8 +550,8 @@ export function Shell(p: ShellProps) {
   useEffect(() => { browseShown.current = browseNow; });
   // (T1194) a gauge's own screen (a placeholder, see `GaugeScreen`): over the Conditions map, which Back returns to whole
   if (route.mode === "gauge")
-    return layered(withGuide(screen("gauge", route.station, <GaugeScreen station={route.station} source={source} loader={loader} palette={palette} theme={theme} feed={feed}
-                  onBack={back} onOpenWater={(item) => void nav.opener.item(item as ItemId, "conditions")} />, back)));
+    return layered(withGuide(screen("gauge", route.station, <SharePortContext.Provider value={sharePorts}><GaugeScreen station={route.station} source={source} loader={loader} palette={palette} theme={theme} feed={feed}
+                  onBack={back} onOpenWater={(item) => void nav.opener.item(item as ItemId, "conditions")} /></SharePortContext.Provider>, back)));
   if (viewing)
     return layered(withGuide(
       screen("spot", viewing.id, <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}

@@ -6,13 +6,16 @@
  * The app-only parts are here: Back, the waters it serves (the release, so it opens offline), the plain line for a gauge that
  * serves no water, the tide's note on Level. It decides nothing: the words are core's `GAUGE_PAGE_WORDS`, the facts `useGaugePage`.
  */
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { GAUGE_PAGE_WORDS, GAUGE_SERVES_SHOWN, conditionsSourcesOf, gaugeNotes } from "@app/core";
+import { GAUGE_PAGE_WORDS, GAUGE_SERVES_SHOWN, conditionsSourcesOf, gaugeNotes, gaugeUrl } from "@app/core";
 import type { StationId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { useGaugePage } from "@app/ui";
+import { useGaugePage, useGaugeShare } from "@app/ui";
+import { Button } from "./Button";
 import { ErrorState } from "./ErrorState";
+import { linkTo } from "./openLink";
+import { SharePortContext } from "./SharePortContext";
 import { GaugeReading, type GaugeReadingSource } from "./GaugeReading";
 import { LoadingState } from "./LoadingState";
 import { Pressable } from "./Pressable";
@@ -32,6 +35,9 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
 }) {
   const page = useGaugePage(loader, station);
   const [all, setAll] = useState(false);
+  const ports = useContext(SharePortContext);
+  // the website's page for this gauge (only where the site has one: the same rule as Share) — its Open and Share
+  const share = useGaugeShare(ports.port, { station, name: page.state === "ready" && page.value ? page.value.name : null }, ports.hasGaugePage);
   const facts = page.state === "ready" ? page.value : null;
   return (
     <View testID="gauge-screen" style={{ flex: 1, backgroundColor: palette.card }}>
@@ -78,7 +84,18 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
                 </Pressable>
               )}
             </View>
-            <SourceRow vm={conditionsSourcesOf()} palette={palette} testID="gauge-sources" />
+            {/* (T1194) ONE CLOSING SECTION, as the website's: the sources, then one primary action and one quiet one (only where the site has a page for this gauge) */}
+            <View testID="gauge-foot" style={{ marginTop: SPACE.s4, paddingTop: SPACE.s3, borderTopWidth: 1, borderTopColor: palette.line, gap: SPACE.s3 }}>
+              <SourceRow vm={conditionsSourcesOf()} palette={palette} testID="gauge-sources" />
+              {share && (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: SPACE.s3 }}>
+                  <Button palette={palette} label={GAUGE_PAGE_WORDS.openOnSite} grow={false} testID="gauge-open-site"
+                          onPress={linkTo(gaugeUrl(station, facts.name))} />
+                  <Button palette={palette} kind="link" label={share.label} onPress={share.press} busy={share.busy} testID="gauge-share" />
+                </View>
+              )}
+              {share?.said && <Text testID="gauge-share-said" accessibilityLiveRegion="polite" style={{ ...TYPE.meta, color: palette.sub }}>{share.said}</Text>}
+            </View>
           </>
         )}
       </ScrollView>
