@@ -31,8 +31,10 @@ const RULES: Record<number, RuleView> = {
   // 12 + 13 + 14 (Nov 1–Apr 30, May 1–Aug 31 at Region, Sep 1–Oct 31 from streams)
   10: gate(10, 0, [[1101, 614]]), 11: gate(11, 3, [[615, 1031]]),
   12: gate(12, 0, [[1101, 430]]), 13: gate(13, 3, [[501, 831]]), 14: gate(14, 2, [[901, 1031]], { water: "stream" }),
+  // (T1251) two inherited rows' all-year closures ("From downstream"), the same words: 15 the farther row, 16 the nearer
+  15: gate(15, 1, []), 16: gate(16, 1, []),
 };
-const R: RuleIndex = { get: (ix) => RULES[ix]!, has: (ix) => ix in RULES, size: 14 };
+const R: RuleIndex = { get: (ix) => RULES[ix]!, has: (ix) => ix in RULES, size: 16 };
 const OPEN = { status: "base", closing: [], strip: 0 } as unknown as DisplayFrame;
 /** A closed day's stored frame: `closers` is the pipeline's decided choice (display 18), written out per fixture. */
 const shut = (closing: [number, string[]][], unless: number[] = [], closers: number[] = closing.map(([ix]) => ix)) =>
@@ -100,6 +102,13 @@ describe("chainOf: the run's closures, day by day, each once; the frames' unless
     const banner = (day: Day) => { const b = rawBanner(inputs({ byDay: two, day }), settled(two[0]!, [9]))!; return [b.big, b.para, b.chain.map((c) => [c.text, c.scope, c.rule])]; };
     expect(banner(D(1, 10))).toEqual(banner(D(7, 15)));
     expect(banner(D(7, 15))).toEqual(["Closed all year", null, [["Nov 1–Jun 14.", "This water", "e10::r10"]]]);
+  });
+  it("(T1251, owner 2026-11-27: \"The most upstream row\") two rows' closures close the whole year on one rung: the stored order names the more upstream row, never the rule index", () => {
+    const two = yearBy(() => [16, 15]); // the pipeline stores the more upstream row (16) first; its rule index is the higher
+    const said = (day: Day) => { const b = bannerOf(inputs({ byDay: two, day }), settled(two[0]!, [9]), null)!;
+      return [...b.big, ...b.paras, ...b.chain.map((c) => `${c.text} ${c.scope} ${c.rule}`)].join(" | "); };
+    expect(said(D(1, 10))).toEqual("Closed all year | No fishing for any game fish. From downstream e16::r16");
+    expect(said(D(7, 15))).toEqual(said(D(1, 10)));
   });
   it("(T1078, owner 2026-11-26: keep one, the primary closure) the dated closure is the day's first, yet the one cited is the all-year closure", () => {
     const both = yearBy((md) => (md >= 1101 || md <= 614 ? [10, 7] : [7]));
