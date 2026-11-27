@@ -19,7 +19,7 @@ A NAMED SOURCE FILE TYPED BY ITS FILE NAME (T1192) is refused too: the FWA GeoPa
 `SOURCE.coast_gpkg` (the `source:` names: config.yaml's gpkg, the schema's coast file), so a string that IS one of
 their file names, or ends a path in one (`SOURCE / "bc_fisheries_data.gpkg"`, `f"{d}/fwa_coast.gpkg"`), is a second
 spelling of a name declared once. Prose that mentions the file (`"copy into bc_fisheries_data.gpkg"`) is not a path and
-passes; the schema that declares the names (`DECLARES`) is the one file that spells them.
+passes; the schema that declares the names (`DECLARES`) spells each once, as the string of its `At("…")`.
 
 A STRING THAT ONLY NAMES A PATH (provenance written into an output, git pathspecs, a repo-relative name a repo-root
 command prints) carries `# path-label: <why>` (10+ characters) on one of its lines. The labels let through are printed,
@@ -50,7 +50,8 @@ PATH_CALLS = {"Path", "PurePath", "PosixPath", "join"}
 #: (T1192) the named source files a string may not spell, and how they are read (`pipeline/tests/test_data_path_gate.py`
 #: pins this against the `source:` names, `curated.read_config`)
 NAMED = {"bc_fisheries_data.gpkg": "SOURCE.fwa_gpkg", "fwa_coast.gpkg": "SOURCE.coast_gpkg"}
-#: the schema, where the coast file's name is declared (`At`): the one place a `NAMED` string is the declaration
+#: the schema, where the coast file's name is declared: there, and only as the string of an `At("…")`, a `NAMED`
+#: string is the declaration (anywhere else in that file it is a second spelling, as in any other file)
 DECLARES = "pipeline/common/curated.py"
 #: a string that is one of `NAMED`, or a path ending in one (a string with whitespace is prose that mentions the file:
 #: `"copy into data/source/bc_fisheries_data.gpkg"` names it, opens nothing)
@@ -104,6 +105,12 @@ def _starts_a_path(node: ast.AST, parent: dict[int, ast.AST]) -> bool:
     return isinstance(up, ast.BinOp) and isinstance(up.op, ast.Div) and up.left is node
 
 
+def _declarations(tree: ast.AST) -> set[int]:
+    """id() of the string of every `At("…")` (the schema's one spelling of a file's name)."""
+    return {id(n.args[0]) for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+            and n.func.id == "At" and len(n.args) == 1 and isinstance(n.args[0], ast.Constant)}
+
+
 def check(rel: str, src: str) -> tuple[list[tuple[str, str]], list[str], list[str]]:
     """(offenders, labels let through, stale labels) of one file, each `file:line: …`; an offender is (its kind, that
     line): `PATH` (a data/ or cache/ path) or `NAMED_FILE` (a named source file spelt by its file name, `NAMED`)."""
@@ -119,9 +126,10 @@ def check(rel: str, src: str) -> tuple[list[tuple[str, str]], list[str], list[st
     paths = [(node, text, PATH, "") for node, text in strings(tree)
              if UNDER.match(text) or (BARE.match(text) and _starts_a_path(node, parent))]
     seen = {id(n) for n, *_ in paths}
+    declared = _declarations(tree) if rel == DECLARES else set()
     named = [(node, text, NAMED_FILE, f"  (a named source file: read it as {NAMED[m.group(1)]})")
              for node, text in every_string(tree)
-             if (m := SPELLS.search(text)) and not re.search(r"\s", text) and id(node) not in seen and rel != DECLARES]
+             if (m := SPELLS.search(text)) and not re.search(r"\s", text) and id(node) not in seen | declared]
     for node, text, kind, note in sorted(paths + named, key=lambda x: (x[0].lineno, x[0].col_offset)):
         if id(node) in docs:
             continue
