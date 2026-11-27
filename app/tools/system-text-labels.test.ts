@@ -217,7 +217,7 @@ function keyIsolated(): Record<string, { chip: Box; all: Box; chipWord: { text: 
 
 describe("T1211 the floating Map key's chip (T1201's rule)", () => {
   it("its word is one line and whole at 1, 1.15 and 1.3, 320 to 412 wide; the chip grows round it", () => {
-    expect(faults(laidOut("key"), [`${MAP_KEY.chip.word} ▴`])).toEqual([]);
+    expect(faults(laidOut("key"), [MAP_KEY.chip.word])).toEqual([]);
   }, 120_000);
 
   it("a class shown alone: \"Showing: Region rules only\" and Show all, whole, 44 px each, apart, inside the window", () => {
@@ -227,7 +227,7 @@ describe("T1211 the floating Map key's chip (T1201's rule)", () => {
     for (const [k, r] of Object.entries(m)) {
       for (const [n, wd] of [["chip", r.chipWord], ["show all", r.allWord]] as const)
         if (wd.lines !== 1 || wd.cut) bad.push(`${k}: ${n} "${wd.text}" ${wd.lines} lines${wd.cut ? ", cut" : ""}`);
-      if (r.chipWord.text !== `Showing: ${MAP_KEY.status.base} ▴` || r.allWord.text !== MAP_KEY.chip.showAll) bad.push(`${k}: words ${r.chipWord.text} / ${r.allWord.text}`);
+      if (r.chipWord.text !== `Showing: ${MAP_KEY.status.base}` || r.allWord.text !== MAP_KEY.chip.showAll) bad.push(`${k}: words ${r.chipWord.text} / ${r.allWord.text}`);
       for (const [n, b] of [["chip", r.chip], ["show all", r.all]] as const) {
         if (b.h < 44 - 0.5 || b.w < 44 - 0.5) bad.push(`${k}: ${n} ${b.w}x${b.h}`);
         if (b.l < 0 || b.r > r.w) bad.push(`${k}: ${n} outside the window (${b.l}-${b.r} of ${r.w})`);

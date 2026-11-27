@@ -130,7 +130,7 @@ describe("(T1208) the base: the ground and water the theme paints (held to T47 b
   it("the basemap's \"BRITISH COLUMBIA\" is gone (every reader knows where they are; it took a town's room)", () => {
     for (const th of ["light", "dark"]) expect(ids(composed(th))).not.toContain("places_region");
   });
-  it("dark: the theme's tokens too, a step off the flavour's black (#141414 / #333333) where T47's floors need it", () => {
+  it("dark: the theme's tokens too, a step off the flavour's own black where T47's floors need it", () => {
     const s = composed("dark"), t = resolveTheme("dark");
     expect([layer(s, "earth").paint!["fill-color"], layer(s, "water").paint!["fill-color"]])
       .toEqual([t["color.ui.basemap.ground"], t["color.ui.basemap.water"]]);

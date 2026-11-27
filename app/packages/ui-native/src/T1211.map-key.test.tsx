@@ -9,7 +9,6 @@ import { act, useState } from "react";
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { closedKey, MAP_KEY, WATER_STATUS } from "@app/core";
-import { readFileSync } from "node:fs";
 import { waterMapStatus } from "./shell/WaterModeHost";
 import { BackLayerContext, type BackLayers } from "@app/ui";
 import { MapLegend } from "./shell/MapLegend";
@@ -51,6 +50,8 @@ describe("(T1211) the floating Map key", () => {
     show();
     fireEvent.click(screen.getByTestId("map-key-chip"));
     expect(screen.getByTestId("map-key-chip").getAttribute("aria-expanded")).toBe("true");
+    // the set's chevron (N1), never a typed caret: down while open
+    expect(screen.getByTestId("map-key-chip").querySelector('[data-testid="icon-expand"]')).not.toBeNull();
     expect(words()).toEqual(["Closed", "Its own rules", "Region rules only", "No access", "Fly only", "Bait ban", "Not fishable"]);
     expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
     expect(screen.getByTestId("map-key-lines").textContent).toBe(MAP_KEY.region);
@@ -68,7 +69,7 @@ describe("(T1211) the floating Map key", () => {
     fireEvent.click(screen.getAllByTestId("legend-entry").find((e) => e.textContent === "Its own rules")!);
     fireEvent.click(screen.getByTestId("map-key-chip"));                    // the key closed: the isolate stays
     expect(words()).toEqual([]);
-    expect(chipWord()).toBe("Showing: Its own rules ▴");
+    expect(chipWord()).toBe("Showing: Its own rules");
     expect(screen.getByTestId("map-key-chip").getAttribute("aria-label")).toBe("Map key. Showing Its own rules alone on the map");
     const all = screen.getByTestId("map-key-show-all");
     expect([all.getAttribute("role"), parseFloat(all.style.minHeight)]).toEqual(["button", KEY_TARGET]);
@@ -92,7 +93,7 @@ describe("(T1211) the floating Map key", () => {
       fireEvent.click(screen.getByTestId("map-key-chip"));
       fireEvent.click(screen.getAllByTestId("legend-entry").find((e) => e.textContent === label)!);
       fireEvent.click(screen.getByTestId("map-key-chip"));
-      expect(chipWord()).toBe(`Showing: ${label} ▴`);
+      expect(chipWord()).toBe(`Showing: ${label}`);
       expect(screen.getByTestId("map-key-chip").getAttribute("aria-label")).toBe(`Map key. Showing ${label} alone on the map`);
       expect(screen.getByTestId("map-key-show-all").getAttribute("aria-label")).toBe(MAP_KEY.chip.showAll);
     });
@@ -105,10 +106,7 @@ describe("(T1211) the floating Map key", () => {
     const status = { day: "2026-10-10", only: "own" as const };
     expect(waterMapStatus(status)).toEqual({ day: "2026-10-10", only: null });
     expect(waterMapStatus(null)).toBeNull();
-    // and it is what the water's view is handed
-    const host = readFileSync(`${process.cwd()}/packages/ui-native/src/shell/WaterModeHost.tsx`, "utf8");
-    expect(host).toContain("status: waterMapStatus(mapStatus)");
-    expect(host).not.toMatch(/status: mapStatus\b/);
+    // that it is what the water's view is handed: tools/water-map-status.test.ts (reads the source; no fs here)
   });
 
   it("fish obstacles on: their marks are in the opened key (the bar had them; T300)", () => {

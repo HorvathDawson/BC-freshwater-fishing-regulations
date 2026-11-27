@@ -80,7 +80,14 @@ const slidOut = () => act(() => {
 const look = () => {
   slidOut();
   const button = screen.queryAllByRole("button").find((b) => /^Map coloured for /.test(b.getAttribute("aria-label") ?? ""));
-  const closed = screen.queryAllByText(/^Closed( Oct \d+)?$/)[0]?.textContent ?? "no legend";
+  // (T1211) the key floats behind its chip: opened to read its Closed entry, closed again (no state left behind)
+  const chip = screen.queryByTestId("map-key-chip");
+  let closed = "no legend";
+  if (chip) {
+    fireEvent.click(chip);
+    closed = screen.queryAllByText(/^Closed( Oct \d+)?$/)[0]?.textContent ?? "no Closed entry";
+    fireEvent.click(chip);
+  }
   const sheet = screen.queryByText("Which day?") ? `sheet: ${screen.getByText(/^Showing /).textContent}` : "no sheet";
   return `map ${screen.queryByTestId("map-status")?.textContent ?? "gone"} | button ${button?.textContent ?? "none"}`
     + ` | ${closed} | ${sheet}`;
@@ -106,7 +113,7 @@ describe("the one day, from the map's calendar and the page's pill", () => {
       </GestureHandlerRootView>);
     await waitFor(() => expect(screen.getByTestId("map-status").textContent).toBe("Wed Oct 21 2026"));
     // (T566) the key follows the map: it shows once the map has said the coloured look is drawn (the stub says so at once)
-    await waitFor(() => expect(screen.queryAllByText(/^Closed$/).length).toBeGreaterThan(0));
+    await waitFor(() => expect(screen.queryByTestId("map-key-chip")).toBeTruthy());
     const seen: string[] = [look()];
 
     press("Map coloured for today. Choose a day");
