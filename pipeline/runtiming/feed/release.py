@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from pipeline.common.curated import GENERATED, SOURCE
+from pipeline.common.curated import GENERATED, ROOTS, SOURCE
 
 TIMING = SOURCE / "runtiming" / "timing.json"                  # `runtiming.parse --out`'s default
 POLYGONS = GENERATED.runtiming / "cu_polygons.geojson"          # `runtiming.parse --polygons`'s default
@@ -88,7 +88,7 @@ def main(argv=None) -> int:
     tiles = a.tiles or GENERATED.tiles
     if a.local:
         from pipeline.deliver.release.manifest import live
-        rel = a.release or live(GENERATED.release)
+        rel = a.release or live(ROOTS.release)
         bind(rel, tiles, a.out or GENERATED.runtiming / "feed" / "out", a.build)
         return 0
     if not a.release or not a.out:

@@ -28,32 +28,26 @@ Each folder, pipeline stage and app package has its own `README.md`.
 - Data side: [`pipeline/docs/MAP.md`](pipeline/docs/MAP.md) (stages, inputs, outputs), then `pipeline/build.py` (one rebuild) and
   `pipeline/deliver/__main__.py` (the release steps). How the book is read: [`pipeline/docs/RULINGS.md`](pipeline/docs/RULINGS.md), which wins over any other note.
 - App side: [`app/MAP.md`](app/MAP.md), then `app/apps/mobile/src/App.tsx` (the one shell) and `app/packages/ui-native/src/Shell.tsx`.
+- Docs index: [`docs/README.md`](docs/README.md) says what each page and folder in `docs/` is.
 - Rules for working here: [`AGENTS.md`](AGENTS.md); read the rule you are about to touch. Work lives in tickets (AGENTS W49): `tickets/README.md`.
 
-## The three everyday things
+## The five everyday things
+
+`make` lists every verb (the root `Makefile`; `scripts/README.md`: what each calls). Tools first: Python 3.13, Node (`app/.nvmrc`) with
+pnpm 9, tippecanoe + pmtiles (the whole path: `docs/runbooks/fresh-machine.md`). Heavy verbs run through `scripts/heavy.sh`, macOS-only.
 
 ```bash
-# 0. once per clone
-git config core.hooksPath .githooks && bash scripts/bootstrap.sh && pnpm -C app install --frozen-lockfile
-
-# 1. the app (from app/): the phone UI in a browser, with local tiles, release and feeds
-pnpm -C app tiles          # one terminal
-pnpm -C app dev:web        # another
-
-# 2. a pipeline build (heavy: through scripts/heavy.sh, one at a time)
-python -m pipeline build --dry-run    # the plan: each stage, run or up to date
-python -m pipeline build --graph      # the stages in run order, with what each reads
-scripts/heavy.sh build 50 -- .venv/bin/python -m pipeline build
-
-# 3. the tests
-.venv/bin/python -m pytest -q         # the fast pipeline suite
-pnpm -C app check                     # every app gate, knip, typecheck, vitest
-python scripts/before_push.py         # what a PR's required checks ask, for this tree
+make setup         # once per clone: git hooks, .venv, the app's install; fetches nothing (about 35 s)
+make test          # CI's no-data tier, green on a fresh clone: pipeline in chunks (~14 min), app vitest (~5 min)
+make test-py ARGS="<file>"   # a part: plain pytest is the no-data tier, its NOT RUN line counts the data tests; --with-data adds them
+make build-first   # the first data build, after `make fetch-data` (a 16 GB download): ~1h15, ~24 GB free memory; later: make build
+make app           # the app in a browser (http://localhost:39218): tile server + Expo web, Ctrl-C stops both; the map needs a build
+make release       # prints the steps of docs/runbooks/release-by-hand.md (the person's page), then the cut's dry run
 ```
 
-Tools: Python 3.13, Node (`app/.nvmrc`) with pnpm 9, and tippecanoe + pmtiles for tiles. The whole fresh-machine path is
-`docs/runbooks/fresh-machine.md`; a release is `python -m pipeline release --staging` (`docs/runbooks/release.md`; production is the owner's).
-The synopsis parse spends credits: **a person runs it**, never an agent (AGENTS A1; `pipeline/regs/parsing/README.md`).
+Elsewhere a heavy verb prints the command to run. `make check` is what a PR's required checks ask; the release's flags are
+`docs/runbooks/release.md`. Production is the owner's (`make prod` only prints it). The synopsis parse spends credits: **a person
+runs it**, never an agent (AGENTS A1; `pipeline/regs/parsing/README.md`).
 
 ## Contributing
 

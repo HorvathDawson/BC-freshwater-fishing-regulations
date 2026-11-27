@@ -13,13 +13,13 @@
  * feed itself, as in the app.
  */
 import "./globals";
-import { createElement as h, useState, type ReactElement } from "react";
+import { createElement as h, type ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import { View, useColorScheme, type LayoutChangeEvent } from "react-native";
+import { View, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { reportFailure, setFailureSink } from "@app/core";
+import { gaugeNotes, reportFailure, setFailureSink } from "@app/core";
 import { httpFeed, stationChartSource, type GaugeFeed, type StationClim, type StationId } from "@app/data";
-import { noRecordLine, readingQuantityOf, useStationChart, useStationReading, type ChartSource } from "@app/ui";
+import type { ChartSource } from "@app/ui";
 import type { WaterSource } from "@app/data";
 
 /** what the page asks of its source: the chart's two questions and the station's reading */
@@ -27,11 +27,9 @@ export type PageSource = ChartSource & Pick<WaterSource, "gaugeNow">;
 /** the page's live feed as the chart reads it (its observations: the year scale, the early draft) */
 export type PageFeed = { observations?: GaugeFeed["observations"] };
 import { GetAppBlock } from "../../packages/ui-native/src/GetAppBlock";
-import { StationChart } from "../../packages/ui-native/src/StationChart";
-import { Text } from "../../packages/ui-native/src/Text";
-import { THEMES } from "../../packages/ui-native/src/theme";
-import { TYPE } from "../../packages/ui-native/src/type";
-import { CHART_FAILED, pageReporter, type GaugeConfig } from "./gaugeClient";
+import { GaugeReading } from "../../packages/ui-native/src/GaugeReading";
+import { SPACE, THEMES } from "../../packages/ui-native/src/theme";
+import { CHART_FAILED, chartFailedHtml, pageReporter, type GaugeConfig } from "./gaugeClient";
 
 export { CHART_FAILED };
 
@@ -41,37 +39,25 @@ export function climOf(cfg: Pick<GaugeConfig, "clim">): StationClim[] {
   return cfg.clim.map((c) => ({ parameter: c.parameter, bands: Uint8Array.from(atob(c.bands), (ch) => ch.charCodeAt(0)) }));
 }
 
-/** the page's chart: one station, the app's chart at the width of the page's column */
 /**
- * (T1043, T1047) `feed`: the page's live feed file (the one its source reads), so the chart reads the year the app's does for a
- * station with no normal range (its year scale) and draws its observations before the envelope (T256). Absent: neither.
+ * (T1194, owner 2026-11-26: "one shared piece used by both website and app … use same for both") THE PAGE'S READING AND CHART ARE
+ * THE APP'S GAUGE SCREEN'S: the very `GaugeReading` (@app/ui-native) — the figure and its standing, the Conditions tab's colour bar
+ * marked where the reading stands, the chart with its switches — over the very hooks, so the words exist once. `feed`: the page's
+ * live feed file (the one its source reads), so the chart reads the year the app's does for a station with no normal range and
+ * draws its observations before the envelope (T256).
  */
-export function GaugeChart({ source, station, feed }: { source: PageSource; station: StationId; feed?: PageFeed | null }) {
-  const palette = THEMES[useColorScheme() === "dark" ? "dark" : "light"];
-  const [width, setWidth] = useState(0);
-  const measure = (e: LayoutChangeEvent) => {
-    const w = Math.round(e.nativeEvent.layout.width);
-    if (w > 0 && w !== width) setWidth(w);
-  };
-  // (T1039 review) the station's reading tells the chart which quantities it reports live and which it ranked in, as the
-  // Conditions card's does (`readingQuantityOf`): a level-only gauge with no climatology (T830) charts level, unranked
-  const got = useStationReading(source, station);
-  const c = got.state === "ready" ? got.value : null, rq = c ? readingQuantityOf(c) : null;
-  const vm = useStationChart(source, station, { width, feed: feed ?? null, offRecord: c?.offRecord ?? null,
-                                               ...(rq ? { reports: c!.reports ?? null, readingQuantity: rq.quantity } : {}) });
-  const noRecord = noRecordLine(vm.shown, vm.banded, vm.known, rq ? c!.reports : null, c?.offRecord ?? null);
-  const failed = vm.chart.state === "failed" || vm.series.state === "failed";
-  return h(View, { onLayout: measure, testID: "gauge-page-chart", style: { gap: 12 } },
-    noRecord ? h(Text, { testID: "reading-no-record", style: { ...TYPE.bodyStrong, color: palette.ink } }, noRecord) : null,
-    h(StationChart, { vm, palette, colour: palette.live }),
-    failed ? h(Text, { testID: "gauge-chart-failed", style: { ...TYPE.body, color: palette.sub } }, CHART_FAILED) : null);
+export function GaugeChart({ source, station, feed, flags }: { source: PageSource; station: StationId; feed?: PageFeed | null; flags?: GaugeConfig["flags"] }) {
+  const dark = useColorScheme() === "dark";
+  return h(View, { testID: "gauge-page-chart" },
+    h(GaugeReading, { source, station, palette: THEMES[dark ? "dark" : "light"], theme: dark ? "dark" : "light", feed: feed ?? null,
+      ...(flags ? { tidal: flags.tidal, notes: (q: "discharge" | "level" | null) => gaugeNotes(flags, q) } : {}) }));
 }
 
 /**
  * (T1039 review) THE PAGE'S ROOT: the app's chart under react-native-gesture-handler's root, as the app runs under one
  * (apps/mobile gestureRoot.tsx): without it the chart's pinch, drag and double-tap recognisers do not run.
  */
-export function GaugeChartRoot(props: { source: PageSource; station: StationId; feed?: PageFeed | null }) {
+export function GaugeChartRoot(props: { source: PageSource; station: StationId; feed?: PageFeed | null; flags?: GaugeConfig["flags"] }) {
   return h(GestureHandlerRootView, { style: { flex: 1 } }, h(GaugeChart, props));
 }
 
@@ -81,11 +67,14 @@ export function mountGaugeChart(doc: Document, fetchImpl: typeof fetch, now: () 
   // (T1039 review) ran: the page's own script (gaugeClient.ts) says the chart failed when this mark is missing at load; from
   // here on a failure is this script's to show AND report
   box?.setAttribute("data-mounted", "");
-  const shown = (where: Element | null) => { if (where) where.innerHTML = `<p class="warn">${CHART_FAILED}</p>`; };
+  // (T1194) said with the link to the source once the config is read (`cfg`); before it parses, the plain line
+  let cfgNow: GaugeConfig | null = null;
+  const shown = (where: Element | null) => { if (where) where.innerHTML = cfgNow ? chartFailedHtml(cfgNow) : `<p class="warn">${CHART_FAILED}</p>`; };
   let cfg: GaugeConfig;
   try {
     if (!cfgEl?.textContent) throw new Error("gauge chart: no #gauge-config on this page");
     cfg = JSON.parse(cfgEl.textContent) as GaugeConfig;
+    cfgNow = cfg;
   } catch (e) {
     // no config (or one that does not parse): said where the chart goes; there is no endpoint to report it to
     shown(box);
@@ -104,7 +93,7 @@ export function mountGaugeChart(doc: Document, fetchImpl: typeof fetch, now: () 
     // ONE feed, read by the source AND handed to the chart (the year scale and the early draft read its observations)
     const feed = httpFeed(cfg.live, fetchImpl);
     const source = stationChartSource(cfg.station as StationId, feed, climOf(cfg));
-    renderInto(box, h(GaugeChartRoot, { source, station: cfg.station as StationId, feed }));
+    renderInto(box, h(GaugeChartRoot, { source, station: cfg.station as StationId, feed, flags: cfg.flags }));
   } catch (e) {
     shown(box);
     reportFailure(e);
@@ -129,6 +118,6 @@ export function renderInto(container: Element, element: ReactElement): void {
 /** the Spots tab's "Get the app" block, in the page's theme */
 export function GaugePageGetApp({ contact }: { contact: string | null }) {
   const palette = THEMES[useColorScheme() === "dark" ? "dark" : "light"];
-  return h(GetAppBlock, { palette, contact });
+  return h(GetAppBlock, { palette, contact, gap: SPACE.s3 });
 }
 

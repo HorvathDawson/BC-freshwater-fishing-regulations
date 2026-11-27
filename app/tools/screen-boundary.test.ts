@@ -78,7 +78,7 @@ describe("every screen, page and panel is mounted through a ScreenBoundary", () 
 
   it("the shell draws exactly these screen-like components, each inside a boundary but the listed ones", () => {
     expect(drawn(shell).sort()).toEqual([
-      "AppUpdatePopup", "ApplyCurtain", "BrowseHost", "DaySheet", "FirstRunNotice", "InSeasonNotice", "LayersSheet", "NotFishingSheet",
+      "AppUpdatePopup", "ApplyCurtain", "BrowseHost", "DaySheet", "FirstRunNotice", "GaugeScreen", "InSeasonNotice", "LayersSheet", "NotFishingSheet",
       "ObstacleSheet", "PdfViewer", "RunsSheet", "SearchSheet", "ShellSheets", "SpotCapture", "SpotHost", "SyncErrorSheet", "WaterModeHost"]);
     expect(uncovered(shell).sort(), "a screen, sheet or popup is mounted in Shell.tsx outside screen(…)").toEqual(Object.keys(OUTSIDE));
   });

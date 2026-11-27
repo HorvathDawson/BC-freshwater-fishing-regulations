@@ -62,7 +62,7 @@ function app(b: ReturnType<typeof browser>) {
     back,
     get route() { return route; },
     get pops() { return pops; },
-    frames: () => (route.mode === "water" ? route.stack.map((f) => `${f.item}/${f.view}`) : [`browse:${route.tab}`]),
+    frames: () => (route.mode === "water" ? route.stack.map((f) => `${f.item}/${f.view}`) : route.mode === "gauge" ? [`gauge:${route.station}`] : [`browse:${route.tab}`]),
   };
 }
 

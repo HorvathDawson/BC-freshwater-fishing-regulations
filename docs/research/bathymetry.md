@@ -17,7 +17,7 @@ decisions that remain.
 - The app already has the pieces waiting: the bundle's `chart` table (`pipeline/deliver/bundle/schema.sql`, required by
   `app/tools/bundle-schema.test.ts`), per-section survey state in `lakes/1` (`pipeline/deliver/lake_facts.py`) and the
   Depth colouring, greyed out.
-- To feed it: the owner's accepts, `config.yaml` `curated.bathymetry.matches`, a bundle writer for `chart`, lake values
+- To feed it: the owner's accepts, `CURATED.bathymetry.matches` (declared, the file absent until then), a bundle writer for `chart`, lake values
   in `lakes/1`.
 
 ## Sources

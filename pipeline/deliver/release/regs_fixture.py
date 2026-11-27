@@ -314,8 +314,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     a = ap.parse_args(argv)
     rel = a.release
     if rel is None:
-        from pipeline.common.curated import GENERATED
-        rel = newest_release(GENERATED.release)
+        from pipeline.common.curated import ROOTS
+        rel = newest_release(ROOTS.release)
     if rel is None or not (rel / "manifest.json").exists():
         raise FixtureError(f"regs fixture: no release at {rel or 'data/release/r-*'}")  # path-label: words in an error message
     if a.trout_cases:

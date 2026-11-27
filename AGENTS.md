@@ -103,7 +103,7 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
     - An owner step is written into its ticket the same turn it comes up or he answers; a decision goes in the
       decisions page by subject; a ruling on how the book is read goes to `pipeline/docs/RULINGS.md`.
     - Each live chat keeps one short restart page, holding no release id or build number (state is the top entry of
-      `docs/STATUS.md`). Every path a start, restart or owner page cites must exist.
+      `docs/agents/STATUS.md`). Every path a start, restart or owner page cites must exist.
 
 ## Builds and tests
 
@@ -114,8 +114,10 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
     - Tier 0 is the file you touched; Tier 1 `scripts/test-smoke.sh` (the smoke set is chosen by rule in
       `pipeline/tests/smoke.py`, no hand list); Tier 2 `scripts/test-full.sh` through `scripts/heavy.sh`, at
       milestones or before a merge. Test what changed while iterating; whole suites once at the end.
-    - `pytest.ini` deselects `slow` tests, where the determinism and full-build guards live: Tier 2 runs `-m slow`
-      explicitly. Runner scripts source `scripts/test-env.sh`.
+    - A plain `pytest` is CI's no-data tier; its NOT RUN line (hidden by rtk's filter: `rtk proxy` shows it) counts the
+      data tests left out. With builds, Tier 0 adds `--with-data` (T1193). `slow` tests, where the determinism and
+      full-build guards live, are left out either way: Tier 2 runs `-m slow` explicitly. Runner scripts source
+      `scripts/test-env.sh`.
     - **Heavy jobs** (atlas build, reach run, `pipeline.deliver`, tile builds, full pytest, emulators and simulators)
       run as `scripts/heavy.sh <label> <min free %> -- <cmd>`: one at a time per lane (three lane locks), waiting
       for free memory and killed when it runs out. Ask `scripts/heavy.sh --status` before deciding a job died or
@@ -355,7 +357,7 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
       blanket closures (G4). A row's dated bait ban replaces its zone's all-year one (G5). What a `row_closure`
       note claims is re-asked of the reader (`closures_combine_problems`, `test_lift_decisions.py`).
     - Reader steps (`test_competition.py`): RU-3 a same-row dated release or closure silences the row's undated
-      quota on its dates; RU-4 a zone release with no water kind empties its table's keepers; RU-5 a water's take-0
+      quota on its dates, its daily and its annual one (Q32); RU-4 a zone release with no water kind empties its table's keepers; RU-5 a water's take-0
       band displaces a zone size clause inside it; RU-6 "ST" with no steelhead rule is answered as "RB" (and S12: a
       size-free rainbow rule speaks for "ST"); RU-7 a full closure displaces the keepers it beats; RU-8 two regions'
       identical statements show once; 5b a zone size-only clause under a release of every origin it keeps is moot;

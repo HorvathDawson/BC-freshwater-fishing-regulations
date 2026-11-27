@@ -87,13 +87,33 @@ def test_the_root_moves_every_curated_path(tmp_path, monkeypatch):
     got = C.load()
     assert Path(got.base) == root.resolve()
     pairs = [(Path(getattr(getattr(live, g), k)), Path(getattr(getattr(got, g), k)))
-             for g in ("waters", "regulations", "review", "dfo_salmon", "inseason", "runtiming")
+             for g in type(live).model_fields
              for k in type(getattr(live, g)).model_fields]
     assert pairs and all(b == root.resolve() / a.relative_to(live.base) for a, b in pairs)
     assert Path(C.CURATED.review.marks) == root.resolve() / "review" / "marks.jsonl"
+    # (T1192) it moves ONE root: each path is the copy joined with the very name config.yaml states
+    names = C.parse_config()[0]["curated"]
+    assert all(Path(getattr(getattr(got, g), k)) == root.resolve() / v for g, b in names.items() for k, v in b.items())
     assert C.load_repo() == live                             # the guards still see the live tree
     monkeypatch.delenv(C.ROOT_ENV)
     assert C.load() == live
+
+
+def test_under_the_sandbox_every_door_to_a_curated_path_lands_in_the_copy(tmp_path, monkeypatch):
+    # (T1192 review) the live root is reachable only through the guards' `load_repo`: `ROOTS.curated` and
+    # `get_path("curated", …)` / `get_path("roots", "curated")` would hand it out under CURATED_ROOT, so they refuse
+    from project_config import ProjectConfig
+    root = C.make_root(tmp_path / "curated").resolve()
+    monkeypatch.setenv(C.ROOT_ENV, str(root))
+    names = C.parse_config()[0]["curated"]
+    got = [Path(C.CURATED.base), Path(C.load().base)] + [
+        Path(getattr(getattr(C.CURATED, g), k)) for g, b in names.items() for k in b]
+    assert got and all(p == root or root in p.parents for p in got), [p for p in got if root not in (p, *p.parents)]
+    with pytest.raises(AttributeError, match="CURATED.base"):
+        C.ROOTS.curated
+    for keys in (("curated", "waters", "cuts"), ("roots", "curated")):
+        with pytest.raises(KeyError, match="honours CURATED_ROOT"):
+            ProjectConfig().get_path(*keys)
 
 
 def test_a_bad_root_is_refused(tmp_path, monkeypatch):

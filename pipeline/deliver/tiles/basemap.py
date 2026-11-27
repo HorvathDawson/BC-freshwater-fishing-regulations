@@ -69,7 +69,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, ROOTS, SOURCE
 
 KEEP = ("earth", "water", "landcover", "landuse", "roads", "places", "boundaries")
 DROP = ("buildings", "pois")
@@ -465,7 +465,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.deliver.tiles.basemap")
     ap.add_argument("--out", type=Path, default=GENERATED.tiles / "basemap.pmtiles",
                     help="the basemap archive (default: the tiles dir's; its sidecar is written beside it)")
-    ap.add_argument("--release-root", type=Path, default=GENERATED.release)
+    ap.add_argument("--release-root", type=Path, default=ROOTS.release)
     ap.add_argument("--release-only", action="store_true",
                     help="do not rebuild: release the archive already at --out (stamp its version, copy it)")
     ap.add_argument("--no-release", action="store_true", help="build only (a scratch build)")

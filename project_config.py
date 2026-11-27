@@ -35,17 +35,17 @@ class ProjectConfig:
         return Path(__file__).parent
 
     def _load_config(self):
-        """Load configuration from config.yaml (and `.env`: `parse_config` loads it, once per process)."""
-        # (T1192) config.yaml through the ONE schema (`pipeline.common.curated.Config`): an unknown, missing or `null` key
-        # anywhere in the file stops here, naming it. `_config` is the parsed YAML (what the build's keys digest),
-        # `_model` the validated view every accessor returns.
+        """Load configuration from config.yaml (no `.env` is read)."""
+        # config.yaml through the ONE schema (`pipeline.common.curated.Config`): an unknown, missing or `null` key
+        # anywhere in the file stops here, naming it. `_config` is the parsed file with the schema's names (`read_config`:
+        # what the build's keys digest), `_model` the validated view every accessor returns.
         from pipeline.common.curated import parse_config
         self._config, self._model = parse_config(self.project_root / "config.yaml")
 
 
     @property
     def config(self) -> Dict[str, Any]:
-        """Get the full configuration dictionary. (T1171) A build stage that takes the whole dictionary is keyed on the
+        """Get the full configuration dictionary. A build stage that takes the whole dictionary is keyed on the
         whole file (`*`)."""
         from pipeline import _trace
         _trace.config_read("*", self._config)
@@ -63,7 +63,7 @@ class ProjectConfig:
             *keys: Nested keys to traverse (e.g., "cache", "dfo_salmon")
 
         Raises:
-            KeyError: (T435) the keys name no path — never `Path()` (the cwd); (T1192) no `default=` either
+            KeyError: the keys name no path — never `Path()` (the cwd); no `default=` either
         """
         value = self._config
         found = True
@@ -75,9 +75,13 @@ class ProjectConfig:
                 value = None
                 found = False
                 break
-        # (T1171) a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`)
+        # a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`);
+        # a path of a block with a root is that root joined with the value, so the root is read too (`curated.TREES`)
         from pipeline import _trace
+        from pipeline.common.curated import TREES
         _trace.config_read(".".join(keys), value, missing=not found)
+        if found and keys[0] in TREES and len(keys) > 1:
+            _trace.config_read(f"roots.{keys[0]}", self._config["roots"][keys[0]])
 
         node = self._model
         for key in keys:
@@ -89,6 +93,11 @@ class ProjectConfig:
             # one access path: `SOURCE` also records the source root each name is joined to, which this would not
             raise KeyError(f"config.yaml {'.'.join(keys)} is a named source file: read it as "
                            f"`SOURCE.{keys[-1]}` (pipeline.common.curated)")
+        if keys[:1] == ("curated",) or keys[:2] == ("roots", "curated"):
+            # the model holds the LIVE tree; `CURATED` honours the `CURATED_ROOT` sandbox, which this would not
+            raise KeyError(f"config.yaml {'.'.join(keys)} is a curated path: read it as `CURATED"
+                           f"{''.join('.' + k for k in keys[1:]) if keys[0] == 'curated' else '.base'}` "
+                           f"(pipeline.common.curated): it honours CURATED_ROOT")
         if found and isinstance(node, PurePath):
             return Path(node)
         raise KeyError(f"config.yaml has no path at {'.'.join(keys)}")
@@ -117,15 +126,15 @@ class ProjectConfig:
     # in config.yaml, and the fetcher wrote the coast file by a fourth (`_RETIRED` names each replacement).
 
     # ========================================================================
-    # Caches (T1021)
+    # Caches
     # ========================================================================
 
     @property
     def dfo_salmon_cache(self) -> Path:
-        """DFO's saved salmon region pages (`cache.dfo_salmon`): raw/ (the newest per region), history/ (every page
-        fetched), manifest.json. Gitignored machine state outside data/, written by `pipeline.regs.dfo_salmon.fetch` /
-        `churn`; one name for every reader. Never typed as a literal: a relative `cache/dfo_salmon` is a second tree
-        from any other working directory."""
+        """DFO's saved salmon region pages (`cache.dfo_salmon`, under `roots.cache`): raw/ (the newest per region),
+        history/ (every page fetched), manifest.json. Gitignored machine state outside data/, written by
+        `pipeline.regs.dfo_salmon.fetch` / `churn`; one name for every reader. Never typed as a literal: a relative
+        `cache/dfo_salmon` is a second tree from any other working directory."""
         return self.get_path("cache", "dfo_salmon")
 
 

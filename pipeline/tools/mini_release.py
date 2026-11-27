@@ -550,11 +550,11 @@ def watched_dirs() -> list[Path]:
     the tiles and the released tile folders, the release root, the run-timing base, the synopsis cache, the deliver
     step cache, the gauge feeds, the DFO salmon feed and its page cache, the fetched map assets — and the curated
     tree. A mini build must leave every one exactly as it found it (`build` refuses otherwise)."""
-    from pipeline.common.curated import GENERATED, SOURCE, load_repo
+    from pipeline.common.curated import GENERATED, ROOTS, SOURCE, load_repo
     from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
-    g = Path(GENERATED.base)
-    return [Path(GENERATED.bundle), Path(GENERATED.tiles), Path(GENERATED.release), Path(GENERATED.runtiming),
-            g / "synopsis", g / "deliver-cache", Path(GENERATED.gauges.feeds), Path(GENERATED.regs.dfo_salmon),
+    return [Path(GENERATED.bundle), Path(GENERATED.tiles), Path(ROOTS.release), Path(GENERATED.runtiming),
+            Path(GENERATED.synopsis), Path(ROOTS.generated) / "deliver-cache", Path(GENERATED.gauges.feeds),
+            Path(GENERATED.regs.dfo_salmon),
             Path(GENERATED.reaches), Path(SOURCE) / "map-assets", REPO_ROOT / DEFAULT_CACHE, Path(load_repo().base)]
 
 

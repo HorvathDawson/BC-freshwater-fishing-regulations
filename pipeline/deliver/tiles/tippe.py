@@ -339,6 +339,42 @@ OWN_PASS_SIMPLIFICATION_AT_MAX = 5
 OWN_PASS_DETAIL = 12
 
 
+def alone_flags(lo: int, top: int, verbose: bool = False, *, points: bool = False, last: bool = True) -> list[str]:
+    """The flags of a layer's ALONE pass (`ALONE`), z`lo`-z`top`: what `build` runs, and what the tests run on a fixture.
+    `last`: this pass's top is the layer's own (else an ordinary zoom of a layer cut into passes, `ALONE_SPLIT`)."""
+    flags = _common(lo, top, ALONE_SIMPLIFICATION_AT_MAX if last else ALONE_SIMPLIFICATION, verbose,
+                    full_detail=ALONE_DETAIL, low_detail=ALONE_DETAIL, simplification=ALONE_SIMPLIFICATION)
+    # (T1210) NO POINT THINNED: tippecanoe drops points under a pass's top zoom at random (1 in 2.5 per zoom) unless told
+    # not to, and a point layer's alone pass spans zooms (`lake_name` z4-z7), where which lakes are named is chosen by area
+    # in the export (`export.lake_name_zoom`). Point layers only: every other pass's flags are as they were, and their
+    # tiles byte for byte (T1210's proof build).
+    return [*flags, "--drop-rate=1"] if points else flags
+
+
+#: (T1210) AN ALONE LAYER CUT INTO PASSES AT THESE ZOOMS. `stream_name`'s bands z4-z7 are T1210's; in one pass with
+#: z8-z13 their vertices count as shared nodes and pin the z8+ name lines (`--no-simplification-of-shared-nodes`, the
+#: T299 reason `ALONE` exists): measured in the proof build, z8-z10's names grew 1.5 KB and moved by a vertex. Each part
+#: is its own pass over its own bands, so the bands before T1210 are cut exactly as they were.
+ALONE_SPLIT: dict[str, tuple[int, ...]] = {"stream_name": (8,)}
+
+
+def alone_parts(src: Path, dst_dir: Path, lo: int, top: int, cuts: tuple[int, ...]) -> list[tuple[Path, int, int]]:
+    """`src` (an alone layer's file) cut at `cuts`: one file per zoom range, each holding the features first drawn in it
+    (`tippecanoe.minzoom`), with the range. No cut inside `lo`-`top`: the file itself, whole."""
+    edges = [lo, *[c for c in cuts if lo < c <= top], top + 1]
+    if len(edges) == 2:
+        return [(src, lo, top)]
+    out = []
+    for a, b in zip(edges, edges[1:]):
+        dst = dst_dir / f"{src.stem}-z{a}.geojsonl"
+        with src.open("rb") as fin, dst.open("wb") as fout:
+            for line in fin:
+                if line.strip() and a <= orjson.loads(line).get("tippecanoe", {}).get("minzoom", 0) < b:
+                    fout.write(line)
+        out.append((dst, a, b - 1))
+    return out
+
+
 def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
           name: str = "atlas", verbose: bool = False) -> Path:
     check()
@@ -432,14 +468,12 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
         for f in alone:
             spec = BY_NAME[f.stem]
             lo, top = max(minzoom, spec.minzoom), min(maxzoom, spec.maxzoom)
-            mb = Path(tmp) / f"{f.stem}.mbtiles"
-            print(f"  tippecanoe -> z{lo}-{top}  ({f.stem}, alone)")
-            _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}",
-                  f"--attribution={attribution}",
-                  *_common(lo, top, ALONE_SIMPLIFICATION_AT_MAX, verbose, full_detail=ALONE_DETAIL,
-                           low_detail=ALONE_DETAIL, simplification=ALONE_SIMPLIFICATION),
-                  str(f)])
-            passes.append(mb)
+            for part, a, b in alone_parts(f, alone_dir, lo, top, ALONE_SPLIT.get(f.stem, ())):
+                mb = Path(tmp) / f"{part.stem}.mbtiles"
+                print(f"  tippecanoe -> z{a}-{b}  ({f.stem}, alone)")
+                _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}", f"--attribution={attribution}",
+                      *alone_flags(a, b, verbose, points=spec.geometry == "point", last=b == top), str(part)])
+                passes.append(mb)
 
         # tile-join names the output after its inputs unless told otherwise, so the name
         # and attribution are restated here rather than inherited. The passes hold disjoint
