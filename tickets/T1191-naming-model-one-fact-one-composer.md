@@ -1,10 +1,10 @@
 # T1191 — The naming model: one `part_place` fact, one composer, names and chips for every part
 
-Status: OPEN — design done; the owner picked P3 and the full first stage for the 0.10.0 re-cut; open picks below; build tickets are numbered by the planning chat from the plan.
+Status: OPEN — design done; the owner picked P3 and the full first stage for the 0.10.0 re-cut; his naming answers of 2026-11-27 are recorded (one pick open: Q4's explanation, below); build tickets are numbered by the planning chat from the plan.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1191 | The naming model: one `part_place` fact, one composer, names and chips for every part | OPEN — design done; build in the 0.10.0 re-cut; owner: see ## Owner | — | the open picks; the 7 build tickets (planning chat numbers them); a Python facts step and one TypeScript composer |
+| T1191 | The naming model: one `part_place` fact, one composer, names and chips for every part | OPEN — design done; build in the 0.10.0 re-cut; owner: see ## Owner | — | the one open pick (Q4); the 7 build tickets (planning chat numbers them); a Python facts step and one TypeScript composer |
 
 Source: the owner's naming rulings, 2026-11-26 (planning chat), verbatim; the notes `naming-pathway-audit` (the audit),
 `naming-model-design` (README rounds 1-3 and the sheets P1..P3-6). Related: #312 and T1172 (the words already built),
@@ -50,6 +50,25 @@ T1181, T1196, T1176 (superseded), T1180, T1240, T1199.
 - **Lakes partly in a cut area:** "this similar to the naming etc it could be a tag saying partly in eco reserve? then
   later can also be in the cut rule options in the later releases?" (one chip, "Closed all year · partly in <Area>", 84
   lakes; cutting lakes is a later option).
+- **Return batches 5a and 5b, 2026-11-27 (verbatim; the answers are also on `docs/OWNER-RULINGS.md`; "Reading:" is the planning chat's plain reading):**
+  - No access on the card (Q4): "i dont understand the cottoinwood river example but i like the layout in p3-5 access. i
+    dont understand the salmon stretch tag either. also the tag for noons creek is weird too. i think for noon creek as
+    a side note since fwa and city have 2 different streams in same area same name they should both get noons creek regs
+    for safety". Reading: he likes the chip layout as on P3-5; the status-pill version was not chosen; the three
+    examples are still to be explained to him. NEW ruling: the FWA stream and the city stream of the same name in the same
+    area both get the Noons Creek regulations, for safety.
+  - Which land (Q5): "all no access in that layer. also we seperatiely want a tag for tags that is like indegenous except
+    \"crosses private land\" as another tag". Reading: ALL closed land in the layer counts as "No public access" (no
+    filtering); a NEW, separate tag "Crosses private land", like the Indigenous one.
+  - Indigenous chips (Q6): "chip replaces the banner and no when wholyl yes and make it if the water goes through
+    indigenous at all it will get part tag"; confirmed with "Yes, that is right". Reading: the chip replaces the banner;
+    a chip when wholly on reserve land; a "crosses" chip on ANY touch (no 5% floor).
+  - The 14 side parts (Q-R2): "Fold by the rule, in the re-cut (Recommended)".
+  - Klinaklini / MacMillan DFO salmon side channels (Q-R1): "why do tey not get reached? that seems like an issue not
+    something that needs a tag". Reading: no tag; a defect (T1240 carries the fix: the DFO salmon stretch must reach the side channels).
+  - Words (Q7 + Q10): "options one except if it is the only section it doesnt need a locator at all". Reading:
+    "Cowichan 1 reserve" and "Main channel"; BUT a water with only one section or part gets no locator line at all.
+
 
 ## The design (summary; the notes hold the numbers and pictures)
 One `PlaceFact` row per part, written by Python (`part_place`, with a legacy projection so the display version stays 20
@@ -65,6 +84,20 @@ no-access state. With chips: about one more lane-day. 3-4 lane-days in all with 
 card place, search cut rows, no-access kinds, Indigenous land words, lake pieces as parts of their lake (with T1180).
 If the re-cut cannot take it all, the smallest safe slice is 1 + 2 + 5.
 
+### What the first stage builds, after his rulings of 2026-11-27
+- **No access:** ALL closed land in the layer counts as "No public access" (no filtering to military and watersheds). The
+  card layout waits on Q4 (he likes P3-5; confirm after the explanation).
+- **Indigenous land** (placed in the first stage by the planning chat; the Work plan lists "Indigenous land words" under
+  0.11.0): the chip replaces the banner; a chip when wholly on reserve land; a "crosses" chip on any touch (no 5% floor).
+- **Words:** "Cowichan 1 reserve"; "Main channel" for a mouth-to-source main line beside side-channel parts; a water with
+  only one section or part gets no locator line at all.
+- **Side parts:** the 14 with no nameable reason fold by the rule in the re-cut (T1240). The DFO salmon side channels
+  (Klinaklini, MacMillan) are a defect to fix in T1240, with no chip.
+- Ruled, timing not given (the planning chat places them):
+  - NEW scope, a separate tag "Crosses private land", like the Indigenous one. Its data source is NOT chosen yet (the
+    planning chat numbers the build ticket once it is).
+  - Noons Creek: the FWA stream and the city stream of the same name in the same area both get the Noons Creek regs.
+
 ## Acceptance
 Every part with an area that binds it says so in its name or chip on every surface; no surface throws on a missing
 fact; a feed change still re-joins neighbouring sections cleanly (the live-join sheet's states pass as tests).
@@ -73,9 +106,4 @@ Depends: T1196 (first), T1199 (an eco-reserve part is wholly inside). Severity: 
 
 ## Owner
 
-- [ ] 2026-11-26 — No-access on the card (Q4): (a) the "No public access" chip ranks first and the day answer is unchanged, for 0.10.0 (recommended); (b) the status pill says it and the rules fold under "If you have permission" (0.11.0).
-- [ ] 2026-11-26 — Which no-access land counts (Q5): (a) all OSM "closed" land, as today; (b) military land and watersheds only, the rest becomes "Access may be restricted" (recommended; this filters content, so it needs his OK); (c) one by one.
-- [ ] 2026-11-26 — Indigenous land chips (Q6): (a) "On" when wholly, "Crosses" at 5% or more (recommended); (b) only at 50% or more; (c) banner only.
-- [ ] 2026-11-26 — Reserve words (Q7): (a) "Cowichan 1 reserve" (recommended); (b) "Indian reserve (Cowichan 1)"; (c) the name alone.
-- [ ] 2026-11-26 — "Main channel" (Q10) for a mouth-to-source main line beside side-channel parts: (a) yes (recommended); (b) "Mouth → Source"; (c) the water's name.
-- [ ] 2026-11-26 — The 14 side-channel parts with no nameable reason (Q-R2): (a) fold them by the approved rule "channels take the river's rules" (recommended; this is T1240); (b) fix each binding by hand first, then fold. His "Hold the re-cut for all of them" covers the timing.
+- [ ] 2026-11-27 — No-access on the card (Q4): his words were "i like the layout in p3-5 access" (the chip layout; the status-pill version for 0.11.0 was not chosen), but he did not follow the Cottonwood River example, the salmon stretch tag or the Noons Creek tag. The planning chat owes him a plain explanation of the three; then confirm (a): the "No public access" chip ranks first and the day answer is unchanged, for 0.10.0.

@@ -837,5 +837,6 @@ T1117	The book's "ANDERSON" LAKE row (MU 1-3) is bound to Anderson Lake on Dove 
 T1127	The store push scripts upload every picture in a size folder, leftovers included	DONE (8702e420b, PR #207)	8702e420b	0.10.0	the 0.10.0 chat clears the 34 old pictures from the main checkout (owner 2026-11-25: "we can remove old store photos")	closed-2026	
 T1139	An unattended release keeps the Mac awake	DROPPED			—	closed-2026	
 T1201	Larger system text: every screen holds up ("SALMON" wrapped in the mode switch, "CONDITIONS" was cut in the tab bar)	DONE	96f0c05a5, a8bf48d97, 9a395059d		—	closed-2026	
+T1202	A water with no salmon shows "Salmon · DFO · Open today"	DROPPED — the owner: leave it as it is (2026-11-26)	—		—	closed-2026	
 T1207	A water closed all year to salmon and game fish shows one schedule, not two (splits again when they differ)	DONE	1821b3426, 9c29340a0, 917bc9f94, d1702d634, d720e63ad		—	closed-2026	
 T1213	two chart render tests off the wall clock	DONE	bda55c4, 89a38ad, 16b61b7f1		—	closed-2026	

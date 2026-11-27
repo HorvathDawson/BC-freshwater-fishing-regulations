@@ -308,6 +308,7 @@ def check(manifest_path: Path, accepted_path: Path, pdf_path: Path, *, pages: Op
         print(f"  STRIKE GONE  {k['water']} PDF p.{k.get('pdf_page')} {k['text']!r}: recorded for this book in "
               f"known_strikes.json, not read now")
     from pipeline.regs.extraction.extract_synopsis import load_known_unsure, unsure_report
+    hits = [dict(h, pdf_sha256=sha) for h in hits]      # a hit is accepted for ONE book: this PDF's
     line, new_unsure = unsure_report(hits, load_known_unsure())
     res["unsure"] = {"line": line, "hits": hits, "new": new_unsure}
     if line:

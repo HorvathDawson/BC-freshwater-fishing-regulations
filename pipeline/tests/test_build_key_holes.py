@@ -16,6 +16,7 @@ tools are fakes on $PATH. No build runs.
 """
 from __future__ import annotations
 
+import copy
 import json
 import os
 import re
@@ -34,6 +35,7 @@ import yaml
 from pipeline import build as B
 from pipeline.atlas import inputs as I
 from pipeline.common import stepcache as SC
+from pipeline.common import curated as C
 from pipeline.common.curated import REPO_ROOT
 
 PY = sys.executable
@@ -54,20 +56,35 @@ def scratch(monkeypatch):
 @pytest.fixture
 def config_copy(tmp_path, monkeypatch):
     """config.yaml as the consumer reads it NOW: a copy the test may edit (the C lines were recorded from the real one,
-    whose values the copy holds until edited)."""
+    whose values the copy holds until edited). (T1192) A key whose name the schema declares (`curated.At`) is edited in
+    a copy of the schema's names (`curated.NAMES`), the one place `config_now` resolves it from; `value=GONE` deletes."""
     p = tmp_path / "config.yaml"
     p.write_bytes((REPO_ROOT / "config.yaml").read_bytes())
     monkeypatch.setattr(SC, "config_path", lambda: p)
 
     def edit(dotted: str, value) -> None:
+        *head, last = dotted.split(".")
         blob = yaml.safe_load(p.read_text(encoding="utf-8"))
         node = blob
-        *head, last = dotted.split(".")
         for k in head:
-            node = node[k]
-        node[last] = value
-        p.write_text(yaml.safe_dump(blob), encoding="utf-8")
+            node = node.get(k) if isinstance(node, dict) else None
+        if not (isinstance(node, dict) and last in node):
+            blob = copy.deepcopy(C.NAMES)
+            node = blob
+            for k in head:
+                node = node[k]
+            monkeypatch.setattr(C, "NAMES", blob)
+        if value is GONE:
+            del node[last]
+        else:
+            node[last] = value
+        if blob is not C.NAMES:
+            p.write_text(yaml.safe_dump(blob), encoding="utf-8")
     return edit
+
+
+#: `config_copy(key, GONE)`: the key deleted
+GONE = object()
 
 
 def bump(monkeypatch, dist: str) -> None:
@@ -907,11 +924,11 @@ STAGE_READS = {
 
 
 def _tree_leaves() -> list[str]:
-    """Every dotted leaf of config.yaml's `curated:` and `generated:` blocks."""
+    """Every dotted leaf of the `curated:` and `generated:` trees (config.yaml with the schema's names)."""
     def walk(node, at):
         for k, v in node.items():
             yield from walk(v, f"{at}.{k}") if isinstance(v, dict) else [f"{at}.{k}"]
-    blob = yaml.safe_load((REPO_ROOT / "config.yaml").read_text(encoding="utf-8"))
+    blob = C.read_config()                            # (T1192) config.yaml with the schema's names
     return sorted(x for tree in ("curated", "generated") for x in walk(blob[tree], tree))
 
 
@@ -966,20 +983,40 @@ def test_pr5_the_atlas_is_behind_only_for_a_config_key_it_read(scratch, config_c
     _edit_unread(config_copy, read)
     assert I.code_behind(atlas) == []
     config_copy("curated.waters.area_closures", "t1192/moved")
-    assert I.code_behind(atlas) == ["config.yaml curated.waters.area_closures (code: config): changed since the atlas "
-                                    "was built"]
-    blob = yaml.safe_load(SC.config_path().read_text(encoding="utf-8"))
-    del blob["curated"]["waters"]["area_closures"]
-    SC.config_path().write_text(yaml.safe_dump(blob), encoding="utf-8")
+    assert I.code_behind(atlas) == ["pipeline/common/curated.py curated.waters.area_closures (code: config): changed "
+                                    "since the atlas was built"]
+    config_copy("curated.waters.area_closures", GONE)
     assert SC.config_now(["curated.waters.area_closures"]) == {"curated.waters.area_closures": "missing"}
-    assert I.code_behind(atlas) == ["config.yaml curated.waters.area_closures (code: config): no longer in config.yaml "
-                                    "(renamed or deleted since the atlas was built)"]
+    assert I.code_behind(atlas) == ["config key curated.waters.area_closures (code: config): no longer in config.yaml "
+                                    "or pipeline/common/curated.py (renamed or deleted since the atlas was built)"]
+    config_copy("source.fwa_gpkg", "other.gpkg")            # a key config.yaml states is named as config.yaml's
+    assert I.code_behind(atlas)[-1] == "config.yaml source.fwa_gpkg (code: config): changed since the atlas was built"
 
 
 def test_pr5_the_recorded_set_does_not_depend_on_the_run(scratch):
     """AGENTS 19: the same stage run under another hash seed records the same keys."""
     sets = [set(SC.Trace(_stage_trace(scratch, "deliver", seed)).config) for seed in ("0", "1")]
     assert sets[0] == sets[1] and sets[0]
+
+
+def test_option_a_a_record_from_before_the_names_moved_reruns_once_never_a_refusal(config_copy):
+    """(T1192 Option A) a record made while config.yaml stated the file list: a curated / generated leaf resolves from
+    the schema's names now (the same name: the same digest), `generated.atlas.default_build` (now `atlas_build`) reads as
+    gone, and the stage reruns once because `curated.py`, which every stage imports, changed: no refusal, no crash."""
+    from pipeline import _trace
+    old = {"curated.waters.cuts": _trace.config_digest("waters/cuts.json"),
+           "generated.tiles": _trace.config_digest("tiles"),
+           "generated.atlas.default_build": _trace.config_digest("full"), "roots.curated": SC.config_now(
+               ["roots.curated"])["roots.curated"]}
+    mods = SC.code_now(["pipeline/__init__.py"])
+    rec = {"key": "k-before", "code_files": {**mods, "pipeline/common/curated.py": "0" * 64}, "code_reads": {},
+           "code_packages": ["pyyaml"], "code_config": old}
+    m = {"stages": {"reach": rec}, "runs": []}
+    assert B.refused_record("reach", rec) is None
+    now = B.stage_code("reach", m)
+    assert now["config"] == {**old, "generated.atlas.default_build": _trace.CONFIG_MISSING}
+    assert B._sha(now) != rec["key"]
+    assert SC.config_now(["atlas_build"]) == {"atlas_build": _trace.config_digest("full")}
 
 
 def test_pr5_an_old_whole_block_record_reruns_once_never_a_refusal(scratch, config_copy):
@@ -1008,9 +1045,14 @@ def test_pr5_no_new_whole_block_config_read():
              ("pipeline/common/curated.py", "root_read"), ("pipeline/common/curated.py", "_config_read"),
              ("pipeline/common/curated.py", "_root_read"),            # ROOTS.<name>: one root
              ("pipeline/common/curated.py", "__getattr__"),           # SOURCE.<name>: one name
+             ("pipeline/common/curated.py", "build"),                 # GENERATED.build(): `atlas_build`, one setting
              ("project_config.py", "config"), ("project_config.py", "get_path")}
     whole_tree = {("pipeline/build.py", "curated_digest")}
-    found, dumps, literal = set(), set(), []
+    found, dumps, literal, unrecorded = set(), set(), [], []
+    # (T1229, #353 review) a path taken with NO read recorded: config.yaml parsed outside its two loaders, or a tree's
+    # values taken past `_Tree` (`vars(...)`, `.__dict__`, a pydantic `TypeAdapter`); curated.py is the tree itself
+    tree_expr = re.compile(r"\b(CURATED|GENERATED|load|load_repo|load_generated|Curated|Generated)\b")
+    loaders = {"pipeline/common/curated.py", "project_config.py"}
     for p in sorted([*REPO_ROOT.joinpath("pipeline").rglob("*.py"), REPO_ROOT / "project_config.py",
                      *REPO_ROOT.joinpath("tools", "curation-review").rglob("*.py"),
                      *REPO_ROOT.joinpath("scripts").rglob("*.py")]):
@@ -1018,6 +1060,18 @@ def test_pr5_no_new_whole_block_config_read():
         if "/tests/" in r or r == "pipeline/_trace.py" or "node_modules" in r:
             continue
         tree = ast.parse(p.read_text(encoding="utf-8"))
+        for n in ast.walk(tree):
+            name = getattr(getattr(n, "func", None), "attr", getattr(getattr(n, "func", None), "id", ""))
+            said = getattr(n, "id", None) or getattr(n, "attr", None) or getattr(n, "name", None)
+            if said == "parse_config" and r not in loaders:              # a call, an import, an alias: any mention
+                unrecorded.append(f"{r}:{n.lineno} parse_config")
+            if r == "pipeline/common/curated.py":
+                continue
+            if isinstance(n, ast.Call) and name in ("vars", "TypeAdapter", "validate_python", "dump_python") and any(
+                    tree_expr.search(ast.unparse(a)) for a in n.args):
+                unrecorded.append(f"{r}:{n.lineno} {name}(")
+            if isinstance(n, ast.Attribute) and n.attr == "__dict__" and tree_expr.search(ast.unparse(n.value)):
+                unrecorded.append(f"{r}:{n.lineno} .__dict__")
         for fn in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
             for call in [n for n in ast.walk(fn) if isinstance(n, ast.Call)]:
                 name = getattr(call.func, "attr", getattr(call.func, "id", ""))
@@ -1030,5 +1084,6 @@ def test_pr5_no_new_whole_block_config_read():
                         r"\b(CURATED|GENERATED|load|load_repo|load_generated)\b", ast.unparse(call.func.value)):
                     dumps.add((r, fn.name))
     assert not literal, f"a whole-block config record: {literal}"
+    assert not unrecorded, f"a config path taken with no read recorded: {unrecorded}"
     assert found == sites, f"config_read call sites changed: new {sorted(found - sites)}, gone {sorted(sites - found)}"
     assert dumps == whole_tree, f"whole-tree consumers changed: new {sorted(dumps - whole_tree)}"

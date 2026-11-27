@@ -357,7 +357,7 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
       blanket closures (G4). A row's dated bait ban replaces its zone's all-year one (G5). What a `row_closure`
       note claims is re-asked of the reader (`closures_combine_problems`, `test_lift_decisions.py`).
     - Reader steps (`test_competition.py`): RU-3 a same-row dated release or closure silences the row's undated
-      quota on its dates; RU-4 a zone release with no water kind empties its table's keepers; RU-5 a water's take-0
+      quota on its dates, its daily and its annual one (Q32); RU-4 a zone release with no water kind empties its table's keepers; RU-5 a water's take-0
       band displaces a zone size clause inside it; RU-6 "ST" with no steelhead rule is answered as "RB" (and S12: a
       size-free rainbow rule speaks for "ST"); RU-7 a full closure displaces the keepers it beats; RU-8 two regions'
       identical statements show once; 5b a zone size-only clause under a release of every origin it keeps is moot;

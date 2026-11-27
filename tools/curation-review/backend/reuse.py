@@ -47,7 +47,7 @@ _ROOT = Path(__file__).resolve().parents[3]
 #: T422) — the old per-file overrides are refused (`curated.RETIRED_ENV`).
 ENTRIES_DIR = CURATED.regulations.synopsis
 # The build the app SERVES. `GENERATED.build()` is the one name for it — see
-# config.yaml `generated.atlas.default_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
+# config.yaml `atlas_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
 # reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
 # `CURATION_BUILD` points it at another atlas — a scratch rehearsal of the review (T136), whose printed
 # rebuild then writes that copy (`vintage.Target`), never the live one.

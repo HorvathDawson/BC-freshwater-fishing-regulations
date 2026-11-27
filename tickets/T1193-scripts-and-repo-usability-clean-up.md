@@ -4,7 +4,7 @@ Status: OPEN — lane: the repo clean chat, after T1192 PR 1; the audit (`repo-u
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | ae94d6546, ed3931146, 2e3d25588, 51acf1842 | PR 1 (deletes) and PR 2 (one ledger-hook script) merged; index pages (#344), agent pages (PR C); PR 3: a plain `pytest` is the no-data tier, loudly (in review, Claude); PR 4: a root Makefile, one verb per task (after PR 3, Claude) |
+| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | ae94d6546, ed3931146, 2e3d25588, 51acf1842, 6cd6bbd29, 314fe0bcd, 3f2f80a51, 7642317e5 | PRs 1-3 merged (deletes, one ledger-hook script, #341 plain `pytest` = the no-data tier); index pages (#344), agent pages (PR C); PR 4: the root Makefile, one verb per task (in review, Claude) |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "same with scripts too and a few others that feel like they
 have way too many things that it would be hard for a human to use the repo themselves." and "also these scripts feel
@@ -38,4 +38,4 @@ which `scripts/test-env.sh` `no_data_markers` now calls: one reader of the one h
 explicit `-m` is untouched; both together is a usage error. Every caller that leaned on the old default now says
 `--with-data`: `scripts/test-full.sh`'s fast step, fast-fail's named-file steps, the release follows' whole files
 (`release_follows.pipeline_tests_cmd`), the re-cut's pins (`pins.mjs`), the annual-synopsis runbook. The pytest folder
-clean-up the owner mentioned is a later ticket. Task runner (owner, same day): "A Makefile (Recommended)".
+clean-up the owner mentioned is a later ticket. Task runner (owner, same day): "A Makefile (Recommended)". PR 4 (the root Makefile): `make` lists the verbs; pinned by `pipeline/tests/test_makefile.py`, run by fast-fail; `scripts/ci_paths.py` holds no `Makefile`: proposed after the merge-back.
