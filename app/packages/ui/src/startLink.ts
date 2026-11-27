@@ -400,6 +400,8 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   if (item !== null && !isItemId(item)) bad("regs", "an item id");
   // (T1010) a water's link opens on the water: a box beside it would be two places at once
   if (q.has("fit")) bad("fit", "a box beside a water (regs= or a place)");
+  // (T1194) and a gauge's page: two places at once, refused by name (never one dropped without a word)
+  if (q.has("gauge")) bad("gauge", "a station beside a water (regs= or a place)");
 
   const index = (k: string, what: string): number | null => {
     const v = q.get(k);

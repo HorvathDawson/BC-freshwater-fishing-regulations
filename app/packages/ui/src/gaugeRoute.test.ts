@@ -21,6 +21,11 @@ describe("(T1194) ?gauge=<station>", () => {
     expect(() => parseStartLink("?gauge=../x")).toThrow(/gauge=/);
     expect(() => parseStartLink("?gauge=08MH024&show=gnis:1")).toThrow(/gauge=/);
   });
+  it("(review 2026-11-27) a gauge beside a water or a place is refused by name, never one dropped silently", () => {
+    expect(() => parseStartLink("?gauge=08MH024&regs=gnis:3062")).toThrow(/gauge=08MH024 is not a station beside a water/);
+    expect(() => parseStartLink("?gauge=08MH024&blk=1&m=2")).toThrow(/gauge=/);
+    expect(() => parseStartLink("?gauge=08MH024&browse=map")).toThrow(/gauge=/);
+  });
   it("a station the release does not hold still opens the route (the page shows the error, never the map)", () => {
     expect(parseStartLink("?gauge=ZZZZZZZ")!.route).toMatchObject({ mode: "gauge", station: "ZZZZZZZ" });
   });

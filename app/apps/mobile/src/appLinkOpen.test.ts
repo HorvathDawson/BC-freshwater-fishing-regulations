@@ -1,3 +1,4 @@
+import type { StationId } from "@app/data";
 import { describe, expect, it, vi } from "vitest";
 import { START_NOTICE_WORDS } from "@app/ui";
 import { applyAppLink, shownNotice, type OpenRequest } from "./appLinkOpen";
@@ -21,6 +22,8 @@ describe("(T1034, T1035) a tapped link in the app", () => {
     expect(run({ item: "gnis:3062" as never, view: "regs", part: null, theme: null, ...D0, ...P0 }).setTheme).not.toHaveBeenCalled();
     const box = run({ fit: [-118, 49, -114, 52], ...D0 });
     expect([box.setTheme.mock.calls.length, box.req]).toEqual([0, { item: null, fit: [-118, 49, -114, 52], day: null, horizon: 0, n: 1 }]);
+    // (T1194) a gauge's page link is a request of its own: no water, the station named
+    expect(run({ gauge: "08MH024" as StationId, ...D0 }).req).toEqual({ item: null, gauge: "08MH024", day: null, horizon: 0, n: 1 });
   });
 });
 

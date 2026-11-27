@@ -25,11 +25,11 @@
  * down. Every answer on every screen comes from a hook (rule 25).
  */
 import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure, type ScreenName } from "@app/core";
-import { openProbe, type ItemId, type SectionId } from "@app/data";
+import { openProbe, type ItemId, type SectionId, type StationId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, tabsAsRail, useLayoutClass, spotPins, useDayFlow, useLikeVisit, useMapRail, useStationNames, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, startForFrame, startSpent, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openGauge, startForFrame, startSpent, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -418,6 +418,8 @@ export function Shell(p: ShellProps) {
     }
     // (T605) a region page's `/?fit=` tapped on the phone: the browse map, framed on the region's box
     else if (openReq.fit) { go({ type: "close" }); nav.toTab("map"); search.landOnBox(openReq.fit); }
+    // (T1194) a gauge's page link: the Conditions map, that gauge's own page over it (Back is the map), as the web's `?gauge=` opens
+    else if (openReq.gauge) { go({ type: "close" }); nav.toTab("conditions"); go(openGauge(openReq.gauge as StationId)); }
     // (T1038) a `/?date=` link: the browse map (on the day set above), as the web's browse start opens
     else if (openReq.home) { go({ type: "close" }); nav.toTab("map"); }
     else { go({ type: "close" }); nav.toTab("conditions"); }
