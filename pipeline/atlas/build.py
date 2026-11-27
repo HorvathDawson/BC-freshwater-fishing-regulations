@@ -307,6 +307,18 @@ def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:
     return kept, len(fids) - len(kept)
 
 
+def _refuse_fwa_code_collisions(streams: list[dict], fwa_fids: list, *, whole_province: bool) -> None:
+    """(T1246) REFUSE the build when a city line holds an FWA line's watershed code (the atlas would file the city creek
+    as a part of that FWA water: Turner Creek under Noons Creek), naming each line. ``fwa_fids`` = the FWA lines only
+    (before the added fids join them). The stored curated file is what the atlas reads, so this is the check that
+    matters; the generator runs its twin."""
+    from pipeline.atlas.waters.added_streams.validate import fwa_code_collisions
+    bad = fwa_code_collisions(streams, ((f.wsc, f.blk) for f in fwa_fids), whole_province=whole_province)
+    if bad:
+        raise SystemExit("atlas build: added_streams.json holds city lines on FWA watershed codes (T1246):\n  "
+                         + "\n  ".join(bad))
+
+
 def _streams_in_bbox(streams: list[dict], bbox) -> list[dict]:
     """Keep added streams with a vertex inside ``bbox`` (EPSG:3005) PLUS their added-receiver ancestors, so a
     bbox-limited build doesn't add another region's streams as orphans, yet never severs an added->added chain
@@ -577,6 +589,7 @@ def load_fwa(b: _Build) -> None:
         add_streams = _streams_in_bbox(data["streams"], bbox)
         add_fids, add_specs = to_graph_inputs(add_streams)
         fids, n_excl = _apply_fwa_exclude(fids, data.get("fwa_exclude", []))
+        _refuse_fwa_code_collisions(add_streams, fids, whole_province=bbox is None)
         fids += add_fids
         add_nv = data.get("name_variants", [])
         print(f"  added streams: -{n_excl} superseded FWA fids, +{len(add_fids)} added fids, "
