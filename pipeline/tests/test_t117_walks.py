@@ -274,6 +274,14 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/reach/build.py", "_stem_to_first_lake"): "may_enter",
     ("pipeline/atlas/reach/build.py", "_through_rivers"):
         "T772: a lake's inflows, one level, to name the through-river's side channels; climbs through `subtree`",
+    # T1177 (owner 2026-11-27): one-level selections handed to the walk as `inflows`; every step past them is
+    # `may_enter`'s (`tributaries_of_reach`), so a carve-out, a code divide, a canal and the order guard still decide
+    ("pipeline/atlas/reach/build.py", "_own_streams_into_its_lakes"):
+        "T1177 Whiteswan: a lake's inflow edges, one level, to find the row's own stream entering it; the walk climbs "
+        "past it (`inflows`, walked never collected), asking may_enter",
+    ("pipeline/atlas/reach/build.py", "_lake_upper_end_inlets"):
+        "T1177 Upper Arrow: the main-stem edges into a lake row's drawdown stretch, one level, to name the river above "
+        "its top; handed to the walk as `inflows`, which asks may_enter for it and everything above",
     ("pipeline/common/io/export_gpkg.py", "export_tributaries"): "may_enter",
     ("pipeline/gauges/consume/shed.py", "build_gauge_sheds"): "hands up_adj to `_walk`, which asks may_enter",
     ("pipeline/gauges/consume/shed.py", "section_lengths"): "T252: a lake's inflow edges, one level (its length inflow to outlet)",
