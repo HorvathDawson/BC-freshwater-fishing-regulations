@@ -4,7 +4,7 @@
  * one back (`useBackLayer`). Only a development or staging build opens it (`LAB_ON`, @app/map; never production).
  */
 import { Modal } from "react-native";
-import { GEOMETRY, mapChrome } from "@app/map";
+import { mapChrome } from "@app/map";
 import { useBackLayer } from "@app/ui";
 import { Pressable } from "./Pressable";
 import { DeveloperCard, DEVELOPER_CLOSE } from "./DeveloperCard";
@@ -19,7 +19,7 @@ export function DeveloperModal({ open, theme, palette, info, release, onClose }:
   return (
     <Modal transparent animationType="none" onRequestClose={requestClose}>
       <Pressable testID="developer-backdrop" accessibilityLabel={DEVELOPER_CLOSE} onPress={requestClose}
-                 style={{ flex: 1, justifyContent: "center", padding: GEOMETRY.right }}>
+                 style={{ flex: 1, justifyContent: "center", padding: 8 }}>
         <DeveloperCard palette={palette} chrome={mapChrome(theme)} info={info} release={release} onClose={requestClose} />
       </Pressable>
     </Modal>

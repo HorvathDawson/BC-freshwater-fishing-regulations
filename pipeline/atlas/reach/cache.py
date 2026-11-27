@@ -121,7 +121,7 @@ from __future__ import annotations
 #:     never merged by distance, `at_edge` replaces the per-split pickup radii — so the sections a rule
 #:     binds move. No classify.py outcome changed; the bump marks the binding diff.
 #: 35: (T468, owner 2026-11-07) A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE IS ITS TRIBUTARY when the river
-#:     has no row of its own (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`): Powell Lake's
+#:     has no row of its own (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`, retired at 52): Powell Lake's
 #:     closure takes the Powell River above the lake. Depends on OTHER entries (`rowed_waters`), as 14 does.
 #: 36: (T546) A ROW WHOSE SCOPE DOES NOT RESOLVE BINDS NOTHING: a scope extent that fails, or a scope placing no
 #:     section, holds every rule of the row unresolved `scope_unresolved` (`build.A_FAILED_SCOPE_UNBINDS_THE_ROW`) —
@@ -210,12 +210,34 @@ from __future__ import annotations
 #:     pieces (not a barrier, not carved out, not own water) that touch only collected pieces of that item, and climbs
 #:     on from them — the distributaries and bigger-order channels the upward walk never met (Forsyth, Koksilah,
 #:     Halfway, MacMillan, Manson, Omineca, Shelagyote). No classify.py outcome changed; the bump marks the binding diff.
+#: 52: (T1177, owner 2026-11-26 17:10 "everything in is a tributary and only shouldnt be if an exception is listed saying
+#:     otherwise"; O2, O7) EVERY INFLOW OF A LAKE THE RULE BINDS IS ITS TRIBUTARY
+#:     (`tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`, replacing T468's
+#:     `A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`): the river on the lake's own line is taken whether or not it
+#:     has a row of its own, and the walk climbs on through every lake above (Chehalis Lake's "No Fishing" closes the
+#:     Chehalis River above the lake; Connor Lake's takes Forsyth Creek; the Campbell and Arrow reservoir chains climb).
+#:     Only a printed exception keeps water out, and a lake row's printed exception also stops every walk through that
+#:     lake (`build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`, the narrower reading: Kinbasket's "Does not
+#:     include Columbia River upstream" holds for Lake Revelstoke's and Lower Arrow Lake's walks). No classify.py outcome
+#:     changed; the bump marks the binding diff. With it (review): a stop holds only from where a walk ENTERS its lake,
+#:     and a lake at a stretch's top is no lake the rule binds (`build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS`).
+#:     Round 2: a stop holds for the water a walk reaches THROUGH its lake, never for the rest of the walk, so the edge
+#:     order cannot decide it (`tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE`); the book run's bindings are unchanged by it.
+#: 53: (T1177, owner 2026-11-27 ~11:00, with the maps) WATER JOINING THE ROW'S OWN STREAM ABOVE ITS LAKE IS THE LAKE'S
+#:     TRIBUTARY (`build.WATER_JOINING_THE_ROWS_OWN_STREAM_ABOVE_ITS_LAKE_IS_THE_LAKES_TRIBUTARY`, Whiteswan: "Include
+#:     them: No Fishing all year (Recommended)"): a lake-only reach's walk climbs PAST the entry's own stream flowing into
+#:     its lake, collecting what joins it, never the own water. And A RIVER STRETCH IN A LAKE'S TRIBUTARIES ROW IS THE
+#:     LAKE'S OWN UPPER END (`build.A_RIVER_STRETCH_IN_A_LAKE_ROW_IS_THE_LAKES_OWN_UPPER_END`, Upper Arrow: "yes ... this
+#:     is what we do"): the river above the drawdown stretch's top (the Hwy 1 bridge) is the lake's through-river inflow,
+#:     climbed to Kinbasket's printed exception. Classify outcomes change (Whiteswan's r5 gains the 14.0 km). 53 is the
+#:     walk's (it merges first); the DFO branches that also set 53 move to 54. Review round 3 guards (the rule's words keep
+#:     an own stream out; only a stretch on the lake's own river line is its upper end) change no corpus binding.
 #: 55: (T1250, owner 2026-11-27 "Pacific streams now, barriers in 0.11.0 (Recommended)"; RULINGS S14) A PACIFIC
 #:     STREAM OF THE STEELHEAD REGIONS IS STEELHEAD WATER (`steelhead.PACIFIC_STREAMS_ARE_STEELHEAD_WATER`): every
 #:     "possible" stream of Regions 1, 2, 3, 5, 6 whose FWA basin reaches the Pacific (`steelhead.pacific_basin`) is
 #:     known (source "Pacific stream"), so a rainbow over 50 cm there is a steelhead where steelhead rules apply. The
 #:     Arctic and Yukon drainage (basins 200, 800) stays "possible"; lakes stay out. Only the steelhead presence
-#:     table and its digest change; no rule binding, licensing placement or classify.py outcome changed. 52-54 are
-#:     taken by open branches (the walk, 53; the DFO walk, 54).
+#:     table and its digest change; no rule binding, licensing placement or classify.py outcome changed. 54 is the
+#:     DFO branch's (it merges after the walk's 53).
 POLICY_VERSION = "55"
 

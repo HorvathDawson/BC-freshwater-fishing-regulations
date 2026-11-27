@@ -14,10 +14,11 @@ import { LAB_ON, Map, type Camera, type MapProps, type TileEndpoints } from "@ap
 import { DeveloperModal } from "./DeveloperModal";
 import { ModalBack } from "./ModalBack";
 import type { MenuInfo } from "./menu/MenuHost";
-import { mapError, useBackLayer, type Horizon, type HorizonChipVM, type MyLocation } from "@app/ui";
+import { mapError, useBackLayer, useLayoutClass, type Horizon, type HorizonChipVM, type MyLocation } from "@app/ui";
 import { HorizonPicker } from "./HorizonPicker";
 import { openLink } from "./openLink";
-import { MapRail } from "./MapRail";
+import { MapRail, zoomButtonsShown } from "./MapRail";
+import { MAP_CELL } from "./CornerStrip";
 import type { Palette } from "./theme";
 
 
@@ -25,7 +26,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onPressGauge, onMoved, onMapPoint, horizons,
                             highlight, inSeason, marker, pins, status, standing, lakes, salmon, method, issue, halves, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, focus, near, marks, onPressMark, spots,
-                            insetTop = 0, insetBottom = 0, insetLeft = 0, onRegion, corner, railExtra, me = null, developer, onDrawn, lookKey, onLookDrawn }: {
+                            insetTop = 0, insetBottom = 0, insetCredits, insetLeft = 0, onRegion, corner, railExtra, me = null, developer, onDrawn, lookKey, onLookDrawn }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -116,6 +117,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   insetTop?: number;
   /** (T275) the foot block over the map, px: the credits and scale sit above it (MapProps.insetBottom). */
   insetBottom?: number;
+  /** (T1212) how far the © sits above the map's foot: MapProps.insetCredits (absent: `insetBottom`) */
+  insetCredits?: number;
   /** (T856) the desktop's see-through nav rail floats over the map's left edge: the corner starts clear of it, px */
   insetLeft?: number;
   /** (T303) My location (the rail's button, the dot): `useMyLocation`'s state, absent where the platform has none. */
@@ -134,12 +137,15 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   const coachTarget = useCoachTarget("map");
   // (T420, T476) a development or staging build's Developer card: the map says the long press, this screen owns the card and its back
   const [devOpen, setDevOpen] = useState(false);
+  // (T1212) the web map's + / −: wide windows only; a phone pinches and double-taps (the phone app's map draws none at all)
+  const zoomButtons = zoomButtonsShown(useLayoutClass());
   return (
     <View ref={coachTarget} collapsable={false} style={{ flex: 1, backgroundColor: palette.tint }}>
       <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressStart={onPressStart} onPressObstacle={onPressObstacle} onPressNotFishing={onPressNotFishing} onPressGauge={onPressGauge} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} inSeason={inSeason} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} insetLeft={insetLeft} onOpenLink={openLink} useBackLayer={useBackLayer} modalBack={ModalBack} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} issue={issue} halves={halves} runs={runs}
+           highlight={highlight} inSeason={inSeason} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} insetLeft={insetLeft}
+           insetCredits={insetCredits} zoomButtons={zoomButtons} onOpenLink={openLink} useBackLayer={useBackLayer} modalBack={ModalBack} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} issue={issue} halves={halves} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
            onRegion={onRegion} onDrawn={onDrawn} lookKey={lookKey} onLookDrawn={onLookDrawn} onOpenLab={LAB_ON && developer ? () => setDevOpen(true) : undefined} />
@@ -172,7 +178,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       {horizons && (
         // (T367) Now · <day> ▾ · Change: the forecast days open under the strip
         <HorizonPicker palette={palette} testID="map-horizons" coach="horizons" chips={horizons.chips}
-                       onPick={horizons.onPick} />
+                       onPick={horizons.onPick} cellHeight={MAP_CELL} />
       )}
       {/* (T213) the Map tab's day, the same strip in the same corner (`MapDayStrip`) */}
       {corner}

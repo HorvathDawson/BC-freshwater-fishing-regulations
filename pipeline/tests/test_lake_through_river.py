@@ -1,4 +1,6 @@
-"""T468: a lake row's through-river above the lake is its tributary when the river has no row of its own.
+"""T468, T1177: a lake row's through-river above the lake is its tributary — since T1177 (owner 2026-11-26, "everything in
+is a tributary and only shouldnt be if an exception is listed saying otherwise") whether or not it has a row of its own;
+T468 took it only when it had none.
 
 Owner, 2026-11-07: "powell lake is closed including tributaries in november but powell river (above the
 lake) is not showing as closed". FWA draws the Powell River down through Powell Lake on ONE blue line
@@ -76,11 +78,12 @@ def test_an_unrowed_through_river_goes_with_the_lake(powell):
                       "negated": False, "joined": 2}]
 
 
-def test_a_through_river_with_a_row_of_its_own_stays_out(powell):
-    """Koocanusa / Kinbasket: the river above has rows of its own, and they govern it."""
+def test_a_through_river_with_a_row_of_its_own_is_a_tributary_too(powell):
+    """T1177 (O2, Upper Chehalis River; O7, Forsyth Creek above Connor Lake): a row of its own no longer keeps the river
+    out — it gets both rows (RULINGS T4); only a printed exception keeps it out. Its own row is still reported."""
     got, diags = _bind(powell, owned={"gnis:R": ("r2:powell_river@2-12",)})
-    assert got == {"lake:L", "C"}
-    assert diags[0]["own_row"] == ["r2:powell_river@2-12"] and diags[0]["joined"] == 0
+    assert got == {"lake:L", "C", "R:up", "RT"}
+    assert diags[0]["own_row"] == ["r2:powell_river@2-12"] and diags[0]["joined"] == 2
 
 
 def test_the_rules_words_keep_it_out(powell):
@@ -100,9 +103,12 @@ def test_a_lake_at_the_top_of_a_river_reach_still_ends_it(powell):
 
 
 def test_mutation_pin(powell, monkeypatch):
-    monkeypatch.setattr(T, "A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY", False)
-    got, diags = _bind(powell)
-    assert got == {"lake:L", "C"} and diags == []
+    """False = T468's rule: a through-river with a row of its own stays out (an unrowed one still comes in)."""
+    monkeypatch.setattr(T, "EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY", False)
+    got, diags = _bind(powell, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    assert got == {"lake:L", "C"} and diags[0]["joined"] == 0
+    got, _ = _bind(powell)
+    assert {"R:up", "RT"} <= got
 
 
 # ---------------------------------------------------------------- T743: a DFO lake place (Redsand Lake)
@@ -171,8 +177,12 @@ def braided(powell):
     return g, reg
 
 
+NOT_THE_RIVER = dict(CLOSURE, verbatim="No Fishing Nov 1-Mar 31, not including the Powell River")
+
+
 def test_a_through_river_that_stays_out_stays_out_with_its_side_channels(braided):
-    got, diags = _bind(braided, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    """Kept out by the rule's printed words (since T1177 a row of its own keeps nothing out)."""
+    got, diags = _bind(braided, rule=NOT_THE_RIVER)
     assert got == {"lake:L", "C"}, "the side channel R:ch and the creek CT feeding it are the river's, not the lake's"
     assert diags[0]["channels_out"] == 1
 
@@ -180,12 +190,14 @@ def test_a_through_river_that_stays_out_stays_out_with_its_side_channels(braided
 def test_an_unrowed_through_river_still_comes_in_whole(braided):
     got, _ = _bind(braided)
     assert {"R:up", "RT", "R:ch", "CT"} <= got
+    got, _ = _bind(braided, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    assert {"R:up", "RT", "R:ch", "CT"} <= got, "T1177: rowed or not, the river comes in with its side channels"
 
 
 def test_t772_mutation_pin(braided, monkeypatch):
     from pipeline.atlas.reach import build as B
     monkeypatch.setattr(B, "A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS", False)
-    got, _ = _bind(braided, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    got, _ = _bind(braided, rule=NOT_THE_RIVER)
     assert {"R:ch", "CT"} <= got
 
 
