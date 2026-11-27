@@ -1,10 +1,10 @@
 # T1167 — In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's
 
-Status: IN REVIEW — owner: see ## Owner (built, code 3a58e77c0 3dc579337 01eefbe2a; pictures in T1167-shots/: before / inside / after, light and dark)
+Status: IN REVIEW — built (3a58e77c0 3dc579337 01eefbe2a), the owner has seen the pictures and approved; pushed on feat/T1167-inseason-banner-window, PR open without auto-merge until a look; left (Claude): the PR merge, then the first patch after 0.10.0
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1167 | In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's | IN REVIEW | 3a58e77c0 3dc579337 01eefbe2a | owner: look at T1167-shots/ (before / inside / after, light and dark); then the PR and an independent review; ships in the first patch after 0.10.0 |
+| T1167 | In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's | IN REVIEW | 3a58e77c0 3dc579337 01eefbe2a b9238d63e | the PR's merge (parked, no auto-merge, until the planning chat has looked); ships in the first patch after 0.10.0 |
 
 Source: T1157's finding and the owner's answers, 2026-11-25 night. Seven provincial in-season closures of
 July 30-Sept 15, 2026 (Salmon River 3-26, Bessette Creek 8-22, Granby River and its tributaries 8-15 from noon to
@@ -60,4 +60,4 @@ window). Model: Sonnet (Opus for the date reading). Size: S–M. Owner: the look
 - [x] 2026-11-26 — How loud the banner is inside the window (A amber with a mark / B red / C grey as pictured) → "A: warning amber with a mark (Recommended)" (2026-11-26)
 - [x] 2026-11-26 — How the banner looks in the 14 days before (A grey, as pictured / B amber too) → "A: grey, as pictured (Recommended)" (2026-11-26)
 - [x] 2026-11-26 — A range that starts later than its effective day (A date it when it starts within N days / B never date these) → "B: never date these" (2026-11-26)
-- [ ] 2026-11-25 — Look at the three pictures of the louder banner (before, inside, after the window) when the lane has them.
+- [x] 2026-11-25 — Look at the three pictures of the louder banner (before, inside, after the window) → "Yes, ship as pictured" (2026-11-26, relayed by the planning chat)

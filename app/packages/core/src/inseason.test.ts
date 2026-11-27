@@ -109,6 +109,11 @@ describe("(T1167) a notice's banner window: two weeks before its stated first da
     expect(inSeasonDating(fraser)).toEqual({ kind: "unreadable", why: INSEASON_UNDATED.notOnEffective });
     expect(INSEASON_UNDATED.notOnEffective).toBe("its range does not open on its effective day, so its year cannot be read");
   });
+  it("an effective day that is not a real day (2026-02-30) is unreadable: no effective date, never a thrown or guessed year", () => {
+    const bad = row({ id: "is-bad-day", from: "2026-02-30",
+                      parsed: { kinds: ["closure"], window: { from_month: 7, from_day: 30, to_month: 9, to_day: 15 } } });
+    expect(inSeasonDating(bad)).toEqual({ kind: "unreadable", why: INSEASON_UNDATED.noEffective });
+  });
 });
 
 describe("(T1167) louder: the banner's words in each state, the status line's pointer, the year bars' marks", () => {
