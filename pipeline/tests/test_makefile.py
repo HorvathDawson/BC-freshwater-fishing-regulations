@@ -9,6 +9,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import socket
 import subprocess
 from pathlib import Path
@@ -129,6 +130,8 @@ def test_make_app_refuses_a_taken_tile_port():
         out = subprocess.run(["make", "--no-print-directory", "-C", str(ROOT), "app"], capture_output=True, text=True,
                              timeout=60, env=os.environ | {"TILE_PORT": str(port)})
     assert out.returncode != 0, out.stdout + out.stderr
-    assert f"port {port} is taken by PID {os.getpid()}" in out.stderr, out.stderr
+    # the port check needs no tool (bash's /dev/tcp); the PID is named when lsof is there, and its absence is said
+    who = f"PID {os.getpid()}" if shutil.which("lsof") else "PID unknown: lsof is not installed"
+    assert f"port {port} is taken by {who}" in out.stderr, out.stderr
     assert "your own tile server is already up: run `pnpm -C app dev:web` alone, or stop it" in out.stderr
     assert "pnpm -C app tiles" not in out.stdout

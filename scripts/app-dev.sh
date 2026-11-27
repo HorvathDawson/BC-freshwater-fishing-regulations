@@ -11,12 +11,15 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 TILE_PORT=${TILE_PORT:-39217}
 WEB_PORT=39218                      # app/apps/mobile/package.json `web`: expo start --web --port 39218
-command -v lsof >/dev/null 2>&1 || { echo "make app: needs lsof (to see whether the ports are free)" >&2; exit 1; }
-taken() {  # $1 port, $2 what to say
-  local pid
-  pid=$(lsof -nP -iTCP:"$1" -sTCP:LISTEN -t 2>/dev/null | head -1)
-  [[ -z $pid ]] && return 1
-  echo "make app: port $1 is taken by PID $pid ($(ps -o command= -p "$pid" 2>/dev/null | cut -c1-80)): $2" >&2
+taken() {  # $1 port, $2 what to say. Taken = something accepts a connection there (bash's /dev/tcp: no tool needed);
+  # the PID comes from lsof when the machine has it
+  (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null || return 1
+  local pid who="PID unknown: lsof is not installed"
+  if command -v lsof >/dev/null 2>&1; then
+    pid=$(lsof -nP -iTCP:"$1" -sTCP:LISTEN -t 2>/dev/null | head -1)
+    [[ -n $pid ]] && who="PID $pid ($(ps -o command= -p "$pid" 2>/dev/null | cut -c1-80))"
+  fi
+  echo "make app: port $1 is taken by $who: $2" >&2
 }
 taken "$TILE_PORT" "your own tile server is already up: run \`pnpm -C app dev:web\` alone, or stop it" && exit 1
 taken "$WEB_PORT" "a web server is already up there: stop it first" && exit 1
