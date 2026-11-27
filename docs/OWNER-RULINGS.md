@@ -217,7 +217,7 @@ A walk change: needs a reach rerun and a rule-bindings diff (T1177 item 10).
 - **O10 Goat** (release on km 33.1-42.6; 76.8 km opens to the Region 4 quota: 67.8 km main stem + six side channels 9.0 km): "Yes, open the 76.8 km to the regional quota (Recommended)"; the measured answers diff is shown to him again after the release build.
 - **D6 Mosquito Creek** (closes 32.4 km at Arrow Park, opens 1.37 km by Kootenay Lake): "Yes, move it (Recommended)".
 - **The four lake rebinds** (McDonell 6-4; Twin Lakes 4-34 vs Yankee / Canuck; Hall Lake 4-20 vs 4-34; Malcolm Knapp Lost Lake vs Whistler Lost Lake): "Yes to all four (Recommended)". **McLennan Creek 2-8:** "Both creeks closed, ask the Province (Recommended)".
-- **O4 Hatton:** "it is all year and make sure this is also to the mainstem and other tribs that they all get all year".
+- **O4 Hatton:** "it is all year and make sure this is also to the mainstem and other tribs that they all get all year". Asked which tributaries: "Only Hatton Creek and the main stem, as the book prints (Recommended)". Asked whether the Jul 15-Aug 31 closure is scoped to Hatton too: "Keep as now".
 
 ### OPEN, not ruled
 - **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.

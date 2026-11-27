@@ -58,10 +58,10 @@ Routing: answers relayed word for word from the planning chat count as his yes f
 Yes to O13 (5.05 km opens above Healy Lake), O10 (76.8 km opens to the Region 4 quota; the measured answers diff is shown
 again after the release build), D6 Mosquito Creek, the four lake rebinds and McLennan (both closed, ask the Province). O4 Hatton:
 fly-only all year on the main stem and the tributaries under it (lane D checked: the rule carries no dates; it binds the Caycuse
-above the confluence and Hatton Creek only, the row printing no tributary mark). His words "make sure this is also to the mainstem
-and other tribs that they all get all year" are an OPEN question back to him (asked 2026-11-26 evening, batch 2): built meanwhile, Hatton
-Creek and the main stem above the confluence only. Second open question: does "upstream of and including Hatton Creek" scope the
-Jul 15-Aug 31 closure too (today the closure is on the whole Caycuse and not on Hatton Creek)? Both in RULINGS E29.
+above the confluence and Hatton Creek only, the row printing no tributary mark). On his words "make sure this is also to the mainstem
+and other tribs that they all get all year" he was asked back (batch 2) and answered: "Only Hatton Creek and the main stem, as the book prints
+(Recommended)" (as built). Asked whether "upstream of and including Hatton Creek" scopes the Jul 15-Aug 31 closure too, he answered: "Keep as now"
+(the closure on the whole Caycuse and not on Hatton Creek; Hatton stays open Jul 15-Aug 31, fly only). Both in RULINGS E29.
 
 ## Acceptance
 Each change has its answers diff and every moved binding is explained; unchanged items are proved unchanged; he has seen
