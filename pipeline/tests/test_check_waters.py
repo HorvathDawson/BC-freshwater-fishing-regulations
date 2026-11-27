@@ -13,8 +13,8 @@ import pytest
 from pipeline.tests import under_test
 from pipeline.tools.audit import check_curated as C
 
-FILES = ("name_variants", "areas", "added_areas", "added_lakes", "added_streams", "continuations", "unmapped_waters",
-         "cuts", "tidal")
+FILES = ("name_variants", "area_closures", "added_areas", "added_lakes", "added_streams", "continuations",
+         "unmapped_waters", "cuts", "tidal_limits")
 
 
 @pytest.fixture
@@ -45,9 +45,9 @@ def test_the_real_files_pass_without_a_registry(waters, tmp_path):
     ("name_variants", lambda d: d[0].update(target={}), "names no water"),
     ("name_variants", lambda d: d[1].update(names=[]), "non-empty list"),
     ("name_variants", lambda d: d[2]["names"][0].update(name=" "), "no `name`"),
-    ("areas", lambda d: d["areas"].append(dict(d["areas"][0])), "duplicate id"),
-    ("areas", lambda d: d["areas"][-1].update(file="no_such_key_or_path"), "no declared curated file"),
-    ("areas", lambda d: d["areas"][0].update(file="added_areas"), "exactly one of `layer`"),
+    ("area_closures", lambda d: d["areas"].append(dict(d["areas"][0])), "duplicate id"),
+    ("area_closures", lambda d: d["areas"][-1].update(file="no_such_key_or_path"), "no declared curated file"),
+    ("area_closures", lambda d: d["areas"][0].update(file="added_areas"), "exactly one of `layer`"),
     ("added_areas", lambda d: d["features"][0]["geometry"].update(
         coordinates=[[[p[1], p[0]] for p in d["features"][0]["geometry"]["coordinates"][0]]]), "outside BC"),
     ("added_lakes", lambda d: d["features"][1]["properties"].update(id=d["features"][0]["properties"]["id"]),
@@ -95,7 +95,7 @@ def _first_tidal_label(d, label):
     "Bridge CHECK", "Bridge (TODO)", "Bridge ??", "Bridge [Review: which side]"])
 def test_a_tidal_limit_label_with_review_words_is_refused(waters, tmp_path, label):
     """T780 (owner 2026-11-20 reworded the last one): a tidal limit's label is a cut's name too — refused."""
-    _edit(waters.tidal, lambda d: _first_tidal_label(d, label))
+    _edit(waters.tidal_limits, lambda d: _first_tidal_label(d, label))
     err, _, _ = C.check_waters(waters, registry=tmp_path / "no-registry.json")
     assert any(e.startswith("tidal[") and "review words" in e for e in err), err
 
@@ -107,6 +107,6 @@ def test_a_place_name_holding_a_review_word_passes(waters, tmp_path, label):
     """The near misses: a word a review note uses is also a name ("Check dam", "Confidence Creek"); only CHECK / TODO
     in capitals and confidence said as a note ("(low confidence)", ", medium confidence") are refused."""
     _edit(waters.cuts, lambda d: d["waterbodies"][0]["splits"][0].update(label=label))
-    _edit(waters.tidal, lambda d: _first_tidal_label(d, label))
+    _edit(waters.tidal_limits, lambda d: _first_tidal_label(d, label))
     err, _, _ = C.check_waters(waters, registry=tmp_path / "no-registry.json")
     assert not any("review words" in e for e in err), err

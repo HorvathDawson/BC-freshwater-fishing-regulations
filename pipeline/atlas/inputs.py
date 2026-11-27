@@ -91,10 +91,17 @@ REBUILD = "python -m pipeline build --atlas --promote"
 META = "graph.pkl.meta.json"
 
 
+#: A RECORD NAME IS FIXED ONCE WRITTEN: an atlas meta keeps the name its input was recorded under, so a `CURATED` key
+#: renamed since keeps its old record name, mapped here to the key it is now (the one place that says so). Without this
+#: a rename would leave every recorded atlas "records no digest" of a file whose bytes never moved.
+RECORD_NAME_OF: dict[str, str] = {"curated:waters.areas": "waters.area_closures",
+                                  "curated:waters.tidal": "waters.tidal_limits"}
+
+
 def curated_path(key: str) -> Path:
     """The file a `curated:a.b` key names in the tree now (sandbox-aware: `CURATED_ROOT`)."""
     v = CURATED
-    for part in key.split(":", 1)[1].split("."):
+    for part in RECORD_NAME_OF.get(key, key.split(":", 1)[1]).split("."):
         v = getattr(v, part)
     return Path(v)
 

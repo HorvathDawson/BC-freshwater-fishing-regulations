@@ -19,7 +19,7 @@ import json
 import shutil
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, ROOTS
 
 
 def said_of(m: dict) -> dict:
@@ -93,7 +93,7 @@ def main(argv=None) -> int:
     from pipeline.deliver.release.manifest import basemap_block, latest
     ap = argparse.ArgumentParser(prog="python -m pipeline.deliver.release.rebase", description=__doc__.split("\n\n")[0])
     ap.add_argument("--from", dest="src", help="the release to start from (default: LATEST)")
-    ap.add_argument("--release-root", type=Path, default=GENERATED.release)
+    ap.add_argument("--release-root", type=Path, default=ROOTS.release)
     ap.add_argument("--basemap-meta", type=Path, default=GENERATED.tiles / "basemap.meta.json")
     a = ap.parse_args(argv)
     src = a.release_root / a.src if a.src else latest(a.release_root)

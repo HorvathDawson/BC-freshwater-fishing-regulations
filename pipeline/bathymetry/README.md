@@ -6,7 +6,7 @@ as dead code, tidy it. It maps a survey sheet's waterbody identifier to the lake
 
 | file | does |
 |---|---|
-| `propose.py` | chart id to lake PROPOSALS under the owner's rules, to `GENERATED.base/bathymetry/proposals.json` (`scripts/heavy.sh ... -- python -m pipeline.bathymetry.propose`) |
+| `propose.py` | chart id to lake PROPOSALS under the owner's rules, to `GENERATED.bathymetry/proposals.json` (`scripts/heavy.sh ... -- python -m pipeline.bathymetry.propose`) |
 | `accept.py` | the ONLY writer of the frozen `data/curated/bathymetry/matches.json`; owner-only; never rewrites an accepted row |
 | `fetch_vectors.py` (`python -m pipeline.bathymetry.fetch_vectors --out DIR`) | fetches the 2001 vector depth zips to a directory OUTSIDE git (sequential, resumable) |
 | `e00.py`, `place.py`, `place_more.py` (`python -m pipeline.bathymetry.place_more`) | the zips' reader, the rigid fit onto our lake outline, every zip placed by program and graded |

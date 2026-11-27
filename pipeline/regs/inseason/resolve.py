@@ -72,19 +72,19 @@ class Unresolved(ValueError):
 
 
 def release_dir(arg: Path | str | None = None) -> Path:
-    from pipeline.common.curated import GENERATED
+    from pipeline.common.curated import ROOTS
     if arg:
         return Path(arg)
     from pipeline.deliver.release.manifest import live
-    return live(GENERATED.release)
+    return live(ROOTS.release)
 
 
 def release_is_live(root: Path | str | None = None) -> bool:
-    """Whether `root` (default GENERATED.release) has a LATEST pointer: a release is live. A pointer naming a broken
+    """Whether `root` (default ROOTS.release) has a LATEST pointer: a release is live. A pointer naming a broken
     folder still counts (resolving on it then raises, naming the cause)."""
-    from pipeline.common.curated import GENERATED
+    from pipeline.common.curated import ROOTS
     from pipeline.deliver.release.manifest import LATEST
-    return (Path(root or GENERATED.release) / LATEST).is_file()
+    return (Path(root or ROOTS.release) / LATEST).is_file()
 
 
 def release_name(rel: Path) -> str:
