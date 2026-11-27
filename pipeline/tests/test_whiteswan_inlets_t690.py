@@ -75,11 +75,15 @@ def whiteswan():
         _n("T", blk="T", hi=1975, wsc="300-625474-814939-312002-380497-577604"),
         _n("U", blk=unnamed, lo=522, hi=1683, wsc=f"300-625474-814939-312002-{UNNAMED_INLET_BLKS[unnamed]}"),
         _n("WR", blk="WR", lo=22000, hi=24000, wsc="300-625474-814939"),
+        # (T1177, 2026-11-27) a creek joining the line above the lake, and one feeding Moose Lake
+        _n("K", blk="K", hi=1500, wsc="300-625474-814939-312002-900100"),
+        _n("MC", blk="MC", hi=900, wsc="300-625474-814939-312002-950200"),
     ]
     edges = [("W:0", "WR", "confluence", 22960), ("W:599", "W:0", "continuation", 599.2),
              ("lake:329247790", "W:599", "lake_out", 3023.5), ("W:8623", "lake:329247790", "lake_in", 8623.3),
              ("lake:M", "W:8623", "lake_out", 9727.4), ("IC", "lake:329247790", "lake_in", 816),
-             ("T", "IC", "confluence", 5000), ("U", "lake:329247790", "lake_in", 522)]
+             ("T", "IC", "confluence", 5000), ("U", "lake:329247790", "lake_in", 522),
+             ("K", "W:8623", "confluence", 9000), ("MC", "lake:M", "lake_in", 300)]
     g = StreamGraph()
     g.nodes = {n.node_id: n for n in nodes}
     g.edges = [FlowEdge(from_node=a, to_node=b, kind=k, at_measure=m) for a, b, k, m in edges]
@@ -109,10 +113,12 @@ def _bind(world, rid):
 def test_every_inlet_and_the_outlet_above_the_falls_are_closed(whiteswan):
     """r1 + r5, "No Fishing EXCEPT the outlet stream downstream of the falls": r1 the outlet from the lake to the falls
     and the line above the lake (one item); r5 every other inlet by the walk — Inlet Creek, the unnamed inlet AND the
-    creek T feeding Inlet Creek (T1177, O7). Never the outlet below the falls or the lake (T1). Moose Lake's water above
-    the outlet item's line is that item's (AGENTS 63): the walk does not climb the entry's own water."""
+    creek T feeding Inlet Creek (T1177, O7). Never the outlet below the falls or the lake (T1). The outlet item's line
+    above the lake is r1's (AGENTS 63), and what feeds it, a creek K and Moose Lake's creek MC, is r5's (owner 2026-11-27,
+    "Include them: No Fishing all year (Recommended)": `build.WATER_JOINING_THE_ROWS_OWN_STREAM_ABOVE_ITS_LAKE_IS_THE_
+    LAKES_TRIBUTARY`)."""
     assert _bind(whiteswan, "r1") == {"W:599", "W:8623"}
-    assert _bind(whiteswan, "r5") == {"IC", "T", "U"}
+    assert _bind(whiteswan, "r5") == {"IC", "T", "U", "K", "MC"}
 
 
 @pytest.mark.parametrize("rid", ["r2", "r3", "r4"])
