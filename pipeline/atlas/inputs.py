@@ -91,11 +91,11 @@ def curated_path(key: str) -> Path:
 
 def default_path(key: str) -> Path:
     if key == "source:fwa_gpkg":
-        from project_config import get_config
-        return Path(get_config().fwa_data_gpkg)
+        from pipeline.common.curated import SOURCE
+        return SOURCE.fwa_gpkg
     if key == "source:fwa_coast":
-        from project_config import get_config
-        return Path(get_config().fwa_coast_gpkg)
+        from pipeline.common.curated import SOURCE
+        return SOURCE.coast_gpkg
     return curated_path(key)
 
 

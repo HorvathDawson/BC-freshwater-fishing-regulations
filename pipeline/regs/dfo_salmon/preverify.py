@@ -51,7 +51,7 @@ from pipeline.regs.dfo_salmon.suggest import GENERIC, TYPE_WORDS, _norm, coords_
 ROOT = Path(__file__).resolve().parents[3]
 SUGG = GENERATED.review / "dfo-suggestions.json"
 OUT = GENERATED.review / "dfo-preverify.json"
-GPKG = SOURCE / "bc_fisheries_data.gpkg"
+GPKG = SOURCE.fwa_gpkg
 TIDAL = GENERATED.review / "tidal/tidal-candidates.json"
 API = os.environ.get("CURATION_API", "http://127.0.0.1:8787")
 CACHE = Path(os.environ.get("PREVERIFY_CACHE", Path.home() / ".cache" / "bcfish-preverify"))

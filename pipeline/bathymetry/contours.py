@@ -40,8 +40,8 @@ def default_dir() -> Path:
 def fwa_lakes(where: str) -> List[dict]:
     """FWA lake polygons (lakes + manmade layers) matching an SQL `where`, read by index (seconds, not the full scan)."""
     import pyogrio
-    from project_config import get_config
-    gpkg = get_config().get_path("data", "fetch", "output_gpkg")
+    from pipeline.common.curated import SOURCE
+    gpkg = SOURCE.fwa_gpkg
     out = []
     for layer in ("lakes", "manmade"):
         df = pyogrio.read_dataframe(gpkg, layer=layer, where=where,
