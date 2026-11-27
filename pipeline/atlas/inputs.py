@@ -374,13 +374,12 @@ def code_behind(build_dir: Path) -> list[str]:
     for k in sorted(cf):
         if cf[k] == code["config"][k]:
             continue
-        if code["config"][k] == MOVED:
-            out.append(f"config key {k} (code: config): {MOVED}")
-        elif cf[k] == CONFIG_MISSING:
+        if cf[k] == CONFIG_MISSING and code["config"][k] != MOVED:
             out.append(f"config key {k} (code: config): no longer in config.yaml or pipeline/common/curated.py "
                        "(renamed or deleted since the atlas was built)")
         else:
-            out.append(f"config key {k} (code: config, {declared_in(k)}): changed since the atlas was built")
+            out.append(f"{declared_in(k)} {k} (code: config): "
+                       + (MOVED if code["config"][k] == MOVED else "changed since the atlas was built"))
     env = stepcache.stage_env()
     for k in sorted(env):
         if code.get(k) != env[k]:
