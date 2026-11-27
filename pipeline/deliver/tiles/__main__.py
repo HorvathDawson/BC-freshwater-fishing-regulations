@@ -103,6 +103,8 @@ def main() -> None:
                              "Run without it once to export them.")
         # (T299) derived from the stream layer file alone, so it is derived again here
         print(f"  stream_name    {export.export_stream_names(layer_dir)['stream_name']:>9,}")
+        # (T1210) and the lake names, from the lake layer file alone
+        print(f"  lake_name      {export.export_lake_names(layer_dir)['lake_name']:>9,}")
         out = tippe.build(layer_dir, out_dir / "atlas.pmtiles",
                           minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
         print(f"\n{out}  {out.stat().st_size / 1e6:,.1f} MB   "
@@ -135,6 +137,7 @@ def main() -> None:
         counts |= export.export_stream_names(layer_dir)
         counts |= export.export_waterbodies(build_dir, a.gpkg, layer_dir, route_zooms=route_zooms, tidal=pieces,
                                             tidal_geoms=tgeoms)
+        counts |= export.export_lake_names(layer_dir)             # (T1210) from the lake layer file just written
         # (T1024) every stream polygon's `lz` against the stream layer AS WRITTEN (no third case)
         from pipeline.deliver.tiles.stream_polygon_lines import check as _check_lz
         print(f"  stream polygons {_check_lz(layer_dir):>8,}  (each `lz` its line's first zoom, or no line, T1024)")

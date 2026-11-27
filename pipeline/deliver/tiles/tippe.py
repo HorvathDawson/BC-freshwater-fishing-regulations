@@ -339,6 +339,16 @@ OWN_PASS_SIMPLIFICATION_AT_MAX = 5
 OWN_PASS_DETAIL = 12
 
 
+def alone_flags(lo: int, top: int, verbose: bool = False) -> list[str]:
+    """The flags of a layer's ALONE pass (`ALONE`), z`lo`-z`top`: what `build` runs, and what the tests run on a fixture."""
+    # (T1210) NO POINT THINNED: tippecanoe drops points under a pass's top zoom at random (1 in 2.5 per zoom) unless
+    # told not to, and an alone pass spans zooms (`lake_name` z4-z7), where which lakes are named is chosen by area in the
+    # export (`export.lake_name_zoom`). Only here: every other pass is one zoom (nothing below its top to thin), and
+    # leaving their flags as they were keeps their tiles byte for byte (T1210's proof build).
+    return [*_common(lo, top, ALONE_SIMPLIFICATION_AT_MAX, verbose, full_detail=ALONE_DETAIL,
+                     low_detail=ALONE_DETAIL, simplification=ALONE_SIMPLIFICATION), "--drop-rate=1"]
+
+
 def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
           name: str = "atlas", verbose: bool = False) -> Path:
     check()
@@ -435,10 +445,7 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
             mb = Path(tmp) / f"{f.stem}.mbtiles"
             print(f"  tippecanoe -> z{lo}-{top}  ({f.stem}, alone)")
             _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}",
-                  f"--attribution={attribution}",
-                  *_common(lo, top, ALONE_SIMPLIFICATION_AT_MAX, verbose, full_detail=ALONE_DETAIL,
-                           low_detail=ALONE_DETAIL, simplification=ALONE_SIMPLIFICATION),
-                  str(f)])
+                  f"--attribution={attribution}", *alone_flags(lo, top, verbose), str(f)])
             passes.append(mb)
 
         # tile-join names the output after its inputs unless told otherwise, so the name
