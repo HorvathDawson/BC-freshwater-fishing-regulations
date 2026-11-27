@@ -106,6 +106,49 @@ def test_the_part_builder_refuses_a_braid_left_on_another_chain_and_takes_it_car
     assert sorted(sorted(p[14]) for p in parts) == [[1], [2], [3, 4]]
 
 
+def _chains_through_carry():
+    """The Kitsumkalum shape through the real `carry_side_channels`: the river's place covers its whole stem 1-2-3 (so
+    T228 carries braid 4 to it), the lake place's walk binds stem 3 only; each section's chain is its set of places."""
+    sid_of = {f"h{i}": i for i in (1, 2, 3, 4)}
+    ord_of = {1: 0, 2: 0, 3: 0, 4: 0}
+    touch = {1: {2}, 2: {1, 3}, 3: {2, 4}, 4: {3}}
+    placed = [{"location_id": "river", "mapped": True, "sections": ["h1", "h2", "h3"]},
+              {"location_id": "lake-walk", "mapped": True, "sections": ["h3"]}]
+    at = {s: set() for s in sid_of.values()}
+    for r in S.carry_side_channels(placed, set(), sid_of, ord_of, [4], touch):
+        for h in r["sections"]:
+            at[sid_of[h]].add(r["location_id"])
+    ids: dict = {}
+    return {s: ids.setdefault(frozenset(v), len(ids) + 1) for s, v in at.items()}
+
+
+def test_the_carry_rule_is_what_lets_the_part_builder_through(monkeypatch):
+    """L5: through the real function. With the rule the braid takes the lake walk with its stem and the parts build;
+    MUTATION: with it off the braid keeps the river's chain alone and the bundle refuses, as it refused gnis:3942."""
+    import pytest
+    from pipeline.deliver.bundle import access
+    monkeypatch.setattr(access, "mostly_inside", lambda db: set())
+    assert sorted(sorted(p[14]) for p in D.part_rows(_span_db(_chains_through_carry()))) == [[1], [2], [3, 4]]
+    monkeypatch.setattr(S, "SIDE_CHANNEL_BESIDE_A_PLACE_IS_IN_IT", False)
+    with pytest.raises(D.DerivedError, match="straddles two runs of its rule set"):
+        D.part_rows(_span_db(_chains_through_carry()))
+
+
+def test_a_braid_touching_no_main_channel_is_not_carried_on_a_partly_covered_water():
+    """The rule's words: a braid is carried when every stretch of main channel it touches is the place's. One touching
+    NO main channel (only a side channel the place already holds) has nothing to be beside: not carried on that ground
+    (it was in the measured build: 1 section of the Blanchard River, no answer moved). On a water covered whole T228
+    still carries it."""
+    sid_of = {f"h{i}": i for i in range(1, 6)}
+    ord_of = {1: 10, 2: 10, 3: 10, 4: 10, 5: 10}
+    touch = {1: {2, 3}, 2: {1}, 3: {1, 4}, 4: {3}, 5: set()}
+    off = [3, 4]                                            # 3 a placed channel off stem 1, 4 a channel off 3 only
+    part = [{"location_id": "p", "mapped": True, "sections": ["h1", "h3"]}]     # stem 1 of 1, 2, 5: part of the water
+    assert S.carry_side_channels(part, set(), sid_of, ord_of, off, touch)[0] is part[0]
+    whole = [{"location_id": "w", "mapped": True, "sections": ["h1", "h2", "h3", "h5"]}]
+    assert S.carry_side_channels(whole, set(), sid_of, ord_of, off, touch)[0]["sections"][-1] == "h4"
+
+
 # ---------------------------------------------------------------------------------------------- the chain order
 
 def _loc(lid, prec, fps, water_id=None):

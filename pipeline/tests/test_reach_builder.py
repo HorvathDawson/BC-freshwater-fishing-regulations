@@ -395,14 +395,14 @@ def test_policy_version_is_bumped_when_classify_changes():
         "a_lake_at_a_stretchs_top_is_no_lake_the_rule_binds":
             reach_build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS,
         "a_stop_holds_through_its_lake": tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE,
-        # (T1177, Whiteswan and Upper Arrow) pinned at 53
+        # (T1177, Whiteswan and Upper Arrow) pinned at 54
         "water_joining_the_rows_own_stream_above_its_lake_is_the_lakes_tributary":
             reach_build.WATER_JOINING_THE_ROWS_OWN_STREAM_ABOVE_ITS_LAKE_IS_THE_LAKES_TRIBUTARY,
         "a_river_stretch_in_a_lake_row_is_the_lakes_own_upper_end":
             reach_build.A_RIVER_STRETCH_IN_A_LAKE_ROW_IS_THE_LAKES_OWN_UPPER_END,
         "a_failed_scope_unbinds_the_row": reach_build.A_FAILED_SCOPE_UNBINDS_THE_ROW,
         "dfo_joining_water_stays_out": reach_build.DFO_JOINING_WATER_STAYS_OUT,
-        # (T1177) pinned at 53: replaces T743's "dfo_through_river_stays_out"
+        # (T1177) pinned at 54: replaces T743's "dfo_through_river_stays_out"
         "one_tributary_logic_for_dfo_places": reach_build.ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES,
         "verbatim_reads_are_guarded": reach_build.A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN,
         "lake_loops_leave_river_items": lake_loops.LAKE_LOOPS_LEAVE_RIVER_ITEMS,

@@ -1527,8 +1527,9 @@ def notes_for(payload: Mapping, regions: Sequence[str], item: Optional[str], day
 #: place takes that place, whether or not the place covers the water whole: the walk follows stems, so a lake place's
 #: tributary walk up a river (Redsand and Kitsumkalum lakes up the Kitsumkalum River above Kitsumkalum Lake) bound the
 #: stem and left its braids on the river's own places alone, one chain on the stem and another on its channels (the
-#: bundle refused gnis:3942: "a salmon-chain run straddles two runs of its rule set"). A braid that also touches stem
-#: the place does not cover crosses the place's cut and stays out (Morice "from the signs ... to Lamprey Creek": no
+#: bundle refused gnis:3942: "a salmon-chain run straddles two runs of its rule set"). A braid that touches no stem of
+#: its water (only side channels the place already holds) has nothing to be beside and is not carried on this ground. A
+#: braid that also touches stem the place does not cover crosses the place's cut and stays out (Morice "from the signs ... to Lamprey Creek": no
 #: creeping past a cut). False = the mutation pin: T228's rule, side channels carried only on a water covered whole.
 SIDE_CHANNEL_BESIDE_A_PLACE_IS_IN_IT = True
 
@@ -1579,7 +1580,9 @@ def carry_side_channels(placed: Iterable[dict], area_bound: Iterable[str], sid_o
                             todo.append(w)
                 seen |= braid
                 beside = {w for z in braid for w in touch.get(z, ()) if w not in off and ord_of.get(w) == o}
-                if (o in whole or (SIDE_CHANNEL_BESIDE_A_PLACE_IS_IN_IT and beside <= have)) \
+                # (T1177) a braid touching no main channel of its water has nothing to be beside: not carried on this
+                # ground (only on a water the place covers whole, T228)
+                if (o in whole or (SIDE_CHANNEL_BESIDE_A_PLACE_IS_IN_IT and beside and beside <= have)) \
                         and all(z in handle_of for z in braid):
                     add += sorted(braid)
         if add:
