@@ -47,7 +47,7 @@
     "1-2"
    ]
   },
-  "note": "FWA has MU 1-2, regulation has MU 1-21 (boundary issue)",
+  "note": "The book's unit is off by a line: FWA puts Langford Lake (gnis 16325, wbk 329676318) in MU 1-1, 50 m from the printed 1-2 (the old note's \"MU 1-21\" was a slip). Identity: the federal Vessel Operation Restriction Regulations, Schedule 3 item 20, \"Langford Lake near Esquimalt\", lies in this lake, and the row's platforms off Leigh Rd / Nixon Trail are here. Langford, Prior and Prospect are all printed 1-2 and lie in 1-1 (out-of-unit full audit, 2026-11-26).",
   "gnis_ids": [
    "16325"
   ]
@@ -3464,7 +3464,7 @@
     "7-16"
    ]
   },
-  "note": "FWA has MU 7-12, regulation has MU 7-16 (boundary issue). Crooked River Provincial Park is partly in both 7-24 and 7-16; the lake is in 7-24 which is very close to 7-16.",
+  "note": "The lake in Crooked River Provincial Park: wbk 329102648, in MU 7-24, 1.2 km from the printed 7-16 (the park touches both units). The federal Vessel Operation Restriction Regulations, Schedule 2 item 14, \"Squaw Lake west of Crooked River\", lies in this lake; the stocking records name it SQUARE LAKE / SQUAW LAKE. (The old note's \"FWA has MU 7-12\" was about another Square Lake.) Out-of-unit full audit, 2026-11-26.",
   "waterbody_keys": [
    "329102648"
   ]
