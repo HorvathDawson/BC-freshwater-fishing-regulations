@@ -69,7 +69,12 @@ ATLAS_INPUTS: dict[str, str] = {
     "curated:waters.tidal_split_authority": "cut_shores (`splits.coast.load_authority`: which splits are DFO-written)",
     "curated:waters.shore_held": "cut_shores (`splits.coast_held.load`: the owner's rulings on single lines)",
     "source:fwa_coast": "cut_shores (`splits.coast.CoastGeometry`: FWA river polygons + land mass)",
+    # T1229: an override naming a waterbody key FWA leaves nameless makes that item, named by its `name_verbatim`
+    "curated:regulations.book_name_links": "build_registry (`registry.build.pinned_by_override`)",
 }
+
+#: (T1229) inputs listed after atlases were recorded: an atlas recorded before one says so (`behind`), never "changed"
+LISTED_AFTER: dict[str, str] = {"curated:regulations.book_name_links": "T1229, 2026-11-27"}
 
 #: curated keys named in the atlas build's modules that are NOT recorded, and why
 NOT_ATLAS_INPUTS: dict[str, str] = {
@@ -211,7 +216,10 @@ def behind(build_dir: Path, now: dict[str, str] | None = None) -> list[str]:
             continue
         name = default_path(key).name
         how = REBUILD
-        if have is None:
+        if have is None and key in LISTED_AFTER:
+            out.append(f"{name} ({key}): the atlas was recorded before this input was listed ({LISTED_AFTER[key]}) — "
+                       f"rebuild: {how}")
+        elif have is None:
             out.append(f"{name} ({key}): the atlas records no digest of it — rebuild: {how}")
         elif have.startswith("not read"):
             out.append(f"{name} ({key}): the atlas was built without it, {have} — rebuild: {how}")
