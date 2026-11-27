@@ -552,6 +552,12 @@ class FishingSynopsisParser:
         for note in verdict.notes:
             # (review of #323) a rule that might hide text but cannot be sure keeps it, and says so: never silent
             print(f"  [visible] PDF page {page_num}: {note}", file=sys.stderr)
+        if result.rows:
+            # on a page with rows a gated hit is no stderr line among many: it goes on the run's one [unsure] line and
+            # the gate fails on it unless it is on the owner's list (known_unsure.json)
+            result = PageResult(metadata=result.metadata, rows=result.rows,
+                                unsure=[{"pdf_page": page_num, "kind": k, "text": t} for k, t in verdict.hits
+                                        if k in GATED_UNSURE])
         if verdict.disagreements:
             # pdfplumber placed a glyph elsewhere than MuPDF (and both renderers) draw it: its verdict is sure, its
             # place in the layout is not. Refused where rows are read; said out loud where none are.
@@ -1057,6 +1063,30 @@ def keep_page(result: PageResult, page_num: int) -> Optional[PageResult]:
 
 #: (T1190) the struck-through items already seen and recorded; a strike not on this list is NEW (owner 2026-11-26)
 KNOWN_STRIKES = Path(__file__).resolve().parent / "known_strikes.json"
+#: (re-review of #323) what the visible-text method keeps but cannot judge, on a page with rows: each hit must be on the
+#: owner's list (KNOWN_UNSURE, by page + kind + text) or the gate fails. Banner pages without rows stay stderr notes.
+GATED_UNSURE = ("possible-strike", "image-clip-unknown")
+KNOWN_UNSURE = Path(__file__).resolve().parent / "known_unsure.json"
+
+
+def load_known_unsure(path: Path = KNOWN_UNSURE) -> List[Dict[str, Any]]:
+    """The hits the owner accepted. A missing or malformed file raises naming it (never 'none known')."""
+    doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(doc.get("items"), list) or not all({"pdf_page", "kind", "text"} <= set(i) for i in doc["items"]):
+        raise ValueError(f"{path}: 'items' must be a list of {{pdf_page, kind, text, ...}}")
+    return doc["items"]
+
+
+def unsure_report(hits: List[Dict[str, Any]], known: List[Dict[str, Any]]) -> Tuple[Optional[str], List[Dict]]:
+    """ONE line for a run: every gated hit on a page with rows, the NEW ones (not on the owner's list) named."""
+    if not hits:
+        return None, []
+    seen = {(k["pdf_page"], k["kind"], k["text"]) for k in known}
+    new = [h for h in hits if (h["pdf_page"], h["kind"], h["text"]) not in seen]
+    parts = [f"PDF p.{h['pdf_page']} {h['kind']} {h['text']!r}" + (" NEW" if h in new else "") for h in hits]
+    line = (f"[unsure] {len(hits)} kept-but-unjudged item(s) on pages with rows"
+            + (f", {len(new)} NEW (not in {KNOWN_UNSURE.name})" if new else "") + ": " + "; ".join(parts))
+    return line, new
 _STRUCK_RUN = re.compile(r"(?:[^\s~-]+ )?~~(.+?)~~")
 
 
@@ -1205,6 +1235,9 @@ class SynopsisExtractor:
         # Sort pages by page number to maintain order
         all_pages.sort(key=lambda x: x.metadata.page_number)
         line, _new = strike_report([r.to_dict() for p in all_pages for r in p.rows], load_known_strikes())
+        if line:
+            print(line, file=sys.stderr)
+        line, _new = unsure_report([h for p in all_pages for h in p.unsure], load_known_unsure())
         if line:
             print(line, file=sys.stderr)
 

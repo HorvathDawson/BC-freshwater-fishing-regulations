@@ -100,7 +100,8 @@ class PageVerdict:
     struck: Set[int]
     disagreements: List[Tuple[int, str, Tuple[float, float], Tuple[float, float]]]
     hidden_reasons: Dict[int, List[str]]
-    notes: List[str] = field(default_factory=list)      # what the method kept because it could not be sure, by kind
+    notes: List[str] = field(default_factory=list)      # one line per hit: what was kept because it could not be sure
+    hits: List[Tuple[str, str]] = field(default_factory=list)   # the same hits as (kind, text)
 
 
 # ---------------------------------------------------------------- geometry
@@ -166,6 +167,10 @@ def _inside(x: float, y: float, r: Rect) -> bool:
 
 def _overlap(a: Rect, b: Rect) -> bool:
     return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+
+
+def _contains(outer: Rect, inner: Rect) -> bool:
+    return outer[0] <= inner[0] and outer[1] <= inner[1] and outer[2] >= inner[2] and outer[3] >= inner[3]
 
 
 def _isect(a: Rect, b: Rect) -> Rect:
@@ -312,10 +317,12 @@ def _image_clip(seq: int, timeline: List[dict], page_r: Rect) -> Tuple[Rect, boo
     return _in_force(maybe, page_r)
 
 
-def _images(page: "pymupdf.Page", log, off_layers: frozenset, timeline: List[dict]) -> List[Tuple[int, Rect, bool, bool]]:
-    """Painted images in paint order (the bbox log's index is MuPDF's seqno): (seqno, the rectangle it SURELY paints,
-    opaque = a plain image with no mask in a layer that is on, sure = its clip and groups are known to be rectangles
-    and opaque; when not sure, the rectangle is only an outer bound)."""
+def _images(page: "pymupdf.Page", log, off_layers: frozenset,
+            timeline: List[dict]) -> List[Tuple[int, Rect, Rect, bool, bool]]:
+    """Painted images in paint order (the bbox log's index is MuPDF's seqno): (seqno, `guess` = the rectangle it paints
+    if every clip that might be in force is (the least it can paint), `raw` = the bbox log's rectangle before any clip
+    (the most), opaque = a plain image with no mask in a layer that is on, sure = those clips are rectangles and the
+    groups opaque). Hidden only when sure and the guess covers; covered by `raw` only: `image-clip-unknown`."""
     info = page.get_image_info()
     painted = [(seq, tuple(r), kind, layer) for seq, (kind, r, layer) in enumerate(log)
                if kind in ("fill-image", "fill-imgmask")]
@@ -331,7 +338,7 @@ def _images(page: "pymupdf.Page", log, off_layers: frozenset, timeline: List[dic
             opaque = not info[k].get("has-mask") and not (layer and layer in off_layers)
             k += 1
         clip, plain, normal = _image_clip(seq, timeline, page_r)
-        out.append((seq, _isect(r, clip), opaque, plain and normal))
+        out.append((seq, _isect(r, clip), r, opaque, plain and normal))
     return out
 
 
@@ -391,12 +398,16 @@ def judge(page: "pymupdf.Page", off_layers: frozenset = frozenset()) -> List[Gly
             maybe = [f for f in maybe_fills if f.seqno > g.seqno and _overlap(f.rect, b)]
             if maybe and all(any(f.covers_point(x, y) for f in maybe) for x, y in _samples(b)):
                 g.unsure.append("fill-under-a-clip-path")   # covered only if the clip's box were the clip: kept
-        for seq, r, opaque, sure in images:
-            if opaque and seq > g.seqno and r[0] <= b[0] and r[1] <= b[1] and r[2] >= b[2] and r[3] >= b[3]:
-                if sure:
-                    g.hidden.append("image")
-                    break
-                g.unsure.append("image-under-a-clip-path")
+        for seq, guess, raw, opaque, sure in images:
+            if not opaque or seq <= g.seqno:
+                continue
+            if sure and _contains(guess, b):
+                g.hidden.append("image")
+                break
+            # (re-review of #323) the drawing list gives clips no paint order, so which clip an image is drawn in is a
+            # guess: covered by its unclipped rectangle but not surely by the guess, the glyph stays, named
+            if _contains(raw, b) and "image-clip-unknown" not in g.unsure:
+                g.unsure.append("image-clip-unknown")
 
     # overdrawn: a later copy of the same glyph at the same origin, in ANOTHER span (a ligature's parts share an
     # origin inside one span), wholly covers the earlier one
@@ -569,12 +580,12 @@ def page_verdict(plumber_page) -> PageVerdict:
     chars = plumber_page.chars
     paired = pair(glyphs, chars, plumber_page.height, n)
     visible, struck, reasons, disagree = set(), set(), {}, []
-    unsure: Dict[str, List[str]] = {}
+    unsure: Dict[str, List[int]] = {}
     for i, (c, g) in enumerate(zip(chars, paired)):
         if g.visible:
             visible.add(i)
             for kind in g.unsure:
-                unsure.setdefault(kind, []).append(c["text"])
+                unsure.setdefault(kind, []).append(i)
         else:
             reasons[i] = list(g.hidden)
         if g.struck:
@@ -583,5 +594,22 @@ def page_verdict(plumber_page) -> PageVerdict:
         if abs(ox - g.origin[0]) > ORIGIN_AGREEMENT_PT or abs(oy - g.origin[1]) > ORIGIN_AGREEMENT_PT:
             disagree.append((i, c["text"], (round(ox, 2), round(oy, 2)),
                              (round(g.origin[0], 2), round(g.origin[1], 2))))
-    notes = [f"{len(t)} char(s) kept, {kind}: {''.join(t).strip()[:60]!r}" for kind, t in sorted(unsure.items())]
-    return PageVerdict(n, visible, struck, disagree, reasons, notes)
+    hits = _hits(unsure, chars)
+    notes = [f"kept, {kind}: {text!r}" for kind, text in hits]
+    return PageVerdict(n, visible, struck, disagree, reasons, notes, hits)
+
+
+def _hits(unsure: Dict[str, List[int]], chars: List[dict]) -> List[Tuple[str, str]]:
+    """One hit per run of chars of one kind in content order, the spaces between them included (a banner heading is one
+    hit, not one per word), whole: never cut short, so a hit next to another on the page is never lost."""
+    out: List[Tuple[str, str]] = []
+    for kind, idx in sorted(unsure.items()):
+        run = [idx[0]]
+        for i in idx[1:]:
+            if all(not chars[k]["text"].strip() for k in range(run[-1] + 1, i)):
+                run.append(i)
+                continue
+            out.append((kind, "".join(chars[k]["text"] for k in range(run[0], run[-1] + 1)).strip()))
+            run = [i]
+        out.append((kind, "".join(chars[k]["text"] for k in range(run[0], run[-1] + 1)).strip()))
+    return out

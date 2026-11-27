@@ -7,7 +7,7 @@ copies (not re-exports) so that the v2 package is fully self-contained.
 """
 
 from typing import Any, Dict, Iterator, List, Optional
-from attrs import define, asdict
+from attrs import Factory, define, asdict
 
 
 # ==========================================
@@ -62,10 +62,12 @@ class PageMetadata:
 
 @define(frozen=True, cache_hash=True)
 class PageResult:
-    """Result of extracting a single page."""
+    """Result of extracting a single page. `unsure` (T1190): the visible-text hits of a gated kind on a page that holds
+    rows ({pdf_page, kind, text}), for the run's one `[unsure]` line and the gate; not part of `to_dict`."""
 
     metadata: PageMetadata
     rows: List[WaterbodyRow]
+    unsure: List[Dict[str, Any]] = Factory(list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {

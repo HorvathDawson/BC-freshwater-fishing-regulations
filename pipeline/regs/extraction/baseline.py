@@ -86,6 +86,11 @@ def page_rows(args) -> List[Dict[str, Any]]:
     """Extract one PDF page with the current code; one {key, box, row} per row the extraction KEEPS
     (`extract_synopsis.keep_page`: the sample table and empty pages give none). The row crop is recorded,
     never rendered."""
+    return page_reading(args)["rows"]
+
+
+def page_reading(args) -> Dict[str, Any]:
+    """`page_rows` plus the page's gated visible-text hits (`unsure`, T1190), for the gate."""
     pdf_path, pdf_page = args
     import pdfplumber
     from pipeline.regs.extraction.extract_synopsis import FishingSynopsisParser, keep_page
@@ -103,23 +108,27 @@ def page_rows(args) -> List[Dict[str, Any]]:
         with pdfplumber.open(pdf_path) as pdf:
             result = keep_page(parser.extract_rows(pdf.pages[pdf_page - 1], page_num=pdf_page), pdf_page)
     if result is None:
-        return []
-    return [{"key": row_key(pdf_page, boxes[r.image]), "box": boxes[r.image], "row": r.to_dict()}
-            for r in result.rows]
+        return {"rows": [], "unsure": []}
+    return {"rows": [{"key": row_key(pdf_page, boxes[r.image]), "box": boxes[r.image], "row": r.to_dict()}
+                     for r in result.rows], "unsure": list(result.unsure)}
 
 
-def extract(pdf_path: Path, pages: Optional[List[int]] = None, workers: int = 4) -> List[Dict[str, Any]]:
+def extract(pdf_path: Path, pages: Optional[List[int]] = None, workers: int = 4,
+            unsure: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
+    """Every row the current code reads, page by page; `unsure` (when given) collects the gated visible-text hits."""
     import pdfplumber
     if pages is None:
         with pdfplumber.open(pdf_path) as pdf:
             pages = list(range(1, len(pdf.pages) + 1))
     workers = max(1, min(workers, 4))                    # heavy jobs run <= 4 workers
     if workers == 1 or len(pages) == 1:
-        found = [page_rows((str(pdf_path), n)) for n in pages]
+        found = [page_reading((str(pdf_path), n)) for n in pages]
     else:
         with ProcessPoolExecutor(max_workers=workers) as ex:
-            found = list(ex.map(page_rows, [(str(pdf_path), n) for n in pages]))
-    return [r for page in found for r in page]
+            found = list(ex.map(page_reading, [(str(pdf_path), n) for n in pages]))
+    if unsure is not None:
+        unsure.extend(h for page in found for h in page["unsure"])
+    return [r for page in found for r in page["rows"]]
 
 
 # ---------------------------------------------------------------- the baseline
@@ -278,7 +287,8 @@ def check(manifest_path: Path, accepted_path: Path, pdf_path: Path, *, pages: Op
               f"synopsis_diff.", file=sys.stderr)
         return 2
     accepted = load_accepted(accepted_path, manifest)
-    got = extract(pdf_path, pages, workers)
+    hits: List[Dict[str, Any]] = []
+    got = extract(pdf_path, pages, workers, unsure=hits)
     res = compare(manifest, got, accepted, pages)
     scope = "the whole book" if pages is None else f"PDF page(s) {', '.join(map(str, pages))}"
     print(f"check-against {Path(manifest_path).name} ({manifest['book']}), {scope}: {res['compared']} baseline "
@@ -297,9 +307,14 @@ def check(manifest_path: Path, accepted_path: Path, pdf_path: Path, *, pages: Op
     for k in strikes["unseen"]:
         print(f"  STRIKE GONE  {k['water']} PDF p.{k.get('pdf_page')} {k['text']!r}: recorded for this book in "
               f"known_strikes.json, not read now")
+    from pipeline.regs.extraction.extract_synopsis import load_known_unsure, unsure_report
+    line, new_unsure = unsure_report(hits, load_known_unsure())
+    res["unsure"] = {"line": line, "hits": hits, "new": new_unsure}
+    if line:
+        print("  " + line)
     if report:
         write_json(res, report, one_line_key=None)
-    return 1 if res["unexplained"] or res["stale"] or strikes["new"] or strikes["unseen"] else 0
+    return 1 if res["unexplained"] or res["stale"] or strikes["new"] or strikes["unseen"] or new_unsure else 0
 
 
 def check_strikes(got: List[Dict[str, Any]], pdf_sha: str, pages: Optional[Iterable[int]] = None) -> Dict[str, Any]:
