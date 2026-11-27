@@ -51,4 +51,14 @@ identical before and after apart from the renames it lists; `curated_digest()` a
 (`python -m pipeline.atlas.inputs`) identical per file; a mini release (`pipeline/tools/mini_release.py`) with identical
 bytes. PR 1 proves `yaml.safe_load` of the old and new config.yaml equal, and lists where every removed sentence lives.
 
-Depends: none. Size: M. Owner: no (decided above). Model: Opus.
+Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
+
+## Owner
+
+- [ ] 2026-11-26 — The existing `curated.py` field notes still carry ticket ids and dates (T226, T322, T1021, P08/P18,
+  "owner 2026-11-13", …). Strip them too, git keeping the record (A), or leave them (B)? Default: B; PR 1 moved
+  config.yaml's facts without them and left the existing notes alone.
+- [ ] 2026-11-26 — Two existing notes are stale: the `Waters` docstring's reason for keeping `tidal` / `areas`
+  (also in `data/curated/waters/README.md`), and the `Domain` docstring "Stocking and bathymetry are named before they exist"
+  (`pipeline/bathymetry/accept.py` writes their files beside these keys). Fix them in PR 2 (A) or leave them (B)?
+  Default: A, with the renames (PR 4) and the null placeholders (PR 2).

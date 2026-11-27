@@ -101,15 +101,15 @@ class Waters(BaseModel):
     """Curation that shapes the atlas itself, and the lists of waters (T324 naming: `*_calls` = the owner's per-item
     decisions, `*_waters` = a list of waters).
 
-    `tidal` and `areas` keep their pre-T324 attribute names (files `tidal_limits.json`, `area_closures.json`): the
-    tiles stage keys on its code's bytes and that code reads these two, so renaming them would rebuild and re-ship the
-    tiles for nothing. Rename them when that code next changes anyway."""
+    `tidal` and `areas` still have their pre-T324 attribute names (files `tidal_limits.json`, `area_closures.json`); a
+    later step of T1192 renames them."""
 
     model_config = _STRICT
 
     #: AUTHORED: every curated cut on a water (`cuts.json`, was `splits.json`); the atlas sectionizer applies them.
     cuts: FilePath
-    #: AUTHORED (a person typed it): name variants on FWA waters, read by the atlas registry.
+    #: AUTHORED: name variants on FWA waters, read by the atlas registry and the name matchers (`tools.mined_names`,
+    #: the bathymetry and stocking proposals, `bathymetry.contours`).
     name_variants: FilePath
     #: PROMOTED (T224): name variants found in city layers, OSM, ECCC… that the owner accepted (auto rule or
     #: review mark); each name carries its real source. Written by `pipeline.tools.mined_names`.
@@ -130,7 +130,8 @@ class Waters(BaseModel):
     shore_held: FilePath
     #: T678 (owner 2026-11-11): one row per `split` row of `tidal`: is the boundary DFO-written (quoted from the cached
     #: DFO copies)? Only DFO-written splits have authority over the tidal cut; the rest are listed for the owner, never
-    #: dropped. A sidecar because `tidal` is rewritten from the marks with its own fields only. No reader yet.
+    #: dropped. A sidecar because `tidal` is rewritten from the marks with its own fields only. Read by the atlas
+    #: (`splits.coast.load_authority`).
     #: Classified by Claude, each row cited; the owner may correct it.
     tidal_split_authority: FilePath
     #: T322 (owner 2026-10-30): APPLIED: the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
@@ -348,7 +349,7 @@ class DataTree(BaseModel):
 
 
 class GeneratedAtlas(BaseModel):
-    """Graph builds. One subdirectory per region, plus `full/`."""
+    """Graph builds: `full/`, plus any small named build (`--gnis` / `--bbox`, named by `--out`)."""
 
     model_config = _STRICT
 
@@ -381,7 +382,8 @@ class GeneratedRegs(BaseModel):
 class GeneratedGauges(BaseModel):
     model_config = _STRICT
 
-    #: The per-station published JSON (`<station>.json`).
+    #: The published feed: per-station JSON (`<station>.json`) plus `index.json`, `clim.json`, `stats.json`,
+    #: `temp_history.json`.
     feeds: Path
     #: The matcher's RAW output (`pipeline.gauges.generate.match`), never the curated file: only
     #: `promote` writes `CURATED.gauges.matches`, and only after it has shown what would be demoted (T94).
@@ -435,12 +437,13 @@ class Generated(BaseModel):
     regs: GeneratedRegs
     gauges: GeneratedGauges
     #: The CU polygons `pipeline.runtiming.parse` stitches from the cached Explorer tiles (`cu_polygons.geojson`, read
-    #: by `pipeline.runtiming.feed`) and the run-timing feed (`feed/`); re-runnable from `data/source/runtiming/`.
+    #: by `pipeline.runtiming.feed.release`, which `pipeline.deliver runtiming` runs) and the run-timing feed (`feed/`);
+    #: re-runnable from `data/source/runtiming/`.
     runtiming: Path
-    #: T226: what `pipeline.regs.inseason.publish` writes for the app (`matches.json` beside the feed; served as
-    #: `/feeds/inseason/` by the local tile server, R2 `feeds/inseason/` in production). The app's file is
-    #: `feed/matches.json`, beside a captured feed `index.json` in dev; `resolved.json` is the curated matches resolved
-    #: on a release (`pipeline.regs.inseason.resolve`), never committed.
+    #: T226: `feed/matches.json`: what `pipeline.regs.inseason.publish` writes for the app. The local tile server serves
+    #: `feed/` as `/feeds/inseason/`; in production it is R2 `feeds/inseason/`, beside the feeds worker's `index.json`
+    #: (in dev `--feed` copies a captured `index.json` beside it). `resolved.json`: the curated matches resolved on a
+    #: release (`pipeline.regs.inseason.resolve`), never committed.
     inseason: Path
     #: T330: the curation review's machine-written inputs (candidates, pre-verify, suggestions, the Q154 sample, the
     #: mined name candidates, the T185 proposals) — moved out of docs/; the review app and `regs/review/*` read them.

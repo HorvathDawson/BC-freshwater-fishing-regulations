@@ -27,4 +27,4 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 
 Hand-edited files are checked by `python -m pipeline.tools.audit.check_curated --waters` (the build's first step).
 Config keys: `CURATED.waters.<file stem>`, except `tidal` (tidal_limits.json) and `areas` (area_closures.json), which
-keep their old attribute names until the tile code next changes (renaming them would rebuild and re-ship the tiles).
+still have their old attribute names; a later step of T1192 renames them.
