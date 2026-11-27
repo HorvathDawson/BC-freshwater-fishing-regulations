@@ -392,6 +392,17 @@ class TestOneRootPerTree:
         with pytest.raises(C.ConfigError, match=r"unknown key curated\.base$"):
             C.parse_config(p)
 
+    def test_the_live_curated_root_has_no_second_door(self):
+        # `roots.curated` is the live root even under CURATED_ROOT: ROOTS and get_path refuse it, naming CURATED
+        from project_config import ProjectConfig
+        with pytest.raises(AttributeError, match=r"ROOTS\.curated .* read CURATED\.base: it honours CURATED_ROOT"):
+            C.ROOTS.curated
+        for keys, door in ((("curated", "waters", "cuts"), "CURATED.waters.cuts"), (("curated",), "CURATED"),
+                           (("roots", "curated"), "CURATED.base")):
+            with pytest.raises(KeyError, match=rf"{re.escape('.'.join(keys))} is a curated path: read it as "
+                                               rf"`{re.escape(door)}` .* it honours CURATED_ROOT"):
+                ProjectConfig().get_path(*keys)
+
     def test_one_root_moves_its_whole_tree(self, tmp_path):
         # a tree moves by one line: every path of it follows, and no other tree's
         p = _edit(tmp_path, ("roots", "generated"), lambda n, last: n.__setitem__(last, str(tmp_path / "gen")))

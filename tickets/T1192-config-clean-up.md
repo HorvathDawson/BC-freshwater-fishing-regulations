@@ -52,8 +52,17 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
    and `GENERATED.regs.extraction.parent` (`passage_boxes.py`) still find a generated folder beside another key.
    - [ ] Gap (spin-off 3): `dfo_salmon.closed_areas` is declared but kept out of `build.curated_digest`
      (`NOT_DELIVER_INPUTS`), as before: deliver reads it but is covered only because deliver depends on reach.
-   - [ ] `check_curated`'s stocking / bathymetry `frozen_ids` (`waterbodies.waterbody_id`, `sheets.waterbody_identifier`)
-     do not match the shape `bathymetry.accept` writes (`matches[].chart_id`): the check raises once the file exists.
+   - [x] (review) `check_curated`'s bathymetry entry reads the accept's shape (`matches.chart_id`, the sheet code the
+     roster's `waterbody_identifier` is). [ ] Its stocking entry is back to `frozen=None`: the accept writes
+     `matches[].chart_id` = FIDQ `wbody_id`, but no fetcher writes `bc_stocked_waterbodies.json`, so its
+     `waterbody_id` is not shown to be that id; wire it with the roster's writer.
+   - [ ] Generated root + literal writers still undeclared: `build-manifest.json` and `build-logs/` (`pipeline/build.py`),
+     `deliver-cache/` (`pipeline/deliver/__main__.py`, `pipeline/tools/mini_release.py`), generated `release/` and
+     `release/checks` (`pipeline/release.py`, `pipeline/deliver/__main__.py`).
+   - [ ] Folders on disk under `data/generated/` with no declared key: `municipal/`, `owner1028/`, `.trace-reach-*`
+     (writers not traced).
+   - [ ] `closed_areas.json` absent reads as no closed areas (unchanged behaviour; a later guard could raise when the
+     marks hold a verified closed area and the file is missing).
 5. Per-leaf C lines (a stage keys on the config leaves it reads, not the whole block).
 6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused.
 7. Option A: the file list moves into the schema; config.yaml about 12 lines. The file names live as schema-side names

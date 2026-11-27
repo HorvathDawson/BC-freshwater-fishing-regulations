@@ -983,7 +983,8 @@ class _RootsView:
     """`ROOTS.release`: one root of `roots:`, absolute. Each read records that one value (`roots.<name>`), never the
     block. The curated tree is read through `CURATED` (its `base` honours `CURATED_ROOT`), the source tree through
     `SOURCE`, the generated tree through `GENERATED`; `ROOTS` is for a root with no tree model (`release`) and for the
-    few that need a root itself (`ROOTS.generated`)."""
+    few that need a root itself (`ROOTS.generated`). `ROOTS.curated` is refused: `roots.curated` is the LIVE root even
+    under `CURATED_ROOT`, a door to a mix of live and sandboxed files."""
 
     def __init__(self):
         self._loader = load_roots                     # the model it reads (as every lazy here holds its loader)
@@ -993,6 +994,9 @@ class _RootsView:
             raise AttributeError(name)
         if name not in Roots.model_fields:
             raise AttributeError(f"config.yaml `roots:` names no {name!r} (it names {', '.join(Roots.model_fields)})")
+        if name == "curated":
+            raise AttributeError(f"ROOTS.curated is the live root whatever {ROOT_ENV} says: read CURATED.base: it "
+                                 f"honours {ROOT_ENV}")
         return _root_read(name)
 
     def __repr__(self) -> str:

@@ -93,6 +93,11 @@ class ProjectConfig:
             # one access path: `SOURCE` also records the source root each name is joined to, which this would not
             raise KeyError(f"config.yaml {'.'.join(keys)} is a named source file: read it as "
                            f"`SOURCE.{keys[-1]}` (pipeline.common.curated)")
+        if keys[:1] == ("curated",) or keys[:2] == ("roots", "curated"):
+            # the model holds the LIVE tree; `CURATED` honours the `CURATED_ROOT` sandbox, which this would not
+            raise KeyError(f"config.yaml {'.'.join(keys)} is a curated path: read it as `CURATED"
+                           f"{''.join('.' + k for k in keys[1:]) if keys[0] == 'curated' else '.base'}` "
+                           f"(pipeline.common.curated): it honours CURATED_ROOT")
         if found and isinstance(node, PurePath):
             return Path(node)
         raise KeyError(f"config.yaml has no path at {'.'.join(keys)}")

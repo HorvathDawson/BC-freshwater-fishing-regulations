@@ -186,7 +186,7 @@ def code_digest(roots) -> str:
 #: minus these, which no stage reads: review inputs and worklists (the slough page calls, the split confidence
 #: overrides, the owner's found-name calls — `tools.mined_names` turns those into `found_names.json`, which IS hashed —
 #: the closed-domains list) and the hand worklist with no build reader (`unmapped_waters`).
-NOT_DELIVER_INPUTS = ("base", "review.proposal_overrides", "review.closed",
+NOT_DELIVER_INPUTS = ("review.proposal_overrides", "review.closed",
                       "waters.slough_page_calls", "waters.found_name_calls", "waters.unmapped_waters",
                       # T679 #13: read by the added-streams generator only (its output, added_streams.json, is read)
                       "waters.added_stream_calls",
