@@ -227,13 +227,14 @@ def workflow_steps(path: Path = WORKFLOW) -> list[dict]:
 
 
 def tier_markers(steps: list[dict]) -> str:
-    got = [s for s in steps if s.get("name") == TESTS]
-    if len(got) != 1:
-        raise SystemExit(f"before-push: pipeline-ci.yml has {len(got)} step(s) named {TESTS!r}")
-    m = re.search(r'-m "([^"]+)"', got[0]["run"])
-    if not m:
-        raise SystemExit(f"before-push: pipeline-ci.yml's {TESTS!r} step names no -m marker expression")
-    return m.group(1)
+    """(T1193) the steps' "Tests" marker expression, by the one reader (`pipeline/tests/tiers.py` `ci_markers`)."""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from pipeline.tests.tiers import ci_markers
+    try:
+        return ci_markers(WORKFLOW, steps)
+    except RuntimeError as e:
+        raise SystemExit(f"before-push: {e}") from None
 
 
 def app_scanners(root: Path = ROOT) -> list[str]:

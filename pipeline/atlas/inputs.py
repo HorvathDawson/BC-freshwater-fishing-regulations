@@ -18,7 +18,12 @@ VALUES: `sha256:<hex>` of the file's bytes, except
   - `curated:waters.cuts` is `anchors:<hex>`, the digest of every cut's ANCHOR (`splits.anchor_digests`, the record
     `split_anchors.json` already keeps, T133): a label, note or confidence edit moves no cut and reaches the bundle
     through `splits.resolved.json` / the sidecars, so it is no reason to refuse;
-  - `source:fwa_gpkg` is `stamp:<size>:<mtime>` (9.5 GB; `pipeline.build.stamp` identifies it the same way);
+  - `source:fwa_gpkg` and `source:fwa_coast` are `sha256:<hex>` of the file's bytes too (T1223; 10.2 GB and 0.6 GB),
+    through the stage keys' cache (`pipeline.common.source_hash`: hashed once per size, mtime, ctime and inode). This
+    module only READS that cache (the live one, `source_hash.live_cache()`): `check`, `behind` and the atlas build
+    write nothing there. A miss is hashed in memory: the gpkg is in the cache once a `pipeline build` has keyed its
+    stages, so the warning every plan prints rehashes at most the coast file (0.6 GB, under a second). An atlas built
+    before T1223 records `stamp:<size>:<mtime>` here: it reads behind on both (`behind` says why) and is rebuilt;
   - `not read (<flag>)` when the build was told to skip the file (`--no-splits`, `--no-added-lakes`, …): an atlas
     built without a curated input is behind it.
 
@@ -76,35 +81,47 @@ NOT_ATLAS_INPUTS: dict[str, str] = {
                                          "is the atlas input",
 }
 
+#: (T1223) the two big source files, recorded by content through `pipeline.common.source_hash` (read-only here)
+SOURCE_KEYS = ("source:fwa_gpkg", "source:fwa_coast")
+#: (T1223) how an atlas built before T1223 recorded them (size + mtime): never compared, only named by `behind`
+OLD_STAMP = "stamp:"
+
 #: what catches a stale input up. Every input needs a rebuild (T678: there is no post-build tidal rewrite).
 REBUILD = "python -m pipeline build --atlas --promote"
 META = "graph.pkl.meta.json"
 
 
+#: A RECORD NAME IS FIXED ONCE WRITTEN: an atlas meta keeps the name its input was recorded under, so a `CURATED` key
+#: renamed since keeps its old record name, mapped here to the key it is now (the one place that says so). Without this
+#: a rename would leave every recorded atlas "records no digest" of a file whose bytes never moved.
+RECORD_NAME_OF: dict[str, str] = {"curated:waters.areas": "waters.area_closures",
+                                  "curated:waters.tidal": "waters.tidal_limits"}
+
+
 def curated_path(key: str) -> Path:
     """The file a `curated:a.b` key names in the tree now (sandbox-aware: `CURATED_ROOT`)."""
     v = CURATED
-    for part in key.split(":", 1)[1].split("."):
+    for part in RECORD_NAME_OF.get(key, key.split(":", 1)[1]).split("."):
         v = getattr(v, part)
     return Path(v)
 
 
 def default_path(key: str) -> Path:
     if key == "source:fwa_gpkg":
-        from project_config import get_config
-        return Path(get_config().fwa_data_gpkg)
+        from pipeline.common.curated import SOURCE
+        return SOURCE.fwa_gpkg
     if key == "source:fwa_coast":
-        from project_config import get_config
-        return Path(get_config().fwa_coast_gpkg)
+        from pipeline.common.curated import SOURCE
+        return SOURCE.coast_gpkg
     return curated_path(key)
 
 
 def digest(key: str, path: Path) -> str:
     """One input's digest (module docstring, VALUES). A missing file raises (AGENTS 37)."""
     path = Path(path)
-    if key in ("source:fwa_gpkg", "source:fwa_coast"):
-        st = path.stat()
-        return f"stamp:{st.st_size}:{int(st.st_mtime)}"
+    if key in SOURCE_KEYS:
+        from pipeline.common import source_hash
+        return "sha256:" + source_hash.sha256(path, cache=source_hash.live_cache(), root=REPO_ROOT, persist=False)
     data = path.read_bytes()
     if key == "curated:waters.cuts":
         from pipeline.atlas.splits.splits import anchor_digests
@@ -198,6 +215,9 @@ def behind(build_dir: Path, now: dict[str, str] | None = None) -> list[str]:
             out.append(f"{name} ({key}): the atlas records no digest of it — rebuild: {how}")
         elif have.startswith("not read"):
             out.append(f"{name} ({key}): the atlas was built without it, {have} — rebuild: {how}")
+        elif key in SOURCE_KEYS and have.startswith(OLD_STAMP):
+            out.append(f"{name} ({key}): recorded by size and mtime (an atlas built before T1223), not by content — "
+                       f"rebuild: {how}")
         else:
             out.append(f"{name} ({key}): changed since the atlas was built — rebuild: {how}")
     return out + code_behind(build_dir)
@@ -208,7 +228,8 @@ def behind(build_dir: Path, now: dict[str, str] | None = None) -> list[str]:
 #: (T1171) THE CODE AN ATLAS WAS BUILT FROM, beside its inputs in the meta (`CODE`):
 #:     {"modules": {file: sha256 AS IMPORTED}, "reads": {code file it read (`stepcache.is_code_read`): sha256},
 #:      "packages": {distribution: version} (only those owning a package it imported; one no distribution owns is
-#:      `module:<top>=<file>`: its bytes), "config": {config.yaml key it read: digest AS READ}, "python": sys.version,
+#:      `module:<top>=<place>`: its bytes, the place relative to the repo or sys.prefix, T1187), "config": {config.yaml
+#:      key it read: digest AS READ}, "python": sys.version,
 #:      "sqlite": the SQLite library, "git": {"commit": HEAD when the build started, "dirty": whether a recorded file
 #:      differed from that commit}}
 #: or {"unrecorded": why} when the build could not record it at all. The build-record machinery (`_trace`,
@@ -273,13 +294,24 @@ def code_stamp(trace_dir: Path | None, git: dict | None = None) -> dict:
     reads = {k: (MOVED if k in moved else v) for k, v in code["reads"].items()}     # hashed now: only if unmoved
     two = {x.split(" (")[0][len("config "):] for x in trace.moved if x.startswith("config ")}   # read as two values
     config = {k: (MOVED if k in two else v) for k, v in code["config"].items()}
-    out = {"modules": modules, "reads": reads, "packages": stepcache.package_versions(code["packages"]),
+    # (T1187) a module no distribution owns by its name and a portable place (`stepcache.portable_where`), never the
+    # absolute path it was loaded from: `code_behind` finds its file now by name
+    packages = {(_portable(d) if d.startswith(stepcache.UNOWNED) else d): v
+                for d, v in stepcache.package_versions(code["packages"]).items()}
+    out = {"modules": modules, "reads": reads, "packages": packages,
            "config": config, **stepcache.stage_env()}
     if git:
         files = sorted({*modules, *reads, stepcache.CONFIG_FILE})
         changed = _git_changed(git["commit"], files)
         out["git"] = {"commit": git["commit"], "dirty": True if changed is None else bool(changed)}
     return out
+
+
+def _portable(entry: str) -> str:
+    """(T1187) `module:<top>=<absolute where>` as the record keeps it: `module:<top>=<portable place>`."""
+    from pipeline.common import stepcache
+    top, where = stepcache.unowned_parts(entry)
+    return stepcache.unowned_entry(top, stepcache.portable_where(where))
 
 
 def record_code(build_dir: Path, trace_dir: Path | None, git: dict | None = None) -> dict:
@@ -322,7 +354,9 @@ def code_behind(build_dir: Path) -> list[str]:
     for f in files:                     # a MOVED one changed during the build: git cannot say against what
         out.append(f"{f} (code): {MOVED}" if was[f] == MOVED else
                    f"{f} (code): changed since the atlas was built{how.get(f, '')}")
-    pk = stepcache.package_versions(code["packages"])
+    # (T1187) an unowned module is found NOW by its name (`stepcache.unowned_identity_now`), never at the recorded path
+    pk = {d: (stepcache.unowned_identity_now(*stepcache.unowned_parts(d)) if d.startswith(stepcache.UNOWNED)
+              else stepcache.package_versions([d])[d]) for d in code["packages"]}
     for d in sorted(pk):
         if pk[d] != code["packages"][d]:
             if d.startswith(stepcache.UNOWNED):
@@ -332,11 +366,15 @@ def code_behind(build_dir: Path) -> list[str]:
             else:
                 out.append(f"package {d} {code['packages'][d]} -> {pk[d]} (code: packages): the atlas was built with "
                            f"{d} {code['packages'][d]} (owner pick A: a routine bump of a package it imports counts)")
+    # (T1192) per value read: a key the atlas never read is not here, and one renamed or deleted since says so
+    from pipeline._trace import CONFIG_MISSING
     cf = stepcache.config_now(code["config"])
     for k in sorted(cf):
         if cf[k] != code["config"][k]:
             out.append(f"config.yaml {k} (code: config): "
-                       + (MOVED if code["config"][k] == MOVED else "changed since the atlas was built"))
+                       + (MOVED if code["config"][k] == MOVED else
+                          "no longer in config.yaml (renamed or deleted since the atlas was built)"
+                          if cf[k] == CONFIG_MISSING else "changed since the atlas was built"))
     env = stepcache.stage_env()
     for k in sorted(env):
         if code.get(k) != env[k]:
@@ -416,7 +454,7 @@ def backfill(build_dir: Path, *, log=print) -> tuple[dict[str, str], list[str]]:
     # coast inputs on the first coast-cut atlas) is proven and added
     for key in missing:
         path = default_path(key)
-        if key in ("source:fwa_gpkg", "source:fwa_coast"):
+        if key in SOURCE_KEYS:
             why = f"mtime {time.strftime('%Y-%m-%d %H:%M', time.localtime(path.stat().st_mtime))} before the build" \
                 if path.stat().st_mtime <= ts else None
         else:

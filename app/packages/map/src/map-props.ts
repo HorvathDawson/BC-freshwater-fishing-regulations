@@ -249,6 +249,13 @@ export interface MapProps {
    */
   onPressObstacle?: (props: Readonly<Record<string, unknown>>) => void;
   /**
+   * (T1194) A tapped GAUGE DOT (or its label pill; the `gauge-dot` / `gauge-label` layers, drawn only with `gauges`): its
+   * station. Asked FIRST of every tap, before the spot's neighbours, the obstacle and the water: a dot sits on its river and
+   * the finger means the dot. The hit is a 44 px box, the nearest dot taken (`gauge-hit.ts`, the one rule both engines read).
+   * Absent (the Map tab, pick mode, search open): a dot is not tappable and the tap goes to the water as before.
+   */
+  onPressGauge?: (station: string) => void;
+  /**
    * (T292) A tap that hit no water section but landed on NOT FISHING WATER (the `not_fishing_water` layer: a sewage
    * lagoon, tailings pond or dump): its `kind` (null on an older atlas), which `@app/core` `notFishingSheet` turns into
    * words. Asked after the water and before tidal water. Absent, the tap falls through to tidal water as before.

@@ -78,7 +78,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, ROOTS
 from pipeline.common.feed_formats import DFO_STATE_KEYS, FEED_FORMATS, FEED_MIN_APP
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon import fetch as F
@@ -1003,7 +1003,7 @@ def check_release(out: Path, release: Optional[Path] = None) -> int:
     for is one the release shows, or one it states it does not (`off`). 1 when a feed place is neither — its rules reach
     no angler (a place curated after the release: the next deliver carries it)."""
     from pipeline.deliver.release.manifest import live
-    rel = Path(release) if release else live(GENERATED.release)
+    rel = Path(release) if release else live(ROOTS.release)
     ix = Path(out) / "index.json"
     if not ix.exists():
         raise SystemExit(f"live check-release: no feed {ix} — write it: python -m pipeline.regs.dfo_salmon.live run")

@@ -9,7 +9,7 @@
  * are shared by every visit.
  */
 import { fastPorts } from "./fastFail";
-import { isRating, leadUpDays, localDate, reported, reportFailure, now as clockNow } from "@app/core";
+import { isRating, leadUpDays, localDate, readingCurrentNow, reported, reportFailure, now as clockNow } from "@app/core";
 import type { Spot, Visit } from "./model";
 import { leadUpFor } from "./leadup";
 import { capturePanelOnDay, dayFlowStation, fillDayFlow, livePanel, panelOfAnswer, pendingPanel, type DayFlowPorts } from "./dayFlow";
@@ -182,7 +182,7 @@ export async function captureVisit(spot: Spot, raw: CaptureVisitInput): Promise<
   })();
   const [reading, weather, leadUp] = await Promise.all([
     earlier || !station ? Promise.resolve(station ? { station, discharge: null, level: null, percentile: null, at: null } : null)
-      : readingNow(input.source, station),
+      : readingNow(input.source, station, now),
     (input.weather?.at(at.lat, at.lon, new Date(visitedAt)) ?? Promise.resolve(null)).catch(reported(null)),
     leadUpFor(input.source, input.weather, at, station, leadUpDays(visitedAt), input.feed),
   ]);
@@ -198,10 +198,11 @@ export async function captureVisit(spot: Spot, raw: CaptureVisitInput): Promise<
 }
 
 /** The lead station's reading now; nothing read is a reading of nulls (the station is still the one that speaks). */
-async function readingNow(source: CaptureInput["source"], station: string): Promise<Spot["reading"]> {
+async function readingNow(source: CaptureInput["source"], station: string, now: number): Promise<Spot["reading"]> {
   try {
     const got = await source.gaugeNow(station as Parameters<typeof source.gaugeNow>[0]);
-    if (!got) return { station, discharge: null, level: null, percentile: null, at: null };
+    // (T1205) not current by the clock (a kept copy, offline): not frozen as this visit's conditions
+    if (!got || !readingCurrentNow(got.value.at, now)) return { station, discharge: null, level: null, percentile: null, at: null };
     return { station, discharge: got.value.discharge, level: got.value.level, parameter: got.value.parameter,
              percentile: got.value.percentile ?? null, at: got.value.at ?? null };
   } catch (e) {

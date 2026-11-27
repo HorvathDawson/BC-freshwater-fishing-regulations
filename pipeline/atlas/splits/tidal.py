@@ -112,7 +112,7 @@ def load(path: Optional[Path] = None) -> list[Limit]:
     """The curated tidal limits. A missing file is refused (AGENTS 37: never a silent "nothing is tidal")."""
     if path is None:
         from pipeline.common.curated import CURATED
-        path = CURATED.waters.tidal
+        path = CURATED.waters.tidal_limits
     p = Path(path)
     if not p.exists():
         raise SystemExit(f"tidal: {p} is missing — make it: python -m pipeline.tools.tidal_limits")

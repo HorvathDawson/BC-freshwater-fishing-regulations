@@ -44,6 +44,15 @@ describe("(T625) a shared link opened by the installed app", () => {
     expect(() => parseAppLink("https://canifishthis.ca/water/x?fit=-118,49,-114,52")).toThrow(/a box beside a water/);
   });
 
+  it("(T1194) a web-app `/?gauge=<station>` opens that gauge's page on the phone; a bad station, or one beside a water or a box, throws by name", async () => {
+    expect(parseAppLink("https://canifishthis.ca/?gauge=08MH024", NOW))
+      .toEqual({ slug: null, item: null, view: "regs", part: null, theme: null, days: D0, page: P0, problems: [], gauge: "08MH024" });
+    expect(await resolveAppLink("https://canifishthis.ca/?gauge=08MH024", async () => { throw new Error("no fetch"); }, NOW)).toEqual({ gauge: "08MH024", ...D0 });
+    expect(() => parseAppLink("https://canifishthis.ca/?gauge=../x")).toThrow(/gauge=\.\.\/x is not a station id/);
+    expect(() => parseAppLink("https://canifishthis.ca/?gauge=08MH024&regs=gnis:1")).toThrow(/a gauge beside a water or a box/);
+    expect(() => parseAppLink("https://canifishthis.ca/?gauge=08MH024&fit=-118,49,-114,52")).toThrow(/a gauge beside a water or a box/);
+  });
+
   it("(T1034, T1035) the link's part and theme are carried to the open, never read and dropped; a bad one throws", async () => {
     const fetcher = async (_u: string) => new Response(page("gnis:3062"));
     expect(await resolveAppLink("https://canifishthis.ca/?regs=gnis:3062&view=map&part=2&theme=dark", fetcher, NOW))

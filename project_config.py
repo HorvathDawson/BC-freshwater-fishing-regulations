@@ -5,10 +5,9 @@ Provides a single source of truth for all configuration settings, paths, and env
 All pipelines import from this module to access configuration.
 """
 
-import yaml
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Dict, Any
-from dotenv import load_dotenv
+from pydantic import BaseModel
 
 
 class ProjectConfig:
@@ -19,6 +18,7 @@ class ProjectConfig:
 
     _instance = None
     _config = None
+    _model = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -35,17 +35,12 @@ class ProjectConfig:
         return Path(__file__).parent
 
     def _load_config(self):
-        """Load configuration from config.yaml and .env file."""
-        # Load environment variables
-        load_dotenv(self.project_root / ".env")
-
-        # Load YAML config
-        config_path = self.project_root / "config.yaml"
-        if not config_path.exists():
-            raise FileNotFoundError(f"Config file not found: {config_path}")
-
-        with open(config_path, "r") as f:
-            self._config = yaml.safe_load(f)
+        """Load configuration from config.yaml (no `.env` is read: T1222)."""
+        # (T1192) config.yaml through the ONE schema (`pipeline.common.curated.Config`): an unknown, missing or `null` key
+        # anywhere in the file stops here, naming it. `_config` is the parsed YAML (what the build's keys digest),
+        # `_model` the validated view every accessor returns.
+        from pipeline.common.curated import parse_config
+        self._config, self._model = parse_config(self.project_root / "config.yaml")
 
 
     @property
@@ -60,19 +55,15 @@ class ProjectConfig:
     # Path Accessors
     # ========================================================================
 
-    def get_path(self, *keys: str, default: str = "") -> Path:
+    def get_path(self, *keys: str) -> Path:
         """
-        Get a path from config by nested keys, returning as Path object.
+        Get a path from config by nested keys, as the validated model holds it (absolute, under the repo root).
 
         Args:
-            *keys: Nested keys to traverse (e.g., "output", "synopsis", "extract")
-            default: Default value if path not found
-
-        Returns:
-            Path object (relative to project root if not absolute)
+            *keys: Nested keys to traverse (e.g., "cache", "dfo_salmon")
 
         Raises:
-            KeyError: (T435) the keys name no string and no default is given — never `Path()` (the cwd)
+            KeyError: (T435) the keys name no path — never `Path()` (the cwd); (T1192) no `default=` either
         """
         value = self._config
         found = True
@@ -84,24 +75,36 @@ class ProjectConfig:
                 value = None
                 found = False
                 break
-        # (T1171) a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`)
+        # (T1171) a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`);
+        # a path of a block with a root is that root joined with the value, so the root is read too (`curated.TREES`)
         from pipeline import _trace
+        from pipeline.common.curated import TREES
         _trace.config_read(".".join(keys), value, missing=not found)
+        if found and keys[0] in TREES and len(keys) > 1:
+            _trace.config_read(f"roots.{keys[0]}", self._config["roots"][keys[0]])
 
-        if isinstance(value, str):
-            path = Path(value)
-            # Make relative paths relative to project root
-            if not path.is_absolute():
-                path = self.project_root / path
-            return path
-
-        if default:
-            return Path(default)
+        node = self._model
+        for key in keys:
+            if not isinstance(node, BaseModel) or key not in type(node).model_fields:
+                node = None
+                break
+            node = getattr(node, key)
+        if keys[:1] == ("source",):
+            # one access path: `SOURCE` also records the source root each name is joined to, which this would not
+            raise KeyError(f"config.yaml {'.'.join(keys)} is a named source file: read it as "
+                           f"`SOURCE.{keys[-1]}` (pipeline.common.curated)")
+        if keys[:1] == ("curated",) or keys[:2] == ("roots", "curated"):
+            # the model holds the LIVE tree; `CURATED` honours the `CURATED_ROOT` sandbox, which this would not
+            raise KeyError(f"config.yaml {'.'.join(keys)} is a curated path: read it as `CURATED"
+                           f"{''.join('.' + k for k in keys[1:]) if keys[0] == 'curated' else '.base'}` "
+                           f"(pipeline.common.curated): it honours CURATED_ROOT")
+        if found and isinstance(node, PurePath):
+            return Path(node)
         raise KeyError(f"config.yaml has no path at {'.'.join(keys)}")
 
-    def get_str_path(self, *keys: str, default: str = "") -> str:
+    def get_str_path(self, *keys: str) -> str:
         """Get a path as string (useful for config values that expect strings)."""
-        return str(self.get_path(*keys, default=default))
+        return str(self.get_path(*keys))
 
     # ========================================================================
     # Pipeline — Extraction & Parsing
@@ -112,28 +115,15 @@ class ProjectConfig:
     # LIVE HERE, over an `output:` tree in config.yaml. They are now
     # `pipeline.common.curated.GENERATED` — see the `generated:` block in config.yaml.
     #
-    # They are gone rather than forwarded on purpose. `get_path` below returns `Path()` —
-    # the CURRENT DIRECTORY — for a key that does not exist: no exception, no warning. That
+    # They are gone rather than forwarded on purpose. `get_path` below returned `Path()` —
+    # the CURRENT DIRECTORY — for a key that did not exist: no exception, no warning. That
     # is how `fwa_output_dir` came to name `output/pipeline/graph/`, a directory that never
     # existed, and hand it to seven parser tools as their default registry. Two front doors
     # to the same paths is the condition that let it hide; there is now one.
 
-    @property
-    def synopsis_pdf_path(self) -> Path:
-        """Get path to fishing synopsis PDF."""
-        return self.project_root / "data" / "source" / "fishing_synopsis.pdf"
-
-    @property
-    def fwa_data_gpkg(self) -> Path:
-        """Get path to unified FWA GeoPackage for FWADataAccessor."""
-        return self.get_path("data_accessor", "gpkg_path")
-
-    @property
-    def fwa_coast_gpkg(self) -> Path:
-        """T678: the FWA river polygons (`rivers`) and land mass (`land`) for the coast-crossing tidal cut, fetched by
-        `data/fetch_data.py` (`fwa_rivers`, `fwa_land`). Its own file so the main gpkg's stamp, an input of every
-        shipped atlas, never moves for it."""
-        return self.get_path("data_accessor", "coast_gpkg_path")
+    # `synopsis_pdf_path`, `fwa_data_gpkg`, `fwa_coast_gpkg`, `fetch_output_gpkg_path` and `fetch_temp_dir` are the
+    # named source files now, `pipeline.common.curated.SOURCE` (`SOURCE.fwa_gpkg`): the gpkg had three names here and
+    # in config.yaml, and the fetcher wrote the coast file by a fourth (`_RETIRED` names each replacement).
 
     # ========================================================================
     # Caches (T1021)
@@ -141,28 +131,11 @@ class ProjectConfig:
 
     @property
     def dfo_salmon_cache(self) -> Path:
-        """DFO's saved salmon region pages (`cache.dfo_salmon`): raw/ (the newest per region), history/ (every page
-        fetched), manifest.json. Gitignored machine state outside data/, written by `pipeline.regs.dfo_salmon.fetch` /
-        `churn`; one name for every reader. Never typed as a literal: a relative `cache/dfo_salmon` is a second tree
-        from any other working directory."""
+        """DFO's saved salmon region pages (`cache.dfo_salmon`, under `roots.cache`): raw/ (the newest per region),
+        history/ (every page fetched), manifest.json. Gitignored machine state outside data/, written by
+        `pipeline.regs.dfo_salmon.fetch` / `churn`; one name for every reader. Never typed as a literal: a relative
+        `cache/dfo_salmon` is a second tree from any other working directory."""
         return self.get_path("cache", "dfo_salmon")
-
-    # ========================================================================
-    # Data Fetch
-    # ========================================================================
-
-    @property
-    def fetch_output_gpkg_path(self) -> Path:
-        """Get path for data fetch output GeoPackage (legacy, for fetch_data.py).
-
-        Everything `data/fetch_data.py` writes lands under data/source/, where this gpkg is: a fetcher that writes
-        where no reader looks is how a freshness gate goes quiet about a roster nobody is reading."""
-        return self.get_path("data", "fetch", "output_gpkg")
-
-    @property
-    def fetch_temp_dir(self) -> Path:
-        """Get temporary directory for data fetch operations."""
-        return self.get_path("data", "fetch", "temp_dir")
 
 
 _RETIRED = {
@@ -175,6 +148,12 @@ _RETIRED = {
     "builds_dir": "GENERATED.atlas.builds",
     "review_build_dir": "GENERATED.build()",
     "added_streams_dir": "GENERATED.added_streams",
+    # the named source files (config.yaml `source:`)
+    "synopsis_pdf_path": "SOURCE.synopsis_pdf",
+    "fwa_data_gpkg": "SOURCE.fwa_gpkg",
+    "fwa_coast_gpkg": "SOURCE.coast_gpkg",
+    "fetch_output_gpkg_path": "SOURCE.fwa_gpkg",
+    "fetch_temp_dir": "SOURCE.fetch_temp",
 }
 
 
@@ -191,9 +170,11 @@ def _retired(self, name):
             f"CURATED.regulations.synopsis (pipeline.common.curated)."
         )
     if name in _RETIRED:
+        new = _RETIRED[name]
+        was = "with the `output:` tree" if new.startswith("GENERATED") else "for config.yaml's `source:` block"
         raise AttributeError(
-            f"ProjectConfig.{name} was retired with the `output:` tree. "
-            f"Use `from pipeline.common.curated import GENERATED` and {_RETIRED[name]}."
+            f"ProjectConfig.{name} was retired {was}. "
+            f"Use `from pipeline.common.curated import {new.split('.')[0]}` and {new}."
         )
     raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
 

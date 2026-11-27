@@ -26,7 +26,7 @@ from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
 from pipeline.atlas.graph.graph import build_section_geometries, build_stream_graph
 from pipeline.atlas.graph.tributaries import subtree
 from pipeline.common.models import NodeKind
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, SOURCE
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 
@@ -111,7 +111,7 @@ def main() -> None:
     ap.add_argument("--pad", type=float, default=3000.0, help="auto-bbox padding metres")
     ap.add_argument("--out", default=None, help="output gpkg (default: config output.added_streams/added_demo.gpkg)")
     args = ap.parse_args()
-    gpkg = args.gpkg or get_config().fwa_data_gpkg
+    gpkg = args.gpkg or SOURCE.fwa_gpkg
     out = args.out or str(GENERATED.added_streams / "added_demo.gpkg")
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     result = run(args.geojson, gpkg, bbox=args.bbox, pad=args.pad, out=out)

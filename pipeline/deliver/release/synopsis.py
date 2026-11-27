@@ -41,7 +41,7 @@ def _sha(p: Path) -> str:
 def shipped(src: Path, cache: Optional[Path] = None) -> Path:
     """The release's copy of `src`: downsampled + every /Annots indirect, render-gated, cached by the source's digest."""
     from pipeline.common.curated import GENERATED
-    cache = cache or (GENERATED.base / "synopsis")
+    cache = cache or GENERATED.synopsis
     cache.mkdir(parents=True, exist_ok=True)
     out = cache / f"synopsis-{_sha(src)[:12]}-c{CAP}q{QUALITY}v{INDEX_V}-{_libs()}.pdf"
     if not out.exists():

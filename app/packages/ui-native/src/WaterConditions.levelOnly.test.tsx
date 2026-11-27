@@ -15,7 +15,7 @@
  * lead (chosen in Flow, `leadOver`), and the switch offers the WATER's quantities. MUTATION: drop `offer` from
  * `ConditionsPanel`'s `cardQuantity(...)` -> after Level the switch is gone and Flow cannot be picked again.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { CONDITIONS_WORDS, LEVEL_ONLY_WATER, NO_RECORD_LINE } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
@@ -23,6 +23,11 @@ import type { ItemId, Panel, SectionId, WaterSource } from "@app/data";
 import { clearAnswers, clearPanelCache } from "@app/ui";
 import { WaterConditions } from "./WaterViews";
 import { LIGHT } from "./theme";
+
+
+// (T1205) a reading is current by the clock: these fixtures read at 2026-09-04T06:00Z, so the clock is 06:05Z that day
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true }); vi.setSystemTime(Date.parse("2026-09-04T06:05:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 afterEach(cleanup);
 beforeEach(() => { clearPanelCache(); clearAnswers(); });

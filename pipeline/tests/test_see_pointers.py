@@ -108,8 +108,10 @@ def test_no_pointer_row_binds_a_rule(corpus):
     # the 24 "self-pointers" of the retired cross_references.json (deleted, T331) are aliases: one water, two names
     ("r2:marshall_creek@2-4", "alias"), ("r2:jones_lake@2-3", "alias"),
     ("r4:revelstoke_lake@4-38", "alias"), ("r6:copper_river@6-9", "alias"),
+    # PANTHER LAKE 1-5 "See Healy Lake" is Healy Lake's other name, "HEALY (Panther) LAKE" (owner 2026-11-26, T1118 D6)
+    ("r1:panther_lake@1-5", "alias"),
     # another water, governed by the named row
-    ("r4:koch_creek@4-16", "see"), ("r1:panther_lake@1-5", "see"),
+    ("r4:koch_creek@4-16", "see"),
     ("r6:bulkley_river@6-9", "see"),
     # a tributaries row pointing at its mainstem's row has rules of its own: never an alias
     ("r7:west_road_blackwater_river_s_tributaries@7-10", "see"),
@@ -127,7 +129,7 @@ def test_aliases_and_twins_are_counted(corpus):
     from collections import Counter
     got = Counter(see_relation(ce, [corpus[t] for t in s.entry_ids])
                   for ce in corpus.values() for s in ce.see)
-    assert got == {"alias": 34, "see": 34, "twin": 8}    # + z4:kootenay_annual (G), + Kitimat -> zp:steelhead, + Nahatlatch (Q37), + Endako 7A (T89)
+    assert got == {"alias": 35, "see": 33, "twin": 8}    # + z4:kootenay_annual (G), + Kitimat -> zp:steelhead, + Nahatlatch (Q37), + Endako 7A (T89); Panther see -> alias (T1118 D6)
 
 
 def test_a_region_5_copy_of_a_region_6_lake_binds_nothing(corpus):

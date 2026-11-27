@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 /**
- * (T564, T1039) THE PAGE AND THE APP SHOW ONE GAUGE THE SAME.
+ * (T564, T1039, T1194) THE PAGE AND THE APP SHOW ONE GAUGE THE SAME.
  *
- *   the reading   what the public gauge page prints (the reading, its standing) is what the app's own functions say for the
- *                 same station file: the worker's `cardModel` + `cardFacts` make the facts the page reads, from core's words.
+ *   the reading   (T1194) the page MOUNTS the app's gauge screen's `GaugeReading` (the figure, its standing, the colour bar): there is
+ *                 no second wording of a reading on the page.
  *   the chart     (T1039, owner 2026-11-23: "the gauge website … should also have the same chart as the website") the page's
  *                 chart IS the app's: its source answers the chart's two questions exactly as the release source does for
  *                 the same feed and the same release rows (every span, quantity and model), and the page mounts the very
@@ -13,9 +13,9 @@
 import "../render-setup";
 import "./globals";
 import { createElement as h } from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, waitFor } from "@testing-library/react";
-import { figure, noChartSentence, standing, standingLong, STORE_CONTACT } from "@app/core";
+import { GAUGE_PAGE_WORDS, figure, noChartSentence, standing, standingLong, STORE_CONTACT } from "@app/core";
 import { httpFeed, stationChartSource, type SectionId, type StationId, type WaterSource } from "@app/data";
 import { NO_RECORD_LINE } from "@app/core";
 import { parseManifest } from "../../packages/data/src/manifest";
@@ -26,12 +26,10 @@ import { clim3 } from "../../packages/data/src/release/packed";
 import { RELEASE_QUERIES as R } from "../../packages/data/src/release/queries";
 import { makeReleaseSource } from "../../packages/data/src/release/source";
 import { THEMES } from "../../packages/ui-native/src/theme";
-import { cardFacts, cardModel, type CardStation } from "../../workers/feeds/src/gauges/card/card";
 import { CHART_FAILED, GaugeChart, GaugeChartRoot, GaugePageGetApp, mountGaugeChart, type PageSource } from "./gaugeChart";
 import { ConditionsPanel } from "../../packages/ui-native/src/ConditionsPanel";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { showWebSpotsNotice, WebSpotsNotice } from "../../packages/ui-native/src/WebSpotsNotice";
-import { readingHtml, type Facts } from "./gaugeClient";
 
 const NOW = Date.parse("2026-11-08T12:00:00Z");
 const H = 3600_000, D = 24 * H;
@@ -127,20 +125,50 @@ async function settled(html: () => string, drawn = "About this forecast"): Promi
   return last;
 }
 
+// (T1205) a reading is current by the clock: the fixtures are of NOW, so the clock is too
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(NOW); });
+afterEach(() => { vi.useRealTimers(); });
+
 describe("the gauge page shows what the app shows for one station", () => {
-  const file: CardStation = { ...STATION, now: { ...STATION.now, parameter: "discharge" } } as unknown as CardStation;
-  const model = cardModel(ST, "Chilliwack River at Vedder Crossing", file, NOW);
-  const facts = JSON.parse(JSON.stringify(cardFacts(model, new Date(NOW)))) as Facts;
   const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
-  it("the reading and its standing are the app's words", () => {
-    const t = text(readingHtml(facts, NOW));
-    expect(t).toContain(`${figure(22.2)} m³/s`);
-    // (T908, owner 2026-11-19: "Now vs normal + trend" first, one line like "Above normal for Nov 19 · rising") the band leads the
-    // line and core's rank follows it; the whole card line is no longer one run of text
+  it("(T1194) the page MOUNTS THE SHARED READING: the figure, its standing and the colour bar are the app's gauge screen's component, and gaugeClient.ts no longer words a reading", async () => {
+    const view = render(h(GaugeChartRoot, { source: stationChartSource(ST, httpFeed(BASE, feedFetch()), CLIM), station: ST }));
+    await waitFor(() => expect(view.getByTestId("gauge-figure").textContent).toBe(`${figure(22.2)} m³/s`));
     const [band, rank] = standingLong(0.2, standing(0.2)).split(" · ");
-    expect(t).toContain(`${band} for Nov 8`);
-    expect(t.toLowerCase()).toContain(rank!.toLowerCase());
+    const line = view.getByTestId("gauge-standing").textContent!.toLowerCase();
+    expect(line).toContain(band!.toLowerCase());
+    expect(line).toContain(rank!.toLowerCase());
+    expect(view.container.querySelector('[data-testid="legend-ramp"]')).not.toBeNull();       // the Conditions tab's colour bar
+    expect(view.container.querySelector('[data-testid="gauge-reading"]')).not.toBeNull();
+    // no second copy: the page's script has no reading words left in it
+    expect(Object.keys(await import("./gaugeClient"))).not.toEqual(expect.arrayContaining(["readingHtml"]));
+    cleanup();
+  });
+
+  it("(T1194, T1205) the site's mount judges the reading by the clock too: 9 h on, the same piece says when it last reported, with no figure, bar or trend", async () => {
+    vi.setSystemTime(NOW + 9 * H - H);       // the reading is of NOW - 1 h: now 9 h old
+    const view = render(h(GaugeChartRoot, { source: stationChartSource(ST, httpFeed(BASE, feedFetch()), CLIM), station: ST }));
+    await waitFor(() => expect(view.getByTestId("gauge-no-reading").textContent).toBe("No current reading. Last reported 2026-11-08 at 04:00 PT."));
+    for (const id of ["gauge-figure", "gauge-trend", "gauge-standing"]) expect(view.queryByTestId(id), id).toBeNull();
+    expect(view.container.querySelector('[data-testid="legend-ramp"]')).toBeNull();
+    cleanup();
+  });
+
+  it("(owner 2026-11-27) the site's mount shows the SAME trend word for a Level reading, none on a tidal gauge, and the tide's note", async () => {
+    const lvl = async () => ({ fetchedAt: NOW, value: { discharge: null, level: 531.25, parameter: "level", percentile: 0.5, standing: null, at: iso(NOW - H) } });
+    const series = (v: number[]) => async () => ({ value: { step: "1h", from: "", parameter: "level", values: v, band: [], now: null, forecast: null, forecasts: [],
+      at: v.map((_, i) => iso(NOW - (v.length - 1 - i) * 12 * H)) }, fetchedAt: NOW });
+    const src = (v: number[]) => ({ gaugeNow: lvl, gaugeSeries: series(v), gaugeParameters: async () => ["level"] }) as unknown as PageSource;
+    const rising = [531.0, 531.1, 531.2, 531.25, 531.25];
+    const view = render(h(GaugeChartRoot, { source: src(rising), station: ST, flags: { tidal: false, backwater: false, diversion: false } }));
+    await waitFor(() => expect(view.getByTestId("gauge-trend").textContent).toBe("· rising"));
+    cleanup();
+    const tide = render(h(GaugeChartRoot, { source: src(rising), station: ST, flags: { tidal: true, backwater: false, diversion: false } }));
+    await waitFor(() => expect(tide.getByTestId("gauge-figure").textContent).toBe("531.25 m"));
+    expect(tide.queryByTestId("gauge-trend")).toBeNull();
+    await waitFor(() => expect(tide.getByTestId("gauge-note").textContent).toBe(GAUGE_PAGE_WORDS.tidal));
+    cleanup();
   });
 
   it("(T1039) the page's source answers the chart exactly as the app's release source: every span, quantity and model", async () => {
@@ -245,14 +273,30 @@ describe("the gauge page shows what the app shows for one station", () => {
     showWebSpotsNotice(true);
     const spots = render(h(WebSpotsNotice, { palette: THEMES.light, contact: STORE_CONTACT }));
     showWebSpotsNotice(null);
-    expect(pageHtml).toBe(spots.container.querySelector('[data-testid="get-app"]')!.outerHTML);
+    // (T1194) one component, two callers: the page gives the buttons more room (`gap`) inside its foot card, so the markup differs, the words and buttons do not
+    const text = (html: string) => html.replace(/<[^>]+>/g, "|").replace(/\|+/g, "|");
+    expect(text(pageHtml)).toBe(text(spots.container.querySelector('[data-testid="get-app"]')!.outerHTML));
     for (const w of ["Get the app", "Join the Android test", "Join the iPhone test"]) expect(pageHtml, w).toContain(w);
   });
 
   it("(T1039) a series the source could not answer: the chart's place says so (shown; the hook reports it)", async () => {
     const broken: PageSource = { gaugeParameters: async () => ["discharge"], gaugeSeries: async () => { throw new Error("series broke"); }, gaugeNow: async () => null };
     const view = render(h(GaugeChart, { source: broken, station: ST }));
-    await waitFor(() => expect(view.getByTestId("gauge-chart-failed").textContent).toBe(CHART_FAILED));
+    await waitFor(() => expect(view.getByTestId("gauge-chart-failed").textContent).toBe(GAUGE_PAGE_WORDS.feedFailed));
+  });
+
+  it("(review 2026-11-27) a chart script that arrives LATE replaces the 'still loading' line and the failure line: the reading is drawn over whatever line is there", async () => {
+    for (const line of ["Still loading this gauge's reading…", "Could not load this gauge's reading. Reload the page. Environment Canada"]) {
+      const doc = document.implementation.createHTMLDocument("g");
+      doc.body.innerHTML = `<div id="gauge-chart"><p class="warn">${line}</p></div><div id="gauge-get-app"></div><script type="application/json" id="gauge-config">${JSON.stringify({
+        station: ST, facts: "https://data.example/feeds/cards/08MH001.json", live: BASE, clim: [{ parameter: "discharge", bands: Buffer.from(CLIM[0]!.bands).toString("base64") }],
+        fonts: null, weather: null, weatherAttribution: "", sky: {}, crash: null, env: "staging", release: "r1", contact: STORE_CONTACT,
+        source: { name: "Environment Canada", url: "https://wateroffice.ec.gc.ca/" }, flags: { tidal: false, backwater: false, diversion: false } })}</script>`;
+      mountGaugeChart(doc, feedFetch() as unknown as typeof fetch, () => NOW);
+      await waitFor(() => expect(doc.getElementById("gauge-chart")!.querySelector('[data-testid="gauge-reading"]')).not.toBeNull());
+      expect(doc.getElementById("gauge-chart")!.textContent).not.toContain("Reload the page");
+      expect(doc.getElementById("gauge-chart")!.textContent).not.toContain("Still loading");
+    }
   });
 
   it("(T1039) the page reads the app's feed file, never the share card; a file that cannot be read is shown and reported (W46)", async () => {
@@ -261,7 +305,7 @@ describe("the gauge page shows what the app shows for one station", () => {
       doc.body.innerHTML = `<div id="gauge-chart"></div><div id="gauge-get-app"></div><script type="application/json" id="gauge-config">${JSON.stringify({
         station: ST, facts: "https://data.example/feeds/cards/08MH001.json", live: BASE, clim: [{ parameter: "discharge", bands: clim }],
         fonts: '@font-face{font-family:"Archivo_400Regular";src:url(/assets/fonts/A.woff2)}',
-        weather: null, weatherAttribution: "", sky: {}, crash: "https://c/crash", env: "staging", release: "r1", contact: STORE_CONTACT })}</script>`;
+        weather: null, weatherAttribution: "", sky: {}, crash: "https://c/crash", env: "staging", release: "r1", contact: STORE_CONTACT, source: { name: "Environment Canada", url: "https://wateroffice.ec.gc.ca/" } })}</script>`;
       const sent: string[] = [];
       const inner = feedFetch(station);
       const fetchImpl = (async (u: string, init?: RequestInit) => {

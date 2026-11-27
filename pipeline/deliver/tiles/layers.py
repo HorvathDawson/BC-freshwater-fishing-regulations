@@ -113,7 +113,7 @@ WATER: tuple[LayerSpec, ...] = (
             "bundle's — so they are gone, 2026-10-03; containment is the bundle's `area:` items.)",
     ),
     LayerSpec(
-        name="stream_name", geometry="line", ladder="none", minzoom=8, decorative=True, alone=True,
+        name="stream_name", geometry="line", ladder="none", minzoom=4, decorative=True, alone=True,
         attrs=("name", "ord"),
         why="(T299) WHERE A STREAM'S NAME IS WRITTEN — the named `stream` sections of one water, MERGED into "
             "the longest lines they make (`export.export_stream_names`), drawn by nothing but the along-the-line "
@@ -123,7 +123,9 @@ WATER: tuple[LayerSpec, ...] = (
             "carried whole waters; this carries their names the same way without giving up the sections. "
             "Merged per (name, the zoom it is first drawn at), so a name never runs along water not yet drawn. "
             "`ord` is the largest Strahler order merged in: the label's zoom ladder and collision sort key.\n\n"
-            "DECORATIVE: no identity, not tapped, not highlighted. Built in a pass of its own (`alone`).",
+            "DECORATIVE: no identity, not tapped, not highlighted. Built in a pass of its own (`alone`).\n\n"
+            "(T1210, owner 2026-11-26: look A) FROM Z4: a river is named zoomed out too, one smoothed line per band "
+            "(`export.NAME_BANDS`), biggest order first (the label's sort key).",
     ),
     LayerSpec(
         name="lake", geometry="polygon", ladder="area", mvt_id=True,
@@ -138,6 +140,17 @@ WATER: tuple[LayerSpec, ...] = (
             "stream's polygon only: the first zoom its route line is in `stream` under the same id, absent when it "
             "has none — the selection rings the polygon only where the line (and its casing) is not drawn "
             "(`stream_polygon_lines.py` proves it on the written files).",
+    ),
+    LayerSpec(
+        name="lake_name", geometry="point", ladder="none", minzoom=4, maxzoom=7, decorative=True, alone=True,
+        attrs=("name", "area_m2"),
+        why="(T1210, owner 2026-11-26: look A) WHERE A LAKE'S NAME IS WRITTEN ZOOMED OUT: one point per lake water, "
+            "derived from the written `lake` layer file alone (`export.export_lake_names`). A lake's sections are its "
+            "parts and its tile pieces, so a polygon label named Williston Lake five times at z6; this names it once, "
+            "inside its biggest piece (pole of inaccessibility). A split lake's parts are one water (\"Williston Lake — "
+            "Zone A\" is Williston Lake): its name without the part, `area_m2` the parts' sum (the label's zoom ladder and "
+            "sort key), first drawn at the lake's own first zoom. To z7: `lake__label` names lakes from z8.\n\n"
+            "DECORATIVE: no identity, not tapped. Built in a pass of its own (`alone`).",
     ),
     LayerSpec(
         name="under_lake", geometry="line", ladder="area", minzoom=10,

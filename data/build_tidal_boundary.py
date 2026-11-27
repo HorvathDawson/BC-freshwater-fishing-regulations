@@ -29,7 +29,6 @@ from shapely.ops import unary_union
 from shapely.validation import make_valid
 
 from pipeline.common.curated import SOURCE
-from project_config import get_config
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
@@ -37,7 +36,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 # (T994 7) through the config's source tree (`pipeline.common.curated`), not a cwd-relative literal; run with PYTHONPATH=..
-DFO_GPKG = SOURCE.source / "DFO_TIDAL_BOUNDARY.gpkg"
+DFO_GPKG = SOURCE / "DFO_TIDAL_BOUNDARY.gpkg"
 SOURCE_LAYER = "dfodfooy__dfo_bc_pfma_subareas_chs_v3_gshp"
 HOLE_AREA_THRESHOLD_M2 = 10_000  # 1 ha — holes smaller than this are filled
 BUFFER_OUT_M = 1.0  # morphological smooth: expand
@@ -111,8 +110,7 @@ def save_layer(geom, layer_name, gpkg_path, crs="EPSG:3005"):
 
 
 def run(skip_upload: bool = False, skip_copy: bool = False):
-    config = get_config()
-    main_gpkg = Path(config.fetch_output_gpkg_path)
+    main_gpkg = SOURCE.fwa_gpkg
 
     if not DFO_GPKG.exists():
         raise FileNotFoundError(f"Source GPKG not found: {DFO_GPKG}")
@@ -169,7 +167,7 @@ def run(skip_upload: bool = False, skip_copy: bool = False):
     # ── Step 5: outward buffer ────────────────────────────────────────────────
     # Expands the tidal polygon by BUFFER_M so that stream segments that reach
     # right to the tidal edge are correctly clipped.  This margin is baked into
-    # the stored polygon (same approach as process_tidal_boundary.py MARGIN_M).
+    # the stored polygon.
     logger.info(f"Step 5: outward buffer +{BUFFER_M} m…")
     t = time.time()
     step4_geom = step3_geom.buffer(BUFFER_M)

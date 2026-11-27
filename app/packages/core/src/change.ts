@@ -106,14 +106,6 @@ export function codedChange(ratio: number): number {
 export const CHANGE_STOP_RATIOS: readonly number[] =
   [CHANGE_POLICY.fallRatio ** 2, CHANGE_POLICY.fallRatio, 1, CHANGE_POLICY.riseRatio, CHANGE_POLICY.riseRatio ** 2];
 
-/** (T908) WHAT THE MEASURED LINE HAS DONE over about a day, in one word, by the same "little change" factor (`STEADY_RATIO`) the forecast uses. Null when there is nothing to compare. */
-export const OBSERVED_TREND = { rise: "rising", steady: "steady", fall: "falling" } as const;
-export function observedTrend(before: number, now: number): (typeof OBSERVED_TREND)[keyof typeof OBSERVED_TREND] | null {
-  if (!(before > 0) || !(now >= 0)) return null;
-  const r = now / before;
-  return r >= STEADY_RATIO ? OBSERVED_TREND.rise : r <= 1 / STEADY_RATIO ? OBSERVED_TREND.fall : OBSERVED_TREND.steady;
-}
-
 export type ChangeKind = "big-rise" | "rise" | "steady" | "fall" | "big-fall";
 
 export function changeKind(ratio: number): ChangeKind {

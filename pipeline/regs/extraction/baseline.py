@@ -86,6 +86,11 @@ def page_rows(args) -> List[Dict[str, Any]]:
     """Extract one PDF page with the current code; one {key, box, row} per row the extraction KEEPS
     (`extract_synopsis.keep_page`: the sample table and empty pages give none). The row crop is recorded,
     never rendered."""
+    return page_reading(args)["rows"]
+
+
+def page_reading(args) -> Dict[str, Any]:
+    """`page_rows` plus the page's gated visible-text hits (`unsure`, T1190), for the gate."""
     pdf_path, pdf_page = args
     import pdfplumber
     from pipeline.regs.extraction.extract_synopsis import FishingSynopsisParser, keep_page
@@ -103,23 +108,27 @@ def page_rows(args) -> List[Dict[str, Any]]:
         with pdfplumber.open(pdf_path) as pdf:
             result = keep_page(parser.extract_rows(pdf.pages[pdf_page - 1], page_num=pdf_page), pdf_page)
     if result is None:
-        return []
-    return [{"key": row_key(pdf_page, boxes[r.image]), "box": boxes[r.image], "row": r.to_dict()}
-            for r in result.rows]
+        return {"rows": [], "unsure": []}
+    return {"rows": [{"key": row_key(pdf_page, boxes[r.image]), "box": boxes[r.image], "row": r.to_dict()}
+                     for r in result.rows], "unsure": list(result.unsure)}
 
 
-def extract(pdf_path: Path, pages: Optional[List[int]] = None, workers: int = 4) -> List[Dict[str, Any]]:
+def extract(pdf_path: Path, pages: Optional[List[int]] = None, workers: int = 4,
+            unsure: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
+    """Every row the current code reads, page by page; `unsure` (when given) collects the gated visible-text hits."""
     import pdfplumber
     if pages is None:
         with pdfplumber.open(pdf_path) as pdf:
             pages = list(range(1, len(pdf.pages) + 1))
     workers = max(1, min(workers, 4))                    # heavy jobs run <= 4 workers
     if workers == 1 or len(pages) == 1:
-        found = [page_rows((str(pdf_path), n)) for n in pages]
+        found = [page_reading((str(pdf_path), n)) for n in pages]
     else:
         with ProcessPoolExecutor(max_workers=workers) as ex:
-            found = list(ex.map(page_rows, [(str(pdf_path), n) for n in pages]))
-    return [r for page in found for r in page]
+            found = list(ex.map(page_reading, [(str(pdf_path), n) for n in pages]))
+    if unsure is not None:
+        unsure.extend(h for page in found for h in page["unsure"])
+    return [r for page in found for r in page["rows"]]
 
 
 # ---------------------------------------------------------------- the baseline
@@ -152,6 +161,33 @@ def cut(raw_path: Path, boxes_path: Path, pdf_path: Path, *, book: str, commit: 
                    "cut` when a book is accepted (runbook step 9); read by `extract_synopsis --check-against`. "
                    "Never edited by hand: a deliberate extractor change goes in accepted_diffs.json."),
         "version": VERSION, "book": book, "pdf_sha256": pdf_sha, "raw_data_sha256": raw_sha,
+        "extractor": {"commit": commit, "note": note},
+        "compared": ("canonical(row) over " + ", ".join(FIELDS) + "; symbols as a sorted set, everything else "
+                     "exact (whitespace included)"),
+        "rows_count": len(rows), "pages": dict(sorted(counts.items(), key=lambda kv: int(kv[0]))),
+        "rows": dict(sorted(rows.items())),
+    }
+
+
+def manifest_from_reading(got: List[Dict[str, Any]], pdf_sha: str, *, book: str, commit: str,
+                          note: str) -> Dict[str, Any]:
+    """(T1190) A manifest from a READING (`extract()`'s {key, box, row} list, as `dump` writes it) instead of an
+    extraction on disk: how one extractor read one PDF, so another extractor's reading of the same PDF is checked
+    against it with `check --manifest`. Rows are compared as the gate compares them (`canonical`: the text too)."""
+    rows: Dict[str, Dict[str, Any]] = {}
+    counts: Dict[str, int] = {}
+    for g in got:
+        r = g["row"]
+        if g["key"] in rows:
+            raise SystemExit(f"manifest: two rows at {g['key']}")
+        rows[g["key"]] = {"image": r["image"], "water": r["water"], "sha": row_sha(r), "fields": field_shas(r)}
+        counts[str(r["pdf_page"])] = counts.get(str(r["pdf_page"]), 0) + 1
+    return {
+        "_about": ("T1190: one extractor's READING of one PDF, row by row (key = PDF page + row box), cut by "
+                   "`python -m pipeline.regs.extraction.baseline cut-reading` from a `dump`. Checked against with "
+                   "`baseline check --manifest <this> --accepted <its accepted_diffs.json> --pdf <the PDF>`. Not the "
+                   "current book's gate (that is baseline/<book>.json)."),
+        "version": VERSION, "book": book, "pdf_sha256": pdf_sha, "raw_data_sha256": None,
         "extractor": {"commit": commit, "note": note},
         "compared": ("canonical(row) over " + ", ".join(FIELDS) + "; symbols as a sorted set, everything else "
                      "exact (whitespace included)"),
@@ -251,7 +287,8 @@ def check(manifest_path: Path, accepted_path: Path, pdf_path: Path, *, pages: Op
               f"synopsis_diff.", file=sys.stderr)
         return 2
     accepted = load_accepted(accepted_path, manifest)
-    got = extract(pdf_path, pages, workers)
+    hits: List[Dict[str, Any]] = []
+    got = extract(pdf_path, pages, workers, unsure=hits)
     res = compare(manifest, got, accepted, pages)
     scope = "the whole book" if pages is None else f"PDF page(s) {', '.join(map(str, pages))}"
     print(f"check-against {Path(manifest_path).name} ({manifest['book']}), {scope}: {res['compared']} baseline "
@@ -264,9 +301,34 @@ def check(manifest_path: Path, accepted_path: Path, pdf_path: Path, *, pages: Op
               f"{a.get('now')}) — remove it from {Path(accepted_path).name}")
     for d in res["unexplained"]:
         print("  UNEXPLAINED " + _line(d))
+    res["strikes"] = strikes = check_strikes(got, sha, pages)
+    if strikes["line"]:
+        print("  " + strikes["line"])
+    for k in strikes["unseen"]:
+        print(f"  STRIKE GONE  {k['water']} PDF p.{k.get('pdf_page')} {k['text']!r}: recorded for this book in "
+              f"known_strikes.json, not read now")
+    from pipeline.regs.extraction.extract_synopsis import load_known_unsure, unsure_report
+    line, new_unsure = unsure_report(hits, load_known_unsure())
+    res["unsure"] = {"line": line, "hits": hits, "new": new_unsure}
+    if line:
+        print("  " + line)
     if report:
         write_json(res, report, one_line_key=None)
-    return 1 if res["unexplained"] or res["stale"] else 0
+    return 1 if res["unexplained"] or res["stale"] or strikes["new"] or strikes["unseen"] or new_unsure else 0
+
+
+def check_strikes(got: List[Dict[str, Any]], pdf_sha: str, pages: Optional[Iterable[int]] = None) -> Dict[str, Any]:
+    """(T1190) The struck-through items read now against `known_strikes.json`: the one warning line, the NEW ones (not
+    recorded: a change the gate stops on) and the ones recorded for THIS book (by sha) in scope but not read now."""
+    from pipeline.regs.extraction.extract_synopsis import load_known_strikes, strike_items, strike_report
+    rows = [g["row"] for g in got]
+    known = load_known_strikes()
+    line, new = strike_report(rows, known)
+    now = {(i["water"], i["text"]) for i in strike_items(rows)}
+    keep = None if pages is None else {int(p) for p in pages}
+    unseen = [k for k in known if k.get("pdf_sha256") == pdf_sha and (keep is None or k.get("pdf_page") in keep)
+              and (k["water"], k["text"]) not in now]
+    return {"line": line, "new": new, "unseen": unseen}
 
 
 # ---------------------------------------------------------------- the fast tier's character fixtures
@@ -385,6 +447,16 @@ def main(argv=None) -> int:
     k.add_argument("--out", type=Path, default=DEFAULT_MANIFEST)
     k.add_argument("--accepted-out", type=Path, default=DEFAULT_ACCEPTED,
                    help="reset to an empty list for the new baseline")
+    d = sub.add_parser("dump", help="(T1190) this code's reading of a PDF, row by row, as JSON (whole book = heavy)")
+    d.add_argument("--pdf", type=Path, required=True)
+    d.add_argument("--out", type=Path, required=True)
+    d.add_argument("--workers", type=int, default=4)
+    r = sub.add_parser("cut-reading", help="(T1190) a manifest + empty accepted diffs from a dump")
+    r.add_argument("--dump", type=Path, required=True, help="a `dump` file: {pdf_sha256, rows: [{key, box, row}]}")
+    r.add_argument("--book", required=True)
+    r.add_argument("--commit", required=True, help="the extractor commit that made the dump")
+    r.add_argument("--note", default="")
+    r.add_argument("--out-dir", type=Path, required=True, help="writes <out-dir>/reading.json + accepted_diffs.json")
     f = sub.add_parser("fixture", help="capture rows' characters for the fast tier")
     f.add_argument("--rows", nargs="+", required=True, help="row image keys (page_018_row_021.png)")
     f.add_argument("--pdf", type=Path, default=None)
@@ -393,6 +465,20 @@ def main(argv=None) -> int:
     if a.cmd == "check":
         pdf = a.pdf or book_pdf(json.loads(a.manifest.read_text(encoding="utf-8")))
         return check(a.manifest, a.accepted, pdf, pages=a.pages, workers=a.workers, report=a.report)
+    if a.cmd == "dump":
+        got = extract(a.pdf, None, a.workers)
+        write_json({"pdf": a.pdf.name, "pdf_sha256": file_sha(a.pdf), "rows": got}, a.out, one_line_key=None)
+        print(f"dump: {len(got)} rows of {a.pdf.name} -> {a.out}")
+        return 0
+    if a.cmd == "cut-reading":
+        dump = json.loads(a.dump.read_text(encoding="utf-8"))
+        doc = manifest_from_reading(dump["rows"], dump["pdf_sha256"], book=a.book, commit=a.commit, note=a.note)
+        a.out_dir.mkdir(parents=True, exist_ok=True)
+        write_json(doc, a.out_dir / "reading.json")
+        write_json({"_about": ACCEPTED_ABOUT, "baseline": "reading.json", "baseline_rows": rows_digest(doc),
+                    "accepted": []}, a.out_dir / "accepted_diffs.json", one_line_key=None)
+        print(f"cut-reading: {doc['rows_count']} rows on {len(doc['pages'])} pages -> {a.out_dir}")
+        return 0
     from pipeline.common.synopsis_pages import default_pdf
     pdf = a.pdf or Path(default_pdf())
     if a.cmd == "cut":

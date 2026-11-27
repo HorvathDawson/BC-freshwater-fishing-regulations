@@ -24,7 +24,7 @@ then re-pin what changed with `python -m pipeline.tools.source_pins pin PATH` (i
 
 ## Notes on `source/`
 
-The book is `source/fishing_synopsis.pdf`; validate against nothing else (`python -m pipeline.tools.one_book` fails on a second full book anywhere under `source/`, even renamed: by name, or by size and pages; CI holds the tracked files only, so there it checks those, and a machine with `source/official/` filled is checked on the whole folder). The region PDFs (gov.bc.ca's per-region chapters) are not kept: nothing reads them and there is no fetch (T1156).
+The book is `source/fishing_synopsis.pdf`; validate against nothing else (`python -m pipeline.tools.one_book` fails on a second full book anywhere under `source/`, even renamed: by name, or by size and pages; CI holds the tracked files only, so there it checks those, and a machine with `source/official/` filled is checked on the whole folder). The region PDFs (gov.bc.ca's per-region chapters) are not kept: nothing reads them and there is no fetch (T1156). `source/fishing_synopsis.2026-08.pdf` is the Province's revision of the book (edited 2026-08-25), kept beside it for the extraction checks (T1190) and the by-hand adoption (T1179); nothing builds from it; `fishing_synopsis.2026-08.source.json` says where and when it was fetched.
 
 
 `source/dfo_tidal_areas/` is 380 saved DFO web pages in dated folders (snapshots of the tidal-area descriptions the tidal boundary was read
@@ -33,8 +33,7 @@ from, read by `pipeline/tools/audit/tidal_pass2.py`): keep them, they are the ev
 ## The scripts here
 
 - `fetch_data.py` — the upstream fetcher (above).
-- `build_tidal_boundary.py`, `process_tidal_boundary.py` — the DFO tidal polygon, processed once and stored on R2 (each
-  file's docstring has its steps).
+- `build_tidal_boundary.py` — the DFO tidal polygon, processed once and stored on R2 (its docstring has the steps).
 
 Licences: third-party material and its terms are listed in the root `NOTICE`; the OpenStreetMap-derived data is ODbL,
 `LICENSE-ODbL.md`.

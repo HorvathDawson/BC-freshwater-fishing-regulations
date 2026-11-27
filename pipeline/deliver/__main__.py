@@ -38,7 +38,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, ROOTS
 
 
 def _bundle(a) -> Path:
@@ -184,7 +184,7 @@ def out_dir_release_problems(rel_root: Path, tiles_dir: Path, check_tiles: bool)
     (with --tiles) and the released basemap under `<out-dir>/release/`. A scratch out-dir without them failed only
     after the bundle, answers and store were built (both the T481 and T482 lanes, 2026-11-07); this is checked first."""
     import json
-    out, live = [], Path(GENERATED.release)
+    out, live = [], Path(ROOTS.release)
     bm_meta = Path(tiles_dir) / "basemap.meta.json"
     if bm_meta.is_file():
         vid = json.loads(bm_meta.read_text(encoding="utf-8")).get("basemap_version")
@@ -249,7 +249,7 @@ def _all(a) -> int:
         _step(["card_check", "--bundle", str(bundle), "--export-dir", str(d)], steps)
         _step(["store", "--bundle", str(bundle), "--export-dir", str(d), "--out", str(d / "regs.sqlite")], steps)
         # THE SHIPPED SET (P08): data/release/<data_release>/, from the files just made
-        rel_root = (dest / "release") if dest else GENERATED.release
+        rel_root = (dest / "release") if dest else ROOTS.release
         tiles = ["--tiles", str(a.tiles), "--tiles-release-root", str(rel_root)] if a.tiles else []
         # (T936) the release's build reports (the salmon-open, gear-hidden list) beside the release command's checks
         reports = (dest / "release-checks") if dest else GENERATED.bundle.parent / "release" / "checks"
@@ -347,7 +347,7 @@ def main(argv=None) -> int:
     # (T667 slice 8) the fetched and fed inputs, each named or the live one — the mini release names all four
     b.add_argument("--source", type=Path, default=None,
                    help="the fetched source tree (stations, places, boundary, synopsis, HYDAT, FWA gpkg; default: "
-                        "data_tree.source)")
+                        "roots.source)")
     b.add_argument("--clim", type=Path, default=None,
                    help="the gauge envelope clim.json (default: the live feed's, gauges.consume.bundle_tables.CLIM_PATH)")
     b.add_argument("--dfo-typed", type=Path, default=None,

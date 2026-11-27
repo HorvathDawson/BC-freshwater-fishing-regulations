@@ -1058,15 +1058,18 @@ def test_every_case_says_what_to_show(doc):
 
 @pytest.mark.needs_bundle
 def test_the_gotchas_name_the_source_artefacts(doc):
-    """GOAT RIVER 4-6's "Leadville Creek Cameron Creek" is map labels, not a rule (user ruling
-    2026-09-30): the guide says so, and no rule in the export quotes it."""
+    """The guide lists every known source artefact and no rule in the export quotes one. GOAT RIVER 4-6's "Leadville
+    Creek Cameron Creek", read as map labels until 2026-11-26, is no artefact now: it is the release's stretch (owner,
+    T1177 O10), so the guide does not list it and the release quotes it."""
+    from pipeline.regs.parsing import catalogue as C
     g = doc["guide"]["gotchas"]["source_artefacts"]
-    got = {(a["entry"], a["text"]) for a in g["artefacts"]}
-    assert ("r4:goat_river@4-6", "Leadville Creek Cameron Creek") in got
-    assert "map labels" in g["artefacts"][0]["says"]
+    assert [(a["entry"], a["text"]) for a in g["artefacts"]] == [(a["entry_id"], a["text"]) for a in C.SOURCE_ARTEFACTS]
+    assert not any(a["entry"] == "r4:goat_river@4-6" for a in g["artefacts"])
     for x in doc["rules"].values():
         for a in g["artefacts"]:
             assert a["text"].lower() not in (x.get("verbatim") or "").lower(), x["id"]
+    goat = [x for x in doc["rules"].values() if "leadville creek cameron creek" in (x.get("verbatim") or "").lower()]
+    assert goat and all("catch and release (mainstem only)" in x["verbatim"].lower() for x in goat)
 
 
 @pytest.mark.needs_bundle
@@ -1176,13 +1179,16 @@ def test_every_both_hold_claim_is_the_readers(doc, db):
     assert [(x["dates"], x["fish"]) for x in tho[0]["zone_lifted"]] == [("May 1-May 31", "all")]
     assert tho[0]["zone_lifted"][0]["sections"] < tho[0]["sections"]
     assert "May 1-May 31" in tho[0]["says"]
-    # review L2: a PARTIAL row closure is listed too (Shuswap Lake's "No Fishing Mar 15-May 14",
-    # on a part nothing draws, beside Region 3's spring closure on its stream section)
-    shu = [n for n in cc["r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"]
-           ["notes"] if n["kind"] == "row_closure"]
+    # Shuswap Lake's map A "No Fishing Mar 15-May 14" on its stream section, the Little River: since RULINGS L29
+    # (owner O1, T1177) bound there whole (`r1b`, no longer a part nothing draws), beside Region 3's spring closure,
+    # which map A's dated release (`r2x`) lifts for rainbow trout and char only
+    shu_row = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
+    shu = [n for n in cc[shu_row]["notes"] if n["kind"] == "row_closure"]
     assert [(n["row_rule"].split("::")[1], n["row_grade"], n["zone_rule"]) for n in shu] == [
-        ("shuswap_lake.r1", "partial", z3)]
-    assert "part of the water only" in shu[0]["says"]
+        ("shuswap_lake.r1b", "full", z3)]
+    assert [(x["dates"], x["fish"], x["by"]) for x in shu[0]["zone_lifted"]] == [
+        ("Jan 1-Mar 14, May 15-Jun 30", ["DV", "EB", "LT", "RB", "ST"], [f"{shu_row}::shuswap_lake.r2x"])]
+    assert "part of the water only" not in shu[0]["says"]
 
 
 # ---------------------------------------------------------------------------------------

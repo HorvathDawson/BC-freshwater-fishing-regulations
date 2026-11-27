@@ -55,7 +55,12 @@ class Water:
 
 
 def part_label(W: Water, i: int) -> str:
-    """`partLabel` — what sets part i apart (consumer 3.1 step 3)."""
+    """`partLabel` — what sets part i apart (consumer 3.1 step 3), from its rules' own words — with the ecological
+    reserve's short form (`eco_reserve`), as every end word says it ("Within Skeena River Eco Reserve")."""
+    return eco_reserve(_part_label(W, i))
+
+
+def _part_label(W: Water, i: int) -> str:
     n = len(W.parts)
     if n == 1:
         return "Whole water"
@@ -230,6 +235,28 @@ def _crossing_words(doc: dict, base: str, side: str) -> str:
     return "unnamed lake" if base in UNNAMED_LAKE else end_name(doc, base, side)
 
 
+#: (T1172, owner 2026-11-26: "inside Creston Valley WMA") the short form an area's kind takes in a part's name and subtitle
+AREA_SHORT = ((re.compile(r"\bWildlife Management Area\b", re.I), "WMA"),)
+#: (T1172, owner 2026-11-26: "it should be \"[name] eco reserve\" everywhere") every word a part ships says an ecological
+#: reserve's short form — its name, its ends (`display.ends`, the map's marks), its subtitle, its label — applied by ONE
+#: function (`eco_reserve`) at the two sources every such word is composed from (`end_name`, `part_label`); a national
+#: park reserve and a park stay in full
+ECO_RESERVE = (re.compile(r"\bEcological Reserve\b", re.I), "Eco Reserve")
+
+
+def eco_reserve(words: str) -> str:
+    """Words with an ecological reserve said in its short form (`ECO_RESERVE`): the one rule, at the two sources of a
+    part's words — `end_name` (its ends, name, marks and subtitle) and `part_label` (its label, from its rules' words)."""
+    return ECO_RESERVE[0].sub(ECO_RESERVE[1], words)
+
+
+def area_short(words: str) -> str:
+    """An area's name in its short form (`AREA_SHORT`): "Creston Valley Wildlife Management Area" → "Creston Valley WMA"."""
+    for pat, short in AREA_SHORT:
+        words = pat.sub(short, words)
+    return words
+
+
 #: a lake edge and another split id of one water this close (km, the export's own two decimals) stand at ONE place
 #: (`end_name`'s "(km …)"): the lake edge is in no `same_place_as` group (`bundle.spans._clashes` skips edges)
 ONE_PLACE_KM = 0.05
@@ -245,7 +272,12 @@ MOUTH_OF = "mouth:"
 
 
 def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
-    """`endName` — a run end in words."""
+    """`endName` — a run end in words: THE ONE COMPOSER every part word goes through (`_end_short` / `end_words` /
+    `display.ends`, `_run_txt` / the subtitle, `side_words`), with the ecological reserve's short form (`ECO_RESERVE`)."""
+    return eco_reserve(_end_name(doc, e, side))
+
+
+def _end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     if not e:
         return ""
     if str(e).startswith(MOUTH_OF):
@@ -267,11 +299,13 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
         # lying at least 95 % inside one area, measured on the shapes (`bundle.side_channels.inside_rows`), said by the
         # area's name as every area end is: the export's split name less " boundary" where this water is cut at it,
         # else the catalogue's name cased by the one caser (`area_display`)
+        # (T1172, owner 2026-11-26: "inside Creston Valley WMA") in the area's SHORT form (`AREA_SHORT`), the part's name
+        # and its subtitle alike; the map's area labels keep the long one
         tok = str(e)[len(INSIDE):]
         if tok in (doc.get("splits") or {}):
-            return "inside " + re.sub(r" boundary$", "", end_name(doc, tok, side))
+            return "inside " + area_short(re.sub(r" boundary$", "", end_name(doc, tok, side)))
         from pipeline.deliver.bundle.place_names import area_display
-        return "inside " + area_display(tok.split(":", 1)[1])
+        return "inside " + area_short(area_display(tok.split(":", 1)[1]))
     if str(e).startswith(SIDE):
         import json as _json
         w = side_words(doc, _json.loads(str(e)[len(SIDE):]))
@@ -380,16 +414,36 @@ def _run_txt(doc: dict, r: dict) -> str:
     return f"Side channel ({t[:1].lower() + t[1:]})" if r.get("branch") else t
 
 
-def _joining(side: List[dict]) -> str:
-    """Where side channels join their river, from their runs' `km_from` (the main stem's measure
-    from the mouth): "joining 4.1 km from the mouth", "joining 1.1-5.5 km from the mouth", or ""
-    when no run carries a measure."""
+def _from_mouth(side: List[dict]) -> str:
+    """Where side channels meet their river, from their runs' `km_from` (the main stem's measure from the mouth): "4.1 km
+    from the mouth", "1.1–5.5 km from the mouth", or "" when no run carries a measure. (T1172, owner 2026-11-26: "no verb
+    for a leaving channel") NO VERB: a channel's measure is where it joins, where it leaves, or the main line's nearest
+    point (`section_join.how`), and one shape says all three truthfully."""
     kms = sorted(round(float(r["km_from"]), 1) for r in side if r.get("km_from") is not None)
     if not kms:
         return ""
     lo, hi = kms[0], kms[-1]
-    return (f"joining {lo:g} km from the mouth" if lo == hi
-            else f"joining {lo:g}–{hi:g} km from the mouth")
+    return f"{lo:g} km from the mouth" if lo == hi else f"{lo:g}–{hi:g} km from the mouth"
+
+
+#: (T1172) a part's fields the answers step sets on a part of side channels only (`builders.side_facts`), read by
+#: `runs_label`: whether its water has MORE THAN ONE such part (`SIDE_APART`: only then does a distance tell it from the
+#: others), and the area it lies inside or at (`SIDE_AREA`: [catalogue name, how, cut], the bundle's `part_inside`)
+SIDE_APART = "side_apart"
+SIDE_AREA = "side_area"
+
+
+def side_only(part: dict) -> bool:
+    """A part of side channels only: runs, every one a side channel's (`branch`), a polygon of the whole water aside."""
+    rs = [r for r in part.get("runs") or [] if not _js(r.get("polygon")) or r["polygon"] != "whole"]
+    return bool(rs) and all(r.get("branch") for r in rs)
+
+
+def area_words(doc: dict, area: Sequence) -> str:
+    """(T1172) The words of the area a part lies inside or at ("inside Creston Valley WMA", "at Hayne's Lease Eco
+    Reserve"): its end token (`AREA_HEAD`) said by `end_words`, exactly as the part's name says it."""
+    w = end_words(doc, f"{AREA_HEAD[area[1]]}area:{area[0]}", "from")
+    return w[:1].lower() + w[1:]
 
 
 def water_ends_km(w: dict) -> Tuple[Optional[float], Optional[float]]:
@@ -451,14 +505,22 @@ def runs_label(doc: dict, part: dict, w_km: Tuple[Optional[float], Optional[floa
     else:
         t = f"{len(bits)} stretches, including {low(bits[0])}"
     if not t and side:
-        # A PART OF SIDE CHANNELS ONLY says where they join the river (review C2, answers 2.1):
-        # each branch run's `km_from` is the main-stem measure it leaves at, from the mouth.
-        # Where no branch carries one, the old words stand.
-        where = _joining(side)
-        if len(side) == 1:
-            t = f"Side channel, {where}" if where else _run_txt(doc, side[0])
-        else:
-            t = f"{len(side)} side channels" + (f", {where}" if where else "")
+        # A PART OF SIDE CHANNELS ONLY (T1172, owner 2026-11-26, one rule for every water):
+        # - "Side channel" / "N side channels";
+        # - the area it lies inside or at, in the words its name uses ("2 side channels inside Creston Valley WMA"),
+        #   for EVERY such part the bundle measures in one (`SIDE_AREA`), reviewed or not;
+        # - its distance from the mouth ONLY where its water has more than one such part (`SIDE_APART`: "Distance only to
+        #   tell parts apart"), with no verb (`_from_mouth`). Where no channel carries a measure there, a lone channel
+        #   keeps its run's words ("Side channel (from … up to …)").
+        area = part.get(SIDE_AREA)
+        t = ("Side channel" if len(side) == 1 else f"{len(side)} side channels") + \
+            (f" {area_words(doc, area)}" if area else "")
+        if part.get(SIDE_APART):
+            where = _from_mouth(side)
+            if where:
+                t += f", {where}"
+            elif len(side) == 1 and not area:
+                t = _run_txt(doc, side[0])
     # RULINGS P39: a part WITH a main run never mentions its side channels —
     # they are simply part of it ("… CNR Mile 66 Trestle and 1 side channel" confused the owner)
     return t
@@ -564,18 +626,29 @@ AREA_HEAD = {"inside": INSIDE, "at": AT}
 #: T1140 (owner 2026-11-25: "Named by its ends", "They should always have the cut names or distance it is impossible not
 #: to") the end token of a part of side channels only that is named by its channels' NAMED ends (`side_channels`): shipped
 #: as both its ends, "near:side:" + JSON [[lower end, upper end, km]…], each end a named token or "" and km the channel's
-#: join where neither end is named. Said "Side channel from <lower> up to <upper>" (one channel) or "N side channels: one
-#: …; one joining N km from the mouth" (`side_words`); the `near:` head is what a shipped app composes as "<water> <words>".
+#: join where neither end is named. Said "Side channel from <lower> up to <upper>" (one channel) or "Side channels: one
+#: …; one up to …" (`side_words`: every channel named, no distance, T1172); the `near:` head is what a shipped app composes
+#: as "<water> <words>".
 SIDE = "near:side:"
 #: The run ends that name nothing on a side channel: its own two ends where it leaves and rejoins its river ("mouth",
 #: "source" on a channel's run are the CHANNEL's), an unnamed lake, the water's own polygon.
 UNNAMED_ENDS = ("mouth", "source", "polygon", "lake_inlet", "lake_outlet")
-#: T1140: the parts the build may name "<water> inside <area>" / "<water> at <area>", each checked by a reviewer on its
-#: picture (item id, the area's catalogue name, how). A new one stops the build until it is looked at and added here; one that stops being inside
-#: stops it too.
+#: T1140: the parts the build may NAME "<water> inside <area>" / "<water> at <area>", each checked by a reviewer on its
+#: picture (item id, the area's catalogue name, how): THE NAME'S GATE ONLY. (T1172, owner 2026-11-26: "universally")
+#: the bundle measures every part in every area by one rule (`bundle.side_channels.inside_rows`) and the part's SUBTITLE
+#: says its area whether or not it is listed here (`runs_label`). An unlisted area the atlas cuts at stops the build
+#: until it is looked at and added here; an unlisted membership-only one (a park or WMA the atlas does not cut at) is
+#: listed in the build log ("INSIDE candidate") and the name takes its next rung; a listed part no longer said inside
+#: stops the build too (`builders.reviewed_still_said`).
 REVIEWED_INSIDE = frozenset({("gnis:25671", "BAYNES ISLAND ECOLOGICAL RESERVE", "inside"),
                              ("gnis:18167", "Pacific Rim National Park Reserve of Canada", "inside"),
-                             ("wsc:300-432687-459615", "HAYNE'S LEASE ECOLOGICAL RESERVE", "at")})
+                             ("wsc:300-432687-459615", "HAYNE'S LEASE ECOLOGICAL RESERVE", "at"),
+                             # (T1172, owner 2026-11-26: "Yes, but name it by the area") the Old Kootenay River
+                             # Channel's side part: 99.40 % inside the WMA, which alone tells it from its main line
+                             ("gnis:2123", "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside"),
+                             # (T1172, owner 2026-11-26: "yes name it but this is something we need to fix generally")
+                             # Thelwood Creek's side part: 100 % inside the park (membership-only)
+                             ("gnis:21681", "STRATHCONA - WESTMIN PARK", "inside")})
 
 
 def named_end(tok: Optional[str]) -> Optional[str]:
@@ -587,9 +660,11 @@ def named_end(tok: Optional[str]) -> Optional[str]:
 
 
 def side_channels(part: dict, flows_into: Optional[str] = None) -> Optional[list]:
-    """T1140 THE CHANNELS OF A PART WITH NO MAIN STEM, as `SIDE` carries them, or None when none has a named end (the part
-    is then said by its label: `runs_label`). `flows_into`: the named water the part's lowest channel flows into where its
-    run says only its own mouth (the bundle's flow pointers, `builders._flows_into`): that channel's lower end."""
+    """T1140 THE CHANNELS OF A PART WITH NO MAIN STEM, as `SIDE` carries them, or None — the part is then said by its
+    label, the plain count (`runs_label`) — unless EVERY channel has a named end (T1172 round 4, owner 2026-11-26:
+    Snehumption's "one up to the B.C. border; one other" reads "2 side channels"). `flows_into`: the named water the
+    part's lowest channel flows into where its run says only its own mouth (the bundle's flow pointers,
+    `builders._flows_into`): that channel's lower end."""
     runs = sorted((r for r in part.get("runs") or [] if r.get("branch")),
                   key=lambda r: (r.get("km_from") is None, r.get("km_from") or 0, str(r.get("from")), str(r.get("to"))))
     if not runs:
@@ -601,32 +676,22 @@ def side_channels(part: dict, flows_into: Optional[str] = None) -> Optional[list
             lo = flows_into
         km = round(float(r["km_from"]), 1) if r.get("km_from") is not None else None
         out.append([lo or "", hi or "", km])
-    return out if any(c[0] or c[1] for c in out) else None
+    return out if all(c[0] or c[1] for c in out) else None
 
 
 def side_words(doc: dict, chans: list) -> str:
-    """The words of a `SIDE` token. A channel with no named end says where it joins; one with no join either STOPS
-    (T1140: "impossible not to")."""
-    def one(lo: str, hi: str, km) -> str:
-        if lo or hi:
-            # (owner 2026-11-25: "The clearer one") a channel that flows into a lake says so: "into Olsen Lake"
-            low = f"{'into' if lo.startswith('lake_inlet:') else 'from'} {end_name(doc, lo, 'to')}" if lo else ""
-            return " ".join(x for x in (low,
-                                        (f"up to {end_name(doc, hi, 'from')}" if hi else "")) if x)
-        if km is None:
-            raise AnswersError("display: a side channel with no named end and no join to say (T1140)")
-        return f"joining {km:g} km from the mouth"
+    """The words of a `SIDE` token: each channel by its named ends, never a distance (T1172, owner 2026-11-26: a `SIDE`
+    part is the one such part of its water). Every channel has a named end (`side_channels`); one without STOPS."""
+    def one(lo: str, hi: str) -> str:
+        # (owner 2026-11-25: "The clearer one") a channel that flows into a lake says so: "into Olsen Lake"
+        low = f"{'into' if lo.startswith('lake_inlet:') else 'from'} {end_name(doc, lo, 'to')}" if lo else ""
+        return " ".join(x for x in (low, (f"up to {end_name(doc, hi, 'from')}" if hi else "")) if x)
+    if not chans or any(not (c[0] or c[1]) for c in chans):
+        raise AnswersError(f"display: a SIDE token with a channel of no named end ({chans}): `side_channels` gives none")
     if len(chans) == 1:
-        return f"Side channel {one(*chans[0])}"
-    named = [one(*c) for c in chans if c[0] or c[1]]
-    bare = [c for c in chans if not (c[0] or c[1])]
-    if any(c[2] is None for c in bare):
-        raise AnswersError("display: a side channel with no named end and no join to say (T1140)")
-    kms = sorted(c[2] for c in bare)
-    tail = ([] if not bare else [f"{'one' if len(bare) == 1 else len(bare)} joining "
-                                 + (f"{kms[0]:g}" if kms[0] == kms[-1] else f"{kms[0]:g}–{kms[-1]:g}") + " km from the mouth"])
-    # (owner 2026-11-25: "The clearer one") "Snehumption Creek side channels: one up to the B.C. border; one joining …"
-    return "Side channels: " + "; ".join([f"one {w}" for w in named] + tail)
+        return f"Side channel {one(chans[0][0], chans[0][1])}"
+    # (owner 2026-11-25: "The clearer one") "<water> side channels: one from …; one up to …"
+    return "Side channels: " + "; ".join(f"one {one(c[0], c[1])}" for c in chans)
 
 
 def at_place(token: str, km: Optional[float]) -> str:

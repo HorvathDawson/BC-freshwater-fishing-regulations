@@ -28,7 +28,7 @@
  *   7. (T539) the docs guard, `checkDocs`: STATUS.md starts with its title; every repo path a backticked token cites in
  *      START-HERE and the restart pages exists, and every path a runbook (docs/runbooks/*.md) cites,
  *      in backticks or in a command block (T628); (T1081) START-HERE is at most `START_HERE_MAX` lines and links every page of
- *      `docs/restart/` (one short page per live chat, at most `RESTART_MAX` lines, deleted when the chat ends) and
+ *      `docs/agents/restart/` (one short page per live chat, at most `RESTART_MAX` lines, deleted when the chat ends) and
  *      nothing missing; a restart page holds no state (no release id, no build number: those live only in the STATUS top
  *      entry); a RESTART-* / NEXT-SESSION-* file anywhere else fails unless named in `LEGACY_RESTART`; AGENTS rule ids are unique.
  *   8. (T1081) the size guard, `check-size.mjs`: every budget of the docs (required reading, READMEs, open tickets, any markdown file,
@@ -196,17 +196,17 @@ export function checkLedger({ tickets, subjects, unfiled = "", extraProblems = [
 
 const RUNBOOKS_DIR = "docs/runbooks";
 /** (T1081) One short page per live chat; START-HERE links each. A page is deleted when its chat ends. */
-export const RESTART_DIR = "docs/restart";
+export const RESTART_DIR = "docs/agents/restart";
 /** (T1081) the numbers live in check-size.mjs BUDGETS, the one table of limits */
 export const RESTART_MAX = BUDGETS.restart[0];
 export const START_HERE_MAX = BUDGETS.startHere[0];
 /** (T1081) The restart pages of chats that were running when the scheme began; their chats edit them where they are, so
  *  these four paths (and only these) are tolerated until the rename commit moves them into restart/ and this list goes. */
 export const LEGACY_RESTART = [
-  "docs/RESTART-091-chat.md",
-  "docs/RESTART-repo-move-chat.md",
-  "docs/RESTART-store-content-chat.md",
-  "docs/ios/RESTART-ios-release-chat.md",
+  "docs/agents/RESTART-091-chat.md",
+  "docs/agents/RESTART-repo-move-chat.md",
+  "docs/agents/RESTART-store-content-chat.md",
+  "docs/agents/RESTART-ios-release-chat.md",
 ];
 /** Every file name that is a restart page wherever it sits (a stray one outside restart/ fails). */
 export const RESTART_NAME = /^(RESTART|NEXT-SESSION)[^/]*\.md$/;
@@ -266,7 +266,7 @@ export function ruleIds(agents) {
  *
  * `runbooks` (T628): every `docs/runbooks/*.md`, read with `runbookPaths` (its command blocks too).
  *
- * `restartPages` (T1081): every `docs/restart/*.md` (name + text); `restartFiles`: every repo path under
+ * `restartPages` (T1081): every `docs/agents/restart/*.md` (name + text); `restartFiles`: every repo path under
  * docs whose file name is a restart page (RESTART-*.md, NEXT-SESSION-*.md), wherever it sits.
  *
  * @param {{ status: string, startHere: string, restartPages: { name: string, text: string }[], restartFiles: string[], agents: string,
@@ -293,7 +293,7 @@ export function checkDocs({ status, startHere, restartPages, restartFiles, agent
   // (T1081) START-HERE is short and lists every live chat's restart page; a page is short and holds no state
   const startLines = startHere.replace(/\n+$/, "").split("\n").length;
   if (startLines > START_HERE_MAX) problems.push(`START-HERE.md is ${startLines} lines (max ${START_HERE_MAX}): it points, the restart pages and AGENTS.md hold the rest`);
-  const linked = new Set([...startHere.matchAll(/docs\/restart\/([\w.-]+\.md)/g)].map((m) => m[1]));
+  const linked = new Set([...startHere.matchAll(/docs\/agents\/restart\/([\w.-]+\.md)/g)].map((m) => m[1]));
   for (const name of linked) if (!pages.some((r) => r.name === name)) problems.push(`START-HERE.md links ${RESTART_DIR}/${name}, which does not exist`);
   for (const { name, text } of pages) {
     if (!linked.has(name)) problems.push(`${RESTART_DIR}/${name} is not linked from START-HERE.md (it lists every live chat's page; delete the page when its chat ends)`);
@@ -349,7 +349,7 @@ export function ledgerIds(repoRoot) {
 /** The docs checkLedger's sibling reads: real files, real existence, real git-ignore. */
 export function readDocs(repoRoot) {
   const plan = join(repoRoot, "docs");
-  const startHere = readFileSync(join(plan, "START-HERE.md"), "utf8");
+  const startHere = readFileSync(join(plan, "agents", "START-HERE.md"), "utf8");
   const rdir = join(repoRoot, RESTART_DIR);
   const restartPages = existsSync(rdir) ? readdirSync(rdir).filter((n) => !n.startsWith(".")).sort().map((name) => ({ name, text: readFileSync(join(rdir, name), "utf8") })) : [];
   const restartFiles = readdirSync(plan, { recursive: true }).map(String).filter((p) => RESTART_NAME.test(p.split("/").pop())).map((p) => `docs/${p}`).sort();
@@ -364,7 +364,7 @@ export function readDocs(repoRoot) {
   };
   const runbooks = readdirSync(join(repoRoot, RUNBOOKS_DIR)).filter((n) => n.endsWith(".md")).sort()
     .map((name) => ({ name, text: readFileSync(join(repoRoot, RUNBOOKS_DIR, name), "utf8") }));
-  return { status: readFileSync(join(plan, "STATUS.md"), "utf8"), startHere, restartPages, restartFiles, runbooks,
+  return { status: readFileSync(join(plan, "agents", "STATUS.md"), "utf8"), startHere, restartPages, restartFiles, runbooks,
            agents: readFileSync(join(repoRoot, "AGENTS.md"), "utf8"),
            exists: (p) => existsSync(join(repoRoot, p)), isIgnored };
 }

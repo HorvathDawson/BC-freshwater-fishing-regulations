@@ -8,7 +8,7 @@
  * as a null on the record rather than a zero or a guess — the screen then says "not known",
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
-import { freezeTrace, leadUpDays, localDate, reported, reportFailure, type FrozenTrace, now as clockNow } from "@app/core";
+import { freezeTrace, leadUpDays, localDate, readingCurrentNow, reported, reportFailure, type FrozenTrace, now as clockNow } from "@app/core";
 import { answerFrom } from "../panel";
 import { leadOver, smallWaterText, speakerFor, speaks, type Speaker } from "../standing";
 import type { ItemId, WaterSource, SectionId, StationId } from "../index";
@@ -141,7 +141,7 @@ export async function captureSpot(raw: CaptureInput): Promise<Spot> {
   const [reading, trace, weather, leadUp] = await Promise.all([
     // an earlier trip day holds no live reading: its flow is that day's record (`dayFlow`, below)
     earlier ? Promise.resolve(lead ? { station: lead, discharge: null, level: null, percentile: null, at: null } : null)
-            : readingFor(source, lead),
+            : readingFor(source, lead, now),
     traceFor(source, section, speaker),
     sky,
     // S1: the seven days before the visit — daily weather and the station's daily means.
@@ -190,21 +190,22 @@ async function speakerOf(source: WaterSource, section: SectionId | null): Promis
 }
 
 /** The lead station's reading. No station (nothing speaks for the water) is the refusal: no reading at all. */
-async function readingFor(source: WaterSource, station: StationId | null):
+async function readingFor(source: WaterSource, station: StationId | null, now: number):
   Promise<SpotReading | null> {
   // NO SPEAKER IS THE REFUSAL. Recording a number anyway would freeze a wrong answer into a saved spot permanently,
   // and a spot is forever.
   if (!station) return null;
-  const now = await source.gaugeNow(station);
-  if (!now) return { station, discharge: null, level: null,
+  const got = await source.gaugeNow(station);
+  // (T1205) a reading not current by the clock (an offline phone's kept copy) is not frozen into a spot as the conditions of this visit
+  if (!got || !readingCurrentNow(got.value.at, now)) return { station, discharge: null, level: null,
                      percentile: null, at: null };
   return {
     station,
-    discharge: now.value.discharge,
-    level: now.value.level,
-    parameter: now.value.parameter,
-    percentile: now.value.percentile ?? null,
-    at: now.value.at ?? null,
+    discharge: got.value.discharge,
+    level: got.value.level,
+    parameter: got.value.parameter,
+    percentile: got.value.percentile ?? null,
+    at: got.value.at ?? null,
   };
 }
 

@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { BUDGETS, DOCS_DIR, LOOKUP, checkRepo, checkSize, keptProblems, lineCount, packageDirs } from "./check-size.mjs";
+import { AGENTS_DIR, BUDGETS, DOCS_DIR, LOOKUP, checkRepo, checkSize, keptProblems, lineCount, packageDirs } from "./check-size.mjs";
 import { TICKETS_DIR } from "./ledger.mjs";
 
 type F = { path: string; lines?: number; bytes?: number };
@@ -16,8 +16,8 @@ const max = (k: keyof typeof BUDGETS) => BUDGETS[k][0];
 /** A lean tree: every required page, one package of each kind with its README, one open ticket, one picture. */
 const lean = (): F[] => [
   md("README.md", 10), md("AGENTS.md", 100),
-  md(`${DOCS_DIR}/START-HERE.md`, 20), md(`${DOCS_DIR}/STATUS.md`, 30), md(`${DOCS_DIR}/app-integration/decisions.md`, 200),
-  md(`${DOCS_DIR}/restart/chat.md`, 30),
+  md(`${AGENTS_DIR}/START-HERE.md`, 20), md(`${AGENTS_DIR}/STATUS.md`, 30), md(`${DOCS_DIR}/app-integration/decisions.md`, 200),
+  md(`${AGENTS_DIR}/restart/chat.md`, 30),
   md("app/conformance/README.md"), md("app/tools/README.md"), { path: "app/packages/core/package.json" }, md("app/packages/core/README.md", 30),
   { path: "app/apps/mobile/package.json" }, md("app/apps/mobile/README.md"), { path: "app/workers/feeds/package.json" }, md("app/workers/feeds/README.md"),
   { path: "pipeline/atlas/__init__.py" }, md("pipeline/atlas/README.md", 40), { path: "pipeline/atlas/waters/x.py" },
@@ -53,9 +53,9 @@ describe("the made-up lean tree", () => {
 
 describe("required reading", () => {
   const cases: [string, string, keyof typeof BUDGETS][] = [
-    ["README.md", "README.md", "readme"], ["START-HERE.md", `${DOCS_DIR}/START-HERE.md`, "startHere"], ["AGENTS.md", "AGENTS.md", "agents"],
-    ["STATUS.md", `${DOCS_DIR}/STATUS.md`, "status"], ["the decisions page", `${DOCS_DIR}/app-integration/decisions.md`, "decisions"],
-    ["a restart page", `${DOCS_DIR}/restart/chat.md`, "restart"],
+    ["README.md", "README.md", "readme"], ["START-HERE.md", `${AGENTS_DIR}/START-HERE.md`, "startHere"], ["AGENTS.md", "AGENTS.md", "agents"],
+    ["STATUS.md", `${AGENTS_DIR}/STATUS.md`, "status"], ["the decisions page", `${DOCS_DIR}/app-integration/decisions.md`, "decisions"],
+    ["a restart page", `${AGENTS_DIR}/restart/chat.md`, "restart"],
   ];
   for (const [label, path, key] of cases) {
     it(`${label}: at the budget passes, one line over fails`, () => {
@@ -164,7 +164,7 @@ describe("the page standards outside the tickets folder (the second cut)", () =>
   });
   it("a page named for a day fails, in the docs folder only", () => {
     expect(run([...lean(), md(`${DOCS_DIR}/research/review-2026-11-15.md`)]).join("\n")).toContain("a page named for a day is history");
-    expect(run([...lean(), md(`${DOCS_DIR}/research/review.md`), md(`${DOCS_DIR}/ROADMAP-after-0.9.0.md`)])).toEqual([]);
+    expect(run([...lean(), md(`${DOCS_DIR}/research/review.md`), md(`${AGENTS_DIR}/ROADMAP-after-0.9.0.md`)])).toEqual([]);
     expect(run([...lean(), md(`${TICKETS_DIR}/T9-files/notes-2026-11-15.md`)])).toEqual([]);
     expect(run([...lean(), md(`${DOCS_DIR}/research/2026-11-15/notes.md`)]).join("\n")).toContain("a page named for a day is history");
   });
@@ -180,13 +180,13 @@ describe("the page standards outside the tickets folder (the second cut)", () =>
     expect(run([...lean(), md(`${DOCS_DIR}/research/t9-hard-cases/NOTES.md`)]).join("\n")).toContain("a ticket's page outside its ticket's folder");
   });
   it("the reading total: every markdown line outside tickets, look-up files and restart pages, at the budget passes, one over fails", () => {
-    const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`) && !f.path.startsWith(`${DOCS_DIR}/restart/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
+    const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`) && !f.path.startsWith(`${AGENTS_DIR}/restart/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
     expect(run([...lean(), md("CHANGELOG.md", 500)], { readingBudget: total })).toEqual([]);
     says(run([...lean(), md("deploy/NOTES.md", 1)], { readingBudget: total }), "markdown outside the tickets folder", total + 1, total);
   });
   it("(T1144) a restart page is outside the reading total and still held by its own cap", () => {
-    const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`) && !f.path.startsWith(`${DOCS_DIR}/restart/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
-    const page = `${DOCS_DIR}/restart/another-chat.md`;
+    const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`) && !f.path.startsWith(`${AGENTS_DIR}/restart/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
+    const page = `${AGENTS_DIR}/restart/another-chat.md`;
     // a full restart page at a reading total with no room left: passes (mutation: count it -> "markdown outside the tickets folder")
     expect(run([...lean(), md(page, max("restart"))], { readingBudget: total })).toEqual([]);
     // one line over its own cap still fails, by its own rule

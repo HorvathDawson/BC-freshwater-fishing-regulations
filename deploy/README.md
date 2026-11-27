@@ -11,7 +11,7 @@ agent runs only the staging scripts (and only as the owner's memory notes allow)
 | `staging/feeds.sh`, `data-worker.js`, `*.wrangler.toml` | the feeds worker and data worker deploys | |
 | `staging/build-apk.sh`, `build-ios-*.sh` | release builds against staging data (R8 on, version stamp); APK to the staging page | |
 | `staging/play-*.py`, `appstore-screenshots-push.py`, `testflight-*.mjs` | store listing, upload and TestFlight tooling | |
-| `staging/backup.sh`, `restore-test.sh`, `test-updates.mjs` | R2 backup, restore proof, the test channel the Android test bed drives | |
+| `staging/test-updates.mjs` | the test channel the Android test bed drives | |
 | `prod/upload.sh` | promotes the release staging serves to the production bucket (same id, same manifest), pointer LAST | `CONFIRM_PROD=<r-id>` by the owner only |
 | `prod/{site,feeds,rollback,drop-v1}.sh`, `host.wrangler.toml` | production site, feeds worker, rollback, the v1 layout drop | owner only |
 | `lib/` | shared helpers: bucket names, R2 objects, input formats, build links, site stamp | sourced by the scripts above |

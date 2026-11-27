@@ -227,7 +227,7 @@ def basin_of(points: Sequence[Tuple[float, float]], gpkg: Optional[Path] = None)
     from pipeline.deliver.tiles.basins import groups
     if gpkg is None:
         from pipeline.common.curated import SOURCE
-        gpkg = SOURCE / "bc_fisheries_data.gpkg"
+        gpkg = SOURCE.fwa_gpkg
     g = groups(str(gpkg))
     ids = list(g["basin_id"])
     tree = STRtree(list(g.geometry))
@@ -289,7 +289,7 @@ def upload(path: Path, handles: str, yes: bool, bucket: str = BUCKET) -> None:
 
 
 def main(argv=None) -> int:
-    from pipeline.common.curated import GENERATED
+    from pipeline.common.curated import GENERATED, ROOTS
     ap = argparse.ArgumentParser(prog="pipeline.runtiming.feed.base", description=__doc__.split("\n\n")[0])
     ap.add_argument("--build", type=Path, default=None, help="the atlas build (default: the live one)")
     ap.add_argument("--tiles", type=Path, default=None, help="the tiles dir (default: GENERATED.tiles)")
@@ -316,7 +316,7 @@ def main(argv=None) -> int:
             upload(p, base["section_handles"], a.yes, a.bucket)
         return 0
     from pipeline.deliver.release.manifest import live
-    release = a.release or live(GENERATED.release)
+    release = a.release or live(ROOTS.release)
     base, report = build(a.build or GENERATED.require_build(), a.tiles or GENERATED.tiles, release)
     p = write(base, a.out or GENERATED.runtiming / "feed")
     print(f"base: {json.dumps(report, sort_keys=True)} -> {p} ({p.stat().st_size:,} B)")

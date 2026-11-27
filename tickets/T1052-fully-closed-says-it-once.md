@@ -25,7 +25,7 @@ them). Rule 23: the closed statement must come from ONE function in core.
 
 Question: "Nelson Creek: a water closed to all fishing says it twice, once in the Salmon row and once in the 'Closed all
 year' block. How should it read?" Answer: **"One block, both calendars (Recommended)"** (the option's text: keep the two
-calendars; replace the two statements with one block: "Closed to all fishing all year, salmon included", with the book's
+calendars (T1207, 2026-11-26: he then chose ONE block "Salmon and game fish" with one year bar; the calendars are now one too); replace the two statements with one block: "Closed to all fishing all year, salmon included", with the book's
 "No Fishing" line and its source). Earlier he had said the two calendars are fine.
 
 ## Done (lane L22, 33ecb6b96 5e2ca0048; review round 1 #131)

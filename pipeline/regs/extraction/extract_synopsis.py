@@ -7,15 +7,9 @@ import textwrap
 import shutil
 import json
 import sys
-import numpy as np
 from typing import List, Optional, Dict, Any, Tuple
 from operator import itemgetter
-from collections import namedtuple
-from sklearn.cluster import DBSCAN
-from sklearn.preprocessing import StandardScaler
 from PIL import Image, ImageDraw
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
@@ -31,13 +25,11 @@ from .models import (
     PageResult,
     ExtractionResults,
 )
-from project_config import get_config
+from .visible import PageNotJudged, PageVerdict, page_verdict
+from pipeline.common.curated import SOURCE
 
 logger = logging.getLogger(__name__)
 
-Sequence = namedtuple(
-    "Sequence", ["bbox", "y_mid", "avg_render_idx", "text", "char_indices"]
-)
 
 
 def _normalize_unicode(text: str) -> str:
@@ -87,17 +79,6 @@ class FishingSynopsisParser:
         # Ensure base directory exists
         os.makedirs(self.base_output_dir, exist_ok=True)
 
-        # DBSCAN & Cleaning Constants
-        self.DBSCAN_EPS = 0.15
-        self.DBSCAN_MIN_SAMPLES = 3
-        self.CLUSTER_PASS_THRESHOLD = 0.80
-        self.COLOR_DIFF_THRESHOLD = 30
-        self.LUMINANCE_THRESHOLD = 180
-        self.MIN_INK_PIXELS_STANDARD = 4
-        self.SYMBOLS_TO_RELAX = ".,:;'-_\"`~"
-        self.MIN_FONT_SIZE = 4.0
-        self.MAX_FONT_SIZE = 30.0
-
         # Symbol Rejection Thresholds
         self.MIN_SYMBOL_DIM = 4.0
         self.MAX_SYMBOL_DIM = 25.0
@@ -106,480 +87,26 @@ class FishingSynopsisParser:
         # Tributaries Text Constant
         self.INCLUDES_TRIBUTARIES = "[Includes Tributaries]"
 
-    def _get_bg_palette(self, img_pil):
-        small = img_pil.resize((200, int(200 * img_pil.height / img_pil.width)))
-        colors = (
-            small.convert("P", palette=Image.ADAPTIVE, colors=256)
-            .convert("RGB")
-            .getcolors(maxcolors=256 * 256)
-        )
-        colors.sort(key=lambda x: x[0], reverse=True)
-        backgrounds = []
-        for count, rgb in colors:
-            if sum(rgb) < 150:
-                continue
-            backgrounds.append(np.array(rgb))
-            if len(backgrounds) >= 2:
-                break
-        if len(backgrounds) < 2:
-            backgrounds.append(np.array([255, 255, 255]))
-        return backgrounds
+    def get_cleaned_page(self, page) -> Tuple[Any, PageVerdict]:
+        """The page with only the characters the PDF's own painting rules make visible, and the verdict.
 
-    def _check_char_sanity(self, char, np_img, scale, bg_pal):
-        fs = char.get("size", 0)
-        if fs < self.MIN_FONT_SIZE or fs > self.MAX_FONT_SIZE:
-            return False
-        if char["text"].strip() == "":
-            return True
-        x0, y0, x1, y1 = [
-            int(v * scale)
-            for v in [char["x0"], char["top"], char["x1"], char["bottom"]]
-        ]
-        crop = np_img[
-            max(0, y0) : min(np_img.shape[0], y1), max(0, x0) : min(np_img.shape[1], x1)
-        ]
-        if crop.size == 0:
-            return True
-        pixels = crop.reshape(-1, 3)
-        bg1, bg2 = bg_pal[0], bg_pal[1]
-        is_distinct = (
-            np.linalg.norm(pixels - bg1, axis=1) > self.COLOR_DIFF_THRESHOLD
-        ) & (np.linalg.norm(pixels - bg2, axis=1) > self.COLOR_DIFF_THRESHOLD)
-        is_dark = np.dot(pixels, [0.299, 0.587, 0.114]) < self.LUMINANCE_THRESHOLD
-        ink_count = np.sum(is_distinct & is_dark)
-        thresh = (
-            1 if char["text"] in self.SYMBOLS_TO_RELAX else self.MIN_INK_PIXELS_STANDARD
-        )
-        return ink_count >= thresh
-
-    def _check_group_sanity(self, chars, np_img, scale, bg_pal):
-        if not "".join([c["text"] for c in chars]).strip():
-            return False
-        bad_chars = sum(
-            1 for c in chars if not self._check_char_sanity(c, np_img, scale, bg_pal)
-        )
-        return (bad_chars / len(chars)) < 0.2
-
-    def get_cleaned_page(self, page, save_debug=False, page_num=None):
-        resolution = 400
-        scale = resolution / 72
-        img = page.to_image(resolution=resolution).original.convert("RGB")
-        np_img = np.array(img)
-        bg_pal = self._get_bg_palette(img)
-
-        all_chars = page.chars
-        for i, c in enumerate(all_chars):
+        T1190: `pipeline.regs.extraction.visible` decides (painter's model on MuPDF's display list: covered by a
+        later opaque fill or image, the same glyph drawn again, render mode, opacity, layer, crop box, clip, same
+        colour as the fill under it). It replaced a 400 dpi render, a two-colour background palette, an ink count
+        per character, DBSCAN over (line, paint order) and a first-line overlap cut, every number of them tuned to
+        this book's colours. Each char keeps `render_index` (its place in content order) and gains `struck` (a
+        strike-through line is drawn through it). Only chars are filtered; lines, rects and curves are untouched."""
+        verdict = page_verdict(page)
+        for i, c in enumerate(page.chars):
             c["render_index"] = i
-
-        chars_sorted = sorted(all_chars, key=lambda c: c["top"])
-        lines = []
-        for c in chars_sorted:
-            placed = False
-            for l in lines:
-                overlap = max(
-                    0, min(c["bottom"], l[-1]["bottom"]) - max(c["top"], l[-1]["top"])
-                )
-                if (c["bottom"] - c["top"]) > 0 and overlap / (
-                    c["bottom"] - c["top"]
-                ) > 0.4:
-                    l.append(c)
-                    placed = True
-                    break
-            if not placed:
-                lines.append([c])
-
-        sequences, raw_groups = [], []
-        for row in lines:
-            row.sort(key=lambda x: x["render_index"])
-            if not row:
-                continue
-            active = [row[0]]
-            for i in range(1, len(row)):
-                if -3 < (row[i]["x0"] - active[-1]["x1"]) < 3:
-                    active.append(row[i])
-                else:
-                    txt = "".join([c["text"] for c in active])
-                    if txt.strip():
-                        idx = [c["render_index"] for c in active]
-                        bbox = (
-                            min(c["x0"] for c in active),
-                            min(c["top"] for c in active),
-                            max(c["x1"] for c in active),
-                            max(c["bottom"] for c in active),
-                        )
-                        sequences.append(
-                            Sequence(
-                                bbox,
-                                (active[0]["top"] + active[0]["bottom"]) / 2,
-                                sum(idx) / len(idx),
-                                txt,
-                                idx,
-                            )
-                        )
-                        raw_groups.append(active)
-                    active = [row[i]]
-            if active:
-                txt = "".join([c["text"] for c in active])
-                if txt.strip():
-                    idx = [c["render_index"] for c in active]
-                    bbox = (
-                        min(c["x0"] for c in active),
-                        min(c["top"] for c in active),
-                        max(c["x1"] for c in active),
-                        max(c["bottom"] for c in active),
-                    )
-                    sequences.append(
-                        Sequence(
-                            bbox,
-                            (active[0]["top"] + active[0]["bottom"]) / 2,
-                            sum(idx) / len(idx),
-                            txt,
-                            idx,
-                        )
-                    )
-                    raw_groups.append(active)
-
-        if not sequences:
-            return page
-        X = np.array([[s.y_mid, s.avg_render_idx] for s in sequences])
-        labels = (
-            DBSCAN(eps=self.DBSCAN_EPS, min_samples=self.DBSCAN_MIN_SAMPLES)
-            .fit(StandardScaler().fit_transform(X))
-            .labels_
+            c["struck"] = i in verdict.struck
+        keep = verdict.visible
+        clean = page.filter(
+            lambda o: o.get("render_index") in keep if o.get("object_type") == "char" else True
         )
-
-        # Calculate passthrough rates for each cluster
-        cluster_stats = {}
-        keep_indices = set()
-        for k in set(labels):
-            indices = [i for i, val in enumerate(labels) if val == k]
-            if k == -1:
-                kept = 0
-                for idx in indices:
-                    if self._check_group_sanity(raw_groups[idx], np_img, scale, bg_pal):
-                        keep_indices.update(sequences[idx].char_indices)
-                        kept += 1
-                cluster_stats[k] = {
-                    "total": len(indices),
-                    "kept": kept,
-                    "rate": kept / len(indices) if len(indices) > 0 else 0,
-                }
-            else:
-                sane_count = sum(
-                    1
-                    for idx in indices
-                    if self._check_group_sanity(raw_groups[idx], np_img, scale, bg_pal)
-                )
-                passthrough = (sane_count / len(indices)) >= self.CLUSTER_PASS_THRESHOLD
-                if passthrough:
-                    for idx in indices:
-                        keep_indices.update(sequences[idx].char_indices)
-                cluster_stats[k] = {
-                    "total": len(indices),
-                    "kept": len(indices) if passthrough else 0,
-                    "rate": 1.0 if passthrough else 0.0,
-                }
-
-        # Save debug visualizations if requested
-        if save_debug and page_num is not None:
-            self._save_cluster_debug(
-                page,
-                page_num,
-                sequences,
-                labels,
-                cluster_stats,
-                keep_indices,
-                np_img,
-                scale,
-            )
-
-        # ============================================================================
-        # WARNING: THIS CODE IS BROKEN AND SHOULD NOT BE SHIPPED
-        # ============================================================================
-        # The overlap detection below incorrectly removes valid characters (e.g.,
-        # the 'c' in "Omineca"). Using mean render_index as a threshold is a naive
-        # approach that doesn't distinguish between watermarks and actual content.
-        #
-        # FIXME: Implement proper watermark detection using:
-        #   - Text pattern matching (detect repeated region names)
-        #   - Spatial clustering (group characters by position/alignment)
-        #   - Font metadata (watermarks often use different fonts)
-        #
-        # Leaving this as a TODO for later is BAD PRACTICE. Fix it properly NOW.
-        # ============================================================================
-
-        # Debug: Print first line characters sorted by render_index
-        if save_debug and lines and lines[0]:
-            first_line_chars = sorted(lines[0], key=lambda c: c.get("render_index", 0))
-            first_line_text = "".join([c.get("text", "") for c in first_line_chars])
-            render_indices = [c.get("render_index", -1) for c in first_line_chars]
-            # Print characters with their render indices aligned
-            char_display = " ".join(
-                [f"{c.get('text', ' '):>4}" for c in first_line_chars]
-            )
-            idx_display = " ".join(
-                [f"{c.get('render_index', -1):>4}" for c in first_line_chars]
-            )
-            print(f"  [Debug] First line chars (n={len(first_line_chars)}):")
-            print(f"    Chars:   {char_display}")
-            print(f"    Indices: {idx_display}")
-
-        # Remove overlapping characters from first line only
-        overlap_exists = False
-
-        if lines and lines[0]:
-            # Get only the characters from first line that are in keep_indices
-            line_chars = [c for c in lines[0] if c["render_index"] in keep_indices]
-
-            # Check each character against all others on the same line for any overlap
-            for i, c1 in enumerate(line_chars):
-                for j in range(i + 1, len(line_chars)):
-                    c2 = line_chars[j]
-                    # Shrink bboxes by 10% to avoid accidental overlap from font rendering
-                    shrink = 0.1
-                    c1_w, c1_h = c1["x1"] - c1["x0"], c1["bottom"] - c1["top"]
-                    c2_w, c2_h = c2["x1"] - c2["x0"], c2["bottom"] - c2["top"]
-
-                    c1_x0 = c1["x0"] + c1_w * shrink
-                    c1_x1 = c1["x1"] - c1_w * shrink
-                    c1_top = c1["top"] + c1_h * shrink
-                    c1_bottom = c1["bottom"] - c1_h * shrink
-
-                    c2_x0 = c2["x0"] + c2_w * shrink
-                    c2_x1 = c2["x1"] - c2_w * shrink
-                    c2_top = c2["top"] + c2_h * shrink
-                    c2_bottom = c2["bottom"] - c2_h * shrink
-
-                    x_overlap = max(0, min(c1_x1, c2_x1) - max(c1_x0, c2_x0))
-                    y_overlap = max(0, min(c1_bottom, c2_bottom) - max(c1_top, c2_top))
-
-                    if x_overlap * y_overlap > 0:
-                        overlap_exists = True
-                        break
-
-        chars_to_remove = set()
-        if overlap_exists:
-            mean_render_idx = np.mean(
-                [
-                    c["render_index"]
-                    for c in lines[0]
-                    if c["render_index"] in keep_indices
-                ]
-            )
-            chars_to_remove = set(
-                [
-                    c["render_index"]
-                    for c in lines[0]
-                    if c["render_index"] < mean_render_idx
-                    and c["render_index"] in keep_indices
-                ]
-            )
-        # Update keep_indices to exclude duplicates
-        keep_indices -= chars_to_remove
-
-        # Debug: Print what remains on first line
-        if save_debug and lines and lines[0]:
-            remaining = [
-                c
-                for c in sorted(lines[0], key=lambda c: c.get("render_index", 0))
-                if c["render_index"] in keep_indices
-            ]
-            remaining_text = "".join([c.get("text", "") for c in remaining])
-            print(
-                f"  [Debug] After overlap removal (n={len(remaining)}): {remaining_text}"
-            )
-
-        # ===========================================================================
-        # END OF BROKEN CODE
-        # ==========================================================================
-
-        return page.filter(
-            lambda o: (
-                o.get("render_index") in keep_indices
-                if o.get("object_type") == "char"
-                else True
-            )
-        )
+        return clean, verdict
 
     # --- 2. SYMBOL & DEBUG LOGIC ---
-
-    def _save_cluster_debug(
-        self,
-        page,
-        page_num,
-        sequences,
-        labels,
-        cluster_stats,
-        keep_indices,
-        np_img,
-        scale,
-    ):
-        """Save cluster scatter plot and character bbox images organized by cluster."""
-        page_debug_dir = os.path.join(self.debug_dir, f"page_{page_num:03d}")
-        os.makedirs(page_debug_dir, exist_ok=True)
-
-        # 0. Create bbox visualization of all groups BEFORE clustering (colored by render_index)
-        fig, ax = plt.subplots(figsize=(14, 10))
-        ax.imshow(np_img)
-
-        # Get render indices for colormap
-        render_indices = np.array([s.avg_render_idx for s in sequences])
-        if len(render_indices) > 0:
-            vmin, vmax = render_indices.min(), render_indices.max()
-        else:
-            vmin, vmax = 0, 1
-
-        # Create colormap
-        cmap = plt.cm.viridis
-        norm = plt.Normalize(vmin=vmin, vmax=vmax)
-
-        # Draw bounding boxes for each sequence, colored by render index
-        for seq in sequences:
-            color = cmap(norm(seq.avg_render_idx))
-            x0, y0 = seq.bbox[0] * scale, seq.bbox[1] * scale
-            x1, y1 = seq.bbox[2] * scale, seq.bbox[3] * scale
-
-            rect = patches.Rectangle(
-                (x0, y0),
-                x1 - x0,
-                y1 - y0,
-                linewidth=1.5,
-                edgecolor="black",
-                facecolor=color,
-                alpha=0.5,
-            )
-            ax.add_patch(rect)
-
-        # Add colorbar
-        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-        sm.set_array([])
-        cbar = plt.colorbar(sm, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label("Average Render Index", fontsize=12)
-
-        ax.set_title(
-            f"Page {page_num} - All Groups Before Clustering (colored by render index)",
-            fontsize=12,
-        )
-        ax.axis("off")
-
-        pre_cluster_path = os.path.join(
-            page_debug_dir, "pre_clustering_render_order.png"
-        )
-        plt.savefig(pre_cluster_path, dpi=150, bbox_inches="tight")
-        plt.close()
-        print(f"  [Debug] Saved pre-clustering visualization: {pre_cluster_path}")
-
-        # 1. Create scatter plot of clusters
-        fig, ax = plt.subplots(figsize=(12, 8))
-
-        # Extract data for plotting
-        X = np.array([[s.y_mid, s.avg_render_idx] for s in sequences])
-        unique_labels = set(labels)
-        colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
-
-        for k, col in zip(unique_labels, colors):
-            if k == -1:
-                col = "black"  # Noise points
-
-            class_member_mask = labels == k
-            xy = X[class_member_mask]
-
-            stats = cluster_stats.get(k, {})
-            rate = stats.get("rate", 0)
-            total = stats.get("total", 0)
-            kept = stats.get("kept", 0)
-
-            label = f"Cluster {k}: {kept}/{total} ({rate*100:.1f}%)"
-            ax.scatter(
-                xy[:, 0],
-                xy[:, 1],
-                c=[col],
-                s=100,
-                alpha=0.6,
-                edgecolors="black",
-                label=label,
-            )
-
-        ax.set_xlabel("Y Position (mid)", fontsize=12)
-        ax.set_ylabel("Average Render Index", fontsize=12)
-        ax.set_title(
-            f"Page {page_num} - DBSCAN Clusters (eps={self.DBSCAN_EPS}, min_samples={self.DBSCAN_MIN_SAMPLES})",
-            fontsize=14,
-        )
-        ax.legend(loc="best", fontsize=9)
-        ax.grid(True, alpha=0.3)
-
-        scatter_path = os.path.join(page_debug_dir, "cluster_scatter.png")
-        plt.savefig(scatter_path, dpi=150, bbox_inches="tight")
-        plt.close()
-        print(f"  [Debug] Saved cluster scatter: {scatter_path}")
-
-        # 2. Save character bbox images for each cluster
-        for k in unique_labels:
-            cluster_dir = os.path.join(
-                page_debug_dir, f"cluster_{k if k != -1 else 'noise'}"
-            )
-            os.makedirs(cluster_dir, exist_ok=True)
-
-            # Get sequences in this cluster
-            cluster_mask = labels == k
-            cluster_sequences = [
-                seq for i, seq in enumerate(sequences) if cluster_mask[i]
-            ]
-
-            if not cluster_sequences:
-                continue
-
-            # Create visualization showing all characters in this cluster
-            fig, ax = plt.subplots(figsize=(14, 10))
-            ax.imshow(np_img)
-
-            stats = cluster_stats.get(k, {})
-            kept = stats.get("kept", 0)
-            total = stats.get("total", 0)
-            rate = stats.get("rate", 0)
-
-            # Draw bounding boxes for each character in this cluster
-            for seq in cluster_sequences:
-                for char_idx in seq.char_indices:
-                    # Find the character by render_index
-                    char = next(
-                        (c for c in page.chars if c.get("render_index") == char_idx),
-                        None,
-                    )
-                    if char:
-                        x0, y0, x1, y1 = (
-                            char["x0"] * scale,
-                            char["top"] * scale,
-                            char["x1"] * scale,
-                            char["bottom"] * scale,
-                        )
-
-                        # Color: green if kept, red if filtered out
-                        color = "green" if char_idx in keep_indices else "red"
-                        rect = patches.Rectangle(
-                            (x0, y0),
-                            x1 - x0,
-                            y1 - y0,
-                            linewidth=1,
-                            edgecolor=color,
-                            facecolor="none",
-                            alpha=0.7,
-                        )
-                        ax.add_patch(rect)
-
-            status = "KEPT" if kept == total else f"FILTERED ({kept}/{total})"
-            ax.set_title(
-                f"Cluster {k if k != -1 else 'Noise'} - {status} - Passthrough: {rate*100:.1f}%",
-                fontsize=12,
-            )
-            ax.axis("off")
-
-            cluster_img_path = os.path.join(cluster_dir, "character_bboxes.png")
-            plt.savefig(cluster_img_path, dpi=150, bbox_inches="tight")
-            plt.close()
-
-        print(f"  [Debug] Saved cluster visualizations to: {page_debug_dir}")
 
     def detect_visual_symbols(self, section_context):
         """Identifies icons via vector curve geometry and rejects large map artifacts."""
@@ -625,15 +152,16 @@ class FishingSynopsisParser:
 
         return any(indicator in fontname_upper for indicator in bold_indicators)
 
-    def extract_text_with_bold(self, page_section) -> str:
+    def extract_text_with_bold(self, page_section, mark_struck: bool = False) -> str:
         """
         Extract text from a page section with bold formatting preserved using Markdown syntax.
 
         Args:
             page_section: A pdfplumber page or filtered page section
+            mark_struck: wrap each run of struck-through characters (`char["struck"]`, T1190) in ~~
 
         Returns:
-            Text string with bold portions wrapped in **
+            Text string with bold portions wrapped in ** (and, with mark_struck, struck runs in ~~)
         """
         chars = page_section.chars
         if not chars:
@@ -661,7 +189,7 @@ class FishingSynopsisParser:
                 # Process the completed line - IMPORTANT: sort by x0 before processing
                 if current_line:
                     current_line.sort(key=lambda c: c.get("x0", 0))
-                    result_lines.append(self._process_line_with_bold(current_line))
+                    result_lines.append(self._process_line_with_bold(current_line, mark_struck))
                 current_line = []
                 current_line_top = char_top
 
@@ -670,11 +198,20 @@ class FishingSynopsisParser:
         # Process the last line - IMPORTANT: sort by x0 before processing
         if current_line:
             current_line.sort(key=lambda c: c.get("x0", 0))
-            result_lines.append(self._process_line_with_bold(current_line))
+            result_lines.append(self._process_line_with_bold(current_line, mark_struck))
 
         return "\n".join(result_lines)
 
-    def _process_line_with_bold(self, chars: List[Dict[str, Any]]) -> str:
+    @staticmethod
+    def _close_strike(segment: List[str]) -> None:
+        """Close a ~~ run before the spaces that end it (`~~15~~ x`, never `~~15 ~~x`)."""
+        tail = []
+        while segment and not segment[-1].strip():
+            tail.append(segment.pop())
+        segment.append("~~")
+        segment.extend(reversed(tail))
+
+    def _process_line_with_bold(self, chars: List[Dict[str, Any]], mark_struck: bool = False) -> str:
         """
         Process a line of characters, grouping them by bold status and building a string
         with ** markers around bold segments.
@@ -692,6 +229,7 @@ class FishingSynopsisParser:
         current_segment = []
         current_segment_chars = []  # Track actual char objects for spacing detection
         current_is_bold = None
+        in_strike = False           # (T1190, mark_struck) a ~~ run is open in current_segment
 
         for i, char in enumerate(chars):
             text = char.get("text", "")
@@ -709,8 +247,17 @@ class FishingSynopsisParser:
                 if char_width > 0 and gap > char_width * 0.2:
                     needs_space = True
 
+            # (T1190) a struck run closes before the space that follows it; a space never flips it
+            struck = (bool(char.get("struck")) if text.strip() else in_strike) if mark_struck else False
+            if in_strike and not struck:
+                self._close_strike(current_segment)
+                in_strike = False
+
             # If bold status changed, flush current segment
             if current_is_bold is not None and is_bold != current_is_bold:
+                if in_strike:
+                    self._close_strike(current_segment)
+                    in_strike = False
                 segment_text = "".join(current_segment)
                 if segment_text:  # Only add non-empty segments
                     if current_is_bold:
@@ -725,11 +272,16 @@ class FishingSynopsisParser:
             if needs_space and current_segment:
                 current_segment.append(" ")
 
+            if struck and not in_strike:
+                current_segment.append("~~")
+                in_strike = True
             current_segment.append(text)
             current_segment_chars.append(char)
             current_is_bold = is_bold
 
         # Flush the last segment
+        if in_strike:
+            self._close_strike(current_segment)
         if current_segment:
             segment_text = "".join(current_segment)
             if segment_text:
@@ -994,9 +546,31 @@ class FishingSynopsisParser:
         if page_num is None:
             page_num = raw_page.page_number
 
-        # 1. Clean the page (removes background noise)
-        page = self.get_cleaned_page(raw_page, save_debug=save_debug, page_num=page_num)
+        # 1. Keep only the visible characters (T1190: the PDF's painting rules, `visible.py`)
+        page, verdict = self.get_cleaned_page(raw_page)
+        result = self._rows_of_page(page, raw_page, page_num, save_debug)
+        for note in verdict.notes:
+            # (review of #323) a rule that might hide text but cannot be sure keeps it, and says so: never silent
+            print(f"  [visible] PDF page {page_num}: {note}", file=sys.stderr)
+        if result.rows:
+            # on a page with rows a gated hit is no stderr line among many: it goes on the run's one [unsure] line and
+            # the gate fails on it unless it is on the owner's list (known_unsure.json)
+            result = PageResult(metadata=result.metadata, rows=result.rows,
+                                unsure=[{"pdf_page": page_num, "kind": k, "text": t} for k, t in verdict.hits
+                                        if k in GATED_UNSURE])
+        if verdict.disagreements:
+            # pdfplumber placed a glyph elsewhere than MuPDF (and both renderers) draw it: its verdict is sure, its
+            # place in the layout is not. Refused where rows are read; said out loud where none are.
+            what = "; ".join(f"{t!r} pdfplumber {a} vs MuPDF {b}" for _, t, a, b in verdict.disagreements[:5])
+            n = len(verdict.disagreements)
+            if result.rows:
+                raise PageNotJudged(page_num, f"pdfplumber and MuPDF place {n} glyph(s) differently ({what}) on a "
+                                              f"page with {len(result.rows)} row(s)")
+            print(f"  [visible] PDF page {page_num}: pdfplumber and MuPDF place {n} glyph(s) differently ({what}); "
+                  f"no rows are read from this page", file=sys.stderr)
+        return result
 
+    def _rows_of_page(self, page, raw_page, page_num, save_debug) -> PageResult:
         # 2. Extract Metadata (Region Name)
         region_header = self._extract_region_header(page)
 
@@ -1083,6 +657,11 @@ class FishingSynopsisParser:
             # Extract text with bold formatting preserved (using ** Markdown syntax)
             water_raw = self.extract_text_with_bold(left) or ""
             regs_raw = self.extract_text_with_bold(right) or ""
+            if any(c.get("struck") for c in left.chars):
+                raise ValueError(f"PDF page {page_num}: a struck-through character in a water-name cell "
+                                 f"({water_raw!r}): T1190 carries strikes in the regulation cell only")
+            regs_struck = (self.extract_text_with_bold(right, mark_struck=True)
+                           if any(c.get("struck") for c in right.chars) else None)
 
             # Debug output: show raw column data before processing
             if save_debug and (water_raw or regs_raw):
@@ -1097,6 +676,7 @@ class FishingSynopsisParser:
             if cell is not None:
                 w_txt, mus, regs_raw, all_syms = (cell["water"], cell["mu"], cell["raw_regs"],
                                                    cell["symbols"])
+                marked = self._marked_regs(page_num, water_raw, regs_struck, v_sym_raw, regs_raw)
                 # Validate: warn if waterbody has no MU
                 if w_txt.strip() and not mus:
                     print(
@@ -1118,6 +698,7 @@ class FishingSynopsisParser:
                         image=image_key,
                         region=region_header,
                         pdf_page=page_num,
+                        raw_regs_marked=marked,
                     )
                 )
 
@@ -1198,6 +779,21 @@ class FishingSynopsisParser:
         if not ((w_txt.strip() or mus) and (w_txt or regs_raw.strip() or mus or all_syms)):
             return None
         return {"water": w_txt, "mu": mus, "raw_regs": regs_raw.strip(), "symbols": all_syms}
+
+    def _marked_regs(self, page_num: int, water_raw: str, regs_struck: Optional[str], v_sym_raw: List[str],
+                     raw_regs: str) -> Optional[str]:
+        """(T1190) The regulation cell with each struck-through run in ~~ (`Sept 1-Oct ~~15~~`), cleaned exactly as
+        `raw_regs` is; None for a row with no strike. `raw_regs` itself never carries the mark: it is the text the
+        parse batches, the entry ids' rows digest, the carry step and ingest all key on, and a strike leaves it as the
+        book's text layer has it. Refuses a marked text that is not `raw_regs` plus the marks alone."""
+        if regs_struck is None:
+            return None
+        cell = self.row_from_cells(water_raw, regs_struck, v_sym_raw)
+        marked = cell["raw_regs"] if cell is not None else None
+        if "~~" in raw_regs or marked is None or marked.replace("~~", "") != raw_regs:
+            raise ValueError(f"PDF page {page_num}: the struck-through text of {water_raw!r} does not clean to its "
+                             f"raw_regs plus ~~ marks ({marked!r} vs {raw_regs!r})")
+        return marked
 
     @staticmethod
     def _printed_or_refuse(printed: Optional[int], page_num: int) -> int:
@@ -1465,6 +1061,66 @@ def keep_page(result: PageResult, page_num: int) -> Optional[PageResult]:
     return result
 
 
+#: (T1190) the struck-through items already seen and recorded; a strike not on this list is NEW (owner 2026-11-26)
+KNOWN_STRIKES = Path(__file__).resolve().parent / "known_strikes.json"
+#: (re-review of #323) what the visible-text method keeps but cannot judge, on a page with rows: each hit must be on the
+#: owner's list (KNOWN_UNSURE, by page + kind + text) or the gate fails. Banner pages without rows stay stderr notes.
+GATED_UNSURE = ("possible-strike", "image-clip-unknown")
+KNOWN_UNSURE = Path(__file__).resolve().parent / "known_unsure.json"
+
+
+def load_known_unsure(path: Path = KNOWN_UNSURE) -> List[Dict[str, Any]]:
+    """The hits the owner accepted. A missing or malformed file raises naming it (never 'none known')."""
+    doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(doc.get("items"), list) or not all({"pdf_page", "kind", "text"} <= set(i) for i in doc["items"]):
+        raise ValueError(f"{path}: 'items' must be a list of {{pdf_page, kind, text, ...}}")
+    return doc["items"]
+
+
+def unsure_report(hits: List[Dict[str, Any]], known: List[Dict[str, Any]]) -> Tuple[Optional[str], List[Dict]]:
+    """ONE line for a run: every gated hit on a page with rows, the NEW ones (not on the owner's list) named."""
+    if not hits:
+        return None, []
+    seen = {(k["pdf_page"], k["kind"], k["text"]) for k in known}
+    new = [h for h in hits if (h["pdf_page"], h["kind"], h["text"]) not in seen]
+    parts = [f"PDF p.{h['pdf_page']} {h['kind']} {h['text']!r}" + (" NEW" if h in new else "") for h in hits]
+    line = (f"[unsure] {len(hits)} kept-but-unjudged item(s) on pages with rows"
+            + (f", {len(new)} NEW (not in {KNOWN_UNSURE.name})" if new else "") + ": " + "; ".join(parts))
+    return line, new
+_STRUCK_RUN = re.compile(r"(?:[^\s~-]+ )?~~(.+?)~~")
+
+
+def strike_items(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Every struck run of the rows (dicts), with the word before it: {water, pdf_page, page, text: 'Oct ~~15~~'}."""
+    out = []
+    for r in rows:
+        for m in _STRUCK_RUN.finditer(r.get("raw_regs_marked") or ""):
+            out.append({"water": r["water"], "pdf_page": r.get("pdf_page"), "page": r.get("page"), "text": m.group(0)})
+    return out
+
+
+def load_known_strikes(path: Path = KNOWN_STRIKES) -> List[Dict[str, Any]]:
+    """The recorded strikes. A missing or malformed file raises naming it (a missing list is never 'none known')."""
+    doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(doc.get("strikes"), list) or not all({"water", "text"} <= set(s) for s in doc["strikes"]):
+        raise ValueError(f"{path}: 'strikes' must be a list of {{water, text, ...}}")
+    return doc["strikes"]
+
+
+def strike_report(rows: List[Dict[str, Any]], known: List[Dict[str, Any]]) -> Tuple[Optional[str], List[Dict]]:
+    """ONE warning line for a run (owner 2026-11-26: keep struck text marked, no per-row flag, one line listing them),
+    and the strikes that are NEW: not in the recorded list (matched on water + struck text, any page or book)."""
+    items = strike_items(rows)
+    if not items:
+        return None, []
+    seen = {(k["water"], k["text"]) for k in known}
+    new = [i for i in items if (i["water"], i["text"]) not in seen]
+    parts = [f"{i['water']} PDF p.{i['pdf_page']} {i['text']!r}" + (" NEW" if i in new else "") for i in items]
+    line = (f"[struck] {len(items)} struck-through item(s) kept, marked in raw_regs_marked"
+            + (f", {len(new)} NEW (not in {KNOWN_STRIKES.name})" if new else "") + ": " + "; ".join(parts))
+    return line, new
+
+
 class SynopsisExtractor:
     """
     High-level class that handles downloading and extracting the entire
@@ -1544,6 +1200,7 @@ class SynopsisExtractor:
 
         all_pages = []
         completed_count = 0
+        failed: Dict[int, str] = {}
 
         # Process pages in parallel
         # At most 4 processes by default: heavy jobs here run <= 4 workers (scripts/heavy.sh).
@@ -1565,11 +1222,24 @@ class SynopsisExtractor:
                     if completed_count % 20 == 0:
                         print(f"Progress: {completed_count}/{total_pages}")
                 except Exception as exc:
+                    # (T1190) every page is still tried, then the run FAILS naming each page it could not read
+                    # (a page the visible-text method cannot judge included): never a book with pages missing
                     logger.warning("Error on page %d: %s", page_num, exc)
+                    failed[page_num] = f"{type(exc).__name__}: {exc}"
                     completed_count += 1
+
+        if failed:
+            raise RuntimeError(f"{len(failed)} PDF page(s) could not be extracted, no rows file written: "
+                               + "; ".join(f"p.{n}: {why}" for n, why in sorted(failed.items())))
 
         # Sort pages by page number to maintain order
         all_pages.sort(key=lambda x: x.metadata.page_number)
+        line, _new = strike_report([r.to_dict() for p in all_pages for r in p.rows], load_known_strikes())
+        if line:
+            print(line, file=sys.stderr)
+        line, _new = unsure_report([h for p in all_pages for h in p.unsure], load_known_unsure())
+        if line:
+            print(line, file=sys.stderr)
 
         print(f"\nComplete: {len(all_pages)} pages with regulation tables")
         return ExtractionResults(pages=all_pages)
@@ -1588,9 +1258,7 @@ class SynopsisExtractor:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    # Load config for default paths
-    config = get_config()
-    default_pdf = str(config.synopsis_pdf_path)
+    default_pdf = str(SOURCE.synopsis_pdf)
     # `synopsis_raw_data_path` was retired with the `output:` tree and raises on access, so this
     # entry point could not start at all. The generated path comes from GENERATED (AGENTS 41).
     from pipeline.common.curated import GENERATED
@@ -1676,8 +1344,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     elif args.page:
         # Single page extraction (for testing)
         p = FishingSynopsisParser()
-        from project_config import get_config
-        PDF_PATH = get_config().synopsis_pdf_path      # (T1021) was os.path.join("data", "source", …): the cwd's
+        PDF_PATH = SOURCE.synopsis_pdf      # (T1021) was os.path.join("data", "source", …): the cwd's
 
         with pdfplumber.open(PDF_PATH) as pdf:
             page_result = p.extract_rows(

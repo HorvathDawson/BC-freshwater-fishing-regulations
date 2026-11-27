@@ -97,6 +97,8 @@ export interface ShellProps {
                   part?: number | null;
                   /** (T605) a region page's link on the phone: the map framed on this box (`item` null) */
                   fit?: readonly [number, number, number, number];
+                  /** (T1194) a link's gauge page (`/?gauge=<station>`): the Conditions map with that gauge's own page over it (`item` null) */
+                  gauge?: string;
                   /** (T1038) a link's day (the Shell's one day, null today), as `initialDay`; absent: left as it is */
                   day?: Date | null;
                   /** (T1038) a link's Conditions horizon, as `initialHorizon`; absent: left as it is */
