@@ -1307,10 +1307,16 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
             if row["inlet"] in inflows:
                 # what the walk took through it: the through-river and everything above it the walk reached
                 row["joined"] = len(set(_tribs.subtree(graph, {row["inlet"]})) & (got - set(reach)))
-        # a lake row's exception this walk met: it climbed through that lake (an inflow of it is the walk's)
-        expand.stopped = sorted({(st.entry_id, st.rule_id) for st in applied
-                                 if any(graph.edges[ei].from_node in got for lk in st.lakes
-                                        for ei in graph.up_adj.get(lk, ()))})
+        # a lake row's exception this walk met: water it holds out flows straight into something the walk took (a
+        # walk that never came near the lake, or the excepted water, says nothing)
+        # (a lake is walked, never collected: the walk was in the stop's lake when it took one of the lake's inflows)
+        def _met(st) -> bool:
+            held = st.excluded | st.passed
+            walked = set(got) - set(reach)
+            inside = walked | {lk for lk in st.lakes
+                               if any(graph.edges[ei].from_node in walked for ei in graph.up_adj.get(lk, ()))}
+            return any(graph.edges[ei].from_node in held for s in inside for ei in graph.up_adj.get(s, ()))
+        expand.stopped = sorted({(st.entry_id, st.rule_id) for st in applied if _met(st)})
         if region is None:
             return got
         kept = {s for s in got if s in region}

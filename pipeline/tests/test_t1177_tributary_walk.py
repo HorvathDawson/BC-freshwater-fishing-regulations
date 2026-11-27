@@ -154,3 +154,20 @@ def test_a_stretch_rule_still_stops_at_the_lake_at_its_top(chain):
     # a two-extent rule is no whole-water rule (`climbs_head_lakes`); the cut extent is unresolved here, the whole binds
     got, _ = _bind(chain, entry, rule)
     assert got == {"D:0"}
+
+
+
+def test_a_head_lake_climb_is_stopped_too_and_a_walk_that_never_meets_the_exception_says_nothing(chain):
+    """One stop for every walk through the lake: the river's whole-water rule climbs its head lake (T18) up the chain
+    and stops at the upper row's exception, reported; with the upper row's exception on water no walk reaches, no
+    `lake_stop` is written."""
+    g, reg = chain
+    entry = {"entry_id": "r4:down_river@4-1", "matched": ["gnis:D"], "includes_tributaries": True}
+    rule = {"rule_id": "down_river.r1", "verbatim": "x", "extents": [{"op": "whole"}]}
+    got, d = _bind(chain, entry, rule, stops=lake_row_stops([UPPER], reg, g))
+    assert got == {"D:0", "C1", "C2"} and [x.payload for x in d if x.kind == "lake_stop"]
+    got, d = _bind(chain, stops=lake_row_stops([UPPER], reg, g))
+    low = {"entry_id": "r4:low_creek@4-1", "matched": ["gnis:D"]}
+    got, d = _bind(chain, low, {"rule_id": "low.r1", "verbatim": "x", "extents": [{"op": "whole"}]},
+                   stops=lake_row_stops([UPPER], reg, g))
+    assert got == {"D:0"} and not [x for x in d if x.kind == "lake_stop"], "no walk, no stop"
