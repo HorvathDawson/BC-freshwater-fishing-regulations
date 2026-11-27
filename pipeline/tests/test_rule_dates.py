@@ -260,7 +260,10 @@ def test_stripping_any_real_rules_dates_is_nearly_always_caught(raw):
         ("r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak", "shuswap_lake.r5x"),
         # RU-2 (2026-10-03): below Nicola Lake the row's "Trout catch and release, Jan 1-Feb 28"
         # lifts Region 3's spring closure on those dates, for trout (2026-10-05)
-        ("r3:nicola_river", "nicola_river.r3x")]), json.dumps(missed)
+        ("r3:nicola_river", "nicola_river.r3x"),
+        # RULINGS L29 (owner O1, T1177): on the Little River map A's "rainbow trout and char catch and release, May
+        # 15-Mar 14" lifts Region 3's spring closure on those dates, for rainbow trout and char
+        ("r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak", "shuswap_lake.r2x")]), json.dumps(missed)
 
 
 # --------------------------------------------------------------------------- ruling of 2026-09-25

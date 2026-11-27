@@ -6,7 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { AppState } from "react-native";
-import { appBecameActive } from "@app/ui";
+import { appBecameActive, appBecameInactive } from "@app/ui";
 
 export function useResumed(): number {
   const [resumed, setResumed] = useState(0);
@@ -14,6 +14,7 @@ export function useResumed(): number {
     let was = AppState.currentState;
     const sub = AppState.addEventListener("change", (st) => {
       if (st === "active" && was !== "active") { appBecameActive(); setResumed((n) => n + 1); }
+      if (st !== "active" && was === "active") appBecameInactive();
       was = st;
     });
     return () => sub.remove();

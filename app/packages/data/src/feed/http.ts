@@ -19,7 +19,7 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { FeedNeedsNewerApp, gaugeFeedRefusal, runOffered, isFeedTooNew, parseSemver, reportFailure, reportOnce, shownParameter, standing,
+import { FeedNeedsNewerApp, readingCurrentNow, readingCurrentUntil, gaugeFeedRefusal, runOffered, isFeedTooNew, parseSemver, reportFailure, reportOnce, shownParameter, standing,
          type FeedGate, type GaugeFeedFile, type SourceChange, now as clockNow } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
@@ -125,6 +125,36 @@ interface IndexFile {
     aheadDays?: AheadDays;
   }>;
 }
+
+/**
+ * (T1205) THE INDEX AS OF NOW: a station whose reading is not current by the clock (`readingCurrentNow`) keeps its
+ * `observedAt` (its last report is still said) and loses what only a current reading carries: the percentiles, which
+ * quantities it reports, the temperature. The worker wrote those while the reading was young; an index held, kept or
+ * never refreshed would otherwise show them as live for ever. Forecast fields are other sources' and stay. Returns the
+ * same object when nothing changes.
+ */
+export function ageIndex(idx: IndexFile | null, nowMs: number): IndexFile | null {
+  if (!idx) return idx;
+  const kept = aged.get(idx);
+  if (kept && nowMs >= kept.from && nowMs <= kept.until) return kept.out;   // nothing has crossed the line since
+  let out: IndexFile["stations"] | null = null;
+  let until = Infinity;
+  for (const [id, s] of Object.entries(idx.stations)) {
+    const last = readingCurrentUntil(s.observedAt);
+    if (last === null || nowMs <= last) { if (last !== null) until = Math.min(until, last); continue; }
+    // already stripped (the publisher's own age gate wrote it so): nothing to take away
+    if ((s.percentile ?? null) === null && s.discharge === undefined && s.level === undefined && s.reports === undefined
+        && s.temperatureC === undefined && s.temperatureAt === undefined && s.temperatureBand === undefined) continue;
+    out ??= { ...idx.stations };
+    const { discharge: _d, level: _l, reports: _r, temperatureC: _t, temperatureAt: _ta, temperatureBand: _tb, ...rest } = s;
+    out[id] = { ...rest, percentile: null };
+  }
+  const res = out ? { ...idx, stations: out } : idx;
+  aged.set(idx, { out: res, from: nowMs, until });   // the same answer while no station crosses the line (the clock only runs forward)
+  return res;
+}
+/** per raw index: its aged copy and the span of instants it holds for (so a poll gets the same object, and a later tick re-judges) */
+const aged = new WeakMap<object, { out: IndexFile; from: number; until: number }>();
 
 export interface StationFile {
   /** (T557) `gauge-feed/1` (core GAUGE_FEED_FORMAT); a read refuses any other or none. A kept copy from before may lack it. */
@@ -506,7 +536,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   };
 
   return {
-    index: () => load<IndexFile>("index.json"),
+    index: async () => ageIndex(await load<IndexFile>("index.json"), clockNow()),
 
     // in-flight requests are left to finish: the next ask after them is a fresh fetch
     refresh() {
@@ -573,7 +603,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
 
     async now(station) {
       // `published`'s test, on the one index read the rank below takes too
-      const idx = await load<IndexFile>("index.json");
+      const idx = ageIndex(await load<IndexFile>("index.json"), clockNow());   // (T1205) as of the clock, like `index()`
       if (idx && !(station in idx.stations)) return null;
       const f = await load<StationFile>(`${station}.json`);
       if (!f?.now || (f.now.discharge === null && f.now.level === null)) return null;
@@ -584,7 +614,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
       // read (offline, failed): the file's own rank, as before.
       const row = idx?.stations[station];
       const same = !row || row.observedAt === f.now.at;
-      const percentile = row ? (same ? row.percentile : null) : f.now.percentile;
+      // (T1205) no index row to follow: the file's own rank, only while its reading is current by the clock
+      const percentile = row ? (same ? row.percentile : null) : readingCurrentNow(f.now.at, clockNow()) ? f.now.percentile : null;
       return {
         fetchedAt: stamp(f.fetchedAt),
         ...(f.kept ? { kept: true as const } : {}),

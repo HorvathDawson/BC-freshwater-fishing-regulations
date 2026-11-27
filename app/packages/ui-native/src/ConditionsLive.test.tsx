@@ -3,12 +3,17 @@
  * `useSync`) redraws a MOUNTED Conditions view in place — the new reading replaces the old one with no reload and no
  * loading frame between them.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { Panel, SectionId, UpdateService, WaterSource } from "@app/data";
 import { clearAnswers, clearPanelCache, resetFeedVersions, useSync } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { LIGHT } from "./theme";
+
+
+// (T1205) a reading is current by the clock: these fixtures read at 2026-09-04T06:00Z, so the clock is 06:05Z that day
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true }); vi.setSystemTime(Date.parse("2026-09-04T06:05:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 afterEach(cleanup);
 beforeEach(() => { clearPanelCache(); clearAnswers(); resetFeedVersions(); });

@@ -20,7 +20,7 @@ is already in `requirements.txt` for the parsing models.
 ONE SCHEMA FOR THE WHOLE FILE (T1192). `Config` covers every block of config.yaml, refuses an unknown key at every
 level and has no field default and no `null`: `parse_config` is the one load path, the loaders here and
 `project_config.get_config()` are views on it, and a bad key fails as "config.yaml: unknown key curated.waters.cutz" /
-"config.yaml: missing key data_accessor.gpkg_path" (`ConfigError`).
+"config.yaml: missing key source.fwa_gpkg" (`ConfigError`).
 
 THREE KINDS OF DATA, AND THE DIFFERENCE IS WHAT IT COSTS TO LOSE:
 
@@ -53,10 +53,10 @@ from __future__ import annotations
 import functools
 import os
 import shutil
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import yaml
-from pydantic import BaseModel, ConfigDict, DirectoryPath, FilePath, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, DirectoryPath, FilePath, ValidationError, ValidationInfo, field_validator
 
 #: The repo root. `parents[2]` because this module sits at pipeline/common/ — it was
 #: parents[1] when it lived at pipeline/, and the move silently repointed config.yaml at
@@ -497,38 +497,52 @@ class Generated(BaseModel):
 
 
 # ======================================================================================
-# the blocks read through `project_config.get_config()` (what each path is: its accessor there)
+# source/ — the named source files
 # ======================================================================================
 
 
-class DataFetch(BaseModel):
-    """What `data/fetch_data.py` writes (`get_config().fetch_output_gpkg_path`, `.fetch_temp_dir`). Fetched, so plain
-    paths: a fresh checkout has fetched nothing."""
+def _source_name(v: object) -> object:
+    """A source file's name: relative to the source root (`data_tree.source`), and inside it. An absolute name, or one
+    that climbs out with `..`, would put a fetched file outside the tree the fetcher and the readers share."""
+    if isinstance(v, str):
+        p = PurePosixPath(v)
+        if not v.strip() or p.is_absolute() or ".." in p.parts or p == PurePosixPath("."):
+            raise ValueError("a name under the source root (data_tree.source), e.g. \"bc_fisheries_data.gpkg\"")
+    return v
+
+
+class Source(BaseModel):
+    """The source files that have a name of their own (config.yaml `source:`), each RELATIVE to the source root
+    (`data_tree.source`). Read them as `SOURCE.fwa_gpkg`, never as a literal: one name per file, so the fetcher that
+    writes a file and the readers that open it cannot disagree about where it is. Everything `data/fetch_data.py` writes
+    lands under the source root: a fetcher that writes where no reader looks is how a freshness gate goes quiet about a
+    file nobody is reading. Every other source file is still `SOURCE / "<file>"`.
+
+    config.yaml states names; the validated model holds each one joined to the source root (`Config`), so every path of
+    the model is absolute and none resolves against the current directory. Fetched, so nothing here must exist: a CI
+    runner has no gpkg, and a reader raises naming the file."""
 
     model_config = _STRICT
 
-    output_gpkg: Path
-    temp_dir: Path
+    #: THE FWA GeoPackage (about 9.5 GB): streams, lakes, wetlands, the management units and the other layers
+    #: `data/fetch_data.py` writes. The atlas and the tiles read it, and its size and modified time are an input of every
+    #: atlas (`pipeline.atlas.inputs`), so a layer added to it moves every atlas.
+    fwa_gpkg: Path
+    #: The FWA coast (`rivers`: the river polygons, `land`: the land mass) the atlas's coast-crossing tidal cut reads
+    #: (`pipeline.atlas.splits.coast`). A file of its own so that fetching it never moves the main gpkg's stamp.
+    coast_gpkg: Path
+    #: The repo copy of the synopsis PDF, tracked in git: the edition the entries were read from (gov.bc.ca's file is
+    #: the same edition, but its bytes move day to day). The page numbers, the synopsis period and the extractor read it.
+    synopsis_pdf: Path
+    #: `data/fetch_data.py`'s download and unzip directory (the FWA zips and their .gdb). Scratch: safe to delete.
+    fetch_temp: Path
 
-    _abs = field_validator("*", mode="before")(_absolute)
+    _names = field_validator("*", mode="before")(_source_name)
 
 
-class Data(BaseModel):
-    model_config = _STRICT
-
-    fetch: DataFetch
-
-
-class DataAccessor(BaseModel):
-    """The FWA GeoPackages the atlas reads (`get_config().fwa_data_gpkg`, `.fwa_coast_gpkg`). Plain paths: a CI runner
-    has no gpkg, and the readers raise naming the file."""
-
-    model_config = _STRICT
-
-    gpkg_path: Path
-    coast_gpkg_path: Path
-
-    _abs = field_validator("*", mode="before")(_absolute)
+# ======================================================================================
+# the block read through `project_config.get_config()` (what each path is: its accessor there)
+# ======================================================================================
 
 
 class Cache(BaseModel):
@@ -549,11 +563,17 @@ class Config(BaseModel):
     model_config = _STRICT
 
     generated: Generated
-    data: Data
-    data_accessor: DataAccessor
     data_tree: DataTree
+    #: after `data_tree`: its validated root is what each name is joined to
+    source: Source
     cache: Cache
     curated: Curated
+
+    @field_validator("source")
+    @classmethod
+    def _source_under_its_root(cls, v: Source, info: ValidationInfo) -> Source:
+        tree = info.data.get("data_tree")             # absent: `data_tree` failed, and that error is reported
+        return v if tree is None else v.model_copy(update={k: tree.source / getattr(v, k) for k in type(v).model_fields})
 
 
 def _where(path: Path) -> str:
@@ -562,7 +582,7 @@ def _where(path: Path) -> str:
 
 def _validate(model: type[BaseModel], blob: object, path: Path, prefix: tuple = (), note: str = ""):
     """`model` validated from `blob`, or `ConfigError` with one line per offending key ("config.yaml: unknown key
-    curated.waters.cutz", "... missing key data_accessor.gpkg_path", "... curated.gauges.matches is null")."""
+    curated.waters.cutz", "... missing key source.fwa_gpkg", "... curated.gauges.matches is null")."""
     try:
         return model.model_validate(blob)
     except ValidationError as e:
@@ -614,10 +634,20 @@ def read_yaml(path: Path):
         raise ConfigError(f"{_where(path)}: {e}") from None
 
 
+@functools.lru_cache(maxsize=1)
+def _load_env() -> None:
+    """The repo's `.env` into this process's environment, once (python-dotenv: a variable already set is kept). It rides
+    the one config load path, so every process that reads config loads it, as `get_config()` always did. The .env load;
+    its removal is T1222."""
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+
+
 def parse_config(config: Path | None = None) -> tuple[dict, Config]:
     """(the parsed YAML, the validated `Config`) of config.yaml — THE one load path. The raw values are what the build's
     stage keys digest (`_config_read`); the model is what every reader gets. Not cached itself: each loader caches its
-    own view (and `load_generated.__wrapped__()` reads the file afresh)."""
+    own view (and `load_generated.__wrapped__()` reads the file afresh). Loads `.env` first (`_load_env`)."""
+    _load_env()
     path = config or CONFIG
     blob = read_yaml(path)
     if not isinstance(blob, dict):
@@ -802,9 +832,49 @@ class _Lazy:
 #: The curated tree. Import this, not the loader.
 CURATED = _Lazy(load)
 
-#: `SOURCE / "bc_hydrometric_stations.json"` — fetched data, addressed through config so a
+@functools.lru_cache(maxsize=2)
+def _source(config: Path | None = None) -> tuple[dict, Source]:
+    """(the parsed YAML, the validated `source:` files) — untraced: `SOURCE` records what each read names."""
+    blob, cfg = parse_config(config or CONFIG)
+    return blob, cfg.source
+
+
+class _SourceTree(_Lazy):
+    """`SOURCE`: the source root (`SOURCE / "bc_places.json"`) and its named files (`SOURCE.fwa_gpkg`, `Source`).
+
+    A named file is the source root joined with its name. Each read records the two config values it is made of,
+    `source.<name>` and `data_tree.source` (`_trace.config_read`), never the whole block: a stage that reads only the
+    gpkg is not keyed on the coast file. `SOURCE.under(d)` is the same names under another source tree (a scratch
+    `source/` a test or the mini release writes, a `--source` flag): it records `source.<name>` alone."""
+
+    def __init__(self, loader, root: Path | None = None):
+        super().__init__(loader)
+        self._root = root
+
+    def __getattr__(self, name: str):
+        if name.startswith("_"):
+            raise AttributeError(name)
+        blob, files = _source()
+        if name not in Source.model_fields:
+            raise AttributeError(f"config.yaml `source:` names no {name!r} (it names {', '.join(Source.model_fields)}); "
+                                 f"any other source file is SOURCE / \"<file>\"")
+        _config_read(CONFIG, f"source.{name}", blob["source"][name])
+        if self._root is not None:
+            return self._root / blob["source"][name]          # the name, as config.yaml states it (validated)
+        _config_read(CONFIG, "data_tree.source", blob["data_tree"]["source"])
+        return getattr(files, name)
+
+    def under(self, root: Path) -> "_SourceTree":
+        """The named source files under `root` instead of the source root."""
+        return _SourceTree(self._loader, Path(root))
+
+    def _dir(self):
+        return self._root if self._root is not None else super()._dir()
+
+
+#: `SOURCE / "bc_hydrometric_stations.json"`, `SOURCE.fwa_gpkg` — fetched data, addressed through config so a
 #: fetcher and a reader cannot disagree about where a file went.
-SOURCE = _Lazy(load_data_tree)
+SOURCE = _SourceTree(load_data_tree)
 
 
 #: `GENERATED.tiles`, `GENERATED.require_build()` — computed data, addressed through config

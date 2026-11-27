@@ -61,6 +61,14 @@ describe("captureSpot freezes the speaker's station (T105)", () => {
     expect([whole(s), gaugeNow.mock.calls.length]).toEqual([[null, null, null, null], 0]);
   });
 
+  it("(T1205) a first capture whose reading is not current by the clock (a kept copy, offline) saves no reading, not the old figure", async () => {
+    const fresh = Date.parse("2026-08-30T08:00:00Z") + 3_600_000, old = Date.parse("2026-08-30T08:00:00Z") + 9 * 3_600_000;
+    const at = (now: number) => captureSpot({ ...base, now, source: source({ gaugeForSection: MATCHED, gaugeNow: NOW_READS,
+      panelsFor: async () => new Map([[1 as SectionId, PANEL_OF("08MH001")]]) }) });
+    expect((await at(fresh)).reading).toMatchObject({ station: "08MH001", discharge: 30, percentile: 0.4 });
+    expect((await at(old)).reading).toEqual({ station: "08MH001", discharge: null, level: null, percentile: null, at: null });
+  });
+
   it("a panel: its first member offline, and the match traced only when it is a member", async () => {
     const inPanel = await captureSpot({ ...base, source: source({ gaugeForSection: MATCHED, gaugeNow: NOW_READS,
       panelsFor: async () => new Map([[1 as SectionId, PANEL_OF("08MH001", "08MH999")]]) }) });
