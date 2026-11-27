@@ -28,6 +28,10 @@ A CLOSURE AREA'S EDGE (T1199, owner 2026-11-26: option D, rule C2 at 50 / 100; `
                        Chilkoot (night notes 2026-11-26 `cut-rule-design/`): 0 pieces under 100 m, the Skeena's
                        island-bank channels 30-50 m out stay closed.
 
+    RUN_WHOLLY_INSIDE_M 0.5: a closure area's member run whose inside part falls short of its whole length by at most
+                       this lies wholly inside the polygon, however short (`area_cut_gate` G5: FWA's own 1.5-3.8 m lines
+                       between lakes in a park, which no crossing cuts).
+
 TOUCHING
     TOUCH_M            two parts of a water closer than this meet (`bundle.topology` part marks and
                        `tools.water_map_export` boundaries draw the same marks).
@@ -54,6 +58,7 @@ TOUCH_M = 60.0
 
 AREA_EDGE_M = 50.0
 AREA_MIN_PIECE_M = 100.0
+RUN_WHOLLY_INSIDE_M = 0.5
 
 CONFLUENCE_NEAR_M = 150.0
 STUB_M = 100.0
