@@ -1,0 +1,987 @@
+{
+ "_about": "T1209: the towns the map names zoomed out, in three tiers (1 from z4, 2 from z6, 3 from z8), chosen by Claude for even coverage of B.C. (owner 2026-11-26: 'make it easy to find a location by zooming in from far out'): regional hubs, highway junctions, the last town before a lake or river system, coast access, fishing bases; population alone is not the rule. 'why' is the reason, 'region' the fishing region it lies in (look-a.test.ts holds every tier to every region), 'position' says whether the point is the basemap's own place (OpenStreetMap via Protomaps, ODbL: the basemap credit covers it) or an approximate one; every name is the Province's official one (BC Geographical Names) and, where the basemap spells it otherwise, 'basemap' is the basemap's own string, which the de-duplication filter hides too. Drawn by runtime-style.ts (`TOWN_LAYERS`), the basemap's own places above z10.",
+ "towns": [
+  {
+   "name": "Vancouver",
+   "tier": 1,
+   "lon": -123.114,
+   "lat": 49.2609,
+   "why": "largest city; the Lower Mainland and Fraser mouth",
+   "position": "basemap",
+   "region": "2"
+  },
+  {
+   "name": "Victoria",
+   "tier": 1,
+   "lon": -123.365,
+   "lat": 48.4283,
+   "why": "capital; south Vancouver Island",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Campbell River",
+   "tier": 1,
+   "lon": -125.2441,
+   "lat": 50.0231,
+   "why": "central Island; the salmon town, gateway to the Island's north",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Port Hardy",
+   "tier": 1,
+   "lon": -127.4976,
+   "lat": 50.7244,
+   "why": "north Island road end; ferries up the coast",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Kamloops",
+   "tier": 1,
+   "lon": -120.3394,
+   "lat": 50.6758,
+   "why": "Thompson hub; the interior lake country",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Kelowna",
+   "tier": 1,
+   "lon": -119.4959,
+   "lat": 49.8879,
+   "why": "Okanagan Valley",
+   "position": "basemap",
+   "region": "8"
+  },
+  {
+   "name": "Nelson",
+   "tier": 1,
+   "lon": -117.29,
+   "lat": 49.4949,
+   "why": "West Kootenay; Kootenay Lake",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Cranbrook",
+   "tier": 1,
+   "lon": -115.7673,
+   "lat": 49.5107,
+   "why": "East Kootenay; Kootenay and Elk rivers",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Revelstoke",
+   "tier": 1,
+   "lon": -118.1956,
+   "lat": 50.998,
+   "why": "Columbia River; the Arrow Lakes' north end",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Williams Lake",
+   "tier": 1,
+   "lon": -122.1397,
+   "lat": 52.1293,
+   "why": "Cariboo hub; the Chilcotin road starts here",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Quesnel",
+   "tier": 1,
+   "lon": -122.4936,
+   "lat": 52.9794,
+   "why": "north Cariboo; Quesnel and Fraser rivers",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Bella Coola",
+   "tier": 1,
+   "lon": -126.7557,
+   "lat": 52.3723,
+   "why": "central coast road end; Bella Coola valley",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Prince George",
+   "tier": 1,
+   "lon": -122.7454,
+   "lat": 53.9129,
+   "why": "the north's hub; Fraser and Nechako",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Mackenzie",
+   "tier": 1,
+   "lon": -123.0926,
+   "lat": 55.3244,
+   "why": "south end of Williston Lake",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Fort St. John",
+   "tier": 1,
+   "lon": -120.8472,
+   "lat": 56.2527,
+   "why": "Peace country",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Fort Nelson",
+   "tier": 1,
+   "lon": -122.7,
+   "lat": 58.81,
+   "why": "far northeast; the Alaska Highway",
+   "position": "approximate",
+   "region": "7B"
+  },
+  {
+   "name": "Smithers",
+   "tier": 1,
+   "lon": -127.1761,
+   "lat": 54.7792,
+   "why": "Bulkley Valley; the steelhead country",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Terrace",
+   "tier": 2,
+   "lon": -128.5995,
+   "lat": 54.5173,
+   "why": "Skeena and Kitimat rivers (tier 2: at province zoom its name and Prince Rupert's do not both fit)",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Prince Rupert",
+   "tier": 1,
+   "lon": -130.3255,
+   "lat": 54.3127,
+   "why": "north coast; the Skeena mouth",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Masset",
+   "tier": 1,
+   "lon": -132.1452,
+   "lat": 54.0125,
+   "why": "Haida Gwaii",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Dease Lake",
+   "tier": 1,
+   "lon": -129.9955,
+   "lat": 58.4379,
+   "why": "Stikine and Cassiar country; Highway 37",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Atlin",
+   "tier": 1,
+   "lon": -133.7043,
+   "lat": 59.5745,
+   "why": "far northwest; Atlin Lake",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Nanaimo",
+   "tier": 2,
+   "lon": -123.9381,
+   "lat": 49.1639,
+   "why": "mid Island; ferries to the mainland",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Port Alberni",
+   "tier": 2,
+   "lon": -124.8056,
+   "lat": 49.2344,
+   "why": "Alberni Inlet; the Stamp and Somass",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Tofino",
+   "tier": 2,
+   "lon": -125.9047,
+   "lat": 49.153,
+   "why": "west coast of the Island",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Gold River",
+   "tier": 2,
+   "lon": -126.0473,
+   "lat": 49.7808,
+   "why": "Island's west side road end; Nootka Sound",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Powell River",
+   "tier": 2,
+   "lon": -124.5245,
+   "lat": 49.8357,
+   "why": "upper Sunshine Coast",
+   "position": "basemap",
+   "region": "2"
+  },
+  {
+   "name": "Squamish",
+   "tier": 2,
+   "lon": -123.1559,
+   "lat": 49.6981,
+   "why": "Sea to Sky; Squamish and Cheakamus",
+   "position": "basemap",
+   "region": "2"
+  },
+  {
+   "name": "Pemberton",
+   "tier": 2,
+   "lon": -122.8081,
+   "lat": 50.3204,
+   "why": "Lillooet River; Birkenhead",
+   "position": "basemap",
+   "region": "2"
+  },
+  {
+   "name": "Hope",
+   "tier": 2,
+   "lon": -121.4416,
+   "lat": 49.38,
+   "why": "where the Fraser leaves the canyon; Highways 1, 3 and 5",
+   "position": "basemap",
+   "region": "2"
+  },
+  {
+   "name": "Chilliwack",
+   "tier": 2,
+   "lon": -121.9525,
+   "lat": 49.171,
+   "why": "Fraser Valley; the Vedder",
+   "position": "basemap",
+   "region": "2"
+  },
+  {
+   "name": "Lillooet",
+   "tier": 2,
+   "lon": -121.9337,
+   "lat": 50.694,
+   "why": "Fraser above the canyon; Seton and Anderson lakes",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Merritt",
+   "tier": 2,
+   "lon": -120.7884,
+   "lat": 50.1125,
+   "why": "Nicola lakes country",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Princeton",
+   "tier": 2,
+   "lon": -120.508,
+   "lat": 49.4605,
+   "why": "Similkameen; Highway 3",
+   "position": "basemap",
+   "region": "8"
+  },
+  {
+   "name": "Penticton",
+   "tier": 2,
+   "lon": -119.5932,
+   "lat": 49.5004,
+   "why": "south Okanagan",
+   "position": "basemap",
+   "region": "8"
+  },
+  {
+   "name": "Osoyoos",
+   "tier": 2,
+   "lon": -119.4667,
+   "lat": 49.0333,
+   "why": "Okanagan at the border",
+   "position": "basemap",
+   "region": "8"
+  },
+  {
+   "name": "Grand Forks",
+   "tier": 2,
+   "lon": -118.4392,
+   "lat": 49.0312,
+   "why": "Kettle River; the Boundary",
+   "position": "basemap",
+   "region": "8"
+  },
+  {
+   "name": "Castlegar",
+   "tier": 2,
+   "lon": -117.6636,
+   "lat": 49.3162,
+   "why": "Columbia and Kootenay meet; Lower Arrow",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Creston",
+   "tier": 2,
+   "lon": -116.5131,
+   "lat": 49.0974,
+   "why": "Kootenay Lake's south end",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Fernie",
+   "tier": 2,
+   "lon": -115.0629,
+   "lat": 49.5042,
+   "why": "Elk River",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Invermere",
+   "tier": 2,
+   "lon": -116.0302,
+   "lat": 50.5049,
+   "why": "Columbia Lake and Lake Windermere",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Golden",
+   "tier": 2,
+   "lon": -116.9643,
+   "lat": 51.2992,
+   "why": "Columbia and Kicking Horse; the Rockies",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Nakusp",
+   "tier": 2,
+   "lon": -117.7974,
+   "lat": 50.2396,
+   "why": "Upper Arrow Lake",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Kaslo",
+   "tier": 2,
+   "lon": -116.9049,
+   "lat": 49.9122,
+   "why": "Kootenay Lake's north arm",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Vernon",
+   "tier": 2,
+   "lon": -119.2718,
+   "lat": 50.2669,
+   "why": "north Okanagan; Kalamalka and Okanagan lakes",
+   "position": "basemap",
+   "region": "8"
+  },
+  {
+   "name": "Salmon Arm",
+   "tier": 2,
+   "lon": -119.2791,
+   "lat": 50.7005,
+   "why": "Shuswap Lake",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Clearwater",
+   "tier": 2,
+   "lon": -120.0655,
+   "lat": 51.6504,
+   "why": "Wells Gray and the Clearwater River",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "100 Mile House",
+   "tier": 2,
+   "lon": -121.2957,
+   "lat": 51.6428,
+   "why": "south Cariboo lakes",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Likely",
+   "tier": 2,
+   "lon": -121.5684,
+   "lat": 52.616,
+   "why": "Quesnel Lake",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Alexis Creek",
+   "tier": 2,
+   "lon": -123.2771,
+   "lat": 52.0839,
+   "why": "the Chilcotin",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Anahim Lake",
+   "tier": 2,
+   "lon": -125.3018,
+   "lat": 52.4619,
+   "why": "west Chilcotin; Dean River headwaters",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Bella Bella",
+   "tier": 2,
+   "lon": -128.1452,
+   "lat": 52.1626,
+   "why": "central coast islands",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Valemount",
+   "tier": 2,
+   "lon": -119.2805,
+   "lat": 52.8315,
+   "why": "Robson Valley; the upper Fraser and Kinbasket",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "McBride",
+   "tier": 2,
+   "lon": -120.1641,
+   "lat": 53.3042,
+   "why": "upper Fraser",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Vanderhoof",
+   "tier": 2,
+   "lon": -124.0077,
+   "lat": 54.0176,
+   "why": "Nechako River",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Fort St. James",
+   "tier": 2,
+   "lon": -124.2597,
+   "lat": 54.4447,
+   "why": "Stuart Lake",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Fraser Lake",
+   "tier": 2,
+   "lon": -124.844,
+   "lat": 54.0603,
+   "why": "Fraser and François lakes",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Burns Lake",
+   "tier": 2,
+   "lon": -125.7645,
+   "lat": 54.2303,
+   "why": "the lakes district",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Granisle",
+   "tier": 2,
+   "lon": -126.2057,
+   "lat": 54.8857,
+   "why": "Babine Lake",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Houston",
+   "tier": 2,
+   "lon": -126.6477,
+   "lat": 54.3982,
+   "why": "Morice and Bulkley rivers",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Hazelton",
+   "tier": 2,
+   "lon": -127.6709,
+   "lat": 55.2554,
+   "why": "Skeena and Bulkley meet; the Kispiox",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Kitwanga",
+   "tier": 2,
+   "lon": -128.0676,
+   "lat": 55.1004,
+   "why": "Highways 16 and 37 meet",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Kitimat",
+   "tier": 2,
+   "lon": -128.654,
+   "lat": 54.0535,
+   "why": "Kitimat River; Douglas Channel",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Stewart",
+   "tier": 2,
+   "lon": -129.9912,
+   "lat": 55.9383,
+   "why": "Portland Canal; Bear and Meziadin",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Iskut",
+   "tier": 2,
+   "lon": -129.9875,
+   "lat": 57.8389,
+   "why": "Iskut lakes; Highway 37",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Telegraph Creek",
+   "tier": 2,
+   "lon": -131.158,
+   "lat": 57.9045,
+   "why": "the lower Stikine",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Sandspit",
+   "tier": 2,
+   "lon": -131.8281,
+   "lat": 53.2435,
+   "why": "south Haida Gwaii; the airport",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Dawson Creek",
+   "tier": 2,
+   "lon": -120.2364,
+   "lat": 55.7605,
+   "why": "Mile 0 of the Alaska Highway",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Chetwynd",
+   "tier": 2,
+   "lon": -121.6394,
+   "lat": 55.6957,
+   "why": "Pine River; Moberly Lake",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Tumbler Ridge",
+   "tier": 2,
+   "lon": -120.9981,
+   "lat": 55.1262,
+   "why": "Murray River; the Monkman",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Hudson's Hope",
+   "tier": 2,
+   "lon": -121.9141,
+   "lat": 56.026,
+   "why": "the Peace below the dams; Williston's east end",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Pink Mountain",
+   "tier": 2,
+   "lon": -122.5094,
+   "lat": 57.041,
+   "why": "Alaska Highway north of the Peace; the Sikanni",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Toad River",
+   "tier": 2,
+   "lon": -125.231,
+   "lat": 58.8472,
+   "why": "Alaska Highway in the Rockies",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Muncho Lake",
+   "tier": 2,
+   "lon": -125.7711,
+   "lat": 58.9264,
+   "why": "Muncho Lake",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Liard River",
+   "tier": 2,
+   "lon": -126.095,
+   "lat": 59.4158,
+   "why": "Liard Hot Springs; the Liard",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Port McNeill",
+   "tier": 3,
+   "lon": -127.0839,
+   "lat": 50.5893,
+   "why": "north Island; ferry to Alert Bay",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Sayward",
+   "tier": 3,
+   "lon": -125.9593,
+   "lat": 50.378,
+   "why": "Salmon River; Johnstone Strait",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Port Renfrew",
+   "tier": 3,
+   "lon": -124.4174,
+   "lat": 48.5503,
+   "why": "south-west Island; the San Juan",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Sechelt",
+   "tier": 3,
+   "lon": -123.7631,
+   "lat": 49.4721,
+   "why": "lower Sunshine Coast",
+   "position": "basemap",
+   "region": "2"
+  },
+  {
+   "name": "Boston Bar",
+   "tier": 3,
+   "lon": -121.4432,
+   "lat": 49.8681,
+   "why": "Fraser Canyon",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Spences Bridge",
+   "tier": 3,
+   "lon": -121.3437,
+   "lat": 50.4231,
+   "why": "Thompson River steelhead",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Logan Lake",
+   "tier": 3,
+   "lon": -120.8134,
+   "lat": 50.4945,
+   "why": "Highland lakes",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Clinton",
+   "tier": 3,
+   "lon": -121.5866,
+   "lat": 51.0917,
+   "why": "south Cariboo junction",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Gold Bridge",
+   "tier": 3,
+   "lon": -122.8405,
+   "lat": 50.8521,
+   "why": "Carpenter and Downton lakes",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Lac la Hache",
+   "basemap": "Lac La Hache",
+   "tier": 3,
+   "lon": -121.478,
+   "lat": 51.8149,
+   "why": "Cariboo lakes on Highway 97",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Horsefly",
+   "tier": 3,
+   "lon": -121.4167,
+   "lat": 52.3333,
+   "why": "Horsefly Lake and River",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Wells",
+   "tier": 3,
+   "lon": -121.5724,
+   "lat": 53.1044,
+   "why": "Bowron Lakes",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Tatla Lake",
+   "tier": 3,
+   "lon": -124.6051,
+   "lat": 51.9037,
+   "why": "Chilcotin lakes",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Nimpo Lake",
+   "tier": 3,
+   "lon": -125.1478,
+   "lat": 52.3427,
+   "why": "west Chilcotin fly-in base",
+   "position": "basemap",
+   "region": "5"
+  },
+  {
+   "name": "Blue River",
+   "tier": 3,
+   "lon": -119.3047,
+   "lat": 52.1082,
+   "why": "North Thompson",
+   "position": "basemap",
+   "region": "3"
+  },
+  {
+   "name": "Kimberley",
+   "tier": 3,
+   "lon": -115.982,
+   "lat": 49.6851,
+   "why": "St. Mary River",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Sparwood",
+   "tier": 3,
+   "lon": -114.8858,
+   "lat": 49.7332,
+   "why": "upper Elk River",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Salmo",
+   "tier": 3,
+   "lon": -117.2787,
+   "lat": 49.1934,
+   "why": "Salmo River",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Rock Creek",
+   "tier": 3,
+   "lon": -118.9987,
+   "lat": 49.0581,
+   "why": "Kettle River",
+   "position": "basemap",
+   "region": "8"
+  },
+  {
+   "name": "New Denver",
+   "tier": 3,
+   "lon": -117.3772,
+   "lat": 49.9903,
+   "why": "Slocan Lake",
+   "position": "basemap",
+   "region": "4"
+  },
+  {
+   "name": "Lumby",
+   "tier": 3,
+   "lon": -118.9656,
+   "lat": 50.2501,
+   "why": "Shuswap River",
+   "position": "basemap",
+   "region": "8"
+  },
+  {
+   "name": "Telkwa",
+   "tier": 3,
+   "lon": -127.051,
+   "lat": 54.6965,
+   "why": "Bulkley and Telkwa rivers",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Topley Landing",
+   "tier": 3,
+   "lon": -126.143,
+   "lat": 54.8075,
+   "why": "Babine Lake's south arm",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Fort Babine",
+   "tier": 3,
+   "lon": -126.6233,
+   "lat": 55.3185,
+   "why": "Babine River's top",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Takla Landing",
+   "tier": 3,
+   "lon": -125.9667,
+   "lat": 55.4817,
+   "why": "Takla Lake",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Germansen Landing",
+   "tier": 3,
+   "lon": -124.7022,
+   "lat": 55.7844,
+   "why": "Omineca River",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Kwadacha",
+   "tier": 3,
+   "lon": -125.6166,
+   "lat": 57.4167,
+   "why": "Williston's far north end (Fort Ware)",
+   "position": "basemap",
+   "region": "7A"
+  },
+  {
+   "name": "Moberly Lake",
+   "tier": 3,
+   "lon": -121.7309,
+   "lat": 55.8348,
+   "why": "Moberly Lake",
+   "position": "basemap",
+   "region": "7B"
+  },
+  {
+   "name": "Kispiox",
+   "tier": 3,
+   "lon": -127.6958,
+   "lat": 55.3501,
+   "why": "Kispiox River",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Meziadin Junction",
+   "tier": 3,
+   "lon": -129.3044,
+   "lat": 56.0999,
+   "why": "Meziadin Lake; Highways 37 and 37A",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Bob Quinn Lake",
+   "tier": 3,
+   "lon": -130.25,
+   "lat": 56.97,
+   "why": "Highway 37 halfway",
+   "position": "approximate",
+   "region": "6"
+  },
+  {
+   "name": "Good Hope Lake",
+   "tier": 3,
+   "lon": -129.2941,
+   "lat": 59.2934,
+   "why": "Highway 37's north end",
+   "position": "basemap",
+   "region": "6"
+  },
+  {
+   "name": "Daajing Giids",
+   "tier": 3,
+   "lon": -132.1027,
+   "lat": 53.2548,
+   "why": "Skidegate Inlet (Queen Charlotte until 2022: BC Geographical Names, adopted 2022-07-18)",
+   "position": "basemap",
+   "region": "1"
+  },
+  {
+   "name": "Port Clements",
+   "tier": 3,
+   "lon": -132.183,
+   "lat": 53.686,
+   "why": "Yakoun River; Masset Inlet",
+   "position": "basemap",
+   "region": "1"
+  }
+ ]
+}

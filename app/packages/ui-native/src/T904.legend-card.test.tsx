@@ -51,7 +51,7 @@ describe("(T904) the Conditions key at the desktop breakpoint", () => {
     expect(inset(1280, "spots")).toBe(140);
   });
 
-  it("Map tab: the regs key is a card at 1280, the bar at 1279", () => {
+  it("Map tab: the regs key is a card at 1280, (T1211) the floating Map key at 1279", () => {
     const map = { ...(col as object), mm: { onConditions: false }, layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles: false } } } } as never;
     const key = (w: number) => render(<LayoutWidthContext.Provider value={w}><MapLegend col={map} conditions={false} palette={LIGHT} theme="light" mapDay={null} /></LayoutWidthContext.Provider>);
     key(1280);
@@ -60,7 +60,8 @@ describe("(T904) the Conditions key at the desktop breakpoint", () => {
     cleanup();
     key(1279);
     expect(screen.queryByTestId("legend-card")).toBeNull();
-    expect(screen.getByTestId("legend-strip")).toBeTruthy();
+    expect(screen.queryByTestId("legend-strip")).toBeNull();
+    expect(screen.getByTestId("map-key-chip")).toBeTruthy();
   });
 
   it("Runs tab: the legend is a card at 1280, the bar at 1279", () => {

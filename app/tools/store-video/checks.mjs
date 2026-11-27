@@ -42,13 +42,14 @@ const BAD = /still loading|something went wrong|couldn.t load|could not load|cou
 
 /** The map in trout mode on `day` ("today" or e.g. "Wednesday, June 10"), drawn, with its legend. */
 export function mapProblems(ns, { day = 'today', mode = 'trout' } = {}) {
-  const t = text(ns);
   const pick = ns.find((n) => n.id === 'map-day-pick');
   return [
     ...need(ns.some((n) => /^Showing a Map/.test(n.desc)), 'no map on screen'),
     ...need(pick && new RegExp(`Map coloured for ${day}\\b`, 'i').test(pick.desc), `the map is not coloured for ${day} (${pick?.desc ?? 'no day picker'})`),
-    ...(mode === 'trout' ? need(/Own rules/.test(t) && !/Keep salmon/.test(t), 'the map is not in trout mode (legend)')
-      : need(/Keep salmon/.test(t) && /Release only/.test(t) && !/Own rules/.test(t), 'the map is not in salmon mode (no "Keep salmon" / "Release only" legend, or "Own rules" still there)')),
+    // (T1211) the key floats behind its chip ("Map key"), its words hidden until opened: the mode is the rail's own radio
+    ...need(ns.some((n) => n.id === 'map-key-chip'), 'no Map key on the map'),
+    ...need(ns.find((n) => n.id === `regs-paint-${mode === 'trout' ? 'standard' : 'salmon'}`)?.checked === true,
+            `the map is not in ${mode} mode (the rail's ${mode === 'trout' ? 'Trout' : 'Salmon'} is not checked)`),
   ];
 }
 

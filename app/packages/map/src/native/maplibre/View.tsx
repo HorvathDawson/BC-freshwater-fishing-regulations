@@ -21,6 +21,7 @@ import { TRACE_PINS_SOURCE, TRACE_SOURCE } from "../../trace-overlay";
 import type { EngineViewProps } from "../engine";
 import { bindingRefs } from "./handle";
 import { HeldLabels } from "./HeldLabels";
+import { REGION_LABEL_DATA, REGION_LABEL_SOURCE, TOWN_DATA, TOWN_SOURCE } from "../../look-a";
 
 /** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
 type LayerSpec = ComponentProps<typeof Layer>;
@@ -86,6 +87,13 @@ export function EngineView({ refs, atlasAttached, style, onLayout, mapStyle, pix
       <Images images={images as never} />
       <GeoJSONSource id="gauges" data={gaugeData}>
         <HeldLabels store={hold} ids={adopted.gauges} now={heldNow.gauges} />
+      </GeoJSONSource>
+      {/* (T1208, T1209) the towns' and the region names' sources, the style's own by id: their names wait out a zoom too */}
+      <GeoJSONSource id={TOWN_SOURCE} data={TOWN_DATA as never}>
+        <HeldLabels store={hold} ids={adopted[TOWN_SOURCE]} now={heldNow[TOWN_SOURCE]} />
+      </GeoJSONSource>
+      <GeoJSONSource id={REGION_LABEL_SOURCE} data={REGION_LABEL_DATA as never}>
+        <HeldLabels store={hold} ids={adopted[REGION_LABEL_SOURCE]} now={heldNow[REGION_LABEL_SOURCE]} />
       </GeoJSONSource>
       {/* (T831) the route map's lines, gauge dots and "you are here" pin: the style's own sources by id, as `gauges`
           (what the map hands them is pushed to the source the binding adopted: it never pushes what it was mounted with) */}
