@@ -1,6 +1,15 @@
 {
   "name": "light",
+  "$comment_basemap": "(T1208 review) color.ui.basemap.ground and .water are BOUND by tools/status-colours-distinct.test.ts (T47), which reads them from here: closed / own as a thin line 21.31 on this ground (floor 21); a lake fill over this water 25.2 (floor 25). The look's #EFEDE8 / #A9C6EE failed (20.6, 23.5); only a cyan water passes. Change them only with that test.",
   "values": {
+    "color.region.line": "@color.region.edge",
+    "color.label.region": "@color.region.line",
+    "dash.region": [5, 2, 1, 2],
+    "opacity.region.band": 0.11,
+    "width.region.band": 5,
+    "color.ui.basemap.ground": "#E5E2DB",
+    "color.ui.basemap.water": "#82CDD6",
+    "opacity.ground.cover": 0.65,
     "color.water.mapped": "#4A90E2",
     "color.water.unmapped": "#7F8C99",
     "color.highlight": "#c2187a",

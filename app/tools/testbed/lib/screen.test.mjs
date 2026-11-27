@@ -19,7 +19,9 @@ const XML = `<hierarchy>${[
 test('parse: ids, class tail, words unescaped, boxes', () => {
   const ns = parse(XML);
   assert.equal(ns.length, 9);
-  assert.deepEqual(ns[0], { id: 'alert-form-p10', cls: 'RadioButton', text: '', desc: '9 in 10 days higher', box: { x0: 110, y0: 1579, x1: 479, y1: 1669 } });
+  assert.deepEqual(ns[0], { id: 'alert-form-p10', cls: 'RadioButton', text: '', desc: '9 in 10 days higher', checked: false, box: { x0: 110, y0: 1579, x1: 479, y1: 1669 } });
+  // (T1211) a radio's state is read: uiautomator's `checked`
+  assert.equal(parse('<hierarchy><node resource-id="regs-paint-salmon" class="a.RadioButton" checked="true" bounds="[0,0][1,1]"/></hierarchy>')[0].checked, true);
   assert.equal(find(ns, 'resource-id="spot-when"').text, 'A & B "c"');
 });
 

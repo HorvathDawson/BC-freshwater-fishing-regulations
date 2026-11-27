@@ -115,6 +115,27 @@ def owner_limited(graph: StreamGraph, tidal, limit_rows, waters=()) -> frozenset
     return frozenset(out)
 
 
+#: POLICY (T1199 review, 2026-11-27): a line ends in the sea when nothing leaves it AT ITS MOUTH. An edge leaving its
+#: lowest piece higher up (a distributary 9 km above Lost Shoe Creek's mouth) is not where the line goes. Before T1199
+#: moved the closure-area cuts after the coast cut, which pieces held such an edge depended on where an unrelated
+#: area cut happened to fall (Pacific Rim's at 4 km kept Lost Shoe's lowest piece clear of it). False is the pin.
+A_DISTRIBUTARY_HIGHER_UP_IS_NOT_THE_MOUTH = True
+
+
+def leaves_at_mouth(graph: StreamGraph, lowest, leaves_at, within_m: float) -> list[int]:
+    """The edges leaving a line's LOWEST piece at its mouth: to another line or a waterbody, leaving within `within_m`
+    of the mouth or where `leaves_at` cannot place them (as before: an unplaced edge counts as the mouth's)."""
+    out = []
+    for i in sorted(graph.down_adj.get(lowest.node_id, ())):
+        t = graph.nodes.get(graph.edges[i].to_node)
+        if t is not None and t.blk and t.blk == lowest.blk:
+            continue
+        m = leaves_at(i) if A_DISTRIBUTARY_HIGHER_UP_IS_NOT_THE_MOUTH else None
+        if m is None or m <= lowest.down_m + within_m:
+            out.append(i)
+    return out
+
+
 def edge_leave_measures(graph: StreamGraph, geoms, view=None):
     """`leaves_at` for `coast.coast_rule`: a function edge index -> the route measure, on the edge's FROM line, where it
     leaves that line (`braid_sweep.touch_measure`: the receiving line's point at the confluence, projected onto the

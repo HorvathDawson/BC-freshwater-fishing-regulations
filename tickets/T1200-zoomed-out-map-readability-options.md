@@ -1,10 +1,10 @@
 # T1200 — Zoomed-out map readability: names, towns, boundaries, the tapped water, the legend (options as pictures first)
 
-Status: OPEN — 0.10.0 re-cut (owner 2026-11-26); options prototyped in the web app, pictures to the owner, then to the tester
+Status: PARTIAL — the options were prototyped and the owner picked (look A: T1208, T1209, T1210, T1211, built); left (Claude): T1212, the phone map controls (option A, Tidy), and T1204, hillshade, after the re-cut.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1200 | Zoomed-out map readability: names, towns, boundaries, the tapped water, the legend (options as pictures first) | OPEN — 0.10.0 re-cut; options prototyped in the web app, pictures to the owner, then to the tester | — | research the standard, build the option set in the web app, send pictures; build tickets are numbered after the pick |
+| T1200 | Zoomed-out map readability: names, towns, boundaries, the tapped water, the legend (options as pictures first) | PARTIAL | d071fefb7, 7ac7b9ccb, 7ecc0c042, 1ba92dd47 | T1212 (tidy controls) to merge; T1204 after the re-cut; the reply to the tester is the owner's to send |
 
 Source: a closed tester's email, 2026-11-26 (feedback log F47–F50, F52; app 0.9.0, Android, light theme, Trout mode),
 with two pictures of the main map (province zoom, 200 km scale bar; and about a 50 km scale bar near Prince George) and
@@ -85,5 +85,29 @@ Model: Opus for the style work, Sonnet for the research page. Owner: yes (the pi
 - [x] 2026-11-26 — zoomed-out names and towns: what to build? → "could we look at the standard for how to do this neatly? we can generate picture of a few different options then offer them as propsoals to the reviewer and see what they think? we could also try other changes to see if it make it neater too. like making it clear those are the region boundaries. also we can clean up the legend and make it use less space somehow? use industry standard. and make sure it is compatible with future move to mapbox. prototype all of this stuff using the webapp because it is way faster then emulating app changes" (2026-11-26)
 - [x] 2026-11-26 — how far to go on the map's look (lines read as roads, the tapped water, a softer base)? → "do the full monty and we can see what feels best after and send options to the reviewer." (2026-11-26)
 - [x] 2026-11-26 — which release takes this batch? → "we will put all changes from this on it" (the held 0.10.0 re-cut) (2026-11-26)
-- [ ] 2026-11-26 — pick from the option pictures (names, towns, boundaries, rule lines, the tapped water, the base,
-  the legend, the search hint) when the chat sends them. Default until then: nothing changes in the app.
+- [x] 2026-11-26 — which package to build from (today / light touch / recommended / full, the packages sheet)? → "Recommended (Recommended)" (2026-11-26)
+  That is: names at the middle density (a2), our towns with a hand-picked second tier (b3), dashed boundaries with a
+  soft band and "Region n" labels (c2), fewer and thinner rule lines zoomed out (d1, d2), the softer base with one
+  water blue (f1), the one-line legend (g1), "Search waters and towns" (h1). The tapped look is the next line.
+- [x] 2026-11-26 — how should a tapped water stand out (sheet e)? → "it opens the page right over it after the click so i dont see why it is needed toi be to crazy highlighted?" (2026-11-26)
+  So: no change to the tapped look (e dropped). The reply asks the tester what "the system i have highlighted" was.
+- [x] 2026-11-26 — hillshade: now, later or never? → "Later, own ticket (Recommended)" (2026-11-26). It is T1204.
+- [x] 2026-11-26 — what goes to the tester as proposals? → "let me pick the options i want to send give me a bunch of options then i will pick the ones i think have a chance of being good. then we can send them to the reviewer and see what they think while we choose our favourite in the mean time. also the legend rework i think is one of the bigger wins maybe?" (2026-11-26)
+- [x] 2026-11-26 — pick which numbered option pictures go to the tester (the second round: single, sendable pictures,
+  more legend designs)? → "i think there are a lot of good ideas here the whole pronvince look and zoomed in look are a good starting point. could we have a couple full proposals of those 2 looks basically option A-D with different whole pronvince and mid zoom and zoomed in looks. we can think about other things that would improve it to. i like my search terms we should leaves those they are fun. im sure a lot of other fun improvements could be done tho to make it work better on a phone size. including the date selectors too? those still seem clunky..." (2026-11-26)
+  So: nothing goes to the tester yet; four whole proposals A-D at three zooms, the rotating search hints stay, and the
+  date selector and other phone-size ideas are shown as their own proposals.
+- [x] 2026-11-26 — which legend design (pictures 14-19)? → "either 14 or 15 but maybe the legend should be at bottom? would that be better? or could be a map key at bottom that has map behind it and when clicked opens up the reference or somethign?" (2026-11-26)
+  So: only the one-line key with More (14) and the Map key chip (15) stay, shown in three placements (in the bar over
+  the map's foot, under the tab bar, and floating over the map).
+- [x] 2026-11-26 — the second tier of towns (from zoom 6) is a list we choose, since the basemap cannot rank them
+  (Vanderhoof, Fort St. James, Mackenzie, Houston and about 30 more in the prototype)? → "i want you to choose best judgement for users to have the best experience across bc and make it easy to find a location by zooming in from far out" (2026-11-26)
+  So: Claude chooses the tiers for even coverage of B.C. (junctions, the last town before a lake or river system, coast
+  access, fishing bases), not population alone; the list with a reason per town is a data file, shown as coverage pictures.
+- [x] 2026-11-26 — the legend's words for the two rule statuses (round-2 pictures 20, 21)? → "Its own rules / Region rules only" (picture 21) (2026-11-26)
+  So: every proposal and legend picture uses them; the build changes them everywhere they appear (legend, help,
+  glossary, walkthrough).
+- [x] 2026-11-26 — which proposal to build (round 3, A-D)? → "build A we still will send stuff to reviewwrr after we can send the one proposal to see what they think." (2026-11-26)
+  So: A is built (T1208-T1211); nothing goes to the tester until it is, then the one proposal does.
+- [x] 2026-11-26 — where the key sits (round 3, sheet 6)? → "Floating \"Map key\" over the map, near the bottom (Recommended)" (2026-11-26)
+  So: T1211. The day selector and dropping the + / - buttons stay open with him: not built.

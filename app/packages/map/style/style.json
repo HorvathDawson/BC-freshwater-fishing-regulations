@@ -1541,55 +1541,6 @@
       ]
     },
     {
-      "id": "region__label",
-      "type": "symbol",
-      "source": "atlas",
-      "source-layer": "region",
-      "layout": {
-        "visibility": "visible",
-        "symbol-placement": "point",
-        "text-field": [
-          "get",
-          "region_id"
-        ],
-        "text-font": [
-          "Noto Sans Medium"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          4,
-          13,
-          6,
-          16
-        ],
-        "text-allow-overlap": false,
-        "text-padding": 3
-      },
-      "minzoom": 4,
-      "maxzoom": 7,
-      "filter": [
-        "all",
-        [
-          "has",
-          "region_id"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "region_id"
-          ],
-          ""
-        ]
-      ]
-    },
-    {
       "id": "lake__label",
       "type": "symbol",
       "source": "atlas",
@@ -1744,6 +1695,8 @@
           [
             "zoom"
           ],
+          4,
+          10,
           8,
           10,
           11,
@@ -1767,7 +1720,7 @@
         "text-allow-overlap": false,
         "text-padding": 6
       },
-      "minzoom": 8,
+      "minzoom": 4,
       "filter": [
         "all",
         [
@@ -1861,6 +1814,60 @@
                 "ord"
               ],
               6
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              6
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              7
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              5
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              8
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              4
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              9
             ]
           ]
         ]

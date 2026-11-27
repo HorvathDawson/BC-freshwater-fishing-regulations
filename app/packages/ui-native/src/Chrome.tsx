@@ -106,6 +106,24 @@ export function DottedSwatch({ colour, width = 14, thick = 3 }: { colour: string
 }
 
 /**
+ * (T1208) THE REGION BOUNDARY's swatch: the map's own dash pattern (`dash.region`, in line widths) drawn in Views at
+ * `thick`, cut at `width` — the same dash-dot the map draws, so the key shows the shape, not just the grey.
+ */
+export function BoundarySwatch({ colour, dash, width = 22, thick = 2 }: { colour: string; dash: readonly number[]; width?: number; thick?: number }) {
+  const parts: { on: boolean; w: number }[] = [];
+  for (let x = 0, i = 0; x < width && dash.length > 0; i++) {
+    const w = Math.min(dash[i % dash.length]! * thick, width - x);
+    parts.push({ on: i % 2 === 0, w });
+    x += w;
+  }
+  return (
+    <View testID="swatch-boundary" style={{ width, height: thick, flexDirection: "row" }}>
+      {parts.map((p, i) => <View key={i} style={{ width: p.w, height: thick, backgroundColor: p.on ? colour : undefined }} />)}
+    </View>
+  );
+}
+
+/**
  * (T377) A STRIPED line swatch, the same box as a solid one: the line's colour with short dashes of `stripe` down its
  * middle, closed's stripe at legend size (Views, so it draws the same on web and native).
  */
@@ -165,7 +183,7 @@ function Outlined({ outline, children }: { outline?: string; children: ReactNode
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, cased, rim, ring, outline, tight, onPress, alone, faded }:
+export function LegendCount({ palette, colour, n, label, line, dotted, boundary, entryId = "legend-entry", striped, issue, edge, cased, rim, ring, outline, tight, onPress, alone, faded }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -174,6 +192,10 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
     line?: boolean;
     /** (T165) the line DOTTED, as the map draws no public access (`WATER_STATUS_LINE`) */
     dotted?: boolean;
+    /** (T1208) the line in this DASH pattern (line widths), as the map draws the region boundary (`dash.region`) */
+    boundary?: readonly number[];
+    /** (T1208) the entry's test id: a regulations class is `legend-entry`; a map mark that is not one says what it is */
+    entryId?: string;
     /** (T377) the line STRIPED down its middle with dashes in this colour, as the map draws closed (`closedCuePaint`) */
     striped?: string;
     /** (T759) the line with the ISSUE STRIPE: ink dashes on paper dashes down it, as the map draws a water with a DFO rule to check */
@@ -205,6 +227,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
                     style={{ width: tight ? LEGEND_ROWS.edge : 22, height: 10, borderWidth: 1.5, borderColor: colour,
                              borderStyle: edge }} />
         : line && dotted ? <DottedSwatch colour={colour} width={lineW} thick={4} />
+        : line && boundary ? <BoundarySwatch colour={colour} dash={boundary} width={22} />
         : line && issue ? <StripedSwatch colour={colour} stripe={issue.stripe} casing={issue.casing} width={lineW} thick={6} />
         : line && striped ? <StripedSwatch colour={colour} stripe={striped} width={lineW} />
         : ring ? <View testID="legend-ring" style={{ width: 12, height: 12, borderRadius: round(12), backgroundColor: colour,
@@ -218,7 +241,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
       )}
       <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: alone ? palette.ink : palette.sub }}>{label}</Text>
   </>);
-  if (!onPress) return <View testID="legend-entry" style={row}>{body}</View>;
+  if (!onPress) return <View testID={entryId} style={row}>{body}</View>;
   return (
     <Pressable testID="legend-entry" onPress={onPress} accessibilityRole="button" aria-pressed={!!alone}
                accessibilityLabel={KEY_ISOLATE_WORDS.entry(label, !!alone)} {...hitProps({ w: 44, h: 20 })} style={row}>

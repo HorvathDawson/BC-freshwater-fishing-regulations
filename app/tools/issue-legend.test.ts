@@ -9,7 +9,7 @@ import { createElement as h } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MapLegend } from "../packages/ui-native/src/shell/MapLegend";
 import { LIGHT } from "../packages/ui-native/src/theme";
 
@@ -19,7 +19,9 @@ const col = (regsLayer: "standard" | "salmon", issueFeed: unknown) => ({
   salmonOffered: true, statusOk: true, salmonFacts: null, setRegsLayer: () => {},
   layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles: false } } },
 }) as never;
-const draw = (c: never) => render(h(MapLegend, { col: c, conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
+// (T1211) the Map tab's key floats behind its chip: drawn, then opened
+const draw = (c: never) => { const r = render(h(MapLegend, { col: c, conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
+  const chip = screen.queryByTestId("map-key-chip"); if (chip) fireEvent.click(chip); return r; };
 const FEED = { sections: new Set([1]) };
 
 describe("(T759) the legend's issue entry", () => {

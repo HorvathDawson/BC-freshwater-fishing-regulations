@@ -30,9 +30,14 @@ def built(tmp_path_factory) -> Path:
     if "dir" not in _CACHE:
         from pipeline.tools import mini_release as M
         root = tmp_path_factory.mktemp("mini-chain")
-        M.build(root / "b")
+        M.build(root / "b", trace=root / "traces")      # (T1229) every stage recorded: the stage-key guard reads them
         _CACHE["dir"] = root / "b"
     return _CACHE["dir"]
+
+
+def traces(tmp_path_factory) -> Path:
+    """(T1229) The chain's recorder output, one folder per stage (`mini_release.build(trace=…)`)."""
+    return built(tmp_path_factory).parent / "traces"
 
 
 def deliver(tmp_path_factory) -> Path:

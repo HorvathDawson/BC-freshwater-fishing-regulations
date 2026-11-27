@@ -1,10 +1,11 @@
 """CLEAN CUT, one place per boundary, and the assert-only sliver gate (BOUND round, 2026-10-06).
 
-The user's rulings: ecological reserves and parks get a CLEAN cut — crossings that cluster along the
-edge collapse to ONE cut at the median crossing when the side changes, none when it does not (a
-graze); a stream that wanders the edge, then enters, passes through and exits gets an entry AND an
-exit cut; the cutter assigns membership. The B.C. border and a region edge are one geometry and one
-cut. Slivers are prevented at the source; the build gate only asserts. Synthetic geometry, no gpkg.
+The user's rulings: the B.C. border's crossings that cluster along the edge collapse to ONE cut at the
+median crossing when the side changes, none when it does not (a graze). Ecological reserves and parks get
+the closure rule (T1199, owner 2026-11-26, rule C2): cuts at the real crossings, edge water within the
+band closed with the area, an excursion cut open, no piece under the floor; the cutter assigns
+membership. The B.C. border and a region edge are one geometry and one cut. Slivers are prevented at the
+source; the build gates only assert. Synthetic geometry, no gpkg.
 """
 from __future__ import annotations
 
@@ -82,13 +83,11 @@ def test_resolve_emits_area_points_and_absolute_inside_intervals():
     g = _wander_then_through()
     chain = BlkChain(blk="X", fwa_watershed_code="100", fids=(), geometry=g, mouth_measure=10_000.0,
                      length_m=g.length, name_tuples=())
-    res = CC.resolve_clean_cuts({"R": RESERVE}, [chain], rejoin_m=1000.0)
+    res = CC.resolve_clean_cuts({"R": RESERVE}, [chain])
     assert [p.split_id for p in res.points] == ["area:R", "area:R"]
     assert all(p.anchor_type == AnchorType.area_boundary for p in res.points)
     (lo, hi), = res.inside["R"]["X"]
     assert (lo, hi) == (res.points[0].route_measure, res.points[1].route_measure)
-    with pytest.raises(ValueError):
-        CC.resolve_clean_cuts({"R": RESERVE}, [chain], rejoin_m=0)
 
 
 # ---- the cutter assigns membership ---------------------------------------------------------------
@@ -181,25 +180,33 @@ def test_the_gate_names_a_sliver_a_cut_made_and_spares_fwas_own(tmp_path):
 
 
 def test_cut_mode_is_explicit():
-    assert cut_mode({"id": "a", "cut": "clean", "rejoin_m": 1000}) == "clean"
+    assert cut_mode({"id": "a", "cut": "clean"}) == "clean"
     assert cut_mode({"id": "a", "cut": "first_last", "membership": "both_sides"}) == "first_last"
     assert cut_mode({"id": "a", "cut": False}) is None
-    for bad in ({"cut": True}, {}, {"cut": "clean"}, {"cut": "first_last"}, {"cut": "every"},
+    for bad in ({"cut": True}, {}, {"cut": "first_last"}, {"cut": "every"},
                 {"cut": "first_last", "membership": "both_sides", "crossing_zone_m": 60},
                 {"cut": "first_last", "membership": "both_sides", "rejoin_m": 1000}):
         with pytest.raises(ValueError):
             cut_mode({"id": "a", **bad})
 
 
+@pytest.mark.parametrize("key", ["rejoin_m", "edge_m", "min_piece_m", "crossing_zone_m"])
+def test_a_closure_area_states_no_distance_of_its_own(key):
+    """T1199: the edge band and the floor are declared once (`tolerances.AREA_EDGE_M` / `AREA_MIN_PIECE_M`) for every
+    closure area; the retired `rejoin_m`, or a per-area copy of either, would read as a setting the cutter honours."""
+    with pytest.raises(ValueError, match="tolerances.AREA_EDGE_M"):
+        cut_mode({"id": "a", "cut": "clean", key: 50})
+
+
 def test_areas_json_declares_the_ruled_modes():
-    """User ruling 2026-10-06: reserves and parks clean, regions keep in/out marking."""
-    from pipeline.atlas.splits.area_splits import load_area_split_defs
-    modes = {a["id"]: cut_mode(a) for a in load_area_split_defs()}
+    """User ruling 2026-10-06: reserves and parks clean, regions keep in/out marking. T1199: no area states a
+    distance; the clean cut's are the tolerances module's."""
+    from pipeline.atlas.splits.area_splits import RETIRED_CUT_KEYS, load_area_split_defs
+    defs = load_area_split_defs()
+    modes = {a["id"]: cut_mode(a) for a in defs}
     assert modes["ecological_reserves"] == modes["national_parks"] == modes["chilkoot_trail"] == "clean"
     assert modes["regions"] == "first_last"
-    rejoin = {a["id"]: a.get("rejoin_m") for a in load_area_split_defs()}
-    assert rejoin["ecological_reserves"] == rejoin["national_parks"] == rejoin["chilkoot_trail"] == 1000
-    assert rejoin["regions"] is None, "regions are cut where they cross, as before (user ruling)"
+    assert not [(a["id"], k) for a in defs for k in RETIRED_CUT_KEYS if k in a]
 
 
 def test_a_stretch_shorter_than_its_zone_lies_on_its_majority_side():
@@ -257,98 +264,221 @@ def test_bunched_crossings_cut_at_the_distance_middle_not_the_count_median():
     assert CC.representative([0.0, 10.0]) == 0.0, "a tie takes the crossing nearer the mouth"
 
 
-# ---- THE CLOSURE RULE (`CC.decide_rejoin`): a straddle is inside; exit only after a long run out -----
-def test_a_straddle_is_inside_from_its_first_crossing():
-    """Vladimir J. Krajina's creek: enters at 207 m, out 413-493 m (80 m), in again. The 80 m out
-    is straddle: one inside stretch from 207 m, ONE cut there."""
-    g = LineString([(793, 500), (1000 + 206, 500), (1000 + 206, 520), (900, 520), (900, 600),
-                    (1500, 600)])
-    ms = CC.crossings(g, RESERVE.boundary)
-    cuts, inside, _ = CC.decide_rejoin(g, RESERVE, RESERVE.boundary, 1000.0)
-    assert len(ms) == 3 and cuts == [ms[0]] and inside == [(ms[0], g.length)]
+# ---- THE CLOSURE RULE (`CC.decide_area`, T1199 rule C2) ------------------------------------------------------------
+# TALL's west edge is x = 1000 (inside: x > 1000), as RESERVE's, 3 km tall. EDGE_M 50, MIN_PIECE_M 100.
+TALL = box(1000, 0, 3000, 3000)
 
 
-def test_the_cuts_sit_at_the_straddles_outer_crossings():
-    """A wander along the edge (five crossings), through the reserve and out the far side: entry at
-    the FIRST crossing of the wander, exit at the far edge; the wander is inside."""
+def _area(g, poly=TALL, **kw):
+    return CC.decide_area(g, poly, poly.boundary, **kw)
+
+
+def _len(iv):
+    return sum(b - a for a, b in iv)
+
+
+def test_the_edge_band_and_floor_are_the_tolerances_modules():
+    from pipeline.common import tolerances as T
+    assert (CC.EDGE_M, CC.MIN_PIECE_M) == (T.AREA_EDGE_M, T.AREA_MIN_PIECE_M) == (50.0, 100.0)
+    assert CC.EDGE_WATER_IS_INSIDE and CC.NO_PIECE_UNDER_THE_FLOOR and CC.A_CUT_NEAR_A_BOUNDARY_MOVES_ONTO_IT
+    assert CC.GRAZES_ARE_NOT_CROSSINGS
+
+
+def _hug(out_m, along=1500.0):
+    """In, out across the west edge to `out_m` outside, `along` metres parallel to it, back in, and on."""
+    return LineString([(1500, 100), (1000 - out_m, 100), (1000 - out_m, 100 + along), (1500, 100 + along)])
+
+
+def test_edge_water_within_the_band_stays_inside_however_long():
+    """Carmanah Creek's shape along Pacific Rim: out 30 m, 1.5 km along the edge, back in. Edge water, closed like a
+    boundary river: one inside interval, no cut."""
+    g = _hug(30.0)
+    assert len(CC.crossings(g, TALL.boundary)) == 2
+    cuts, inside, _ = _area(g)
+    assert cuts == [] and inside == [(0.0, g.length)]
+
+
+def test_mutation_without_the_band_edge_water_is_cut_open(monkeypatch):
+    monkeypatch.setattr(CC, "EDGE_WATER_IS_INSIDE", False)
+    g = _hug(30.0)
+    cuts, inside, _ = _area(g)
+    assert cuts == CC.crossings(g, TALL.boundary) and len(inside) == 2
+
+
+def test_the_band_is_fifty_metres_the_skeena_island_bank_channel():
+    """The Skeena reserve's p4 channel runs 38.8 m off the island bank: closed at 50 m; MUTATION: a 25 m band (the
+    other option the owner saw) cuts it open."""
+    g = _hug(38.8, along=426.0)
+    assert _area(g)[0] == []
+    cuts, inside, _ = _area(g, band=CC.edge_band(TALL, 25.0), edge_m=25.0)
+    assert cuts == CC.crossings(g, TALL.boundary) and len(inside) == 2
+
+
+def test_an_excursion_beyond_the_band_is_cut_open_at_its_crossings():
+    """The Skeena's loop 186 m out, and a run only 60 m out for 20 m: each is cut open at its two crossings,
+    however short. (The Beaverfoot's 968 m off Yoho, 180 m out.)"""
+    for out_m, along in ((186.0, 400.0), (60.0, 20.0)):
+        g = _hug(out_m, along)
+        ms = CC.crossings(g, TALL.boundary)
+        cuts, inside, _ = _area(g)
+        assert cuts == ms, (out_m, cuts, ms)
+        assert inside == [(0.0, ms[0]), (ms[1], g.length)]
+        assert g.length - _len(inside) == pytest.approx(2 * out_m + along)
+
+
+def test_a_straddle_along_the_edge_is_one_inside_run():
+    """A wander along the edge (five crossings within a few metres), through the reserve and out the far side: the
+    wander is edge water, so the cuts are its first crossing and the far edge."""
     g = _wander_then_through()
     ms = CC.crossings(g, RESERVE.boundary)
-    cuts, inside, _ = CC.decide_rejoin(g, RESERVE, RESERVE.boundary, 1000.0)
+    cuts, inside, _ = _area(g, poly=RESERVE)
     assert cuts == [ms[0], ms[-1]] and inside == [(ms[0], ms[-1])]
 
 
-def test_an_exit_needs_a_continuous_run_out_longer_than_the_rejoin_distance():
-    """In, out for 1,200 m, in again: an exit cut and a re-entry cut. The same with 800 m out: one
-    straddle, no cut between."""
-    big = box(1000, 0, 5000, 3000)
-    long_out = LineString([(1500, 100), (1500, 500), (300, 500), (300, 900), (1500, 900)])
-    ms = CC.crossings(long_out, big.boundary)
-    cuts, inside, _ = CC.decide_rejoin(long_out, big, big.boundary, 1000.0)
-    assert cuts == ms and len(inside) == 2, (cuts, inside)
-    short_out = LineString([(1500, 100), (1500, 500), (700, 500), (700, 900), (1500, 900)])
-    cuts, inside, _ = CC.decide_rejoin(short_out, big, big.boundary, 1000.0)
-    assert cuts == [] and inside == [(0.0, short_out.length)]
-
-
-def test_the_exit_sits_at_the_last_crossing_before_the_long_run_out():
-    """FIX A1(a), user review 2026-10-06: the exit cut is where the stream LAST LEFT — walk back from
-    the long outside run to the crossing that starts it — never R metres out, never the first
-    crossing of the wander before it. Carmanah Creek's shape in Pacific Rim (live atlas, blk
-    354154120): in 0-820, out 1,338 m, then in/out/in/out/in of 63, 7, 220, 8, 167 m, last crossing
-    at 2,623.51, then 22 km out: cuts 819.88 (exit), 2,157.81 (re-entry), 2,623.51 (exit)."""
-    big = box(0, -5000, 10000, 0)                     # the area: y < 0
-    # mouth inside at (100,-820), up to the edge at 820 m, out 1,338 m, back in, then three 7-8 m dips
-    # out across y = 0, then the long run out (5 km)
-    pts = [(100, -820), (100, 0), (100, 669), (300, 669), (300, 0), (300, -63), (400, -63),
-           (400, 3.65), (450, 3.65), (450, -220), (600, -220), (600, 3.95), (650, 3.95),
-           (650, -167), (800, -167), (800, 0), (800, 5000)]
-    g = LineString(pts)
-    ms = CC.crossings(g, big.boundary)
-    cuts, inside, _ = CC.decide_rejoin(g, big, big.boundary, 1000.0)
-    assert len(cuts) == 3 and cuts[0] == ms[0] and cuts[1] == ms[1], (cuts, ms)
-    assert cuts[2] == ms[-1], "the exit is the LAST crossing, where the stream last left"
-    assert g.length - cuts[2] == pytest.approx(5000.0), "and nothing of the run out is inside"
-    assert inside == [(0.0, ms[0]), (ms[1], ms[-1])]
-
-
-@pytest.mark.parametrize("tail, exits", [(4.0, False), (5.0, True), (30.0, True), (700.0, True),
-                                          (1500.0, True)])
-def test_an_outside_run_to_the_headwaters_is_an_exit_however_short(tail, exits):
-    """FIX A1(b), user review 2026-10-06: an outside run that never re-enters — it runs to the line's
-    end (its headwaters) outside the area — is an EXIT however short; only a run under the
-    positional error (5 m) is ignored. The rejoin distance joins only runs that come BACK."""
+@pytest.mark.parametrize("tail, inside_to_end", [(4.0, True), (30.0, True), (99.0, True), (101.0, False),
+                                                  (1500.0, False)])
+def test_an_outside_tail_straight_out_exits_at_the_floor(tail, inside_to_end):
+    """A tail running straight out to the line's source: under 5 m it is positional error; under the floor (100 m)
+    no cut may leave it, so it joins the inside; from the floor on it strays past the band and exits at the
+    crossing."""
     g = LineString([(1500, 500), (1000 - tail, 500)])           # mouth 500 m inside, source `tail` out
-    cuts, inside, _ = CC.decide_rejoin(g, RESERVE, RESERVE.boundary, 1000.0)
-    if exits:
-        assert cuts == [500.0] and inside == [(0.0, 500.0)]
-    else:
+    cuts, inside, _ = _area(g)
+    if inside_to_end:
         assert cuts == [] and inside == [(0.0, g.length)]
+    else:
+        assert cuts == [500.0] and inside == [(0.0, 500.0)]
 
 
-def test_an_outside_run_to_a_lake_edge_is_an_exit_however_short():
-    """The same at a stretch END that is a lake edge (the run ends on the lake, `stretches`): a 40 m
-    run out to the lake is an exit at the last crossing, in absolute measures."""
+def test_an_outside_tail_hugging_the_edge_is_inside_however_long():
+    """A tail out 20 m and 600 m along the edge to the source: edge water, inside to the end."""
+    g = LineString([(1500, 500), (980, 500), (980, 1100)])
+    assert _area(g)[:2] == ([], [(0.0, g.length)])
+
+
+def test_an_outside_tail_to_a_lake_edge_is_read_on_its_stretch():
+    """The stretch ends at a lake edge (`stretches`): a 300 m tail straight out to the lake is an exit at the
+    crossing, in absolute measures."""
     from pipeline.common.models import WaterbodyRun
-    line = LineString([(1500, 500), (960, 500), (0, 500)])      # mouth inside; lake from 540 to 1500 m
+    line = LineString([(1500, 500), (700, 500), (0, 500)])      # mouth inside; lake from 800 to 1500 m
     ch = BlkChain(blk="L", fwa_watershed_code="100", fids=(), geometry=line, mouth_measure=0.0,
                   length_m=line.length, name_tuples=(),
-                  waterbody_runs=(WaterbodyRun(wbk="1", down_m=540.0, up_m=1500.0, kind="lake"),))
-    cuts, inside, _ = CC.decide_chain(ch, RESERVE, RESERVE.boundary, 0.0, rejoin_m=1000.0)
+                  waterbody_runs=(WaterbodyRun(wbk="1", down_m=800.0, up_m=1500.0, kind="lake"),))
+    cuts, inside, _ = CC.decide_chain(ch, RESERVE, RESERVE.boundary, 0.0, band=CC.edge_band(RESERVE))
     assert [c[:2] for c in cuts] == [(500.0, "exit")]
     assert inside == [(float("-inf"), 500.0)]
 
 
+def test_a_short_inside_piece_grows_to_the_floor():
+    """Kiyu Creek's mouth crossing the Nimpkish River reserve's strip in 5.1 m: the piece grows outward, evenly, to
+    100 m. MUTATION: without the floor it stays 5.1 m."""
+    strip = box(1000, 0, 1005.1, 1000)
+    g = LineString([(0, 500), (3000, 500)])
+    cuts, inside, _ = _area(g, poly=strip)
+    assert inside == [(pytest.approx(952.55), pytest.approx(1052.55))] and len(cuts) == 2
+
+
+def test_mutation_without_the_floor_a_sliver_piece_is_left(monkeypatch):
+    monkeypatch.setattr(CC, "NO_PIECE_UNDER_THE_FLOOR", False)
+    strip = box(1000, 0, 1005.1, 1000)
+    cuts, inside, _ = _area(LineString([(0, 500), (3000, 500)]), poly=strip)
+    assert _len(inside) == pytest.approx(5.1)
+
+
 def test_an_isolated_dip_under_the_positional_error_is_ignored():
-    """Trout Creek's shape: 4 m in and back, nothing else near. No entry, no cut, no membership. And
-    the Ospika's: its mouth 1.9 m inside the edge — no cut, the line is outside."""
-    dip = LineString([(0, 500), (999, 500), (1001, 502), (999, 504), (0, 504)])   # 2.8 m in
-    cuts, inside, dips = CC.decide_rejoin(dip, RESERVE, RESERVE.boundary, 1000.0)
+    """Trout Creek's shape: 2.8 m in and back, nothing else near. No entry, no cut, no membership — not grown to the
+    floor. And the Ospika's: its mouth 1.9 m inside the edge — no cut, the line is outside."""
+    dip = LineString([(0, 500), (999, 500), (1001, 502), (999, 504), (0, 504)])
+    cuts, inside, dips = _area(dip)
     assert cuts == [] and inside == [] and len(dips) == 1
-    mouth = LineString([(1001.9, 500), (0, 500)])
-    assert CC.decide_rejoin(mouth, RESERVE, RESERVE.boundary, 1000.0)[:2] == ([], [])
-    mouth_out = LineString([(998.1, 500), (1900, 500)])     # 1.9 m outside at the mouth, then in
-    cuts, inside, _ = CC.decide_rejoin(mouth_out, RESERVE, RESERVE.boundary, 1000.0)
-    assert cuts == [] and inside == [(0.0, mouth_out.length)]
+    assert _area(LineString([(1001.9, 500), (0, 500)]))[:2] == ([], [])
+    mouth_out = LineString([(998.1, 500), (1900, 500)])         # 1.9 m outside at the mouth, then in
+    assert _area(mouth_out)[:2] == ([], [(0.0, mouth_out.length)])
+
+
+def test_a_line_that_never_crosses_is_never_inside():
+    """Owner 2026-11-26, "Never inside": McNeil and the Illecillewaet run beside the edge, 3-25 m out, for
+    kilometres without crossing it: no cut, no membership. A line wholly inside is inside."""
+    beside = LineString([(997, 0), (997, 2000)])
+    assert _area(beside) == ([], [], [])
+    within = LineString([(1100, 100), (1900, 900)])
+    assert _area(within) == ([], [(0.0, within.length)], [])
+
+
+#: Beside TALL's west edge 20 m out for 2 km, after one graze 2.2 m long (1 m deep) near its start: positional error.
+_GRAZE_THEN_HUG = LineString([(500, 100), (999, 100), (1001, 101), (999, 102), (980, 110), (980, 2100)])
+
+
+def test_a_graze_then_a_hug_is_a_line_that_never_crosses():
+    """Review of T1199: a run inside under the dip is dropped BEFORE the band joins anything, so a creek beside the
+    edge that grazes it once by positional error stays outside its whole length ("Never inside")."""
+    cuts, inside, dips = _area(_GRAZE_THEN_HUG)
+    assert cuts == [] and inside == [] and len(dips) == 1
+
+
+def test_mutation_joining_before_the_dip_closes_the_hugging_creek(monkeypatch):
+    monkeypatch.setattr(CC, "GRAZES_ARE_NOT_CROSSINGS", False)
+    cuts, inside, _ = _area(_GRAZE_THEN_HUG)
+    assert len(cuts) == 1 and _len(inside) > 1900.0, "the 2 km the reviewer's probe closed"
+
+
+def test_two_grazes_with_a_hug_between_stay_outside():
+    """Two 2 m grazes 1.5 km apart, 20 m out between them: neither is an entry, so the band has nothing to join."""
+    g = LineString([(500, 100), (999, 100), (1001, 101), (999, 102), (980, 110), (980, 1600), (999, 1610),
+                    (1001, 1611), (999, 1612), (500, 1612)])
+    cuts, inside, dips = _area(g)
+    assert cuts == [] and inside == [] and len(dips) == 2
+
+
+def test_a_cut_near_another_boundary_moves_outward_onto_it():
+    """An entry 40 m above another boundary (a curated cut) moves onto it: the 40 m between closes. An entry 40 m
+    below one (it lies inside) moves out to the floor from it: the inside piece between is 100 m. The inside never
+    shrinks. MUTATION: without the move the 40 m piece is left."""
+    g = LineString([(0, 500), (1500, 500)])                     # in from 1000 m
+    assert _area(g, others=[960.0])[1] == [(960.0, 1500.0)]
+    assert _area(g, others=[1040.0])[1] == [(940.0, 1500.0)]
+    assert _area(g, others=[700.0])[1] == [(1000.0, 1500.0)], "300 m away: nothing moves"
+
+
+def test_mutation_without_the_move_a_piece_under_the_floor_is_left(monkeypatch):
+    monkeypatch.setattr(CC, "A_CUT_NEAR_A_BOUNDARY_MOVES_ONTO_IT", False)
+    g = LineString([(0, 500), (1500, 500)])
+    assert _area(g, others=[960.0])[1] == [(1000.0, 1500.0)]
+
+
+def test_the_floor_joins_gaps_and_tails_and_grows_pieces():
+    F = CC.floor_pieces
+    assert F([(100, 300), (350, 600)], 1000) == [(100, 600)], "a 50 m gap joins"
+    assert F([(100, 300), (450, 600)], 1000) == [(100, 300), (450, 600)], "150 m does not"
+    assert F([(40, 300)], 1000) == [(0.0, 300)], "a 40 m tail joins"
+    assert F([(500, 520)], 1000) == [(460.0, 560.0)], "grows evenly"
+    assert F([(970, 990)], 1000) == [(900.0, 1000)], "the 10 m tail joins, then it grows to the floor inward"
+    assert F([(20, 40)], 60) == [(0.0, 60)], "a stretch shorter than the floor holding inside is inside whole"
+    assert F([], 1000) == []
+
+
+def test_resolve_moves_a_cut_onto_an_existing_boundary_exactly():
+    """Through `resolve_clean_cuts`: the moved cut takes the existing boundary's own measure, so the sectionizer
+    makes the area its alias (`sectionizer._coincident`)."""
+    g = LineString([(0, 500), (1500, 500)])
+    chain = BlkChain(blk="X", fwa_watershed_code="100", fids=(), geometry=g, mouth_measure=10_000.0,
+                     length_m=g.length, name_tuples=())
+    res = CC.resolve_clean_cuts({"R": RESERVE}, [chain], existing={"X": [10_960.123456]})
+    assert [p.route_measure for p in res.points] == [10_960.123456]
+    assert res.inside["R"]["X"] == [(10_960.123456, float("inf"))]
+    assert res.stats.get("cuts_moved_onto_a_boundary") == 1
+
+
+def test_two_areas_on_one_line_leave_no_piece_under_the_floor_between_them():
+    """Two reserves 60 m apart along one creek: the second (in name order) sees the first's exit as a boundary and
+    moves its entry onto it."""
+    a, b = box(0, 0, 1000, 1000), box(1060, 0, 2000, 1000)
+    g = LineString([(500, 500), (1500, 500)])
+    chain = BlkChain(blk="X", fwa_watershed_code="100", fids=(), geometry=g, mouth_measure=0.0,
+                     length_m=g.length, name_tuples=())
+    res = CC.resolve_clean_cuts({"A": a, "B": b}, [chain])
+    assert res.inside["A"]["X"] == [(float("-inf"), 500.0)]
+    assert res.inside["B"]["X"] == [(500.0, float("inf"))]
+    assert sorted({p.route_measure for p in res.points}) == [500.0]
 
 
 # ---- first/last areas (regions): as before, plus the outline and the sliver -------------------------
