@@ -144,3 +144,39 @@ def test_a_carve_out_on_the_own_stream_still_holds(whiteswan):
     rule = {**INLETS, "tributary_excludes": [{"op": "whole", "item_id": "gnis:U"}]}
     got, d = _bind((g, reg), rule=rule)
     assert got == {"I"} and not [x for x in d if x.kind == B.OWN_STREAM_CLIMBED]
+
+
+def _add(world, nodes, edges, items):
+    g, reg = world
+    for n in nodes:
+        g.nodes[n.node_id] = n
+    for a, b, k, m in edges:
+        g.edges.append(FlowEdge(from_node=a, to_node=b, kind=k, at_measure=m))
+        i = len(g.edges) - 1
+        g.up_adj.setdefault(b, []).append(i)
+        g.down_adj.setdefault(a, []).append(i)
+    return g, {**reg, **items}
+
+
+def test_the_rules_words_keep_the_own_stream_out_too(whiteswan):
+    """A printed exception is a carve-out OR the rule's words ("not including Snow Creek", `_rule_excludes`): the own
+    stream so named is not climbed, and that is reported (`negated`)."""
+    g, reg = whiteswan
+    g.nodes["W:up"] = _n("W:up", blk="W", lo=9000, hi=10100, name="Snow Creek", wsc="300-1", order=3)
+    rule = {**INLETS, "verbatim": "No Fishing, not including Snow Creek"}
+    got, d = _bind((g, reg), rule=rule)
+    assert got == {"I"}
+    assert [x.payload for x in d if x.kind == B.OWN_STREAM_CLIMBED] == [
+        {"lake": "lake:L", "inlet": "W:up", "water": "Snow Creek", "joined": 0, "negated": True}]
+
+
+def test_two_own_streams_into_one_lake_are_both_climbed(whiteswan):
+    """The row's own water holds a second stream into the lake (V, with creek KV): both are walked past, what joins each
+    is the lake's, neither own stream is collected; one report each."""
+    world = _add(whiteswan, [_n("V", blk="V", lo=0, hi=2000, wsc="300-1-000200", order=2),
+                             _n("KV", blk="KV", wsc="300-1-000200-000100", order=1)],
+                 [("V", "lake:L", "lake_in", 4000), ("KV", "V", "confluence", 1000)],
+                 {"gnis:V": RegistryItem(id="gnis:V", name="Vee Creek", kind="stream", section_ids=("V",))})
+    got, d = _bind(world, {**ROW, "matched": ["wsc:W", "gnis:V"]})
+    assert got == {"I", "K", "MS", "MT", "KV"}
+    assert sorted(x.payload["inlet"] for x in d if x.kind == B.OWN_STREAM_CLIMBED) == ["V", "W:up"]

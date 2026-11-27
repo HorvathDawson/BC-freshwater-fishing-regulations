@@ -229,6 +229,8 @@ from __future__ import annotations
 #:     its lake, collecting what joins it, never the own water. And A RIVER STRETCH IN A LAKE'S TRIBUTARIES ROW IS THE
 #:     LAKE'S OWN UPPER END (`build.A_RIVER_STRETCH_IN_A_LAKE_ROW_IS_THE_LAKES_OWN_UPPER_END`, Upper Arrow: "yes ... this
 #:     is what we do"): the river above the drawdown stretch's top (the Hwy 1 bridge) is the lake's through-river inflow,
-#:     climbed to Kinbasket's printed exception. Classify outcomes change (Whiteswan's r5 gains the 14.0 km).
+#:     climbed to Kinbasket's printed exception. Classify outcomes change (Whiteswan's r5 gains the 14.0 km). 53 is the
+#:     walk's (it merges first); the DFO branches that also set 53 move to 54. Review round 3 guards (the rule's words keep
+#:     an own stream out; only a stretch on the lake's own river line is its upper end) change no corpus binding.
 POLICY_VERSION = "53"
 
