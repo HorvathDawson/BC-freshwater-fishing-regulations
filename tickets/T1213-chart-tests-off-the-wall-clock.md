@@ -20,6 +20,8 @@ only on its own year" (a 30 ms sleep) failed 1 of 9,090 (20/20 alone). Owner's s
 
 ## Acceptance
 - The file passes 20 times in a row under CPU load; the T1043 tests no longer use `waitFor` or `setTimeout`.
+- Left as it is, not load-sensitive: "(T256) without a feed" keeps a 20 ms sleep and asserts little (review, 2026-11-26);
+  a real check there (one `gaugeSeries` call, state "loading") is a follow-up, not this ticket.
 - Mutations still fail them: `yearHere` ignoring the key, `yearPending` forced false (switch test), `bandless` ignoring the band (banded test).
 - No app code changed.
 Depends: none. Size: S. Owner: no. Default: n/a.

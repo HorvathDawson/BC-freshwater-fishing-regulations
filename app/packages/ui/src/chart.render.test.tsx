@@ -279,7 +279,7 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
     const banded = { gaugeSeries: async () => ({ fetchedAt: 0, value: { ...SERIES, parameter: "level" as const } }) } as unknown as WaterSource;
     const { result } = renderHook(() => useChartView(banded, "08HD006" as StationId, "72h", "level", undefined, 590, true,
                                                     feedOf() as never, true, [], [], true));
-    await waitFor(() => expect(result.current.state).toBe("ready"));
+    await until("the banded chart is ready", () => result.current.state === "ready");
     const v = result.current.state === "ready" ? result.current.value! : null;
     expect([v!.shape.envelopes.length, v!.shape.scale, v!.shape.priorYears.length]).toEqual([0, "reading", 0]);
     expect(peekAnswer(banded, `yearscale:${seriesKey("08HD006" as StationId, "year", "level", undefined)}`)).toBeNull();
