@@ -39,3 +39,16 @@ explicit `-m` is untouched; both together is a usage error. Every caller that le
 `--with-data`: `scripts/test-full.sh`'s fast step, fast-fail's named-file steps, the release follows' whole files
 (`release_follows.pipeline_tests_cmd`), the re-cut's pins (`pins.mjs`), the annual-synopsis runbook. The pytest folder
 clean-up the owner mentioned is a later ticket. Task runner (owner, same day): "A Makefile (Recommended)". PR 4 (the root Makefile): `make` lists the verbs; pinned by `pipeline/tests/test_makefile.py`, run by fast-fail; `scripts/ci_paths.py` holds no `Makefile`: proposed after the merge-back.
+
+Found, not fixed: `python -m pipeline.tools.audit.tidal_pass2 propose` run twice on one `entries.json` would double every
+`streams` list (`setdefault` + append, `tidal_pass2.py:1033`; read from code, not run): run `extract` before each `propose`.
+
+## Owner
+
+- [x] 2026-11-27 — The name-variants candidates file (A): "keep and fix. IF it looks like the names could be valuable?
+  could you go through sources etc and see how many are actually potentially new and not in the main name variants file
+  etc etc". Nothing is deleted; the planning chat is measuring how many candidates are really new; fixing the mining
+  script (its repo root broke in the folder move: `docs/curation-review/name-variants/fwa_index.py:22` and
+  `osm_extract.py:20` use `parents[4]`) waits on that result and his word.
+- [x] 2026-11-27 — `tidal/pass2/entries.json` (B): "Delete it now (Recommended)". Consequence: the file goes in its own
+  small PR; `extract` is then run before `propose`.

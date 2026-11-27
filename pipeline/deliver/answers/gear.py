@@ -36,7 +36,7 @@ import json
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers.common import AnswersError, Bundle, RuleKey, dumps, \
-    expand, join, lc_names, rule_id
+    expand, join, lc_names, rule_id, water_kind
 from pipeline.deliver.calendar import month_day
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
@@ -119,8 +119,10 @@ DECISIONS = [
     "conditions, means and acts), so the rule-by-rule workaround is gone. A rule the reader lifts "
     "or displaces is listed under `overruled` with its state, reason and `by`; precedence among "
     "the rules in force is per slot and member (step 2), as the page does.",
-    "G3 A clause's `when.water` on a key of unknown kind (a rule set on no named water) is kept "
-    "as a circumstance `water=<kind>`, never resolved as main.",
+    "G3 (T1249) Every key has a water kind, the bundle's (`common.water_kind`, `rule_key.kind`: the "
+    "named water's, else its unnamed sections'): a clause's `when.water` holds on that kind and drops "
+    "on the other. A key of no kind is refused (it used to keep the clause as a circumstance "
+    "`water=<kind>`, so an unnamed stream read the province's '2 while alone in a boat on a lake').",
     "G4 Within one rule, clauses on one slot are 'first match wins, no `when` is the last word' "
     "(guide.gear.reading). A circumstantial clause never answers the main slot, so this agrees "
     "with the page while the angler is unknown.",
@@ -203,7 +205,10 @@ def cond_methods(x: dict, parent: Optional[dict]) -> List[str]:
             for m in (c.get("allow") or c.get("only") or []) if m != "angling"]
 
 
-def _entries(active: Sequence[Rule], kind: Optional[str]) -> List[dict]:
+def _entries(active: Sequence[Rule], kind: str) -> List[dict]:
+    if kind not in WATER_KINDS:
+        # G3 (T1249): the key's kind is the bundle's (`common.water_kind`); never guessed here
+        raise AnswersError(f"gear: no water kind to read the clauses against ({kind!r})")
     out = []
     for r in active:
         x = r.x
@@ -213,11 +218,8 @@ def _entries(active: Sequence[Rule], kind: Optional[str]) -> List[dict]:
             w = c.get("when") or {}
             circ = list(x.get("while") or []) + list(r.cond_methods) + \
                 [v for v in (w.get("method"), w.get("angler"), w.get("gear_in_use")) if v]
-            if w.get("water"):
-                if kind is None:
-                    circ.append(f"water={w['water']}")
-                elif w["water"] != kind:
-                    continue
+            if w.get("water") and w["water"] != kind:
+                continue
             circ = list(dict.fromkeys(circ))          # `while` and the proviso can both say it
             tgt = list(w.get("targeting") or []) or list(x.get("when_targeting") or [])
             out.append({"r": r, "i": i, "c": c, "circ": circ,
@@ -226,9 +228,11 @@ def _entries(active: Sequence[Rule], kind: Optional[str]) -> List[dict]:
     return out
 
 
-#: ROUND10 W4: a circumstance of a line count in words ("while alone in a boat", "on a lake")
-_CIRC_WORDS = {"in_boat": "while in a boat", "alone_in_boat": "while alone in a boat",
-               "water=lake": "on a lake", "water=stream": "on a stream"}
+#: The water kinds a key may have (`rule_key.kind`): the closed enum's (`types.WaterKind`).
+WATER_KINDS = tuple(k.value for k in T.WaterKind)
+
+#: ROUND10 W4: a circumstance of a line count in words ("while alone in a boat")
+_CIRC_WORDS = {"in_boat": "while in a boat", "alone_in_boat": "while alone in a boat"}
 _BOATS = ("in_boat", "alone_in_boat")
 
 
@@ -255,8 +259,7 @@ def _held_words(e: dict) -> str:
 #: T797 item 2: an allowed bait element as its allowance names it ("Dead fin fish may be used …": the probe is dead fin fish)
 _ALLOW_NOUN = {"worms": "Worms", "roe": "Roe", "invertebrate": "Invertebrates", "fin_fish": "Dead fin fish"}
 #: … and a circumstance of it in words ("while set lining"); the rest as a count's (`_CIRC_WORDS`)
-_ALLOW_CIRC = {"set_lining": "while set lining", "spear_fishing": "while spear fishing", "ice_fishing": "while ice fishing",
-               "water=lake": "in a lake", "water=stream": "in a stream"}
+_ALLOW_CIRC = {"set_lining": "while set lining", "spear_fishing": "while spear fishing", "ice_fishing": "while ice fishing"}
 
 
 def allowance_says(el: str, e: dict) -> str:
@@ -530,7 +533,7 @@ def repeats_main_count(c: dict, main: Optional[dict], held: Sequence[dict] = ())
         bool(c.get("unlimited")) == bool(b.get("unlimited"))
 
 
-def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], *,
+def resolve(active: Sequence[Rule], kind: str, lawful: Sequence[str], *,
             timed: Sequence[Rule] = (), in_part: Sequence[Rule] = (),
             side: Sequence[Rule] = (), overruled: Sequence = (),
             while_rules: Sequence[Rule] = (), caught: Sequence[Rule] = ()) -> dict:
@@ -899,7 +902,7 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
     moment `at` — `calendar.Moment`)."""
     every = B.rules
     bound = gear_subset(B, B.sets[key.set_id])
-    kind = B.set_kind.get(key.set_id)
+    kind = water_kind(B, key)                            # G3 (T1249): the bundle's, never None
     st = states(B, bound, md, store, B.key_ix[key], reading, at)
     via = {(e, r): v for e, r, v in bound}
     order = sorted(via, key=lambda k: (via[k] != "reach", f"{k[0]}::{k[1]}"))
@@ -912,7 +915,7 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
     active, timed, in_part, side, wr, overruled, caught = [], [], [], [], [], [], []
     for k in order:
         x = every[k]
-        if kind and x.get("water") and x["water"] != kind:
+        if x.get("water") and x["water"] != kind:
             # M3: the binding enforces a rule's `water` (feature_types); one bound to the other
             # kind of water is a binding defect, never filtered here
             raise AnswersError(f"gear: {rule_id(k)} is for {x['water']}s, bound to a {kind}")
@@ -990,7 +993,7 @@ def static_tables() -> dict:
 # --------------------------------------------------------------------------------------------
 
 def section_scope(key: tuple, B) -> RuleKey:
-    """Gear reads the part's rule key (its set's gear bindings, the water kind of the set, the
+    """Gear reads the part's rule key (its set's gear bindings, the key's water kind, the
     steelhead flags)."""
     from pipeline.deliver.answers.common import TIDAL_SCOPE, is_tidal, rule_key
     return TIDAL_SCOPE if is_tidal(key) else rule_key(key)
