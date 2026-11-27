@@ -4,7 +4,7 @@ Status: IN PROGRESS (lane wt-T1205, branch fix/T1205-reading-current-by-the-cloc
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1205 | A gauge reading is current by the clock, not by the feed's own stamp | IN PROGRESS | — | building: one clock gate at the feed's index read; tests; before/after pictures |
+| T1205 | A gauge reading is current by the clock, not by the feed's own stamp | IN PROGRESS | 0188dd1 | built + tested (`ui/src/readingByClock.test.ts`); before/after pictures not taken (no heavy lane free for Expo web) |
 
 Source: found 2026-11-26 building T1194: a local render over the 2026-10-27 feed (29 days old) drew every gauge as a live
 dot on the Conditions map. Owner 2026-11-26 (via the planning chat): "A new ticket, in the 0.10.0 re-cut (Recommended)".
@@ -35,6 +35,14 @@ The gate sits once, at the index read (`httpFeed().index()`): a station past the
 `reports`, temperature) and keeps `observedAt`, so every reader says what it already says for a silent gauge ("Not reporting today",
 "last reported …") and no reader can disagree. Forecast days (`ahead`, `change`) have their own run times and are untouched.
 The worker keeps `readingCurrent(…, fetchedAt)` (it IS the clock there). Alerts' 6 h gate (`ALERT_STALE_MS`) is unchanged.
+
+## Built (0188dd1)
+
+`ageIndex` in `data/src/feed/http.ts` (applied in `httpFeed().index()`, so every reader of the index agrees: the map dots, panel rows,
+standings, likeVisit/visits/capture, the offline kept copy); `READING_BY_CLOCK_MS` / `readingCurrentNow` in `core/src/freshness.ts`;
+`donorState`'s `unranked` test now judges against `DonorAsk.now` (the real instant; `ref`, the picked day, only stands in when no
+`now` is given), with `now()` passed by `ui/src/panel/conditions.ts` and `DonorPanel.tsx`. The words for a gauge past the line are
+the existing ones ("Not reporting today." and "Last reported …").
 
 ## Acceptance
 
