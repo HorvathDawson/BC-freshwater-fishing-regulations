@@ -31,7 +31,7 @@ describe("(T1208) region borders that read as borders", () => {
     expect(ids(s).indexOf(REGION_BAND)).toBe(ids(s).indexOf("region__edge") - 1);
     expect([band.source, (band as { "source-layer"?: string })["source-layer"], band.maxzoom]).toEqual(["atlas", "region", 10]);
     // a polygon ring's right side is its inside: a positive offset
-    expect(JSON.stringify(band.paint!["line-offset"])).toBe(JSON.stringify(["interpolate", ["linear"], ["zoom"], 4, 1.5, 8, 3]));
+    expect(JSON.stringify(band.paint!["line-offset"])).toBe(JSON.stringify(["interpolate", ["linear"], ["zoom"], 4, 1, 8, 2]));
   });
 
   it("\"Region n\" once per region, from a fixed point (no tile edge), z4 to z7; the Conditions map hides it and the band", () => {
@@ -40,6 +40,9 @@ describe("(T1208) region borders that read as borders", () => {
     expect([names.source, names.minzoom, names.maxzoom, names.layout!["text-field"]])
       .toEqual(["region-labels", 4, 7, ["concat", "Region ", ["get", "region_id"]]]);
     expect(meta.views.find((v) => v.id === "conditions")!.hide).toEqual(expect.arrayContaining([REGION_BAND, REGION_NAMES]));
+    // placed before the towns (over them in the stack): at province zoom a town's name moves round a region's, not the reverse
+    expect(ids(s).indexOf(REGION_NAMES)).toBeGreaterThan(ids(s).indexOf(TOWN_NAMES));
+    expect(names.layout!["text-variable-anchor"]).toEqual(["center", "top", "bottom"]);
   });
 });
 
@@ -69,6 +72,9 @@ describe("(T1208) the base: a softer ground and one water blue in light; dark un
     expect(layer(s, "earth").paint!["fill-color"]).toBe(t["color.ui.basemap.ground"]);
     expect(layer(s, "water").paint!["fill-color"]).toBe(t["color.ui.basemap.water"]);
     expect(JSON.stringify(layer(s, "landcover").paint!["fill-opacity"])).toContain(String(t["opacity.ground.cover"]));
+  });
+  it("the basemap's \"BRITISH COLUMBIA\" is gone (every reader knows where they are; it took a town's room)", () => {
+    for (const th of ["light", "dark"]) expect(ids(composed(th))).not.toContain("places_region");
   });
   it("dark: the flavour's own ground and water (Protomaps black)", () => {
     const s = composed("dark");

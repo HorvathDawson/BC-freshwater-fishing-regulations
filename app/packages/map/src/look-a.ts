@@ -68,6 +68,8 @@ export function regionNamesLayer(t: Tokens) {
     id: REGION_NAMES, type: "symbol" as const, source: REGION_LABEL_SOURCE, minzoom: 4, maxzoom: REGION_NAMES_UNTIL,
     layout: { "text-field": ["concat", "Region ", ["get", "region_id"]], "text-font": ["Noto Sans Medium"],
               "text-size": ["interpolate", ["linear"], ["zoom"], 4, 10.5, 7, 12.5], "text-letter-spacing": 0.12,
+              // centred on its point where there is room, else a line above or below it: a town keeps its name
+              "text-variable-anchor": ["center", "top", "bottom"], "text-radial-offset": 0.9,
               "text-padding": 3, "text-allow-overlap": false },
     paint: { "text-color": tk(t, "color.label.region") as string, "text-halo-color": tk(t, "color.outside") as string,
              "text-halo-width": 2, "text-halo-blur": 0.5 },

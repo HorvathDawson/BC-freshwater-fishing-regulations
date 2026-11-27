@@ -60,11 +60,16 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Token
    * sea, and nobody is fishing a regulation on the Strait of Georgia.
    */
   const BASEMAP_NAMES_WATER = new Set(["water_label_lakes", "water_waterway_label"]);
+  /*
+   * (T1208, look A) AND THE PROVINCE'S OWN NAME: "BRITISH COLUMBIA" across the middle of the map names the one place every
+   * reader already knows they are in, and took the room a town or a lake's name needed (T1200).
+   */
+  const BASEMAP_NAMES_DROPPED = new Set(["places_region"]);
   const OURS_NOW = ["national_park", "park", "protected_area", "nature_reserve",
                     "military", "naval_base"];
   const all = (basemapLayers("basemap", flavor, { lang: "en" }) as
                { id: string; type?: string; filter?: unknown[] }[])
-    .filter((l) => !BASEMAP_NAMES_WATER.has(l.id))
+    .filter((l) => !BASEMAP_NAMES_WATER.has(l.id) && !BASEMAP_NAMES_DROPPED.has(l.id))
     .map((l) => (l.id === "landuse_park" && Array.isArray(l.filter)
       ? { ...l, filter: (l.filter as unknown[]).filter(
             (v) => typeof v !== "string" || !OURS_NOW.includes(v)) }
@@ -539,8 +544,6 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       ...ours.filter((l) => l.type !== "symbol"),
       // our other names and marks (areas, units, obstacles) UNDER the basemap's: a town's name outranks a park's
       ...ours.filter((l) => l.type === "symbol" && !WATER_NAMES.includes(l.id)),
-      // (T1208) "Region n", once per region
-      regionNamesLayer(resolveTheme(theme)),
       /*
        * The basemap's own labels, AFTER ours — see the split above. They still draw; they
        * just no longer get first refusal on every position on the map.
@@ -560,6 +563,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       ...baseLabels,
       // (T1209) THE TOWNS TO FIND YOUR WAY BY, over the basemap's names and under the water's: a lake is named first
       ...townLayers(resolveTheme(theme)),
+      // (T1208) "Region n", once per region, OVER the towns (placed before them: under them, every region's name lost to a
+      // town at province zoom; a town's name has four anchors to move round it)
+      regionNamesLayer(resolveTheme(theme)),
       /*
        * (T299) OUR WATER NAMES, OVER THE BASEMAP'S — and so placed FIRST. MapLibre places symbols from the TOP of the style
        * down (`PauseablePlacement` walks the layer order from the last layer), and a placed label keeps its spot. With

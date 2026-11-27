@@ -3104,8 +3104,8 @@
         4,
         2.5
       ],
-      "opacity.region.band": 0.13,
-      "width.region.band": 6,
+      "opacity.region.band": 0.09,
+      "width.region.band": 4,
       "color.ui.basemap.ground": "#EFEDE8",
       "color.ui.basemap.water": "#A9C6EE",
       "opacity.ground.cover": 0.65,
@@ -3339,8 +3339,8 @@
         4,
         2.5
       ],
-      "opacity.region.band": 0.13,
-      "width.region.band": 6,
+      "opacity.region.band": 0.09,
+      "width.region.band": 4,
       "color.ui.basemap.ground": "#141414",
       "color.ui.basemap.water": "#333333",
       "opacity.ground.cover": 1,
@@ -3574,8 +3574,8 @@
         4,
         2.5
       ],
-      "opacity.region.band": 0.13,
-      "width.region.band": 6,
+      "opacity.region.band": 0.09,
+      "width.region.band": 4,
       "color.ui.basemap.ground": "#EFEDE8",
       "color.ui.basemap.water": "#A9C6EE",
       "opacity.ground.cover": 0.65,
