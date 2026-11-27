@@ -325,13 +325,14 @@ def test_the_marks_are_in_no_stage_key(monkeypatch):
 def test_the_curated_tree_loads_without_the_marks_store(tmp_path, monkeypatch):
     """T266: a build runs with marks.jsonl absent — the curated model no longer requires it to exist. The config is
     loaded as a build loads it: on its own paths, no `CURATED_ROOT` (the suite's sandbox would rebase them, T777)."""
-    import yaml
+    import copy
     from pipeline.common import curated as C
     monkeypatch.delenv(C.ROOT_ENV, raising=False)
-    blob = yaml.safe_load(C.CONFIG.read_text(encoding="utf-8"))
-    blob["curated"]["review"]["marks"] = "review/no-marks.jsonl"     # (T1192) a name under the curated root
+    names = copy.deepcopy(C.NAMES)
+    names["curated"]["review"]["marks"] = "review/no-marks.jsonl"    # (T1192) the schema's name, under the curated root
+    monkeypatch.setattr(C, "NAMES", names)
     cfg = tmp_path / "config.yaml"
-    cfg.write_text(yaml.safe_dump(blob))
+    cfg.write_bytes(C.CONFIG.read_bytes())
     got = C.load(cfg)
     assert got.review.marks == got.base / "review" / "no-marks.jsonl" and not got.review.marks.exists()
 
