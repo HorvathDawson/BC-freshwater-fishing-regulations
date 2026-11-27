@@ -46,8 +46,9 @@ python -m pipeline build --dry-run    # the plan: each stage, run or up to date
 python -m pipeline build --graph      # the stages in run order, with what each reads
 scripts/heavy.sh build 50 -- .venv/bin/python -m pipeline build
 
-# 3. the tests
-.venv/bin/python -m pytest -q         # the fast pipeline suite
+# 3. the tests (plain pytest, on a file, -k or all, is CI's no-data tier: green on a fresh clone, its last line counting
+#    the data tests it left out; --with-data adds them, after step 2). The whole suite in chunks (one process: 100+ GB):
+scripts/heavy.sh tests 30 -- bash scripts/pytest-chunked.sh -- -q
 pnpm -C app check                     # every app gate, knip, typecheck, vitest
 python scripts/before_push.py         # what a PR's required checks ask, for this tree
 ```
