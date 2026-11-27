@@ -236,6 +236,8 @@ const PANEL = { areaKm2: 50, members: [
 const WITH_GAUGES = {
   ...FIX,
   salmonFacts: async () => FACTS,
+  // a reading as fresh as the clock (T1205 judges a reading's age by it: the fixture's fixed-date reading is old by now)
+  gaugeNow: async (st: string) => st !== LEAD ? null : { fetchedAt: Date.now(), value: { discharge: 15.7, level: 1.49, at: new Date().toISOString(), percentile: 0.15, standing: "much-below", parameter: "discharge" } },
   panelsFor: async (secs: readonly number[]) => new Map(secs.map((x) => [x, PANEL])),
   panelRoutes: async () => [
     { station: LEAD, name: "Chilliwack River at Vedder Crossing", lat: 49.1, lon: -122, role: "up", path: SECS },
