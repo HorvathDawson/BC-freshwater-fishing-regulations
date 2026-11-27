@@ -46,6 +46,14 @@ diff where a binding moves), listed for his look before the build ships. Related
     `one-offs-evidence/C-lake-tributaries-sweep.md`: `_continuing()` in `pipeline/atlas/graph/tributaries.py` (about L884-917) refuses the inflow on the lake's outlet blue line, then
     `_through_river_with_the_lake()` in `pipeline/atlas/reach/build.py` (about L1325-1372) puts it back only when the river has no row of its own. Gaps: Chehalis 180 km, Whitetail inlets
     47.9 km, Connor 50.5 km, Buttle 2.4 km (and the Campbell and Arrow chains). Covers O2 and O7.
+    **Built (branch `fix/T1177-tributary-walk-book`, PR #365, RULINGS T19):** every inflow of a lake a rule binds is its
+    tributary, through every lake above; O2 closed all year, O7 Connor / Whitetail / Whiteswan by the walk; a lake row's
+    printed exception stops the rows below it (Kinbasket, Buttle). His 11-27 answers, all built: Kootenay (no change),
+    Whiteswan's 14.0 km feeders above the lake (the own-stream rule, which also closes 87.7 km of Hatzic Slough's creeks to
+    white sturgeon: his yes, see ## Owner), Upper Arrow climbs from the Hwy 1 bridge to Kinbasket's exception (+24,104.7 km, all already
+    under Lower Arrow's same words). DFO one logic ("Yes, in 0.10.0"): branch `fix/T1177-dfo-one-logic`. T1248 (OPEN):
+    probably not a real gap (Lansdowne and Marion, 21 of 235 km, drain to Columbia Lake above Kinbasket's exception; Sun,
+    Warspite and 195.6 km unnamed not traced).
 11. The year-bar fix (partial-closure line type) is wanted in the re-cut but waits on the design chat's look (T1180).
 12. Not in this build: O11 (ruled, no change), the Oxbows label, lake zones (T1180; nothing is built), the August 2026 book (T1179), the Nation Arm reach (T1178).
 13. Not in this build, cross-link only: the owner's ~17:35 rulings on #312's final side-channel table (Snehumption: "Plain \"2 side
@@ -77,7 +85,11 @@ the lists before the re-cut ships. Severity: medium (several are "A": an angler 
 - Blue Lead Creek below the falls (0.9 km, kept lifted by its Aug 15-Oct 31 closure): "Keep it open in spring (Recommended)" (as built).
 - The annual quota under its own row's release (T1243): "Hide the annual quota while release applies (Recommended)".
 - Strathcona-Westmin Park as "Strathcona Park" for the rules that name it: "Yes, treat it as Strathcona Park (Recommended)" (T1240).
+- 2026-11-27 ~10:45, merge order: "Wording fix first, then the walk, both in 0.10.0 (Recommended)": the walk (PR #365) merges after T1249's gear wording.
+- 2026-11-27 ~10:45, the lake exceptions (Kinbasket, Buttle): "wait so you mean kibasket lake will stop other tributaries from below the lake from walking up as well as not havign its own walk up columbia? thatr seems like a fair assumption and add to gotcha": yes to what is built (RULINGS T19, GOTCHAS item 6; the planning chat confirms it back).
+- 2026-11-27 ~11:00, with the maps: Kootenay Lake "the does not include exception really intends to means upstream of lake (all upstream)" (no change); Whiteswan "Include them: No Fishing all year (Recommended)"; Upper Arrow "it should climb all the way to kinbasket lake i think?", then "yes it doesnt matter anyways because lake revelstoke has same regs for its tributaries but yes this is what we do"; DFO "Yes, in 0.10.0".
 
 ## Owner
 
+- [x] 2026-11-27 — Hatzic Lake and Slough: should the creeks that reach Hatzic Lake through the slough above it take the lake row's "No Fishing for Sturgeon" (87.7 km), and should the slough's own 5.2 km above the lake take it too? Answered 2026-11-27: "(a) Yes, close the 87.7 km (Recommended)" (as built; the slough's own piece stays as today; RULINGS T19).
 - [ ] 2026-11-26 — The Oxbows label follows the general label rule: look at it in the final label table before #312 merges ("Follow the rule, show me in the final table (Recommended)"). Default: the rule's words.

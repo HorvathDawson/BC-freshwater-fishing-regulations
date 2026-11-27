@@ -118,8 +118,9 @@ const GUIDE_STEPS: readonly GuideStepWords[] = [
     "This quick look only points things out. Type a water's name here, like “ved”, and tap it to open its page."),
   step("map", "find", ["map"], "Or tap it on the map",
     "Tap any stream or lake to open its page, with its rules for the day shown."),
+  // (T1212) the day is one chip now (the arrows went): a tap opens the calendar
   step("days", "rules", ["days"], "Pick the day you plan to go",
-    "The map's colours and every page are for the day shown here."),
+    "Tap the day to choose another; the map's colours and every page follow it."),
   step("modes", "rules", ["modes"], "Trout or salmon",
     `${RAIL.standard} / ${RAIL.salmon} here colours the map by trout or salmon openings.`,
     { names: [RAIL.standard, RAIL.salmon] }),

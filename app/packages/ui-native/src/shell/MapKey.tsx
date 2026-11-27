@@ -36,6 +36,8 @@ import type { Palette } from "../theme";
 export const RAIL_CLEAR = 76;
 /** the chip's least height and width: a thumb's target */
 export const KEY_TARGET = 44;
+/** (T1212, option A "Tidy") the chip's edge: 14 px in, the search field's, the rail's and the ©'s */
+const KEY_EDGE = 14;
 
 /** (T1211) a tap on the map: the open key closes (the map's tap still does what it does) */
 const mapTapped = new Set<() => void>();
@@ -66,17 +68,17 @@ export function MapKey({ palette, rows, lines, samples, isolated = null, onShowA
   const word = isolated ? MAP_KEY.chip.showing(isolated.label) : MAP_KEY.chip.word;
   const chipSamples = isolated ? [isolated.colour] : samples;
   return (
-    <View testID="map-key" pointerEvents="box-none" style={{ paddingHorizontal: 10, paddingBottom: 10, rowGap: 8, alignItems: "flex-start" }}>
+    <View testID="map-key" pointerEvents="box-none" style={{ paddingHorizontal: KEY_EDGE, paddingBottom: 10, rowGap: 8, alignItems: "flex-start" }}>
       {keyOpen && (
         <View testID="map-key-card" accessibilityLabel={MAP_KEY.chip.label}
               style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.box, padding: 10,
-                       rowGap: 6, maxWidth: Math.max(200, width - RAIL_CLEAR - 10), ...palette.lift }}>
+                       rowGap: 6, maxWidth: Math.max(200, width - RAIL_CLEAR - KEY_EDGE), ...palette.lift }}>
           <LegendRows rows={rows.filter((r) => r.length > 0)} />
           {lines != null && <View testID="map-key-lines" style={{ rowGap: 6 }}>{lines}</View>}
         </View>
       )}
       <View pointerEvents="box-none" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 8,
-                                              maxWidth: Math.max(200, width - RAIL_CLEAR - 10) }}>
+                                              maxWidth: Math.max(200, width - RAIL_CLEAR - KEY_EDGE) }}>
         <Pressable testID="map-key-chip" accessibilityRole="button"
                    accessibilityLabel={isolated ? MAP_KEY.chip.showingAloud(isolated.label) : MAP_KEY.chip.label}
                    accessibilityHint={keyOpen ? MAP_KEY.chip.hintClose : MAP_KEY.chip.hintOpen} aria-expanded={keyOpen}
