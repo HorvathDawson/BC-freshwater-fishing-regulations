@@ -2,7 +2,7 @@
  * THE BROWSE TABS' BODIES: the Map and Conditions tabs' ONE map, the Spots tab and the More tab (T62 3.4: out of the
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
-import { dayLabel, type DayRange, type NotFishingKind, type SectionKey, type SyncVM, now as clockNow } from "@app/core";
+import { dayLabel, type NotFishingKind, type SectionKey, type SyncVM, now as clockNow } from "@app/core";
 import { useCallback, useContext, type MutableRefObject } from "react";
 import { Platform, View } from "react-native";
 import { openProbe } from "@app/data";
@@ -37,14 +37,16 @@ const MoreScreen = part(() => import("../later").then((m) => m.MoreScreen));
 const NONE: readonly SectionKey[] = [];
 const NONE_PINS: readonly never[] = [];
 
-export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
+export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom, insetCredits,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
                              photos, loader, syncState, dfoCheckedAt = null, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onNotFishing, onRuns, fishImages, regsPrefetch = null,
+                             offline = null, onDay, onOpenDay, onObstacle, onNotFishing, onRuns, fishImages, regsPrefetch = null,
                              lookKey, look, railOver = false, cue, tap }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
-  insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
+  insetTop: number; insetBottom: number;
+  /** (T1212) how far the © sits above the map's foot (`shell/mapCorner.ts`) */
+  insetCredits: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
   spotsError?: string | null; onRefreshSpots?: () => void | Promise<void>; refreshing?: boolean;
   locate: Locate | null;
   /** (T303) my location on the map (the rail's button and the dot) */
@@ -59,10 +61,9 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   /** Open the Layers sheet (the Shell's). */
   onLayers: () => void;
   /** (T293) where a tour step sends the camera (the Conditions tour: out to a watershed, in to its gauge); first of all */
-  /** (T213) The map's day strip: set THE day, open the date sheet, and the days it may offer. */
+  /** (T213, T1212) The map's day chip: set THE day (its ✕ goes back to today), open the date sheet (which offers the days). */
   onDay: (d: Date | null) => void;
   onOpenDay: () => void;
-  dayRange: DayRange;
   /** (T173) A fish obstacle mark tapped on the Map tab: the Shell raises its sheet. */
   onObstacle?: (props: Readonly<Record<string, unknown>>) => void;
   /** (T166) A tap on tidal water (no water under it) on the Map tab: the Shell raises the tidal sheet. */
@@ -164,7 +165,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   // the day alone: Trout | Salmon is on the rail under locate + layers (T425, `railExtra`), the key at the foot (`MapLegend`)
   const corner = regsDrawn
     ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "flex-start" }}>
-        <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} />
+        <MapDayStrip palette={palette} day={mapDay} onDay={onDay} onOpen={onOpenDay} />
         {/* (T856) desktop width: Trout | Salmon directly after the day, the same strip; narrower, it is on the map's rail */}
         {col.salmonOffered && onRail && <RegsLayerStrip col={col} palette={palette} look={look} />}
       </View>
@@ -211,7 +212,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
         ? <MapScreen at={tiles} palette={palette} insetLeft={railOver ? NAV_RAIL.width : 0} theme={theme} me={me} railExtra={railExtra} lookKey={lookKey} onLookDrawn={look?.drawn}
                      camera={camera.current}
                      // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
-                     insetTop={insetTop} insetBottom={insetBottom}
+                     insetTop={insetTop} insetBottom={insetBottom} insetCredits={insetCredits}
                      // the provisional pin a long press dropped, else the spot "Show" sent the map to — unless the
                      // spots are drawn, when that spot's own (selected) pin marks it (T131)
                      marker={rail.marker(spotsShown)}

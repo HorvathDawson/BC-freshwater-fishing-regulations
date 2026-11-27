@@ -16,6 +16,8 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
 /** a segment: at least 46 wide and 33 tall by its style (8 + 17 + 8), grown to 44 × 44 to the touch */
+/** (T1212, owner 2026-11-26 option A "Tidy") the map's top-row cell: 42 inside the 1 px edge, a 44 px control like the rail's */
+export const MAP_CELL = 42;
 const SEGMENT_HIT = hitProps({ w: 46, h: 33 });
 
 export interface CornerSegment {
@@ -40,8 +42,13 @@ export interface CornerSegment {
   readonly busy?: boolean;
 }
 
-export function CornerStrip({ palette, segments, testID, label, radio = false, coach }: {
+export function CornerStrip({ palette, segments, testID, label, radio = false, coach, cellHeight }: {
   palette: Palette; segments: readonly CornerSegment[]; testID: string; label?: string;
+  /**
+   * (T1212) a segment's least height inside the strip's 1 px edge: `MAP_CELL` makes the strip 44 px, the rail's buttons'
+   * height, so the map's top row is one line (the day or the horizons, level with locate). Absent: the 33 px strip.
+   */
+  cellHeight?: number;
   /** one choice of several (Standard / Salmon): a radiogroup of radios, `aria-checked` not `aria-pressed` */
   radio?: boolean;
   /** (T257) the key the first-run tour points at this strip by (`useCoachTarget`) */
@@ -60,7 +67,7 @@ export function CornerStrip({ palette, segments, testID, label, radio = false, c
                      accessibilityRole={radio ? "radio" : "button"} accessibilityLabel={h.label} aria-disabled={!enabled}
                      aria-busy={h.busy} {...(h.expanded !== undefined ? { "aria-expanded": h.expanded } : {})}
                      {...(radio ? { "aria-checked": h.on } : { "aria-pressed": h.on })} {...SEGMENT_HIT}>
-            <View style={{ minWidth: 46, paddingVertical: h.note ? 4 : 8, paddingHorizontal: 10, flexDirection: "row",
+            <View style={{ minWidth: 46, minHeight: cellHeight, paddingVertical: h.note ? 4 : 8, paddingHorizontal: 10, flexDirection: "row",
                            gap: 5, alignItems: "center", justifyContent: "center",
                            backgroundColor: h.on ? palette.accent : palette.card, opacity: enabled ? 1 : 0.45,
                            borderLeftWidth: i ? (h.mode ? 2 : 1) : 0, borderLeftColor: h.mode ? palette.ink : palette.line2 }}>

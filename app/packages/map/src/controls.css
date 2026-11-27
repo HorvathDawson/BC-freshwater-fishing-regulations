@@ -29,6 +29,10 @@
 .maplibregl-ctrl-top-right { top: var(--map-inset-top); }
 /* (T275) the credits and the scale stay above a block drawn over the map's foot */
 .maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left { bottom: var(--map-inset-bottom, 0px); }
+/* (T1212) no + / − on a phone-wide window (MapProps.zoomButtons): the stack is hidden, the keys still zoom */
+[data-zoom-buttons="off"] .maplibregl-ctrl-top-right .maplibregl-ctrl-group { display: none; }
+/* (T1212) the scale on the 14 px grid (MapLibre's own corner margin is 10): GEOMETRY.scaleLeft */
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl.maplibregl-ctrl-scale { margin-left: 14px; }
 /* (T856) the desktop nav rail floats over the map's left edge: the scale bar sits right of it */
 .maplibregl-ctrl-bottom-left { left: var(--map-inset-left, 0px); }
 

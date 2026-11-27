@@ -374,6 +374,19 @@ export interface MapProps {
    */
   insetBottom?: number;
   /**
+   * (T1212, owner 2026-11-26: "the attribution moved to botton corner") How far the credits chip (©) sits above the map's
+   * bottom, px, when that is not `insetBottom`: 0 where the block at the foot floats at the LEFT and leaves the right
+   * corner free (the Map tab's key chip), so the © takes the bottom-right corner itself; a bar across the whole foot
+   * (Conditions, Runs) passes its height. Absent: `insetBottom`. The scale bar always sits above `insetBottom`.
+   */
+  insetCredits?: number;
+  /**
+   * (T1212, owner 2026-11-26: "definitely drop +/-") The browse map's + / − (MapLibre's NavigationControl, top-right): false
+   * on a phone-wide window, which zooms by pinch and double tap; wide windows keep them. Web only (the phone app's map
+   * draws none). Absent: drawn. A `bare` map's `zoomControls` are its own and unaffected.
+   */
+  zoomButtons?: boolean;
+  /**
    * (T856) How much of the map's left edge the desktop's floating nav rail covers, px: the web map's camera padding takes it
    * off (centre, fit and fly-to frame the visible area) and its scale bar sits right of it. Web only; 0 on a phone.
    */

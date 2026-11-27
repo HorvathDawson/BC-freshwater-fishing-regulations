@@ -62,7 +62,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
                       onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, salmon, method, issue, halves, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, insetLeft = 0, onRegion, onOpenLink, useBackLayer, modalBack, focus, near, onDrawn, lookKey, onLookDrawn }: MapProps) {
+                      zoomControls, zoomButtons = true, insetCredits, status, standing, lakes, salmon, method, issue, halves, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, insetLeft = 0, onRegion, onOpenLink, useBackLayer, modalBack, focus, near, onDrawn, lookKey, onLookDrawn }: MapProps) {
   const refs = useWebMapRefs(onError);
   // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
   useEffect(() => {
@@ -137,7 +137,8 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
 
   // the spots' layer is the map's sibling, over it in the same box (the host is the map's: MapLibre owns its children)
   return <>
-    <div ref={refs.host} style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />
+    {/* (T1212) no + / − on a phone-wide window: the stack is hidden by controls.css (`data-zoom-buttons`), keys still zoom */}
+    <div ref={refs.host} data-zoom-buttons={zoomButtons ? undefined : "off"} style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />
     {unavailable ? (
       <div role="alert" data-map-unavailable="" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center",
                                                           justifyContent: "center", padding: 24, background: furniture.card,
@@ -159,7 +160,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
       </div>) : null}
     {/* (T424) THE CREDITS: our own chip and card, the phone's component (Esri's "Powered by Esri" beside it while its
         imagery is drawn); the renderer's own attribution control is off */}
-    {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink} useBackLayer={useBackLayer} modalBack={modalBack}
+    {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetCredits ?? insetBottom} onOpenLink={onOpenLink} useBackLayer={useBackLayer} modalBack={modalBack}
                          onLongPress={LAB_ON ? onOpenLab : undefined} />}
   </>;
 }

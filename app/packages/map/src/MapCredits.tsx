@@ -79,30 +79,41 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
   const lines = creditLines(look);
   const G = GEOMETRY;
   const { width, height } = useWindowDimensions();
+  // (T1212) the chip's own foot, on the grid; its 44 px press reaches `out` further each way (the box is that much further out)
   const bottom = G.bottom + insetBottom;
+  const out = (G.target - G.chip) / 2;
+  const badge = look.basemap === "satellite" && IMAGERY.badge !== null;
+  // (T729) the card's spacing from the window's edge, its own (not the chip's grid)
+  const EDGE = 8;
   return (
     <>
+      {/* (T1212, owner 2026-11-26: "the attribution moved to botton corner") THE © IN THE CORNER: bottom-right, `G.right` in
+          and `G.bottom` up from the map's foot or from a bar across it (`insetBottom`), a 44 px press; Esri's badge, while
+          its imagery is drawn, stands over it rather than beside it, so it never reaches the key chip at the left */}
       <View testID="map-credits" pointerEvents="box-none"
-            style={{ position: "absolute", right: G.right, bottom, flexDirection: "row", alignItems: "flex-end", gap: G.gap }}>
-        {look.basemap === "satellite" && IMAGERY.badge !== null && (
+            style={{ position: "absolute", right: G.right - out, bottom: bottom - out, flexDirection: "column", alignItems: "flex-end" }}>
+        {badge && (
           <View testID="esri-badge" pointerEvents="none"
-                style={{ height: G.chip, justifyContent: "center", paddingHorizontal: 6, backgroundColor: chrome.card,
+                style={{ height: G.chip, justifyContent: "center", paddingHorizontal: 6, backgroundColor: chrome.card, marginRight: out,
                          borderWidth: 1, borderColor: chrome.ink }}>
             <Text style={{ color: chrome.ink, fontFamily: TEXT, fontSize: 11, lineHeight: 14 }}>{IMAGERY.badge}</Text>
           </View>
         )}
         <Pressable testID="map-credits-chip" accessibilityRole="button" accessibilityLabel="Map credits"
-                   aria-expanded={on} onPress={() => setOn((v) => !v)} onLongPress={onLongPress} hitSlop={8}
-                   style={{ width: G.chip, height: G.chip, alignItems: "center", justifyContent: "center",
-                            backgroundColor: on ? chrome.tint : chrome.card, borderWidth: 1, borderColor: chrome.ink }}>
-          <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 15, lineHeight: 18 }}>©</Text>
+                   aria-expanded={on} onPress={() => setOn((v) => !v)} onLongPress={onLongPress}
+                   style={{ width: G.target, height: G.target, alignItems: "center", justifyContent: "center" }}>
+          <View testID="map-credits-face" style={{ width: G.chip, height: G.chip, alignItems: "center", justifyContent: "center",
+                                                   backgroundColor: on ? chrome.tint : chrome.card, borderWidth: 1, borderColor: chrome.ink }}>
+            {/* the glyph grows with the system text to 1.3 (a phone tab bar's cap, ui-native type.ts LABEL_SCALE): 20 px in a 28 px chip */}
+            <Text maxFontSizeMultiplier={1.3} style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 15, lineHeight: 18 }}>©</Text>
+          </View>
         </Pressable>
       </View>
       {startup && !on && (
         // above the chip, where the card opens: the bottom-left scale bar is never in reach, badge or not
         <Pressable testID="map-credits-startup" accessibilityRole="button" accessibilityLabel={STARTUP_CREDIT}
                    onPress={() => setStartup(false)}
-                   style={{ position: "absolute", right: G.right, bottom: bottom + G.chip + G.gap, paddingHorizontal: 6,
+                   style={{ position: "absolute", right: G.right, bottom: bottom + G.chip + G.gap + (badge ? G.chip + out : 0), paddingHorizontal: 6,
                             paddingVertical: 3, backgroundColor: chrome.card, borderWidth: 1, borderColor: chrome.ink }}>
           <Text style={{ color: chrome.ink, fontFamily: TEXT, fontSize: 11, lineHeight: 14 }}>{STARTUP_CREDIT}</Text>
         </Pressable>
@@ -118,11 +129,11 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
         <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={requestClose}>
           <Back onBack={requestClose}>
           <Pressable testID="map-credits-scrim" accessibilityLabel="Close the credits" onPress={() => setOn(false)}
-                     style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: G.right * 2,
+                     style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: EDGE * 2,
                               backgroundColor: chrome.scrim }}>
             <View testID="map-credits-card" accessibilityRole="summary" accessibilityLabel="Map credits"
                   onStartShouldSetResponder={() => true}
-                  style={{ width: Math.min(G.cardMax, width - 4 * G.right), maxHeight: Math.max(160, height - 8 * G.right),
+                  style={{ width: Math.min(G.cardMax, width - 4 * EDGE), maxHeight: Math.max(160, height - 8 * EDGE),
                            backgroundColor: chrome.card, borderWidth: 1,
                            borderColor: chrome.ink, boxShadow: `2px 2px 0 ${chrome.shadow}` }}>
               <ScrollView contentContainerStyle={{ padding: 10, gap: 6 }}>

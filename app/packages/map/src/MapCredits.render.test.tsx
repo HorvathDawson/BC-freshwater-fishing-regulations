@@ -86,10 +86,26 @@ describe("the credits chip and card (T424)", () => {
     expect(screen.getByTestId("esri-badge").textContent).toBe("Powered by Esri");
   });
 
-  it("sits bottom-right, over the foot block", () => {
+  it("sits bottom-right, over the foot block: the 28 px chip 14 px in and 10 px up, in a 44 x 44 press (T1212)", () => {
     render(<MapCredits look={PLAIN} chrome={chrome} insetBottom={120} />);
     const s = getComputedStyle(screen.getByTestId("map-credits"));
-    expect([s.right, s.bottom]).toEqual([`${GEOMETRY.right}px`, `${GEOMETRY.bottom + 120}px`]);
+    const press = getComputedStyle(screen.getByTestId("map-credits-chip")), face = getComputedStyle(screen.getByTestId("map-credits-face"));
+    // the press reaches (44 - 28) / 2 = 8 px past the chip each way, so the chip itself stands on the grid
+    expect([s.right, s.bottom, press.width, press.height, face.width, face.height])
+      .toEqual(["6px", "122px", "44px", "44px", "28px", "28px"]);
+    expect([GEOMETRY.right, GEOMETRY.bottom, GEOMETRY.target]).toEqual([14, 10, 44]);
+  });
+
+  it("(T1212) in the map's own corner when nothing crosses the foot: 10 px up from the map's bottom, level with the key chip", () => {
+    render(<MapCredits look={PLAIN} chrome={chrome} insetBottom={0} />);
+    expect(getComputedStyle(screen.getByTestId("map-credits")).bottom).toBe("2px");
+  });
+
+  it("(T1212) Esri's badge stands over the ©, not beside it: the corner is no wider than the badge", () => {
+    render(<MapCredits look={{ ...PLAIN, basemap: "satellite" }} chrome={chrome} />);
+    const box = screen.getByTestId("map-credits");
+    expect([getComputedStyle(box).flexDirection, [...box.children].map((c) => c.getAttribute("data-testid"))])
+      .toEqual(["column", ["esri-badge", "map-credits-chip"]]);
   });
 });
 

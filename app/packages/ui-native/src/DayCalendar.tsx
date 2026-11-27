@@ -17,7 +17,7 @@ import { View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type DayRange, bcNow } from "@app/core";
-import { CornerStrip } from "./CornerStrip";
+import { CornerStrip, MAP_CELL } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
 import { TYPE } from "./type";
@@ -35,30 +35,26 @@ const TARGET = 44;
 const CELL = { width: `${100 / 7}%`, minWidth: TARGET } as const;
 
 /**
- * (T213; T367, owner 2026-11-04: the Today · Tomorrow · Date strip was "really ugly") THE MAP'S DAY PILL, in the
- * top-left corner under search: ‹ · the day shown, with the calendar · ›. The arrows step a day (tomorrow stays one tap
- * away; a step out of the data's range is refused, greyed); the middle opens the date sheet — its month grid, Today and
- * the day steps. The words are `@app/core` `dayButtonVM` / `DAY_PICKER`; a press moves THE day (`onDay`) or opens the
- * sheet (`onOpen`).
+ * (T1212, owner 2026-11-26: "One \"Today\" chip that opens the calendar"; option A "Tidy") THE MAP'S DAY CHIP, in the
+ * top-left corner under search, level with the rail: the calendar icon, the day shown ("Today", or the day picked) and a
+ * chevron; a press opens the date sheet (its month grid, Today and the day steps). It replaced ‹ · day · › (T213/T367):
+ * the arrows went. A day other than today fills the chip (it repaints the whole map) and adds ✕ beside it, "Back to
+ * today": one tap home. 44 px tall (`MAP_CELL`), the rail's height. The words are `@app/core` `dayButtonVM` / `DAY_PICKER`.
  */
-export function MapDayStrip({ palette, day, range, onDay, onOpen, now }: {
-  palette: Palette; day: Date | null; range: DayRange;
+export function MapDayStrip({ palette, day, onDay, onOpen, now }: {
+  palette: Palette; day: Date | null;
   onDay: (d: Date | null) => void; onOpen: () => void;
   /** for tests; the device's clock otherwise */
   now?: Date;
 }) {
-  const at = now ?? bcNow();
-  const shown = dayButtonVM(day, at);
-  const earlier = stepDay(day, -1, at, range), later = stepDay(day, 1, at, range);
+  const shown = dayButtonVM(day, now ?? bcNow());
   return (
-    <CornerStrip palette={palette} testID="map-day" label={DAY_PICKER.strip} coach="days"
+    <CornerStrip palette={palette} testID="map-day" label={DAY_PICKER.strip} coach="days" cellHeight={MAP_CELL}
                  segments={[
-                   { key: "earlier", chip: "", icon: "back" as const, label: DAY_PICKER.earlierLabel, on: false,
-                     enabled: earlier !== undefined, onPress: () => { if (earlier !== undefined) onDay(earlier); } },
-                   { key: "pick", chip: shown.text, icon: "calendar" as const, label: shown.label, on: day !== null,
-                     onPress: onOpen },
-                   { key: "later", chip: "", icon: "next" as const, label: DAY_PICKER.laterLabel, on: false,
-                     enabled: later !== undefined, onPress: () => { if (later !== undefined) onDay(later); } },
+                   { key: "pick", chip: shown.text, icon: "calendar" as const, trail: "expand" as const, label: shown.label,
+                     on: day !== null, onPress: onOpen },
+                   ...(day === null ? [] : [{ key: "today", chip: "", icon: "close" as const, label: DAY_PICKER.todayLabel, on: false,
+                                              onPress: () => onDay(null) }]),
                  ]} />
   );
 }

@@ -120,7 +120,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, issue, halves, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
-                      onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace, onOpenLink, useBackLayer, modalBack, onDrawn, lookKey, onLookDrawn }: MapProps) {
+                      onRegion: _noPrefetch, insetBottom = 0, insetCredits, insetTop = 0, zoomControls, trace, onOpenLink, useBackLayer, modalBack, onDrawn, lookKey, onLookDrawn }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -1085,7 +1085,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         </View>) : null}
       {/* (T424) THE CREDITS: the web's own component, bottom-right (Esri's "Powered by Esri" beside it while its imagery is
           drawn, T275); the scale bar is bottom-LEFT, so the two never meet */}
-      {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink} useBackLayer={useBackLayer} modalBack={modalBack}
+      {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetCredits ?? insetBottom} onOpenLink={onOpenLink} useBackLayer={useBackLayer} modalBack={modalBack}
                             onLongPress={LAB_ON ? onOpenLab : undefined} />}
       {bare || !SHOW_SCALE ? null : (
         // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-left (T424), a RULER — a hairline with a tick at

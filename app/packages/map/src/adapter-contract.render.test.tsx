@@ -1184,7 +1184,8 @@ it("no listener, no long press: the binding is handed no handler (its long press
     // (T424) the binding's own attribution is off: the credits are the web's component, a chip bottom-right
     expect(native.props!.attribution).toBe(false);
     const scale = getComputedStyle(r.getByLabelText("scale")), chip = getComputedStyle(r.getByTestId("map-credits"));
-    expect([scale.left, scale.right, chip.right, chip.left]).toEqual(["10px", "auto", "8px", "auto"]);
+    // (T1212) on the 14 px grid: the scale 14 px in; the © chip 14 px in, its 44 px press 8 px further out (6 px)
+    expect([scale.left, scale.right, chip.right, chip.left]).toEqual(["14px", "auto", "6px", "auto"]);
     expect(r.getByTestId("map-credits-chip").textContent).toBe("©");
     // the binding's own is ON but parked off screen: off, the map left a black hole over the next screen (Android)
     expect([native.props!.scaleBar, native.props!.scaleBarPosition]).toEqual([true, { top: -10000, left: -10000 }]);
