@@ -195,13 +195,25 @@ def _span_cases():
 
 @pytest.mark.parametrize("case", _span_cases(), ids=lambda c: c["name"][:60])
 def test_span_is_cores_rule(case):
-    """(T548) ONE case file, two readers: `app/packages/core/src/inseason-span.parity.json` gives `expect` here and in
-    core's `inSeasonSpan`; `inForce` is the same `from <= day <= to` test `joinInSeason` makes."""
+    """(T548, T1167) ONE case file, two readers: `app/packages/core/src/inseason-span.parity.json` gives `dating` (the
+    range the notice's own text states, read with its year), `dated`, `expect` (when it is in force) and `on` (the banner
+    on each day named: upcoming in the 14 days before a dated row, in force, or none) here and in core's
+    `inSeasonDating` / `inSeasonSpan` / `inSeasonOn`."""
     eff = M.Effective(**case["effective"]) if case.get("effective") else None
-    frm, to = M.span(case["row"], eff)
+    assert M.dating(case["row"])[0] == case["dating"]
+    frm, to, dated = M.span(case["row"], eff)
     assert [frm, to] == case["expect"]
-    for day, want in case["inForce"].items():
-        assert (not (frm and frm > day) and not (to and to < day)) == want, day
+    assert dated == case["dated"]
+    for day, want in case["on"].items():
+        assert M.on(frm, to, dated, day) == want, day
+
+
+def test_the_seven_2026_closures_show_nothing_on_nov_26():
+    """(T1167) T1157's seven July 30-Sept 15, 2026 closures (the case file's `seven`): dated by their own text, so on
+    2026-11-26 none shows; before T1167 every one did (no end was read)."""
+    seven = [c for c in _span_cases() if c.get("seven")]
+    assert len(seven) == 7
+    assert [M.on(*M.span(c["row"]), "2026-11-26") for c in seven] == [None] * 7
 
 
 @pytest.mark.needs_bundle

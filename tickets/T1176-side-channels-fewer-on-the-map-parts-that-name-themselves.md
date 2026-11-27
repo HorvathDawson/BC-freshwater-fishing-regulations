@@ -1,10 +1,10 @@
 # T1176 — Side channels: fewer on the map, and parts that name themselves
 
-Status: OPEN — the owner wants it before the 0.10.0 re-cut; scoped and stepped back (read-only); his picks first, nothing built yet
+Status: PARTIAL — superseded by the water options; the design lane and the water options answered it: the work moved to T1199 (cut rule), T1240 (folds), T1241 (map calming), T1242 (loop-removal trial) and T1191 (names). left (Claude): the naming fix (T1172) and the side-part report.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1176 | Side channels: fewer on the map, and parts that name themselves | OPEN — before the re-cut (owner 2026-11-26); picks first | — | owner: the step-back picks (in T1172) and the fade pictures; then the naming fix (T1172), a side-part report, the fade; geometry simplification planned as a side-atlas trial |
+| T1176 | Side channels: fewer on the map, and parts that name themselves | PARTIAL — the rest went to T1240, T1241, T1242, T1199 and T1191 (water options, 2026-11-26) | — | nothing new here; the owner picked "D: simplify the water itself"; follow T1199, T1240, T1241, T1242 |
 
 Source: the owner, 2026-11-26, after the gnis:2123 stop (T1172), verbatim: "mnaybe this is a natural point to
 simplify braids too by reducing the amount of braiding on the map and masking it more single lines we could
@@ -28,6 +28,19 @@ atlas), T1146 (#264), T1140 (#265), T1149, T1172.
 - The step back: 14 of the 26 parts are binding artefacts, 3 are the owner's call, 9 are real; 13,751 braid loops
   survive the atlas prune, reason not yet measured.
 
+## Superseded by the water options (2026-11-26, planning chat)
+The design lane (`braids-design`) and the combined options (`water-options`: A smallest change, B tidy the rules, C tidy
+the rules and calm the map, D simplify the water itself) answered this ticket. The owner picked, verbatim: "D: simplify
+the water itself"; late folds: "Hold the re-cut for all of them"; and, when put to him that D plus "hold" makes 0.10.0 wait
+for an atlas change with unmeasured unknowns: "Run the loop-removal trial first, then I decide". Of the 23 side-channel-only
+parts, 6 are real and 17 are artefacts of how a rule binds. The work now lives in:
+- **T1199** the reserve and park cut rule (the Skeena example he called "crazy"), in the re-cut;
+- **T1240** the side-channel folds, by class (including the 3 wrong answers: Cottonwood, West Road, Campbell);
+- **T1241** same-answer side channels not drawn below zoom 12 (about 4,005 lines);
+- **T1242** the loop-removal trial (why 11,875 loops survive the prune; 5,209 loops under 100 m; 558 creek mouths);
+- **T1191** the part names, and "every part says why it is separate".
+This ticket closes when T1172's naming fix and the side-part report are done; its owner line below is answered by those.
+
 ## Work
 1. For the re-cut: the naming fix (T1172), a bundle report of every side-channel-only part and what it differs by
    (a report, not a stop), and a low-zoom fade of side channels (below z12; closures never faded) after his pictures.
@@ -47,4 +60,4 @@ L (2).
 - [x] 2026-11-26 — When → "Before the re-cut" (2026-11-26)
 - [x] 2026-11-26 — What goes in the re-cut → "do all first items but also geometry simplifcation is what i meant by simplification ..." (2026-11-26; full words in Source)
 - [x] 2026-11-26 — The later braid items → "Decide with the audit" (2026-11-26)
-- [ ] 2026-11-26 — Decide the later braid items in the audit review (with P1); look at the fade pictures before the style changes. Default: no fade, no rule change.
+- [x] 2026-11-26 — Decide the later braid items; look at the fade pictures → "A design lane first, then decide", then "D: simplify the water itself" and "Run the loop-removal trial first, then I decide" (2026-11-26); the open lines are in T1240 and T1242

@@ -71,7 +71,7 @@ class Artifact:
 
     name: str
     roster: Path            # the fetched list of things that need a decision
-    frozen: Path            # the committed answers
+    frozen: Path | None     # the committed answers; None = not declared in config.yaml yet (it reports `absent`)
     regenerate: str         # the command a human runs; `{stations}` is filled by `fix_command`
     roster_ids: str         # see `ids` for the three spellings
     frozen_ids: str
@@ -120,8 +120,8 @@ class Artifact:
 
 #: Every artifact that is generated once, reviewed by a human, and then only read.
 #:
-#: the gauge match (`CURATED.gauges.matches`) is live. The other two are DECLARED BUT NOT BUILT — they are named here
-#: on purpose, so the day somebody wires the FIDQ or bathymetry fetch the freshness gate is
+#: the gauge match (`CURATED.gauges.matches`) is live. The other two are NOT BUILT (and not in config.yaml) — they are named
+#: here on purpose, so the day somebody wires the FIDQ or bathymetry fetch the freshness gate is
 #: already waiting for them rather than being remembered afterwards. A missing file reports
 #: as `not built` and never fails CI.
 ARTIFACTS = [
@@ -151,7 +151,9 @@ ARTIFACTS = [
     Artifact(
         name="stocking waterbody match",
         roster=SOURCE / "bc_stocked_waterbodies.json",
-        frozen=_C.stocking.matches,
+        # T1192: not declared in config.yaml until it ships (`pipeline.bathymetry.accept` SETS writes
+        # CURATED.base/stocking/matches.json); the `null` placeholder that stood here contradicted that
+        frozen=None,
         regenerate="python -m pipeline.stocking.generate.match  (not wired yet)",
         roster_ids="waterbody_id",
         frozen_ids="waterbodies.waterbody_id",
@@ -159,7 +161,7 @@ ARTIFACTS = [
     Artifact(
         name="bathymetry sheet match",
         roster=SOURCE / "bc_bathymetry_sheets.json",
-        frozen=_C.bathymetry.matches,
+        frozen=None,                # T1192: not declared in config.yaml until it ships (as stocking above)
         regenerate="no matcher yet: write pipeline/bathymetry/generate/match.py (pipeline/bathymetry/README.md)",
         roster_ids="waterbody_identifier",
         frozen_ids="sheets.waterbody_identifier",

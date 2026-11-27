@@ -49,6 +49,7 @@ T1118-shots folder of that PR. No verdict per row yet: that is this ticket's fir
 
 ## Owner
 
+- [x] 2026-11-26 — The 14 newly examined "book's unit is off" rows → "Keep all 14 and add each to the Province list with its evidence (Recommended)" (2026-11-26); McLennan Creek → "Both creeks closed, ask the Province (Recommended)" (2026-11-26)
 - [ ] 2026-11-25 — Review the proposals of the cross-unit name-binding audit when its first lane lands them (0.10.1).
 - [x] 2026-11-26 — The seven probably-wrong bindings → his rulings (2026-11-26), verbatim in `docs/OWNER-RULINGS.md`; the first: "miquot creek yes should be the arrow park one."
 
@@ -59,3 +60,24 @@ T1118-shots folder of that PR. No verdict per row yet: that is this ticket's fir
 
 ## 2026-11-26 afternoon: the seven out-of-unit rows stay (P10)
 Owner: "i agree with the 7 items can you add all the info to the notes? so we dont have to refined it." Lynx, Chubb, Bridal, Hiawatha, Emerald, Nation River and Ellison keep their bindings; each override's note in `book_name_links.json` now carries its evidence (federal vessel schedule item and coordinates, the stocking record, the Province's proposal page, the Kootenay 2009-10 review); the errors are entries 1-7 of `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`. The build check (item 3) is report-only first (P10b: "Yes, report only (Recommended)"), built in T1177. The Nation Arm reach is T1178.
+
+## 2026-11-26 evening: all 60 pairs audited (planning chat; notes `out-of-unit-full-audit`)
+The owner asked: "what ever happen to the audit a long time ago looking at all waterbodies that were matched to items in a
+different mu you said there were like 50 but we only looked at 7". True gap: only 4 of the 49 "probably right" pairs and
+the 7 hand overrides had a real look. A full look now covers **all 60 pairs over 55 rows** (the same ids as
+`T1118-name-variants-list`); each has evidence and a verdict, and it found **no new wrong water**:
+- FINE-LINE 19 (on the printed unit's edge, or within 2 km, the only water of that name near); FINE-NAMED 8 (the row
+  names the part); FINE-GROUP 3 (one polygon of a gazetted group); **BOOK-UNIT-OFF 21** (7 already in P10 or ruled, **14
+  new**); D6 7 (wrong water, fixed by D6); AMBIGUOUS 1 (McLennan Creek 2-8); RULED 1 (Mackenzie Creek 4-21 to 4-31).
+- Federal vessel-schedule points tie the bound water of 16 more rows to the right lake or stream within about 1 km, and
+  settle the D6 rebinds of Hall Lake and Twin Lakes west of Brisco (4-34; 109 to 126 km from today's binding).
+- All 60 bind by an override id (58) or a hand-stamped list (2); none by name or a tributary walk.
+- **His picks:** the 14 new rows: "Keep all 14 and add each to the Province list with its evidence (Recommended)" (Prior,
+  Prospect, Chilliwack Lake, Hope Slough, Lucille, Stawamus, Bridge, Jack of Clubs, Dunalter, Lakelse River, Wahla,
+  La Salle, Tsitniz, Swan 8-26: entries 25-38 of `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`). McLennan Creek: "Both
+  creeks closed, ask the Province (Recommended)". The audit's other three recommended defaults were taken by the planning
+  chat and sent to the data chat: seed the build check's exceptions with the 51 non-D6 pairs that are not ambiguous or
+  ruled, each with its class, distance and evidence line (`out/pairs.csv`); Mackenzie Creek stays 4-31 and goes to the
+  Province; the six wrong override notes (Square Lake, Langford, Mahood, Hall and Twin 4-34, Arrow Park) are rewritten inside
+  the D6 change.
+- The check (item 3) stays report-only and is built in T1177. Maps: `out-of-unit-full-audit/maps/`.

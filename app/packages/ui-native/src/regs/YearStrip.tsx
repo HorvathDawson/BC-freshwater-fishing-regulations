@@ -16,6 +16,7 @@ import { WORDS, legendText, type SalmonDrawn, type SalmonStripVM, type StripVM }
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
+import { InSeasonBand, InSeasonLegend, InSeasonPointer } from "./InSeasonYear";
 
 export const GAP = 2, H = 10;
 
@@ -96,6 +97,8 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
           : <Text key={i} testID={l.kind === "soonOpen" ? "st:open" : "st:closed"} style={[TYPE.metaBold, { marginLeft: "auto", paddingVertical: 2, paddingHorizontal: 8, borderWidth: 1.5,
               color: l.kind === "soonOpen" ? palette.salmon.open : palette.closed, borderColor: l.kind === "soonOpen" ? palette.salmon.open : palette.closed }]}>{l.text}</Text>)}
       </View>
+      {/* (T1167) a notice in force on the page: the status line points at it (the answer stays the book's) */}
+      <InSeasonPointer palette={palette} on="strip" />
       {!!hours && <Text testID="keep-daylight" style={[TYPE.metaBold, { color: palette.ink, marginTop: 2 }]}>{hours}</Text>}
       {/* (T40) the bar is one picture to a screen reader, named by the status line ("Open today"); the marker's date is the
           header pill's, so it is hidden inside it. The legend below stays text. */}
@@ -106,6 +109,8 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
             {rects.map((r) => <RunRect key={r.i} x={r.at} w={r.rw} bits={r.bits} palette={palette} />)}
           </Svg>
         )}
+        {/* (T1167) a dated notice's range, over its days */}
+        {w > 0 && <InSeasonBand palette={palette} />}
         {w > 0 && (
           <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, ...bar.marker(strip.todayAt), width: 2, height: 22, backgroundColor: palette.ink }}>
             <Text style={[TYPE.metaSemi, { position: "absolute", bottom: 24, left: -40, width: 82, textAlign: "center", lineHeight: 12.48, color: palette.ink }]}>{dateLabel}</Text>
@@ -124,6 +129,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
             <Text testID="strip-legend-item" style={[TYPE.legend, { color: palette.ink }]}>{legendText(l)}</Text>
           </View>
         ))}
+        <InSeasonLegend palette={palette} />
       </View>
     </View>
   );
@@ -183,6 +189,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
             {rects.map((r) => <SalmonRect key={r.i} x={r.at} w={r.rw} drawn={r.drawn} gear={r.gear} palette={palette} />)}
           </Svg>
         )}
+        {w > 0 && <InSeasonBand palette={palette} />}
         {w > 0 && (
           <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, ...bar.marker(todayAt), width: 2, height: 22, backgroundColor: palette.ink }}>
             <Text style={[TYPE.metaSemi, { position: "absolute", bottom: 24, left: -40, width: 82, textAlign: "center", lineHeight: 12.48, color: palette.ink }]}>{dateLabel}</Text>
@@ -201,6 +208,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
             <Text style={[TYPE.legend, { color: palette.ink }]}>{l.label}</Text>
           </View>
         ))}
+        {strip.runs.length > 0 && <InSeasonLegend palette={palette} />}
       </View>
     </View>
   );
