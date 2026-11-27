@@ -1829,8 +1829,9 @@ def main():
         "streams": {"type": "FWA_STREAMS", "ftp": FTP_STR},
         # T678 THE COAST, for the atlas's coast-crossing tidal cut (`pipeline.atlas.splits.coast`): the FWA river
         # polygons (the double-line rivers a creek crosses into) and the FWA land mass (the assessment watersheds tile
-        # the land; outside them is the sea). In their OWN GeoPackage, `fwa_coast.gpkg`
-        # (config `data_accessor.coast_gpkg_path`), so adding them never moves the main gpkg's stamp, which every shipped atlas records as an input.
+        # the land; outside them is the sea). In their OWN GeoPackage, `fwa_coast.gpkg` (config
+        # `data_accessor.coast_gpkg_path`), so adding them never moves the main gpkg's stamp, which every shipped
+        # atlas records as an input.
         "fwa_rivers": {"type": "FWA_GDB_FILE", "ftp": FTP_FWA, "layer": "FWA_RIVERS_POLY",
                        "dest": "fwa_coast.gpkg", "as": "rivers"},
         "fwa_land": {"type": "FWA_GDB_FILE", "ftp": FTP_FWA, "layer": "FWA_ASSESSMENT_WATERSHEDS_POLY",
