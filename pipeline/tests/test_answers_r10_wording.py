@@ -88,7 +88,8 @@ def test_w2_a_part_with_a_main_run_does_not_mention_its_side_channels():
 
 
 def test_w2_a_part_of_side_channels_only_keeps_its_words():
-    assert D.runs_label(DOC, {"runs": [SIDE]}) == "Side channel, joining 4.1 km from the mouth"
+    # (T1172) the one such part of its water says no distance ("Distance only to tell parts apart")
+    assert D.runs_label(DOC, {"runs": [SIDE]}) == "Side channel"
     assert _name(DOC, {"runs": [SIDE]}) is None                    # no main stem: the water's name (app)
 
 
