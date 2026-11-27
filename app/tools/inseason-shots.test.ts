@@ -5,7 +5,7 @@
  * Okanagan River notice of 2026 ("No fishing July 30 to September 15.", effective July 30, 2026) joined by core on that
  * day (`joinInSeason` → `inSeasonBanner`), drawn by the real RegsScreen and photographed by headless Chrome
  * (`wide-measure.mjs`) at 390 px, light and dark: BEFORE the window (Jul 20, upcoming), INSIDE it (Aug 15) and AFTER it
- * (Sep 20, nothing). Into `T1167_SHOTS_DIR` (default handoff/PLAN/app-integration/tickets/T1167-shots/) as
+ * (Sep 20, nothing). Into `T1167_SHOTS_DIR` (default tickets/T1167-shots/) as
  * `<state>-<theme>.png`.
  *
  *   T1167_SHOTS=1 T1167_SHOTS_DIR=/abs/dir pnpm vitest run tools/inseason-shots.test.ts
@@ -29,7 +29,7 @@ import { DARK, LIGHT } from "../packages/ui-native/src/theme";
 import { snapshot } from "./wide-snapshot";
 
 const ON = process.env.T1167_SHOTS === "1";
-const OUT = process.env.T1167_SHOTS_DIR ?? join(process.cwd(), "..", "handoff", "PLAN", "app-integration", "tickets", "T1167-shots");
+const OUT = process.env.T1167_SHOTS_DIR ?? join(process.cwd(), "..", "tickets", "T1167-shots");
 const [W, HEIGHT] = [390, 900];
 const WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 /** the three states and their days */
