@@ -274,6 +274,9 @@ events() { paste -sd' ' - < "$T/events"; }
 queued() { H --status 2>/dev/null | grep -c '^   queued'; }
 go() { local n; for n in "$@"; do touch "$T/go.$n"; done; }
 started_() { until_ "grep -q 'start $1' $T/events 2>/dev/null"; }
+# inq <pid>: wait until that waiter's queue entry exists, so the next one cannot pass it under load (then a 1 s gap:
+# the order is kept to the second, a tie going to the lower pid)
+inq() { until_ "[[ -f $L.queue/$1 ]]" 100; [[ -f $L.queue/$1 ]] || echo "  (waiter $1 never queued)"; }
 
 echo "13. (T1225) five waiters get the lock in the order they queued; --status lists them in that order, with labels"
 reset
@@ -281,7 +284,7 @@ reset
 started_ h
 for n in w1 w2 w3 w4 w5; do
   sleep 1.05   # the order is kept to the second; a tie goes to the lower pid
-  "$T/H" "lbl-$n" 10 -- "$T/hold.sh" "$n" > "$T/$n.out" 2>&1 & pids+=($!)
+  "$T/H" "lbl-$n" 10 -- "$T/hold.sh" "$n" > "$T/$n.out" 2>&1 & pids+=($!); inq $!
 done
 until_ "[[ \$(queued) == 5 ]]" 50
 H --status > "$T/st13.out" 2>&1
@@ -320,9 +323,9 @@ echo "15. (T1225) the first in line waits for memory holding the lane: a smaller
 reset
 "$T/H" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
 started_ h
-"$T/H" big 30 -- "$T/hold.sh" big > "$T/big.out" 2>&1 & bp=$!
+"$T/H" big 30 -- "$T/hold.sh" big > "$T/big.out" 2>&1 & bp=$!; inq $bp
 sleep 1.05
-"$T/H" small 0 -- "$T/hold.sh" small > "$T/small.out" 2>&1 & smp=$!
+"$T/H" small 0 -- "$T/hold.sh" small > "$T/small.out" 2>&1 & smp=$!; inq $smp
 until_ "[[ \$(queued) == 2 ]]" 50
 echo 10 > "$T/free"; go h
 until_ "grep -q 'free 10% < 30% — waiting' $T/big.out" 50
@@ -330,6 +333,8 @@ sleep 1
 H --status > "$T/st15.out" 2>&1
 check "big holds the lane waiting for memory; small is queued 1 behind it, not started" \
   bash -c "grep -q 'holder: $bp big' '$T/st15.out' && grep -q '^   queued 1: $smp small ' '$T/st15.out' && ! grep -q 'start small' '$T/events'"
+check "status says why big has not started: NOT STARTED, its gate and the free memory now" \
+  grep -q '^   NOT STARTED: waiting for free memory >= 30 % (now 10 %)$' "$T/st15.out"
 echo 80 > "$T/free"; go big small
 wait "$hp" "$bp" "$smp"
 check "then big, then small (got: $(events))" [ "$(events)" = "start h end h start big end big start small end small" ]
@@ -353,7 +358,7 @@ reset   # b: old holder, new waiters: served in their order; the old script read
 "$T/O" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
 started_ h
 pids=()
-for n in n1 n2 n3; do sleep 1.05; "$T/H" "lbl-$n" 10 -- "$T/hold.sh" "$n" > "$T/$n.out" 2>&1 & pids+=($!); done
+for n in n1 n2 n3; do sleep 1.05; "$T/H" "lbl-$n" 10 -- "$T/hold.sh" "$n" > "$T/$n.out" 2>&1 & pids+=($!); inq $!; done
 until_ "[[ \$(queued) == 3 ]]" 50
 "$T/O" --status > "$T/st16b.out" 2>&1
 check "b: the old --status lists the new entries by their date line" \
@@ -368,9 +373,9 @@ reset   # c: an old waiter first in line, polling slowly (3 s): the new one behi
 sed 's/HEAVY_WAIT_POLL=0.2/HEAVY_WAIT_POLL=3/' "$T/O" > "$T/O3" && chmod +x "$T/O3"
 "$T/H" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
 started_ h
-"$T/O3" o1 10 -- "$T/hold.sh" o1 > "$T/o1.out" 2>&1 & o1=$!
+"$T/O3" o1 10 -- "$T/hold.sh" o1 > "$T/o1.out" 2>&1 & o1=$!; inq $o1
 sleep 1.05
-"$T/H" n1 10 -- "$T/hold.sh" n1 > "$T/n1.out" 2>&1 & n1=$!
+"$T/H" n1 10 -- "$T/hold.sh" n1 > "$T/n1.out" 2>&1 & n1=$!; inq $n1
 until_ "[[ \$(queued) == 2 ]]" 50
 go h o1 n1; wait "$hp" "$o1" "$n1"
 check "c: old waiter first, then the new one (got: $(events))" [ "$(events)" = "start h end h start o1 end o1 start n1 end n1" ]
@@ -378,9 +383,9 @@ check "c: the new one said who it waited for" grep -q 'first in line is pid [0-9
 reset   # d: a new waiter first, an old one behind (it may jump the line, as today): no deadlock, no overlap
 "$T/O" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
 started_ h
-"$T/H" n1 10 -- "$T/hold.sh" n1 > "$T/n1.out" 2>&1 & n1=$!
+"$T/H" n1 10 -- "$T/hold.sh" n1 > "$T/n1.out" 2>&1 & n1=$!; inq $n1
 sleep 1.05
-"$T/O" o1 10 -- "$T/hold.sh" o1 > "$T/o1.out" 2>&1 & o1=$!
+"$T/O" o1 10 -- "$T/hold.sh" o1 > "$T/o1.out" 2>&1 & o1=$!; inq $o1
 until_ "[[ \$(queued) == 2 ]]" 50
 go h o1 n1; wait "$hp" "$o1" "$n1"
 check "d: both ran, never overlapping (got: $(events))" \

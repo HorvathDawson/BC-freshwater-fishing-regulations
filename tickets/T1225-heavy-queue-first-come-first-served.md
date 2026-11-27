@@ -44,7 +44,10 @@ through heavy.sh and held the lock for 20 minutes with 11 jobs behind it. Part o
 6. `--status` lists each lane's line in the order it is served: `queued <n>: <pid> <label>  waiting <h>h<mm>m (since
    <date>)`, an older heavy.sh's entry marked `[older heavy.sh: takes the lock out of turn]`; a holder past
    `HEAVY_LONG_HOLD` s (3600; the script's `<h>h<mm>m` elapsed vocabulary) gets `LONG HOLDER: …; a server that never ends
-   does not belong on a heavy lock`. No killing, no timeouts. `scripts/README.md` says the same in one line.
+   does not belong on a heavy lock`. No killing, no timeouts. `scripts/README.md` says the same in one line. A holder
+   still waiting for free memory (no job group recorded yet) shows `NOT STARTED: waiting for free memory >= N % (now
+   M %)`: the owner file gains a keyed line `gate: <the start gate>`. Its readers were checked: an older heavy.sh reads
+   line 1 and keyed lines by name, and `pipeline/release.py` (~2447) reads line 1 only, so neither sees the new key.
 7. Unchanged: the three lanes, the lock dir and owner file, `--again` and the duplicate refusal (it reads line 2 of an
    entry, which stays the job), the pause file, the re-entrant nested call, exit codes.
 
@@ -66,8 +69,20 @@ old entry, and an old waiter faces fewer racers than today (new waiters behind i
 ## Acceptance
 
 `bash scripts/tests/heavy.test.sh` passes (run by `scripts/fast-fail.sh` when heavy.sh or the test changes) and its
-new sections 13-17 fail on the 118d8e4f8 script (`bash scripts/tests/heavy.test.sh <old heavy.sh>`: 10 failures):
-13 five waiters in order and `--status` order with labels; 14 dead, stopped and reused-pid entries never block; 15 the
-memory-gated head holds the lane; 16 the mixed-version cases; 17 the long holder.
+new sections 13-17 fail on the 118d8e4f8 script (`bash scripts/tests/heavy.test.sh <old heavy.sh>`). Seven checks fail
+every time: the `--status` checks of 13, 14 and 15, 15's NOT STARTED, 16a's `older heavy.sh` mark, 16c's message, and
+17. Four order checks fail when the old script's race goes the wrong way: 13, 15, 16b and 16c. Measured: 11 and 10
+failures in two runs (a reviewer got 8 before the NOT STARTED check was added). The sections cover: 13 five waiters in
+order and `--status` order with labels; 14 dead, stopped and reused-pid entries never block; 15 the memory-gated head
+holds the lane; 16 the mixed-version cases; 17 the long holder. Each waiter is started only once the one before it has
+queued, so a slow start under load cannot swap two.
+
+## Cherry-pick to release/0.10.0
+
+The commits do not apply cleanly there. `scripts/heavy.sh` merges, but `scripts/tests/heavy.test.sh` conflicts,
+`scripts/README.md` does not exist on that branch, the ticket folders have other names, and the test's default old
+copy (118d8e4f8) is not an ancestor of the release branch. So take `scripts/heavy.sh` alone; the tests stay on main.
+Once this PR's merge commit is known, on `release/0.10.0`: `git checkout <merge-commit> -- scripts/heavy.sh`, then
+commit it. That file also carries T1161's caffeinate block, which the release copy lacks (11 lines).
 
 Depends: —. Size: S. Owner: no. Model: Opus.

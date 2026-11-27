@@ -44,7 +44,8 @@
 #   a first-in-line job waiting for free memory holds the lane and the jobs behind it wait, smaller ones too (a strict
 #   line; nothing overtakes). A heavy.sh from before T1225 still takes the lock whenever its own poll finds it free (it
 #   cannot be made to wait its turn); it is shown as `older heavy.sh` in --status, and when one is first in line the
-#   others wait for it. --status lists each lane's line in order (label, wait) and marks a holder past
+#   others wait for it. --status lists each lane's line in order (label, wait), says when a holder is still waiting
+#   for free memory (the owner file's `gate:` line, its start gate; no job group yet), and marks a holder past
 #   HEAVY_LONG_HOLD s (3600) as a long holder: a server that never ends does not belong on a heavy lock.
 # Exit codes: the job's own; 137 killed for memory (free % or footprint); 74 memory unreadable; 73 disk short; 143
 # stopped (INT/TERM); 2 usage / unknown lane; 3 duplicate.
@@ -119,7 +120,7 @@ elapsed() {
 # pid. Live: the pid runs, is not stopped (T) or a zombie (Z), and started no later than its entry was written (a
 # reused pid started after it). One ps call for the whole line. A dead entry is skipped, never waited for.
 queue_list() {
-  local q pid d c s since kind pids="" rows=""
+  local q pid d c s since kind pids="" rows="" now live
   for q in "$1.queue"/*; do
     [[ -f $q ]] || continue
     pid=${q##*/}; [[ $pid =~ ^[0-9]{1,6}$ ]] || continue
@@ -131,8 +132,10 @@ queue_list() {
     rows+="R $pid $since $kind $c"$'\n'; pids+=${pids:+,}$pid
   done
   [[ -n $pids ]] || return 0
-  { ps -o pid=,stat=,etime= -p "$pids" 2>/dev/null | awk '{ print "P", $0 }'; printf '%s' "$rows"; } \
-    | awk -v now="$(date +%s)" '
+  # the clock is read right BEFORE ps: a stall between them makes a start look earlier (kept), never later (dropped)
+  now=$(date +%s); live=$(ps -o pid=,stat=,etime= -p "$pids" 2>/dev/null)
+  { awk 'NF { print "P", $0 }' <<<"$live"; printf '%s' "$rows"; } \
+    | awk -v now="$now" '
         function secs(e,   d, n, p, i, t) {   # ps etime: [[dd-]hh:]mm:ss
           d = 0; if (i = index(e, "-")) { d = substr(e, 1, i - 1); e = substr(e, i + 1) }
           n = split(e, p, ":"); t = 0; for (i = 1; i <= n; i++) t = t * 60 + p[i]; return d * 86400 + t }
@@ -142,7 +145,7 @@ queue_list() {
 }
 
 status() {
-  local lock pid pgid started log q f d n qpid since kind job
+  local lock pid pgid started log q f d n qpid since kind job gate
   f=$(free_pct)
   d=$(free_disk)
   echo "free memory: ${f:-UNREADABLE (memory_pressure -Q)}%   free disk: $(if [[ -n $d ]]; then echo "${d%% *} GB on ${d#* }"; else echo "UNREADABLE (df)"; fi)   pause file: $([[ -e ${HEAVY_PAUSE:-$HOME/.claude/heavy-job.pause} ]] && echo PRESENT || echo none)"
@@ -158,6 +161,11 @@ status() {
       echo "   elapsed: $([[ -n $started ]] && elapsed "$started" || echo '?')   wrapper $pid: $(alive "$pid" && echo alive || echo GONE)" \
            "  job group ${pgid:-?}: $(if [[ -z $pgid ]]; then echo 'not recorded'; elif group_alive "$pgid"; then echo alive; else echo GONE; fi)"
       lock_stale "$lock" && echo "   STALE: the next waiter takes it over"
+      # (T1225) the memory gate is taken after the lock: a holder with no job group yet is waiting for free memory
+      gate=$(owner_field "$lock" gate)
+      if [[ -z $pgid && -n $gate ]] && alive "$pid"; then
+        echo "   NOT STARTED: waiting for free memory >= $gate % (now ${f:-UNREADABLE} %)"
+      fi
       # (T1225) a guard for a holder that never ends (2026-11-26: `expo start` held a lane 20 minutes, 11 jobs behind)
       if [[ -n $started ]] && (( $(date +%s) - started > LONG_HOLD )); then
         echo "   LONG HOLDER: held $(elapsed "$started"), past $(printf '%dh%02dm' $(( LONG_HOLD / 3600 )) $(( LONG_HOLD % 3600 / 60 ))) (HEAVY_LONG_HOLD); a server" \
@@ -337,8 +345,10 @@ done
 held=1
 rm -f "$QUEUE"
 write_owner() {
-  printf '%s\npgid: %s\ncmd: %s\ncwd: %s\nlog: %s\nstarted: %s\n' "$$ $label $(date '+%F %T')" "${job}" "$cmd" "$PWD" \
-    "$log" "$started" > "$LOCK/owner.tmp" && mv "$LOCK/owner.tmp" "$LOCK/owner"
+  # (T1225) `gate:` is the start gate's free %, for --status; an older heavy.sh and pipeline/release.py read line 1
+  # and keyed lines only, so a new key is invisible to them
+  printf '%s\npgid: %s\ncmd: %s\ncwd: %s\nlog: %s\nstarted: %s\ngate: %s\n' "$$ $label $(date '+%F %T')" "${job}" "$cmd" \
+    "$PWD" "$log" "$started" "$need" > "$LOCK/owner.tmp" && mv "$LOCK/owner.tmp" "$LOCK/owner"
 }
 started=$(date +%s); write_owner
 export HEAVY_HELD=$$        # a nested heavy.sh in the command runs under this lock (re-entrant, above)
