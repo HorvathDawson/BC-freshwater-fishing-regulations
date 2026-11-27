@@ -25,7 +25,18 @@ pytest_plugins = ("pipeline.tests.machine_state",)
 _NO_DATA: list[bool] = []
 
 
+def pytest_addoption(parser):
+    parser.addoption("--with-data", action="store_true",
+                     help="(T1193) also run the tests that need built data (needs_*): -m \"not slow\"")
+
+
 def pytest_configure(config):
+    given = (config.option.markexpr or "").strip()
+    with_data = config.getoption("--with-data")
+    if with_data and given and given != tiers.WITH_DATA:     # pytest.ini's addopts says -m "not slow" until the flip
+        raise pytest.UsageError(f"--with-data and -m {given!r} together: -m picks the tests by itself, drop one")
+    if with_data:
+        config.option.markexpr = tiers.WITH_DATA
     no_data = tiers.is_no_data(config.option.markexpr or "", tiers.data_markers())
     _NO_DATA[:] = [no_data]
     if no_data:

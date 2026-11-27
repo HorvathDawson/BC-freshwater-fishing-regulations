@@ -391,7 +391,8 @@ def test_env(release_dir: Path) -> dict:
 
 
 def pipeline_tests_cmd(files: list[str], junit: Path | None = None) -> list[str]:
-    return [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+    # (T1193) --with-data: these files run whole, the data tests in them too (a plain pytest is the no-data tier)
+    return [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--with-data",
             *([f"--junitxml={junit}"] if junit else []), *files]
 
 
