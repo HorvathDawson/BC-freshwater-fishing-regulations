@@ -9,22 +9,27 @@ import { Text } from "../Text";
 import { LABEL_PROPS, TYPE } from "../type";
 import type { Palette } from "../theme";
 
-export function SourceTag({ text, palette, testID }: { text: string; palette: Palette; testID?: string }) {
+/** `oneLine` (T1207): the tag is one line, whole, at a larger system text size (the T1201 rule); only the merged block asks, every other tag is as it was. */
+export function SourceTag({ text, palette, testID, oneLine = false }: { text: string; palette: Palette; testID?: string; oneLine?: boolean }) {
   return (
     <View testID={testID ?? "source-tag"} style={{ borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.chip,
                                                  paddingHorizontal: 5, paddingVertical: 1, alignSelf: "center" }}>
-      <Text {...LABEL_PROPS} style={[TYPE.kicker, { fontSize: 10.5, lineHeight: 14, color: palette.sub }]}>{text}</Text>
+      <Text {...(oneLine ? LABEL_PROPS : {})} style={[TYPE.kicker, { fontSize: 10.5, lineHeight: 14, color: palette.sub }]}>{text}</Text>
     </View>
   );
 }
 
 /** A block's name with its tag after it ("SALMON  [DFO]"), the block's header. */
-export function TaggedTitle({ text, tag, palette, testID }: { text: string; tag: string; palette: Palette; testID: string }) {
+export function TaggedTitle({ text, tag, palette, testID, wrap = false, label }: { text: string; tag: string; palette: Palette; testID: string;
+  /** (T1207) the merged block's long name ("Salmon and game fish"): the row wraps (the tag drops under the name at a large
+   *  text size, kept whole). Every other block's title is as it was. */
+  wrap?: boolean;
+  /** (T1207) what a screen reader says for the header (the merged block: both fish and the status), in place of the name */
+  label?: string }) {
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 2, marginBottom: 2 }}>
-      {/* (T1207) the one block's name, "Salmon and game fish", wraps whole and the tag drops under it at a large text size */}
-      <Text testID={testID} accessibilityRole="header" style={[TYPE.kicker, { color: palette.ink, flexShrink: 1 }]}>{text}</Text>
-      <SourceTag text={tag} palette={palette} testID={`${testID}:tag`} />
+    <View style={{ flexDirection: "row", ...(wrap ? { flexWrap: "wrap", rowGap: 2 } : {}), alignItems: "center", columnGap: 8, marginBottom: 2 }}>
+      <Text testID={testID} accessibilityRole="header" accessibilityLabel={label} style={[TYPE.kicker, { color: palette.ink }, wrap ? { flexShrink: 1 } : null]}>{text}</Text>
+      <SourceTag text={tag} palette={palette} testID={`${testID}:tag`} oneLine={wrap} />
     </View>
   );
 }

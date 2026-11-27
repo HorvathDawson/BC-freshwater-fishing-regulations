@@ -118,7 +118,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         const before = glance && !home && at < 0 && folds.length > 0 && i === tableAt ? table(-1) : null;
         const block = ((): ReactNode => {
         if (glance && (b === "otherFish" || b === "trout" || (typeof b === "object" && "group" in b))) return i === at && !home ? table(i) : null;
-        if (b === "strip") return [salmonBar, <YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={sched ? sched.title : tags ? SOURCE_WORDS.game : glance ? SALMON_WORDS.barGeneral : null} tag={sched ? sched.tag : tags ? SOURCE_WORDS.tag.bc : null} hours={hours} />,
+        if (b === "strip") return [salmonBar, <YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={sched ? sched.title : tags ? SOURCE_WORDS.game : glance ? SALMON_WORDS.barGeneral : null} tag={sched ? sched.tag : tags ? SOURCE_WORDS.tag.bc : null} one={sched ? sched.label : null} hours={hours} />,
           timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} daylight={daylight} />, oneList];
         if (b === "inherited") return <InheritedLine key={i} inherited={keep.inherited!} palette={palette} actions={actions} />;
         if (b === "banner") return <ClosedBanner key={i} banner={keep.banner!} palette={palette} actions={actions} />;

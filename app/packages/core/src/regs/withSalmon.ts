@@ -42,7 +42,8 @@ export function closedWithSalmon(page: RegsPage, card: SalmonCardVM | null, rule
   // (#131 review) no `page.status` / `b.kind` / empty-chain guard: only a closed day's banner carries a chain (the tidal
   // banner's is empty), and the two rule sets below must be equal and not empty, so any other page fails there
   if (!card || !b || b.reopen !== null || b.merged !== null) return page;
-  if (card.todayBy !== "book" || !card.closedOnly || card.issues.length || card.finfish.length || card.caveat || card.side) return page;
+  // (T1207) the whole salmon year is the book's (`year.by`), not only today: the one block's year bar mixes no DFO days, so its tag is true all year
+  if (card.todayBy !== "book" || card.year?.by !== "book" || !card.closedOnly || card.issues.length || card.finfish.length || card.caveat || card.side) return page;
   const salmon = new Set(card.book.map((x) => x.rule));
   const game = new Set(b.chain.map((c) => c.rule as string));
   // the salmon's closures that stand all year (a subset of `salmon` whatever the card lists)
@@ -64,6 +65,6 @@ export function closedWithSalmon(page: RegsPage, card: SalmonCardVM | null, rule
     return { ...c, text: r.via === "trib" ? WORDS.BOOK_ROW_TRIBS(row, line) : WORDS.BOOK_ROW_READS(row, line), about: WORDS.BOOK_ROW_OF(row) };
   });
   return { ...page, keep: { ...page.keep, banner: { ...b, big: [WORDS.CLOSED_ALL_FISHING_YEAR], paras: [], chain, salmon: true,
-    // (T1207) the one status block for both fish: the closures are the rule book's (`card.todayBy` "book", checked above)
-    schedule: { title: SOURCE_WORDS.both, tag: SOURCE_WORDS.salmonTag.book } } } };
+    // (T1207) the one status block for both fish: the closures are the rule book's (`card.todayBy` and `card.year.by` "book", checked above)
+    schedule: { title: SOURCE_WORDS.both, tag: SOURCE_WORDS.salmonTag.book, label: SOURCE_WORDS.bothLabel } } } };
 }
