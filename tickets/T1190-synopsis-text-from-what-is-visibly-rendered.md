@@ -4,7 +4,7 @@ Status: PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Cla
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1190 | Synopsis PDF text from what is visibly rendered | PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Claude): step 5, painting rules for lines and fills, later | 2cc9bd697, 461744993, e4cc0525d, 37fdbccdd, 7fcb1f6e8, f8c24e0c5 | step 5: the same painter's model for lines and fills (`## Step 5`); the whole-book gate and the August book are done (0 unexplained, 0 differences) |
+| T1190 | Synopsis PDF text from what is visibly rendered | PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Claude): step 5, painting rules for lines and fills, later | 2cc9bd697, 461744993, e4cc0525d, 37fdbccdd, 7fcb1f6e8, f8c24e0c5, 8dd735901, 5f36b8ea5 | step 5: the same painter's model for lines and fills (`## Step 5`); the whole-book gate and the August book are done (0 unexplained, 0 differences) |
 
 Source: the owner, 2026-11-26 ~17:50: "we want to use what is actually visually there based on rendering rules of pdf"; study `night-notes-2026-11-26/pdf-extraction-study.md`.
 Owner ~19:20 (`planning-chat-2026-11-26-day.md`): PyMuPDF accepted; struck text kept, marked, one warning line, only a NEW strike flagged; the August book added.
@@ -14,18 +14,18 @@ Owner ~19:20 (`planning-chat-2026-11-26-day.md`): PyMuPDF accepted; struck text 
 pdfplumber's characters the PDF's painting rules show, on MuPDF's display list. Hidden only for a stated reason: render mode 3/7, opacity 0, a layer off, outside
 the crop box, clipped, covered by a later opaque fill or image, drawn again at the same origin, the same colour as an opaque fill under it. No pixel or colour
 threshold. Pairing with pdfplumber is by content order; a text disagreement refuses the page by name, an origin one (p.61's "8") only if the page holds rows.
-UNSURE IS KEPT (review of #323): otherwise the glyph stays and its page prints `[visible] PDF page N: <n> char(s) kept, <kind>`: a fill under a non-rectangle
-clip, an image under a clip path or translucent group (images cover only inside every clip possibly in force), a translucent or blended "background", a line
-painted before the text through its middle (`possible-strike`). DELETED: the 400 dpi cleaning render, palette, ink test, 4-30 pt filter, DBSCAN, the "BROKEN
+UNSURE IS KEPT (reviews of #323): the glyph stays, one note per hit (`[visible] PDF page N: kept, <kind>: '<text>'`): a fill under a non-rectangle clip, an image
+whose clip is a guess (`image-clip-unknown`), a translucent or blended "background", a line painted before the text (`possible-strike`); the last two on a page
+with rows fail the gate unless the owner lists them in `known_unsure.json` (empty). DELETED: the 400 dpi cleaning render, palette, ink test, 4-30 pt filter, DBSCAN, the "BROKEN
 CODE" overlap cut, debug plots, scikit-learn/joblib/threadpoolctl (scipy listed itself for one picture tool).
 STRIKES: carried as `raw_regs_marked` ("Sept 1-Oct ~~15~~"), only on a struck row; `raw_regs` unchanged, since the baseline sha, `rows_digest`, carry, ingest
 and reuse key on it. One `[struck]` line per run; a strike not in `known_strikes.json` is NEW and fails the T426 gate. Recorded: Nanaimo River p.19 "Oct ~~15~~".
 
 ## Results
-- Tests: `test_visible_text.py` (38 hand-written PDFs, the review's probes too), `test_visible_text_book.py` (the hard pages' hidden counts, Nanaimo, p.61).
-- After the review (2026-11-27, one heavy.sh job): gate on the current book 1,393 of 1,393, 0 unexplained (Heber accepted; Nanaimo known). August book, this
+- Tests: `test_visible_text.py` (46 hand-written PDFs, both reviews' probes), `test_visible_text_book.py` (the hard pages, Nanaimo, p.61), dump/cut-reading.
+- After the re-review (2026-11-27 03:50, one heavy.sh job): gate on the current book 1,393 of 1,393, 0 unexplained (Heber accepted; Nanaimo known). August book, this
   code vs the pre-T1190 extractor's reading (`baseline/2026-08/reading.json`, cut from 48fc85d7d): 1,393 of 1,393 identical on the row sha (the TEXT), 0 pages
-  refused; 48fc85d7d's own code vs that reading: 0 unexplained. Reports beside it. Notes: only `possible-strike`, 16 banner headings ("NOTICE TO ANGLERS").
+  refused; 48fc85d7d's own code vs that reading: 0 unexplained. Reports beside it. Notes: 0 `image-clip-unknown`; 26 `possible-strike` hits, all banner headings on 16 pages without rows.
   Reproduce: `baseline check --manifest …/2026-08/reading.json --accepted …/2026-08/accepted_diffs.json --pdf data/source/fishing_synopsis.2026-08.pdf`.
   Found: the extractor command could not start since 0399ce248 (`import get_config` in `main()`); fixed in 37fdbccdd, and by main's T1192.
 
