@@ -100,8 +100,8 @@ def test_a_file_resolved_on_an_older_release_publishes_and_a_release_not_on_disk
     monkeypatch.setattr(name_check, "release_waters", lambda d: ({}, {"x": ["X"]}))
     rel = tmp_path / "release"
     rel.mkdir()
-    gen = type("G", (), {"release": rel, "inseason": tmp_path / "gen"})()
-    monkeypatch.setattr(C, "GENERATED", gen)
+    monkeypatch.setattr(C, "GENERATED", type("G", (), {"inseason": tmp_path / "gen"})())
+    monkeypatch.setattr(C, "ROOTS", type("R", (), {"release": rel})())
     (rel / "r-2").mkdir()
     (rel / "r-2" / "manifest.json").write_text("{}")
     (rel / "LATEST").write_text("r-2\n")

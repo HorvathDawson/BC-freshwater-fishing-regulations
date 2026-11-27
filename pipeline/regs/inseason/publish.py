@@ -144,7 +144,7 @@ def exact_problems(links: dict, rel) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    from pipeline.common.curated import GENERATED
+    from pipeline.common.curated import GENERATED, ROOTS
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--matches", type=Path, default=None, help="the curated file (default CURATED.inseason.notice_waters)")
@@ -158,7 +158,7 @@ def main(argv: list[str] | None = None) -> int:
     # curated file's whole text before the two were split, so an unchanged notice set keeps its digest)
     doc = M.load(a.matches, resolved=a.resolved)
     links = compile_links(doc, hashlib.sha256(M.dumps(doc).encode("utf-8")).hexdigest()[:16])
-    root = Path(GENERATED.release)
+    root = Path(ROOTS.release)
     if a.side_release is None:
         from pipeline.deliver.release.manifest import live
         rel_dir = live(root)       # (T560 item 6) no LATEST, or one naming a folder with no manifest, raises

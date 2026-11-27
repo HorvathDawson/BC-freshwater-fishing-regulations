@@ -10,7 +10,7 @@ on that FWA polygon), the name (core / word order / an independent curated varia
 0 m polygon's overlap with the FWA outline (IoU) confirm.
 
     python -m pipeline.bathymetry.contours --fetch     # one public WFS request to ~/data-offgit/bc-bathymetry-contours/
-    python -m pipeline.bathymetry.contours             # -> GENERATED.base/bathymetry/contour_proposals.json
+    python -m pipeline.bathymetry.contours             # -> GENERATED.bathymetry/contour_proposals.json
 """
 from __future__ import annotations
 
@@ -134,7 +134,8 @@ def _done(row: dict, rule: str) -> dict:
 
 def main(argv=None) -> int:
     from pipeline.bathymetry.propose import read_app, variants_by_lake
-    from pipeline.common.curated import CURATED, GENERATED
+    from pipeline.bathymetry import accept
+    from pipeline.common.curated import CURATED
     ap = argparse.ArgumentParser(description="placed contours -> lake proposals (T634 prototype)")
     ap.add_argument("--dir", type=Path, default=default_dir())
     ap.add_argument("--fetch", action="store_true")
@@ -157,7 +158,7 @@ def main(argv=None) -> int:
         lakes[l["wbk"]].append(l)
     var_wbk, var_gnis = variants_by_lake(json.loads(Path(CURATED.waters.name_variants).read_text()))
     out = propose(feats, lakes, var_wbk, var_gnis, _app(a.release, read_app))
-    dest = GENERATED.base / "bathymetry" / "contour_proposals.json"
+    dest = accept.proposals_path("contours")
     tmp = dest.with_suffix(".tmp")
     tmp.write_text(json.dumps(out, indent=1, sort_keys=True, ensure_ascii=False))
     os.replace(tmp, dest)
@@ -170,9 +171,9 @@ def _app(release: Optional[Path], read_app) -> Dict[str, dict]:
     import gzip
     import shutil
     import tempfile
-    from pipeline.common.curated import GENERATED
+    from pipeline.common.curated import ROOTS
     from pipeline.deliver.release.manifest import live
-    rel = release or live(GENERATED.release)
+    rel = release or live(ROOTS.release)
     cores = sorted(p for p in Path(rel).glob("core-*.sqlite.gz") if p.name.count("-") == 1)
     if len(cores) != 1:
         raise SystemExit(f"{rel}: want one core-<hash>.sqlite.gz, found {[p.name for p in cores]}")
