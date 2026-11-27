@@ -297,6 +297,14 @@ test_env_contract() {
 }
 step "test-environment contract (a test-env file changed)" test_env_contract
 
+# (T1193) the root Makefile wraps scripts by path: a renamed script or a verb with no `## ` line breaks `make` or its
+# list. A changed Makefile runs its test (~2 s: every verb listed and resolving, the guards naming their fix)
+makefile_verbs() {
+  grep -qE '^Makefile$|^scripts/app-dev\.sh$' <<<"$CHANGED" || { echo "   (the Makefile did not change)"; return 0; }
+  "$PY" -m pytest -q -p no:cacheprovider --with-data pipeline/tests/test_makefile.py
+}
+step "make verbs resolve (the Makefile changed)" makefile_verbs
+
 # caught (T667, 2026-11-11): 158 test files read the live tree past the helper or typed one build's section number,
 # part number or digest, so every rebuild and release meant hand edits to tests and 13 were red from build to promote.
 # A test file off its anchor fails here with what to write instead (< 2 s, every test file, no baseline; the app half
