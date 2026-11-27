@@ -70,18 +70,44 @@ export function gaugePageStations(rows: GaugeRows, hasPage: (item: string) => bo
 }
 
 /**
- * (T1194) THE IN-APP GAUGE SCREEN'S WORDS (a tap on a gauge dot of the Conditions map): one place (AGENTS 33). Only the placeholder's words so far.
+ * (T1194) THE GAUGE PAGE'S WORDS, the app's screen and (the shared piece) the site's page: one place (AGENTS 33), pinned as
+ * finished strings. The page says what the release and the feed say and decides nothing new: it is not a second lead (a
+ * water's card is unchanged), and a gauge that serves no water says so.
  */
 export const GAUGE_PAGE_WORDS = {
-  /** what a water opened off the page names its ‹ ("Back to Gauge") */
+  /** what a water opened off the page names its ‹ ("Gauge") */
   backName: "Gauge",
   /** the header's ‹ on the page itself, and its name for a screen reader */
   back: "Back to Conditions",
   stationLine: (station: string): string => `Station ${station}`,
+  servesHeading: "Waters this gauge serves",
+  /** a gauge serving no water: the page opens and says so (owner 2026-11-26: "yes as long as they have up to date data") */
+  notMatched: "This gauge is not matched to a water we cover.",
   /** a station the release does not hold (a stale link): shown, never the map and never a neighbour */
   unknown: (station: string): string => `This version of the data has no gauge ${station}.`,
   /** the release could not be read for this gauge */
   releaseFailed: "This gauge's details could not be read.",
-  /** PLACEHOLDER (T1194): the final page is a proposal awaiting the owner's pick */
-  placeholder: "Gauge page: placeholder. The reading, chart and waters this gauge serves come with the final page.",
+  /** the live reading could not be loaded: said where the reading goes; no figure, standing or colour is guessed */
+  feedFailed: "The live reading could not be loaded.",
+  /** no current reading: when it last reported, said plainly (a deep link to a quiet gauge) */
+  noReading: (lastReported: string): string => `No current reading. ${lastReported}`,
+  /** each served water's trust, in a word (`weak` is a rough guide) */
+  trust: { own: "On this water", lake: "On this lake", good: "Good match", fair: "Fair match", weak: "Rough guide" } as Readonly<Record<ServesTrust, string>>,
+  open: (water: string): string => `Open ${water}, conditions`,
+  tidal: "This gauge is tidal: its level rises and falls with the tide and with water backed up from downstream, not only with what this river carries.",
+  backwater: "This gauge sits where a lake backs up into the river: its level rises and falls with the lake as well as with what this river carries.",
+  diversion: "This gauge measures a diversion: it stands on a canal that takes water out of the river at an intake, so it reads what the canal takes, not everything the river carries.",
 } as const;
+
+/**
+ * THE NOTES a station's flags put on its page, as a water card says them about a gauge (`tidalNote`, `backwaterNote`,
+ * `diversionNote`): the tide and a lake's backwater on LEVEL only (Flow never mixes in a stage), a diversion on both.
+ */
+export function gaugeNotes(flags: { readonly tidal: boolean; readonly backwater: boolean; readonly diversion: boolean },
+                           quantity: GaugeParameter | null): string[] {
+  const out: string[] = [];
+  if (flags.tidal && quantity === "level") out.push(GAUGE_PAGE_WORDS.tidal);
+  if (flags.backwater && quantity === "level") out.push(GAUGE_PAGE_WORDS.backwater);
+  if (flags.diversion) out.push(GAUGE_PAGE_WORDS.diversion);
+  return out;
+}

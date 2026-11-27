@@ -8,7 +8,7 @@ import { Platform, View } from "react-native";
 import { openProbe, type StationId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, tabsAsRail, useLayoutClass, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type TapAhead, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
-         mapError, openGauge, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
+         mapError, openGauge, gaugeTapOn, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
 import { hiddenLayers, shownLayers } from "@app/map/colours";
@@ -298,7 +298,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      onPressObstacle={picking || wideSearch || tab !== "map" ? undefined : onObstacle}
                      // (T1194) a gauge dot (Conditions tab only; the dots on the Map tab's Temperature choice stay as they were):
                      // that gauge's own screen, asked before the water
-                     onPressGauge={picking || wideSearch || tab !== "conditions" ? undefined : onPressGauge}
+                     onPressGauge={gaugeTapOn({ tab, picking, wideSearch }) ? onPressGauge : undefined}
                      // (T166) tidal water, asked last (Map tab only): its sheet
                      // (T292) a sewage lagoon / tailings pond / dump (Map tab only): what it is, never regulations
                      onPressNotFishing={picking || wideSearch || tab !== "map" ? undefined : onNotFishing}
