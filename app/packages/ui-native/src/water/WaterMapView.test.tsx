@@ -246,6 +246,7 @@ describe("<WaterMapView>", () => {
     try {
       mount("gnis:8634", 0);
       await ready();
+      // the 5000 is a wait bound in ms, not a release number
       await waitFor(() => expect(seen.props?.insetCredits).toBe(h + MAP_GEOMETRY.gap), { timeout: 5000 });
       const whole = screen.getByTestId("water-map-whole");
       const wholeTop = Number.parseFloat(getComputedStyle(whole).bottom) + h;
