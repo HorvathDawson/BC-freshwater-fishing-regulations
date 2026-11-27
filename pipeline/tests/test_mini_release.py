@@ -123,6 +123,15 @@ def test_a_digest_ignores_the_clock_and_the_scratch_path(tmp_path):
     assert na == nb
     nc = M._normalised("atlas/graph.pkl.meta.json", json.dumps(dict(b, n=2)).encode(), tmp_path)
     assert nc != nb                                                    # a real difference still shows
+    # (T1223) the source files by content: the scratch gpkg's bytes move each run; a curated digest still shows
+    c = {"input_hashes": {"source:fwa_gpkg": "sha256:" + "1" * 64, "source:fwa_coast": "sha256:" + "2" * 64,
+                          "curated:waters.areas": "sha256:" + "3" * 64}}
+    d = {"input_hashes": {"source:fwa_gpkg": "sha256:" + "4" * 64, "source:fwa_coast": "sha256:" + "5" * 64,
+                          "curated:waters.areas": "sha256:" + "3" * 64}}
+    nd = M._normalised("atlas/graph.pkl.meta.json", json.dumps(d).encode(), tmp_path)
+    assert M._normalised("atlas/graph.pkl.meta.json", json.dumps(c).encode(), tmp_path) == nd
+    d["input_hashes"]["curated:waters.areas"] = "sha256:" + "6" * 64
+    assert M._normalised("atlas/graph.pkl.meta.json", json.dumps(d).encode(), tmp_path) != nd
 
 
 def test_the_build_refuses_a_directory_inside_the_fixture_or_the_data_tree():

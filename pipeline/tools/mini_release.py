@@ -654,11 +654,14 @@ def _drop(doc, key):
 
 
 def _drop_stamps(doc):
-    """`stamp:<size>:<mtime>` (the gpkg digests, `atlas.inputs`): the scratch gpkg is rewritten each run."""
+    """The two source digests of the atlas record (`atlas.inputs.SOURCE_KEYS`: `sha256:<hex>` since T1223, before it
+    `stamp:<size>:<mtime>`): the scratch gpkg is rewritten each run, and its bytes with it. Only those two keys: every
+    curated `sha256:` digest stays compared."""
+    from pipeline.atlas.inputs import SOURCE_KEYS
     if isinstance(doc, dict):
         for k, v in list(doc.items()):
-            if isinstance(v, str) and v.startswith("stamp:"):
-                doc[k] = "stamp:<scratch>"
+            if isinstance(v, str) and (k in SOURCE_KEYS or v.startswith("stamp:")):
+                doc[k] = "<scratch source>"
             else:
                 _drop_stamps(v)
     elif isinstance(doc, list):
