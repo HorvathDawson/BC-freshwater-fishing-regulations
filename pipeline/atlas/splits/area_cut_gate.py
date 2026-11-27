@@ -22,8 +22,9 @@ stops the build on any of:
       wiggling across the edge, every crossing under the dip, so the cutter leaves it open although the owner's rule is
       "edge water stays closed". The builder does not decide it (AGENTS rule 12); the build stops and names it,
       unless an accepted row of `waters/area_edge_calls.json` covers it (`open`; a `closed` call makes the cutter close
-      it). An accepted row matching nothing is STALE and stops the build too (`G6_stale`), as is a `closed` row whose
-      stretch lies more than `area_edge_calls.MATCH_M` beyond the edge band (no longer edge water: the line moved).
+      it). An accepted row matching nothing is STALE and stops the build too (`G6_stale`), as is a `closed` row not
+      within the stretch G6 would name without it (to `area_edge_calls.MATCH_M`): the owner may close part of a
+      stretch, never water beside it.
 
 Lakes and wetlands are never cut and keep the outline test (`border.mark_inside_areas`); they are not checked here.
 Every number is written to `area_cut_gate.json` (pass or fail), so a build's log says what the rule did.
@@ -88,16 +89,25 @@ def _line(run, geoms):
     return shapely.line_merge(shapely.union_all([geoms[n.node_id] for n in run]))
 
 
-def _beyond(run, geoms, lo: float, hi: float, band) -> float:
-    """How much of the run's line between route measures lo..hi lies beyond `band` (each piece read on its own
-    geometry, from its own lower end)."""
-    from shapely.ops import substring
-    out = 0.0
-    for n in run:
-        a, b = max(lo, n.down_m), min(hi, n.up_m)
-        if b > a:
-            out += substring(geoms[n.node_id], a - n.down_m, b - n.down_m).difference(band).length
-    return out
+def _uncalled(chain, geoms, poly, band, at_m: float) -> tuple[float, float] | None:
+    """The stretch G6 would name around route measure `at_m` were no call closing it: on `chain` (consecutive pieces
+    of one blue line meeting the band, members or not), the part within the band between real inside runs (`DEEP_M`
+    or longer) holding `at_m`, as absolute (lo, hi); None when `at_m` lies on inside water or beyond the band."""
+    import shapely
+    line = _line(chain, geoms)
+    if line.geom_type != "LineString":
+        return None
+    m0 = chain[0].down_m
+    stops = []
+    for part, keep in ((line.intersection(poly), DEEP_M - _RUN_NOISE_M), (line.difference(band), _RUN_NOISE_M)):
+        for p in _parts(shapely.line_merge(part) if part.geom_type == "MultiLineString" else part):
+            if p.geom_type == "LineString" and p.length >= keep:
+                a, b = sorted(line.project(shapely.Point(xy)) for xy in (p.coords[0], p.coords[-1]))
+                stops.append((m0 + a, m0 + b))
+    if any(a <= at_m <= b for a, b in stops):
+        return None
+    return (max([b for _a, b in stops if b < at_m], default=m0),
+            min([a for a, _b in stops if a > at_m], default=m0 + line.length))
 
 
 def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]],
@@ -154,6 +164,10 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
             if not band.intersects(g):
                 checks["G4"].append({"area": aid, "node": nid, "why": "member with no line within the band"})
         # G5: each run of consecutive member pieces on one blue line holds real inside water
+        # the pieces of each blue line meeting the band, members or not (a `closed` call's uncalled stretch)
+        near_by_blk: dict[str, list] = {}
+        for i in (sorted(tree.query(band, predicate="intersects")) if tree is not None else ()):
+            near_by_blk.setdefault(graph.nodes[nids[i]].blk, []).append(graph.nodes[nids[i]])
         by_blk: dict[str, list] = {}
         for nid in members:
             n = graph.nodes[nid]
@@ -173,13 +187,17 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
                 for call in called:
                     if not (run[0].down_m - _ec.MATCH_M <= call.from_m and call.to_m <= run[-1].up_m + _ec.MATCH_M):
                         continue
-                    # still edge water: a stretch that left the band (the line redrawn or re-measured under the
-                    # call) is no longer what the owner called, so the call is stale, never applied blind
-                    off = _beyond(run, geoms, call.from_m, call.to_m, band)
-                    if off <= _ec.MATCH_M:
+                    # still the owner's edge water: the call must lie within the stretch G6 would name without it
+                    # (he may close part of it; what it leaves open G6 judges again). A call shifted onto inside
+                    # water, past the band, or past the stretch (the line redrawn or re-measured under it) is stale.
+                    chain = next((ch for ch in _runs(near_by_blk.get(blk, [])) if run[0] in ch), None)
+                    st = _uncalled(chain, geoms, poly, band, (call.from_m + call.to_m) / 2.0) if chain else None
+                    if st and st[0] - _ec.MATCH_M <= call.from_m and call.to_m <= st[1] + _ec.MATCH_M:
                         used.add(call)
                     else:
-                        stale_why[call] = f"the called stretch lies {off:.1f} m beyond the {edge_m:g} m edge band"
+                        stale_why[call] = ("not within the stretch the gate would name without it ("
+                                           + (f"{st[0]:.1f}-{st[1]:.1f} m" if st else "none: inside water or past "
+                                              f"the {edge_m:g} m band") + ")")
                 if longest < DEEP_M - _RUN_NOISE_M and not wholly_inside and not called:
                     checks["G5"].append({"area": aid, "blk": blk, "from_m": round(run[0].down_m, 1),
                                          "to_m": round(run[-1].up_m, 1), "longest_inside_run_m": round(longest, 2)})
