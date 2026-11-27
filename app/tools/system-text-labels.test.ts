@@ -41,7 +41,8 @@ const { TabBar } = await import("../packages/ui-native/src/TabBar");
 const { MapRail } = await import("../packages/ui-native/src/MapRail");
 const { RegsLayerToggle } = await import("../packages/ui-native/src/shell/RegsLayerToggle");
 const { TABS } = await import("../packages/ui-native/src/TabBar");
-const { SALMON_WORDS } = await import("@app/core");
+const { MapKey } = await import("../packages/ui-native/src/shell/MapKey");
+const { MAP_KEY, SALMON_WORDS } = await import("@app/core");
 
 /** every text-holding leaf: its words, how many lines it drew, whether it is cut (ellipsis or hidden overflow), its width and its cell's */
 const MEASURE = `(() => {
@@ -65,13 +66,16 @@ type Label = { t: string; lines: number; cut: boolean; w: number; cellW: number;
 const SCALES = [1, 1.15, 1.3] as const;
 const WIDTHS = [320, 360, 412] as const;
 
-function laidOut(which: "tabs" | "switch" | "rail"): Record<string, Label[]> {
+function laidOut(which: "tabs" | "switch" | "rail" | "key"): Record<string, Label[]> {
   const jobs: { page: string; size: [number, number]; measure: string; shot?: string }[] = [];
   const keys: string[] = [];
   for (const scale of SCALES) for (const w of WIDTHS) {
     SCALE.v = scale;
     const col = { regsLayer: "standard" as const, setRegsLayer() {} };
-    render(which === "tabs"
+    render(which === "key"
+      // (T1211) the floating Map key's chip at the map's foot
+      ? h(View, { style: { flex: 1, justifyContent: "flex-end" } }, h(MapKey, { palette: LIGHT, rows: [], samples: [LIGHT.waterStatus.closed, LIGHT.waterStatus.own, LIGHT.waterStatus.base] }))
+      : which === "tabs"
       ? h(View, { style: { flex: 1, justifyContent: "flex-end" } }, h(TabBar, { active: "map", onChange() {}, palette: LIGHT }))
       : which === "rail"
         // the whole rail as the map draws it (locate, layers, the switch under them), for the picture only
@@ -82,7 +86,7 @@ function laidOut(which: "tabs" | "switch" | "rail"): Record<string, Label[]> {
     writeFileSync(file, snapshot());
     cleanup();
     const shot = process.env.T1201_SHOTS ? { shot: join(process.env.T1201_SHOTS, `${which}-${w}-${scale}.png`) } : {};
-    jobs.push({ page: file, size: [w, which === "tabs" ? 120 : which === "rail" ? 320 : 160], measure: join(dir, "measure.js"), ...shot });
+    jobs.push({ page: file, size: [w, which === "tabs" || which === "key" ? 120 : which === "rail" ? 320 : 160], measure: join(dir, "measure.js"), ...shot });
     keys.push(`${w} wide, text ${scale}x`);
   }
   SCALE.v = 1;
@@ -130,5 +134,11 @@ describe("T1201 fixed-size labels at a larger system text size, laid out in Chro
 describe("T1201 the switch in place: the whole map rail (T1201_SHOTS saves its pictures)", () => {
   it("under locate and layers the switch's labels are still one line and whole at 1, 1.15 and 1.3", () => {
     expect(faults(laidOut("rail"), [SALMON_WORDS.toggle.rail.standard, SALMON_WORDS.toggle.rail.salmon])).toEqual([]);
+  }, 120_000);
+});
+
+describe("T1211 the floating Map key's chip (T1201's rule)", () => {
+  it("its word is one line and whole at 1, 1.15 and 1.3, 320 to 412 wide; the chip grows round it", () => {
+    expect(faults(laidOut("key"), [`${MAP_KEY.chip.word} ▴`])).toEqual([]);
   }, 120_000);
 });

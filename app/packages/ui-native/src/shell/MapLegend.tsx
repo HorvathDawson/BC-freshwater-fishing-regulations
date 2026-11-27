@@ -26,6 +26,7 @@ import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
 import { changeRampStops, flowRampStops, onSatellite, round, satelliteKeyEdge, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
+import { MapKey } from "./MapKey";
 
 /**
  * (T904) how far the map's scale bar, attribution and gauge-only chip sit above its bottom edge: the foot's height, except
@@ -82,6 +83,19 @@ export function MapLegend({ col, conditions, palette: drawnPalette, theme, mapDa
                  cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
+  // (T1211) THE MAP TAB'S REGULATIONS KEY FLOATS OVER THE MAP (`MapKey`): a chip near the bottom, the whole key behind one
+  // press; no bar under the map. Trout and Salmon alike, the same entries as the bar's two rows. A desktop keeps its card.
+  if (!conditions && !card && col.statusOk && layers.water.drawn === "regulations") {
+    const off = <LegendCount key="off" palette={palette} colour={notFishingColours(theme).fill} tight
+                             rim={notFishingColours(theme).edge} label={MAP_KEY.notFishing} />;
+    const salmon = col.regsLayer === "salmon";
+    // the opened key's rows are the bar's own (T396): the three classes, then the rest; Salmon's issue entry on a third
+    const rows = salmon ? [salmonRows.slice(0, 3), [...salmonRows.slice(3), statusRow("no_access", false), ...gearRows], issueRow]
+                        : [statusRows.filter((s) => s.key !== "no_access"), [...statusRows.filter((s) => s.key === "no_access"), ...gearRows, off]];
+    const samples = salmon ? salmonLegend().slice(0, 3).map((r) => salmonStatusColour(theme, r.status, sat))
+                           : (["closed", "own", "base"] as const).map((s) => palette.waterStatus[s]);
+    return <MapKey palette={palette} rows={rows} samples={samples} />;
+  }
   const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions} card={card}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one

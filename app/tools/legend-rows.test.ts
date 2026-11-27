@@ -14,7 +14,9 @@ import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+/** (T1211) the Map tab's key floats behind its chip: open it */
+const openKey = () => { const chip = screen.queryByTestId("map-key-chip"); if (chip) fireEvent.click(chip); };
 import { MapLegend } from "../packages/ui-native/src/shell/MapLegend";
 import { LEGEND_ROWS } from "../packages/ui-native/src/Chrome";
 import { LEGEND_TEXT } from "../packages/ui-native/src/type";
@@ -82,6 +84,7 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
   it("Trout & more and Salmon each lay their key in exactly two rows, with every entry kept", () => {
     for (const mode of ["standard", "salmon"] as const) {
       render(h(MapLegend, { col: col(mode), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
+      openKey();
       expect(screen.getAllByTestId("legend-row").length, mode).toBe(2);
       expect(screen.getAllByTestId("legend-entry").length, mode).toBe(7);
       cleanup();
@@ -91,6 +94,7 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
   it("every row fits 390 dp in Archivo at the legend size — also with a day's date on Closed", () => {
     for (const [mode, day] of [["standard", null], ["standard", new Date("2026-09-30T12:00:00")], ["salmon", null]] as const) {
       render(h(MapLegend, { col: col(mode), conditions: false, palette: LIGHT, theme: "light", mapDay: day }));
+      openKey();
       for (const w of rowWidths()) expect(w, `${mode} ${day ? "dated" : ""}`).toBeLessThanOrEqual(ROOM);
       cleanup();
     }
@@ -100,6 +104,7 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
 describe("(T759) the Salmon key with the issue stripe's entry added", () => {
   it("(T937) three rows now (No access joined the key), every row fits 390 dp in Archivo at the legend size, the new entry in the third", () => {
     render(h(MapLegend, { col: col("salmon", { sections: new Set([1]) }), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
+    openKey();
     expect(screen.getAllByTestId("legend-row").length).toBe(3);
     expect(screen.getAllByTestId("legend-entry").length).toBe(8);
     for (const w of rowWidths()) expect(w).toBeLessThanOrEqual(ROOM);

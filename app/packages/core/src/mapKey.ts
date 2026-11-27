@@ -14,7 +14,10 @@ import type { ObstacleIconKind } from "./obstacleIcons";
 import type { RunState } from "./runTiming";
 
 export const MAP_KEY = {
-  status: { own: "Own rules", base: "Base rules", no_access: "No access" } satisfies Record<Exclude<WaterStatus, "closed">, string>,
+  // (T1211, owner 2026-11-26: "Its own rules / Region rules only") the same words as the status's own label (`WATER_STATUS`)
+  status: { own: "Its own rules", base: "Region rules only", no_access: "No access" } satisfies Record<Exclude<WaterStatus, "closed">, string>,
+  /** (T1211) the key floating over the map: its chip's word, what it says aloud, and what a press does */
+  chip: { word: "Map key", label: "Map key", hintOpen: "Shows what the colours and lines mean", hintClose: "Hides the map key" },
   gear: { fly: "Fly only", bait: "Bait ban" } satisfies Record<GearMark, string>,
   notFishing: "Not fishable",
   /** (T759) the issue stripe's entry (Salmon key only): the banner on the water's page says what the rule is */
