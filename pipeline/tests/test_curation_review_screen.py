@@ -329,11 +329,6 @@ def test_re_resolve_writes_only_the_resolution_and_never_changes_a_match(env, re
     release = under_test.release(request)
     one_vintage(Path(env["reuse"]._BUILD), release)
     monkeypatch.setattr(R, "release_dir", lambda arg=None: Path(arg) if arg else release)
-    # (T1258) each Re-resolve takes its own backup: when this machine's resolution names an older release than the one
-    # under test (a promote not yet re-resolved), the first Re-resolve rewrites the copy, and `writes`' burst rule would
-    # hand the third one that snapshot (the file before the FIRST write) instead of a new one
-    import writes
-    monkeypatch.setattr(writes, "BURST_S", 0)
     c = env["client"]
     curated = _stamps(load_repo().base)
     nw = Path(under_test.curated().inseason.notice_waters)
@@ -349,7 +344,13 @@ def test_re_resolve_writes_only_the_resolution_and_never_changes_a_match(env, re
         assert r.json()["sync"]["state"] == "off", r.json()["sync"]
         return r.json()
 
+    original = rs.read_bytes()                                # this machine's resolution, as copied in
     base = resolve()                                          # the copy, on the shipped release
+    # (T1258) when this machine's resolution names an older release than the one under test (a promote not yet
+    # re-resolved), this first Re-resolve rewrites the copy and takes the snapshot; the stale write below is then part
+    # of the same BURST (`writes.BURST_S`): it reuses that snapshot, which holds the file as it was before the burst
+    burst = sorted((env["root"] / "backups").glob("*-inseason-resolve"))
+    assert len(burst) <= 1, burst
     resolved = rs.read_bytes()
     assert json.loads(resolved)["release"] == base["release"]
     assert set(json.loads(resolved)["matches"]) == set(json.loads(matches_text)["matches"])
@@ -369,9 +370,17 @@ def test_re_resolve_writes_only_the_resolution_and_never_changes_a_match(env, re
     after = _snapshot(env["root"])
     changed = _changed(before, after)
     backups = [k for k in changed if k != key]
-    assert key in changed and len(backups) == 1, changed
-    assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-inseason-resolve/(?:[^/]+/)*resolved\.json", backups[0]), changed
-    assert after[backups[0]] == before[key], "the backup is not the file as it was"
+    if burst:
+        # the burst's one snapshot, unchanged, still holds the resolution from before the first write
+        assert key in changed and backups == [], changed
+        assert sorted((env["root"] / "backups").glob("*-inseason-resolve")) == burst
+        (snap,) = burst[0].rglob("resolved.json")
+        assert snap.read_bytes() == original, "the burst's backup is not the file as it was before the burst"
+    else:
+        assert key in changed and len(backups) == 1, changed
+        assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-inseason-resolve/(?:[^/]+/)*resolved\.json", backups[0]), \
+            changed
+        assert after[backups[0]] == before[key], "the backup is not the file as it was"
     assert after[key] == resolved, f"{rid}: re-resolve did not put back the ranges the shipped release gives"
     assert nw.read_bytes() == matches_text, "re-resolve wrote the curated matches"
     assert _stamps(load_repo().base) == curated, "re-resolve wrote under the real data/curated"

@@ -70,8 +70,6 @@ function evidenceWords(ev: InSeasonEvidence | null | undefined): string {
 }
 
 function EffectChip({ r }: { r: InSeasonRow }) {
-  if (r.banner === "upcoming")
-    return <span className="chip-tag conf-medium" title={`the app shows it as upcoming (${dates(r)})`}>upcoming</span>;
   if (r.in_effect == null) return <span className="chip-tag" title="no dates the app can read">dates ?</span>;
   return r.in_effect
     ? <span className="chip-tag synced" title={`in effect today (${dates(r)})`}>in effect</span>

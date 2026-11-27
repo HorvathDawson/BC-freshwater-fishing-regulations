@@ -16,7 +16,7 @@ files together and `scripts/heavy.sh` stopped it twice.
 
 1. `_row_view` takes all three; `dated` is shown, not dropped (W46): `dates.dated`, and `banner` = the app's own word
    for today (`matches.on`, core's `inSeasonOn`: in force | upcoming | none; none on a removed or stale row). The tab's
-   effect chip says "upcoming" when the app would (a proposal: owner may prefer other words).
+   effect chip is NOT changed here (a new look in the owner's tool): see "Not done here".
 2. A plain-tier test of the call shape: `pipeline/tests/test_curation_review_inseason_row.py` (no atlas, no feed).
 3. Run the five review data-tier files one at a time; find what grows memory.
 
@@ -40,3 +40,8 @@ Depends: —. Size: S. Owner: no.
   os_log in the child. Native fork-safety, not this change; needs its own line.
 - Memory: footprint beats 10 GB (inseason), 11 GB (screen), 9 GB (closed_areas); the `wt` fixture is FUNCTION scoped
   and re-imports app/reuse (graph + geometry reload) per needs_atlas test. Per-file probe beyond inseason: owed.
+
+## Not done here
+
+- Show "upcoming" in the In-season tab's effect chip (`InSeasonReview.tsx` `EffectChip`) from the row's `banner`: a new
+  look in the owner's review tool, so a shot for the owner first. The backend field and its type are in.
