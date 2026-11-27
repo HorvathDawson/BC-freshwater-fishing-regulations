@@ -10096,13 +10096,16 @@
      "includes_tributaries": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "quesnel_river__cariboo_river_into_quesnel_river"
+       ]
       }
      ],
      "exempts": [
       {
        "default_id": "spring_stream_closure",
-       "note": "Region 5's spring closure (p.42): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+       "note": "Region 5's spring closure (p.42) excepts 'the mainstem of the Fraser River and other streams listed in the tables'; read strictly (owner ruling P7b, 2026-11-26, T1177): only where a row prints its own closure or 'open all year' is the closure replaced, and only on the stretch the row's lines speak of: the row's 'No Fishing upstream of Cariboo River, Mar 1-June 15' speaks of the river above the Cariboo, so the closure is lifted there and holds below it (owner 2026-11-26, the lower Quesnel: 'Yes, close it too (Recommended)')"
       }
      ]
     },

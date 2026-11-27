@@ -211,6 +211,11 @@ conflict (for example multiple quotas on same species upstream is the one that t
 include all inflows; a stream "from x to y, incl. tributaries" does not include itself above x; tributary rules stack and on a conflict about the same item the MOST UPSTREAM row wins.
 A walk change: needs a reach rerun and a rule-bindings diff (T1177 item 10).
 
+### Batch 3, the spring-closure build (2026-11-26 night, via the planning chat; question numbers not relayed)
+Stellako (opens 16.5 km May 15-Jun 30; Region 6 steelhead Jun 16-30): "Yes, open May 15 as built (Recommended)". Little River
+(3.6 km; rainbow trout and char only; catch and release Jul 1-Dec 31): "yes we want the strictest here." Lower Quesnel (below the
+Cariboo River, about 99.9 km, closed Apr 1-Jun 30; P7b about 430.8 km): "Yes, close it too (Recommended)" (RULINGS L28).
+
 ### OPEN, not ruled
 - **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
 

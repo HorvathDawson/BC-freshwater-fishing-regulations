@@ -86,7 +86,8 @@ Vessel Operation Restriction Regulations, SOR/2008-120 (Transport Canada TP 1558
     outlet of Michell Lake" / "No Fishing from Michell Lake to Cameron Creek" / "No Fishing downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30" / "Trout/char catch and
     release, bait ban, artificial fly only downstream of Cameron Creek (including Cameron Creek)" (p.46, PDF 52; the row prints no words for the river above Mitchell Lake).
     Unclear: (1) where a row names a stream but its words describe only a stretch (Moffat below the falls, Blue Lead below the falls, Chimney below Brunson Lake, Mitchell from the
-    lake down; the river above Mitchell Lake has no words), is the whole stream excepted, or only that stretch? (2) Are the streams inside Bowron Lake Park
+    lake down; the river above Mitchell Lake has no words; the Quesnel River, whose closure lines speak only upstream of the Cariboo River,
+    while below it, about 99.9 km, the row prints only catch and release, a quota and a bait ban), is the whole stream excepted, or only that stretch? (2) Are the streams inside Bowron Lake Park
     ("Bowron Lake Park waters other than Bowron Lake") and Beaver Creek ("Beaver Creek chain of lakes") "listed"? (3) Does the exception extend to the tributaries of a listed stream marked with the tributaries symbol,
     such as Mitchell River? Meanwhile (owner, strictest reading): lifted only where a row prints its own exemption or "open all year", whole or part; closes 330.9 km in spring (Cariboo 143.7, Moffat 88.1, McKinley 38.5,
     Blue Lead 18.2, Little Horsefly 17.8, Mitchell 15.4, Canim 9.2). Evidence: audit note `P7b-region5-spring-closure`; the quotes above are the PDF's. Found 2026-11-26. To send to the Region 5 office.
