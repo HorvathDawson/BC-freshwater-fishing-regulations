@@ -39,6 +39,7 @@ diff where a binding moves), listed for his look before the build ships. Related
    all year" (whole or part), on that stretch; gear or quota rows keep it. Closes about 430.8 km in spring (Cariboo 143.7, Quesnel below
    the Cariboo 99.9, Moffat 88.1, McKinley 38.5, Blue Lead 18.2, Little Horsefly 17.8, Mitchell 15.4, Canim 9.2); opens nothing. GOTCHAS
    entry written; the Region 5 question is BOOK-ERRORS entry 19. The lower Quesnel (owner, batch 3): "Yes, close it too (Recommended)".
+   Its quota `quesnel_river.r4`, silenced Apr 1-Jun 30, is listed in `under_closure_calls.json` (the export refused it after #339).
 9. O16 is confirmed (no change). The Oxbows label follows the general label rule (the final table goes to him).
 10. **The tributary walk (own work item; a walk change, needs a reach rerun and a rule-bindings diff):** "everything in is a tributary and only shouldnt be if an exception is listed
     saying otherwise". A lake's tributaries row covers every inflow, climbing through every lake, even a river with its own row; a stream is not a tributary of itself (a row "stream A
