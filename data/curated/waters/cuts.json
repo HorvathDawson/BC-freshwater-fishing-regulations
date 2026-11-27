@@ -3755,6 +3755,33 @@
    ]
   },
   {
+   "name": "TURNER CREEK",
+   "applies_to": {
+    "blk": "-2200000392"
+   },
+   "splits": [
+    {
+     "id": "turner_creek__railway_bridge",
+     "label": "railway bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.84186,
+       49.28831
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "Ioco Spur (OSM basemap, protomaps 2026-03-05) crossing Turner Creek's city line (Port Moody, added stream -2200000392) 126 m above its mouth; the same railway as Noons Creek's railway bridge. OSM tags it no bridge (a culvert or an untagged bridge). T1246, owner 2026-11-27: \"tidal limit is rail bridge again I think. like noons\".",
+     "_coord": [
+      -122.84186,
+      49.28831
+     ]
+    }
+   ]
+  },
+  {
    "name": "PITT RIVER",
    "applies_to": {
     "gnis_id": "7551"
