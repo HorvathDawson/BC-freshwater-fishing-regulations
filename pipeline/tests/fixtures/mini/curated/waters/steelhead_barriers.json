@@ -1,0 +1,12 @@
+{
+ "$comment": "MINI FIXTURE (T1250): the steelhead barrier list of the invented world, one row of each kind. Northward Creek is the Mackenzie basin (FWA 200); Mock Creek above its falls is held by an upstream_of row (the kind T1257 will add for dams and falls).",
+ "barriers": [
+  {"id": "mackenzie", "what": "the Mackenzie basin (Northward Creek)", "kind": "basin", "selector": {"basin": "200"},
+   "reason": "drains to the Arctic Ocean", "source": "the mini world (invented)", "added_by": "Claude (T1250)",
+   "added": "2026-11-27"},
+  {"id": "mock_creek_above_its_falls", "what": "Mock Creek above its falls", "kind": "upstream_of",
+   "selector": {"blk": 900000002, "measure": 4000.0},
+   "reason": "an invented barrier: the falls (obstacle 950000001)", "source": "the mini world (invented)",
+   "added_by": "Claude (T1250)", "added": "2026-11-27"}
+ ]
+}

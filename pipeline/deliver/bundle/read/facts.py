@@ -76,7 +76,8 @@ def speaks_for(rule: dict, fish: str) -> bool:
     otherwise the fish must be in the expansion of `species` and not of `species_except`. A
     bait or tackle rule for a TARGET speaks only when the fish asked about is that target. A
     rainbow rule with no size band speaks for steelhead too
-    (`A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD`)."""
+    (`A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD`), and so does a water row's rainbow rule capped
+    "over N: none" (`A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD`)."""
     from pipeline.regs.parsing.catalogue import SALMON_FISH, expand_species
     tgt = rule.get("when_targeting") or []
     if tgt and fish not in expand_species(list(tgt)):
@@ -92,7 +93,7 @@ def speaks_for(rule: dict, fish: str) -> bool:
         return fish != "CRA"
     if fish in SALMON_FISH and SALMON_FISH[fish] in sp:
         return True
-    if fish == "ST" and size_free_rainbow(rule):
+    if fish == "ST" and (size_free_rainbow(rule) or rows_rainbow_cap(rule)):
         return True
     return fish in expand_species(sp)
 
@@ -104,6 +105,43 @@ def size_free_rainbow(rule: dict) -> bool:
     from pipeline.regs.parsing.catalogue import expand_species
     return bool(A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD and not rule.get("lengths")
                 and "RB" in expand_species(list(rule.get("species") or [])))
+
+
+def rows_rainbow_cap(rule: dict) -> bool:
+    """A WATER ROW's rule naming rainbow trout (alone or in a list) whose size bands END in "over N cm: none"
+    (`lengths`' last band has a floor, no ceiling and take 0: "Rainbow trout — 1 per day (none over 50 cm)",
+    "(none over 35 cm)") — it holds for a steelhead too, over that band (`A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD`).
+    A zone table's rule never (the region's size clauses keep S12), and a dict with no `entry_id` (a lift's fish,
+    `ladder._step3_lifts`) never."""
+    from pipeline.common import entry_id as EID
+    from pipeline.regs.parsing.catalogue import expand_species
+    eid = str(rule.get("entry_id") or "")
+    bands = rule.get("lengths") or []
+    if not (A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD and eid and not EID.is_table(eid) and bands
+            and "RB" in expand_species(list(rule.get("species") or []))):
+        return False
+    if rule.get("origin"):
+        # a cap printed for ONE origin is the row's own split of that fish, not a cap of the steelhead: Muchalat's
+        # "(none over 50 cm), wild only" says nothing of a hatchery fish (and every wild steelhead is released
+        # already); Kitimat's "hatchery rainbow ... (none over 50 cm), hatchery only" stands beside its own
+        # "hatchery steelhead (>50 cm) daily quota = 2"
+        return False
+    top = max(bands, key=lambda b: float(b.get("min_cm") or 0))
+    take = top.get("take", rule.get("take"))
+    return top.get("min_cm") is not None and top.get("max_cm") is None and take == 0
+
+
+#: A WATER'S OWN RAINBOW CAP HOLDS FOR ITS STEELHEAD (T1250, owner 2026-11-27, Buckley Creek: "Release: the row's
+#: cap holds (Recommended)"; RULINGS S15, the exception to S12). A water row's rainbow rule whose last size band is
+#: "over N cm: none" says no rainbow that size may be kept there, and a steelhead is a rainbow trout longer than 50 cm
+#: (p.80): the cap speaks for the steelhead over its band, so a hatchery steelhead over N is released (Buckley Creek's
+#: "Rainbow trout — 1 per day (none over 50 cm)", Jul 1-Oct 31). Any N: a cap under 50 cm ("none over 35 cm") covers
+#: every steelhead length too. A cap printed for one origin is the row's own split, no cap of the steelhead
+#: (Muchalat's "(none over 50 cm), wild only"; Kitimat's "hatchery only" rainbow beside its "hatchery steelhead 2"). The owner's general words ("if rainbows over 50cm are ever referred to it always
+#: implies the rule is on steelhead too") are measured, not built: this predicate is where that rule would replace it.
+#: False:
+#: S12 alone — a size-banded rainbow rule stays a rainbow rule and the zone's steelhead keep stands.
+A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD = True
 
 
 #: A RAINBOW RULE WITH NO SIZE CONSTRAINT SPEAKS FOR STEELHEAD TOO (owner 2026-11-11, T623 F12,

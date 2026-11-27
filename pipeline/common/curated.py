@@ -278,6 +278,9 @@ class Waters(_Tree):
     #: water though no row of the book says so. `pipeline.atlas.reach.steelhead.load_list`; a new generated list is
     #: accepted with `python -m pipeline.regs.steelhead.accept`.
     steelhead_waters: Annotated[FilePath, At("waters/steelhead_waters.json")]
+    #: AUTHORED (T1250, RULINGS S14; T1257 grows it): THE STEELHEAD BARRIER LIST — water held out of "Pacific streams
+    #: are steelhead water", `basin` and `upstream_of` rows. `pipeline.atlas.reach.steelhead.load_barriers`.
+    steelhead_barriers: Annotated[FilePath, At("waters/steelhead_barriers.json")]
     #: AUTHORED: blanket area closures — cut every stream crossing the polygon.
     area_closures: Annotated[FilePath, At("waters/area_closures.json")]
     #: AUTHORED: hand-drawn admin polygons — closure zones a regulation states as an AREA rather than a

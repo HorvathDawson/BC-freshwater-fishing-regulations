@@ -598,6 +598,27 @@ def test_an_arctic_or_yukon_stream_of_region_6_stays_possible(db, item_id, name)
 
 
 @pytest.mark.needs_bundle
+@pytest.mark.parametrize("item_id,name", [("gnis:26324", "Similkameen River"),   # the Columbia (300)
+                                          ("gnis:8235", "Shrimpton Creek"),       # the Columbia, Region 3
+                                          ("gnis:27159", "Skagit River"),         # above Ross Dam (970-106243)
+                                          ("gnis:2481", "Sumallo River")])        # a Skagit tributary
+def test_the_held_out_basins_stay_possible(db, item_id, name):
+    """RULINGS S14, the barrier list (owner 2026-11-27: "Hold both but make sure it will be compatible with a
+    larger barrier list"): the Columbia side and the Skagit above Ross Dam stay "possible" — no section of them is
+    known, and a big rainbow there is a rainbow."""
+    got = _presence(db, item_id)
+    assert "known" not in got and "possible" in got, (name, {k: len(v) for k, v in got.items()})
+    assert not any(_steelhead_water(db, s) for s in got["possible"]), name
+
+
+@pytest.mark.needs_bundle
+def test_the_nooksack_side_of_basin_970_is_a_pacific_stream(db):
+    """970-030628 (Pepin Creek, to the Nooksack: no dam) is not the Skagit's branch: known as a Pacific stream."""
+    got = _presence(db, "gnis:43645")
+    assert set(got) == {"known"} and _sources(db, "gnis:43645") == {"Pacific stream"}
+
+
+@pytest.mark.needs_bundle
 def test_s14_leaves_lakes_and_the_other_regions_alone(db):
     """RULINGS S14 reaches only STREAMS of Regions 1, 2, 3, 5 and 6: Kamloops Lake (a lake of the
     Fraser basin) carries no steelhead attribute, nor does the Kechika River (Zone 7B, the Liard)."""
@@ -895,16 +916,24 @@ def test_the_presence_pass_knows_what_steelhead_rows_bind_and_the_list_names():
     assert "l1" in SH.Presence.rules_apply(binds)
 
 
-def _pacific_fixture(SH, NS):
+def _barrier(SH, id_, basin=None, blk=None, measure=None):
+    sel = {"basin": basin} if basin is not None else {"blk": blk, "measure": measure}
+    return SH.Barrier(id=id_, what=id_, kind="basin" if basin is not None else "upstream_of", selector=sel,
+                      reason="a test", source="a test", added_by="a test", added="2026-11-27")
+
+
+def _pacific_fixture(SH, NS, barriers=None):
     """`_presence_fixture` with FWA basin codes: a (the Fraser, 100) and c (the Liard, 200: the
     Arctic) are base-bound streams; e a base-bound stream with no code; lk (Tenas Lake) a lake of the
-    Pacific; r4 a Region 4 stream of the Columbia the base rules do not bind."""
+    Pacific; r4 a Region 4 stream of the Columbia the base rules do not bind. The barrier list holds
+    the Mackenzie (200) unless `barriers` says otherwise."""
     pr, binds, twins = _presence_fixture(SH, NS)
     pr.graph.nodes["e"] = NS(kind=NS(value="stream"))
     pr.graph.nodes["r4"] = NS(kind=NS(value="stream"))
     for s, w in {"a": "100-190442-244975", "c": "200-948755-999851", "e": "",
                  "lk": "900-105422-000000", "r4": "300-625474-000000"}.items():
         pr.graph.nodes[s].wsc = w
+    pr.add_barriers([_barrier(SH, "mackenzie", "200")] if barriers is None else barriers)
     binds = [NS(entry_id=b.entry_id, rule_id=b.rule_id, sections=b.sections + ("e",))
              if b.entry_id == SH.PROVINCE_STEELHEAD and not b.rule_id.endswith("b") else b
              for b in binds]
@@ -914,9 +943,10 @@ def _pacific_fixture(SH, NS):
 def test_a_pacific_stream_of_the_steelhead_regions_is_steelhead_water():
     """RULINGS S14 (T1250, owner 2026-11-27 "Pacific streams now, barriers in 0.11.0"): a stream the
     provincial base rules bind whose FWA basin reaches the Pacific is KNOWN ("Pacific stream"), so a
-    rainbow over 50 cm there is a steelhead. The Arctic stays "possible"; a stream with no code
-    stays "possible" and is counted, never guessed; a lake stays out; a stream the base rules do not
-    bind (Region 4) gets nothing; the book's and the list's rows keep their own source."""
+    rainbow over 50 cm there is a steelhead. A stream the barrier list holds out (the Arctic) stays
+    "possible"; a stream with no code stays "possible" and is counted, never guessed; a lake stays
+    out; a stream the base rules do not bind (Region 4) gets nothing; the book's and the list's rows
+    keep their own source."""
     from types import SimpleNamespace as NS
     from pipeline.atlas.reach import steelhead as SH
     pr, binds, twins = _pacific_fixture(SH, NS)
@@ -933,6 +963,8 @@ def test_a_pacific_stream_of_the_steelhead_regions_is_steelhead_water():
     assert (got["l8"]["steelhead"], got["l8"]["rules"], got["l8"]["anadromous"]) == ("known", False, False)
     assert rep["known_pacific"] == 1 and rep["anadromous_pacific"] == 1
     assert rep["anadromous_list_only"] == 1 and rep["possible"] == 2
+    assert rep["possible_held"] == {"mackenzie": 1}
+    assert rep["barriers"] == [{"id": "mackenzie", "kind": "basin", "sections": 1}]
 
 
 def test_mutation_without_s14_a_pacific_stream_is_possible(monkeypatch):
@@ -952,23 +984,122 @@ def test_mutation_without_s14_a_pacific_stream_is_possible(monkeypatch):
                                       ("400-431358", True), ("500", True), ("600-1", True),
                                       ("700-2", True), ("900-105422", True), ("915-765475", True),
                                       ("990-1", True), ("200-948755", False), ("800-1", False),
-                                      ("", None), (None, None), ("999-999999-999999", None)])
+                                      ("901-1", False), ("", None), (None, None), ("999-999999-999999", None)])
 def test_the_pacific_basins_are_the_first_group_of_the_fwa_code(wsc, want):
     """RULINGS S14: the basin is the FWA watershed code's first group. 100 the Fraser, 300 the
     Columbia, 400 the Skeena, 500 the Nass, 600 the Stikine, 700 the Taku and the Coastal Rivers groups
-    (900-995) reach the Pacific; 200 (the Mackenzie: Peace, Liard) and 800 (the Yukon) do not; no code and
-    FWA's 999 no-watershed sentinel are None."""
+    (900-995) reach the Pacific; any other group does not; no code and FWA's 999 no-watershed sentinel
+    are None. The code keeps no hold-out: those are rows of the barrier list."""
     from pipeline.atlas.reach import steelhead as SH
     assert SH.pacific_basin(wsc) is want
+    assert not hasattr(SH, "NOT_PACIFIC_BASINS")
 
 
-def test_an_unknown_basin_is_refused():
-    """A first group in no list is refused with where to decide it, never guessed (S14)."""
+def test_a_basin_neither_pacific_nor_held_out_stops_the_run():
+    """A stream of a basin that is not Pacific and no barrier row holds out stops the run, naming the
+    basin: removing the Mackenzie's row from the list never turns the Arctic into "known"."""
+    from types import SimpleNamespace as NS
     from pipeline.atlas.reach import steelhead as SH
-    with pytest.raises(ValueError, match="neither PACIFIC_BASINS nor NOT_PACIFIC_BASINS"):
-        SH.pacific_basin("450-123456")
-    with pytest.raises(ValueError):
-        SH.pacific_basin("901-1")          # not a Coastal Rivers group
+    pr, binds, twins = _pacific_fixture(SH, NS, barriers=[])
+    with pytest.raises(ValueError, match="basin 200: 1 section"):
+        pr.finish(binds, twins=twins)
+
+
+# THE CURATED BARRIER LIST: each of its rows, alone, against a stream of its basin. With every row the
+# stream stays "possible"; without its row it becomes known (a Pacific basin held out: the Columbia, the
+# Skagit) or stops the run (a basin that is not Pacific: the Mackenzie, the Yukon).
+_HOLD_CASES = {"mackenzie": ("200-948755-999851", "refused"), "yukon": ("800-123456", "refused"),
+               "columbia": ("300-432687-500000", "known"), "skagit_above_ross_dam": ("970-106243-100000", "known")}
+
+
+@pytest.mark.parametrize("row_id", sorted(_HOLD_CASES))
+def test_each_hold_out_holds_only_while_its_row_is_on_the_list(row_id):
+    from types import SimpleNamespace as NS
+    from pipeline.atlas.reach import steelhead as SH
+    rows = SH.load_barriers()
+    assert {r.id for r in rows} == set(_HOLD_CASES), "a new row needs its case here"
+    code, without = _HOLD_CASES[row_id]
+
+    def run(barriers):
+        pr, binds, twins = _presence_fixture(SH, NS)
+        pr.graph.nodes["a"].wsc = code
+        pr.graph.nodes["c"].wsc = "100-1"                    # c: a Fraser stream, never held
+        pr.graph.nodes["n"] = NS(kind=NS(value="stream"), wsc="970-030628-1")   # the Nooksack side of 970
+        binds = [NS(entry_id=b.entry_id, rule_id=b.rule_id, sections=b.sections + ("n",))
+                 if b.entry_id == SH.PROVINCE_STEELHEAD and not b.rule_id.endswith("b") else b for b in binds]
+        pr.add_barriers([r for r in barriers if barrier_selects(r, pr)])
+        rows_, _ = pr.finish(binds, twins=twins)
+        return {r["section_id"]: r["steelhead"] for r in rows_}
+
+    def barrier_selects(r, pr):
+        return bool(SH.barrier_sections(pr.graph, r))
+
+    got = run(rows)
+    assert got["a"] == "possible" and got["c"] == "known" and got["n"] == "known"
+    rest = [r for r in rows if r.id != row_id]
+    if without == "known":
+        assert run(rest)["a"] == "known"
+    else:
+        with pytest.raises(ValueError, match="neither Pacific"):
+            run(rest)
+
+
+@pytest.mark.parametrize("bad,why", [
+    ({"kind": "dam"}, "kind 'dam'"),
+    ({"selector": {"basin": "200", "blk": 1}}, "selector holds exactly"),
+    ({"selector": {"basin": "Fraser"}}, "no FWA code"),
+    ({"kind": "upstream_of", "selector": {"blk": 1}}, "selector holds exactly"),
+    ({"source": ""}, "source"),
+    ({"colour": "red"}, "colour"),
+])
+def test_a_barrier_row_is_refused_by_shape(bad, why):
+    from pipeline.atlas.reach import steelhead as SH
+    row = {"id": "x", "what": "x", "kind": "basin", "selector": {"basin": "200"}, "reason": "r", "source": "s",
+           "added_by": "a", "added": "2026-11-27", **bad}
+    with pytest.raises(ValueError, match=why):
+        SH.Barrier.model_validate(row)
+    del row["what"]
+    with pytest.raises(ValueError, match="what"):
+        SH.Barrier.model_validate(row)
+
+
+def test_the_barrier_file_refuses_an_id_twice_and_a_row_that_holds_nothing(tmp_path):
+    from types import SimpleNamespace as NS
+    from pipeline.atlas.reach import steelhead as SH
+    row = {"id": "x", "what": "x", "kind": "basin", "selector": {"basin": "450"}, "reason": "r", "source": "s",
+           "added_by": "a", "added": "2026-11-27"}
+    p = tmp_path / "b.json"
+    p.write_text(json.dumps({"barriers": [row, row]}))
+    with pytest.raises(ValueError, match="id twice"):
+        SH.load_barriers(p)
+    p.write_text(json.dumps({"barriers": [row]}))
+    pr, _, _ = _presence_fixture(SH, NS)
+    with pytest.raises(ValueError, match="barrier x .*holds no stream"):
+        pr.add_barriers(SH.load_barriers(p))
+    with pytest.raises(FileNotFoundError):
+        SH.load_barriers(tmp_path / "missing.json")
+
+
+def test_an_upstream_of_row_holds_everything_above_its_point():
+    """Kind 2 (`upstream_of`) on a small real graph: the blue line's pieces wholly above the point and
+    everything flowing into them, through a lake; the piece the point falls in and the water below stay."""
+    from pipeline.atlas.reach import steelhead as SH
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    from pipeline.common.models.graph import FlowEdge
+    mk = lambda nid, blk, lo, hi, kind=NodeKind.stream: StreamNode(   # noqa: E731
+        node_id=nid, kind=kind, blk=blk if kind is NodeKind.stream else "", down_m=lo, up_m=hi, length_m=hi - lo)
+    g = StreamGraph()
+    ns = [mk("1:0", "1", 0, 1000), mk("1:1000", "1", 1000, 2000), mk("1:2000", "1", 2000, 3000),
+          mk("2:0", "2", 0, 500), mk("lake:9", "", 0, 0, NodeKind.lake), mk("3:0", "3", 0, 400), mk("4:0", "4", 0, 300)]
+    g.nodes = {n.node_id: n for n in ns}
+    g.edges = [FlowEdge("1:1000", "1:0", 0), FlowEdge("1:2000", "1:1000", 1000), FlowEdge("2:0", "1:2000", 2500),
+               FlowEdge("lake:9", "2:0", 500, kind="lake_out"), FlowEdge("3:0", "lake:9", 0, kind="lake_in"),
+               FlowEdge("4:0", "1:0", 500)]
+    for i, e in enumerate(g.edges):
+        g.up_adj.setdefault(e.to_node, []).append(i)
+        g.down_adj.setdefault(e.from_node, []).append(i)
+    got = SH.barrier_sections(g, _barrier(SH, "falls", blk=1, measure=1500.0))
+    assert got == frozenset({"1:2000", "2:0", "3:0"})
 
 
 @pytest.mark.parametrize("gone", ["steelhead.r1", "steelhead.r2", "steelhead.r4"])
@@ -1803,3 +1934,68 @@ def test_steelhead_rules_false_is_exactly_the_known_parts_no_steelhead_rule_appl
                                               and p.get("steelhead") == "known")][
         "steelhead_rules"] = False
     assert any("steelhead_rules False" in x for x in export_steelhead.steelhead_presence_problems(bad))
+
+
+# ------------------------------------------------- S15: a water's own rainbow cap holds for its steelhead
+def _rb(entry_id="r6:buckley_creek@6-21", lengths=({"max_cm": 50}, {"min_cm": 50, "take": 0}), species=("RB",)):
+    return {"entry_id": entry_id, "species": list(species), "lengths": [dict(b) for b in lengths], "take": 1}
+
+
+@pytest.mark.parametrize("rule,want", [
+    (_rb(), True),                                                              # "(none over 50 cm)"
+    (_rb(lengths=({"max_cm": 35}, {"min_cm": 35, "take": 0})), True),           # "(none over 35 cm)"
+    (_rb(species=("TROUT_CHAR",)), True),                                       # a trout/char line names rainbow
+    ({**_rb(), "origin": "wild"}, False),                                       # Muchalat's "wild only" cap
+    ({**_rb(), "origin": "hatchery"}, False),                                   # Kitimat's "hatchery only" split
+    (_rb(entry_id="z6:daily_quotas"), False),                                   # a zone's clause keeps S12
+    (_rb(lengths=({"min_cm": 50, "take": 1},)), False),                         # "1 over 50 cm": no cap
+    (_rb(lengths=({"min_cm": 30, "max_cm": 50},)), False),                      # a band with a ceiling
+    (_rb(species=("CT",)), False),                                              # not a rainbow line
+    ({k: v for k, v in _rb().items() if k != "entry_id"}, False),               # a lift's fish (no entry)
+])
+def test_a_rows_rainbow_cap_speaks_for_its_steelhead(rule, want):
+    """RULINGS S15 (owner 2026-11-27, Buckley Creek: "Release: the row's cap holds (Recommended)"): a WATER
+    ROW's rainbow line whose last band is "over N cm: none" speaks for the steelhead too; any N (a cap under
+    50 cm covers every steelhead length). A zone's clause, an uncapped or ceilinged band, another fish, and a
+    lift's species dict do not."""
+    from pipeline.deliver.bundle.read import facts as F
+    assert F.rows_rainbow_cap(rule) is want
+    assert F.speaks_for(rule, "ST") is (want or F.size_free_rainbow(rule) or "ST" in C.expand_species(rule["species"]))
+
+
+def test_mutation_without_s15_a_capped_rainbow_line_is_rainbow_only(monkeypatch):
+    """MUTATION: with `A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD` off, Buckley Creek's capped rainbow line speaks
+    for no steelhead (S12 alone)."""
+    from pipeline.deliver.bundle.read import facts as F
+    monkeypatch.setattr(F, "A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD", False)
+    assert not F.rows_rainbow_cap(_rb()) and not F.speaks_for(_rb(), "ST")
+
+
+def _buckley_and_muchalat(db, flag_on=True):
+    """Aug 1: what speaks for a HATCHERY steelhead on Buckley Creek (its row's "(none over 50 cm)") and on
+    the Muchalat (its row's "(none over 50 cm), wild only")."""
+    from pipeline.deliver.bundle import read as R
+    out = {}
+    for item, rid in (("gnis:10123", "buckley_creek.r2"), ("gnis:15784", "muchalat_river.r2")):
+        sid = next(s for s in _sections(db, item)
+                   if R.steelhead_presence(db, s) == "known" and R.steelhead_rules(db, s))
+        got = R.effective_rules(sid, (8, 1), "ST", str(BUNDLE), origin="hatchery")
+        out[rid] = {x["rule"]: x["state"] for x in got}.get(rid)
+    return out
+
+
+@pytest.mark.needs_bundle
+def test_buckley_creeks_cap_releases_a_hatchery_steelhead_and_muchalats_wild_only_cap_does_not(db):
+    """S15 on the built bundle: Buckley Creek's "Rainbow trout — 1 per day (none over 50 cm)" speaks for a
+    hatchery steelhead (released: a steelhead is over 50 cm); the Muchalat's cap is printed for wild fish
+    only, so it says nothing about a hatchery one (Region 1's "2 hatchery steelhead over 50 cm" stands)."""
+    got = _buckley_and_muchalat(db)
+    assert got["buckley_creek.r2"] in ("speaks", "beside"), got
+    assert got["muchalat_river.r2"] is None, got
+
+
+@pytest.mark.needs_bundle
+def test_mutation_without_s15_buckley_creeks_cap_is_silent_for_steelhead(db, monkeypatch):
+    from pipeline.deliver.bundle.read import facts as F
+    monkeypatch.setattr(F, "A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD", False)
+    assert _buckley_and_muchalat(db)["buckley_creek.r2"] is None

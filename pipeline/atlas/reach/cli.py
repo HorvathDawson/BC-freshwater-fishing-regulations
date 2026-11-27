@@ -69,7 +69,7 @@ def main() -> int:
     from pipeline.common.section_handles import digest_for
     # THE USER'S KNOWN-STEELHEAD LIST (curated; a missing file raises) — `reach.steelhead`: a
     # presence indicator, it binds no rule.
-    from pipeline.atlas.reach.steelhead import load_list
+    from pipeline.atlas.reach.steelhead import load_barriers, load_list
     # THE ATLAS'S TIDAL WATER (T678): its graph nodes (plan 5) checked against its one tidal record, or the record of an
     # atlas built before plan 5 — read, never recomputed; an atlas cut before the coast rule is refused
     from pipeline.atlas.splits import coast as _coast
@@ -77,7 +77,8 @@ def main() -> int:
     print(f"  tidal: the atlas's tidal water ({'its graph nodes, = ' if _coast.record_on_nodes(build) else ''}"
           f"{_coast.TIDAL_RECORD}, {len(rec):,} section(s))")
     result = build_reaches(entries, registry, graph, build=build.name,
-                           handles=digest_for(build), steelhead_list=load_list(), tidal_record=rec)
+                           handles=digest_for(build), steelhead_list=load_list(), tidal_record=rec,
+                           steelhead_barriers=load_barriers())
     r = result.report
     # T546 item 7: the curated override ids this registry lacks — the matcher's `unresolved_ids` had no reader,
     # so a partly resolved override bound the ids that resolved and dropped the rest unseen

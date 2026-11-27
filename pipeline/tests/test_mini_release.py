@@ -44,6 +44,12 @@ def test_codes_are_fwa_width():
     assert M.full_wsc(w, "").startswith("920-123456-000000") and len(M.full_wsc(w, "").split("-")) == 21
     assert M.full_wsc(w, "222222-500000").split("-")[:4] == ["920", "123456", "222222", "500000"]
     assert M.full_wsc(w, None).startswith("999-999999")
+    # (T1250) a stream's own root in another drainage: Northward Creek is the Mackenzie's (200), not the world's
+    assert M.full_wsc(w, "", "200-990006").split("-")[:3] == ["200", "990006", "000000"]
+    assert M.full_wsc(w, "500000", "200-990006").split("-")[:3] == ["200", "990006", "500000"]
+    assert len(M.full_wsc(w, "", "200-990006").split("-")) == 21
+    north = next(s for s in w["streams"] if s["name"] == "Northward Creek")
+    assert M.full_wsc(w, north["wsc"], north.get("wsc_root")).startswith("200-990006")
 
 
 def test_the_gpkg_carries_every_layer_and_column_the_atlas_reads(inputs):
@@ -404,3 +410,24 @@ def test_under_test_mini_is_the_committed_release_and_ci_no_build_hides_none_of_
     out = subprocess.run([sys.executable, "-c", "import pipeline.tests.ci_no_build; " + code], cwd=M.REPO_ROOT,
                          capture_output=True, text=True, env={**__import__("os").environ, "PYTHONPATH": str(M.REPO_ROOT)})
     assert out.returncode == 0 and out.stdout.strip() == "app-manifest/2", out.stderr[-500:]
+
+
+def test_the_barrier_list_holds_its_two_kinds_of_row_on_the_built_world(chain):
+    """(T1250, RULINGS S14) The mini barrier list on the BUILT world: its `basin` row holds Northward Creek (the
+    Mackenzie, FWA 200) and its `upstream_of` row Mock Creek above its falls (blue line 900000002 from 4,000 m up,
+    with the unnamed trib above); both stay "possible", while Mock Creek below the point and the Fixture River are
+    known Pacific streams."""
+    out = chain[0] / "a"
+    rep = json.loads((out / "reaches" / "report.json").read_text())["steelhead"]
+    assert {b["id"]: b["kind"] for b in rep["barriers"]} == {"mackenzie": "basin",
+                                                             "mock_creek_above_its_falls": "upstream_of"}
+    assert all(b["sections"] > 0 for b in rep["barriers"])
+    pres = {json.loads(l)["section_id"]: json.loads(l) for l in (out / "reaches" / "steelhead_presence.jsonl")
+            .read_text().splitlines() if l.strip()}
+    north = [s for s in pres if s.startswith("900000006:")]
+    above = [s for s in pres if s.startswith("900000002:") and float(s.split(":")[1]) >= 4000]
+    below = [s for s in pres if s.startswith("900000002:") and float(s.split(":")[1]) < 4000]
+    assert north and above and below
+    assert {pres[s]["steelhead"] for s in north + above} == {"possible"}
+    assert {(pres[s]["steelhead"], pres[s]["pacific"]) for s in below} == {("known", True)}
+    assert rep["possible_held"]["mackenzie"] == len(north)
