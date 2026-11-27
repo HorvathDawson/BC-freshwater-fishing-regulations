@@ -162,11 +162,11 @@ def test_a_called_stretch_on_a_line_that_never_crosses_moves_onto_a_boundary_wit
 
 def test_a_closed_call_whose_stretch_left_the_band_is_stale():
     """A `closed` call is applied by measure; if the line under it no longer lies within the edge band (FWA redrew
-    it), the call is no longer edge water: stale, named, never applied blind."""
+    it), it is no longer within the stretch G6 would name: stale, named, never applied blind."""
     line = LineString([(990, 100), (990, 150), (940, 160), (940, 175), (990, 185), (990, 300)])
     g, geoms = _built(line, [(0.0, line.length)])
     res = G.measure(g, geoms, [(AID, NAME, AREA)], calls=[_call("closed", 0.0, line.length)])
-    assert res["counts"]["G6_stale"] == 1 and "beyond the 50 m edge band" in res["checks"]["G6_stale"][0]["why"]
+    assert res["counts"]["G6_stale"] == 1 and "not within the stretch" in res["checks"]["G6_stale"][0]["why"]
     assert res["counts"]["G1"] == 0, "under G1's allowance: only the call's own check sees it"
     ok = LineString([(990, 100), (990, 300)])
     g, geoms = _built(ok, [(0.0, ok.length)])
@@ -182,3 +182,44 @@ def test_a_closed_call_and_an_open_line_in_one_area_are_both_judged():
     geoms["V:0"] = LineString([(500, 1000), (1003, 1000), (500, 1001)])
     res = G.measure(g, geoms, [(AID, NAME, AREA)], calls=[_call("closed", 0.0, ok.length)])
     assert set(res["counts"].values()) == {0} and res["areas"][AID]["near_outside"] == 1
+
+
+def _klanawa():
+    """The Klanawa creek's shape: 200 m inside the area, out across the edge, two grazes early on a hug 10 m out,
+    then away past the band. Without a call the cutter closes the inside only and G6 names the hug."""
+    line = LineString([(1200, 100), (1000, 100), (995, 105), (990, 115), (1000.3, 125), (990, 135), (1000.3, 145),
+                       (990, 155), (990, 260), (940, 300), (700, 400)])
+    inside = CC.decide_area(line, AREA, AREA.boundary)[1]
+    g, geoms = _built(line, inside)
+    row = G.measure(g, geoms, [(AID, NAME, AREA)])["checks"]["G6"][0]
+    return line, row
+
+
+def _closed_gate(line, lo, hi):
+    inside = CC.decide_area(line, AREA, AREA.boundary, forced_in=[(lo, hi)])[1]
+    g, geoms = _built(line, inside)
+    return inside, G.measure(g, geoms, [(AID, NAME, AREA)], calls=[_call("closed", lo, hi)])["counts"]
+
+
+def test_the_whole_stretch_or_a_shortened_row_closes_to_its_end_and_the_rest_is_judged_by_g6():
+    """Owner 2026-11-27 (T1199): a `closed` row may close PART of the stretch (option 2 on the Klanawa creek: the row
+    shortened to where today's closure ends); what it leaves open is under the floor with no graze, so G6 passes it."""
+    line, row = _klanawa()
+    assert row["grazes"] == 2 and abs(row["from_m"] - 200.0) < 0.1
+    for hi in (row["to_m"], 290.0):          # 290: past both grazes, 140 m of hug left open with none
+        inside, n = _closed_gate(line, row["from_m"], hi)
+        assert abs(inside[0][1] - hi) < 0.1, "closed to the row's end, no farther"
+        assert set(n.values()) == {0}, (hi, n)
+
+
+def test_a_closed_call_shifted_into_inside_water_or_past_the_stretch_is_stale():
+    line, row = _klanawa()
+    for lo, hi in ((50.0, 150.0), (row["from_m"] - 60.0, row["to_m"]), (row["from_m"], row["to_m"] + 30.0)):
+        assert _closed_gate(line, lo, hi)[1]["G6_stale"] == 1, (lo, hi)
+
+
+def test_a_closed_call_holds_an_end_moved_out_under_match_m_and_goes_stale_past_it():
+    line, row = _klanawa()
+    for off, stale in ((E.MATCH_M - 1.0, 0), (E.MATCH_M + 1.0, 1)):
+        assert _closed_gate(line, row["from_m"] - off, row["to_m"])[1]["G6_stale"] == stale, ("from", off)
+        assert _closed_gate(line, row["from_m"], row["to_m"] + off)[1]["G6_stale"] == stale, ("to", off)
