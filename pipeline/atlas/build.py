@@ -498,6 +498,7 @@ class _Build:
         self.tidal_ids: dict = {}       # {blk: id} of every mouth alias and tidal cut (`tidal.ids`)
         self.tidal_placed: dict = {}    # {blk: where each mouth alias went} (alias_tidal_mouths)
         self.input_hashes: dict = {}    # T547: {input key: digest} (`atlas.inputs`), set by main before any read
+        self.city_mouths: list = []     # T1246: the added city creeks' own tidal mouths (load_fwa), for their Areas
 
     def tick(self, label: str) -> None:
         now = self._clock()
@@ -544,7 +545,7 @@ def load_fwa(b: _Build) -> None:
     added streams merged into them.
 
     Reads: args, fwa, bbox. Writes: lake_kind, lake_names, lake_wsc, fids, added_lake_polys,
-    added_lake_parts, add_specs, add_nv."""
+    added_lake_parts, add_specs, add_nv, city_mouths."""
     args, fwa, bbox = b.args, b.fwa, b.bbox
     _tick = b.tick
     print("loading lake/manmade waterbody keys ...")
@@ -592,6 +593,8 @@ def load_fwa(b: _Build) -> None:
         _refuse_fwa_code_collisions(add_streams, fids, whole_province=bbox is None)
         fids += add_fids
         add_nv = data.get("name_variants", [])
+        from pipeline.atlas.splits.pfma_drainage import city_tidal_mouths
+        b.city_mouths = city_tidal_mouths(add_streams)     # T1246: each takes the Area its own mouth lies in
         print(f"  added streams: -{n_excl} superseded FWA fids, +{len(add_fids)} added fids, "
               f"{len(add_specs)} connectors, {len(add_nv)} name variants")
     _tick("load fids + lakes")
@@ -1594,7 +1597,8 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     # `build_registry` reads overrides.json itself for the waterbody keys a curator pinned by
     # hand, so an FWA-unnamed water a regulation names still becomes an item. See
     # `pipeline.atlas.registry.build.pinned_by_override`.
-    registry = _items(graph, gpkg=b.args.gpkg)       # the drainage areas read the build's own gpkg (T667 slice 8)
+    registry = _items(graph, gpkg=b.args.gpkg,       # the drainage areas read the build's own gpkg (T667 slice 8)
+                      city_mouths=b.city_mouths)    # T1246: the city creeks' own mouths take their Areas
     info["named"] = len(registry)
     # T207: each curated boundary carries its split's authored confidence (display only)
     registry = add_boundary_confidence(registry, b.splits)

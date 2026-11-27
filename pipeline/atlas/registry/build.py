@@ -408,13 +408,17 @@ def pinned_by_override(overrides_path=None) -> dict[str, str]:
 
 
 def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None = None, *,
-                   gpkg: str | None = None) -> dict[str, RegistryItem]:
+                   gpkg: str | None = None, city_mouths=None) -> dict[str, RegistryItem]:
     """Group section-nodes into RegistryItems (one coded stream / lake = one item) with their
     bindable boundaries. gnis-first grouping, braid-unified via the WSC->gnis map.
 
     ``gpkg``: the FWA GeoPackage the drainage areas are read from (`pfma_drainage.basin_areas`) — the atlas build
     passes its own `--gpkg` (T667 slice 8: the mini release builds from an invented one); None reads the configured
     file, as every caller did before.
+
+    ``city_mouths`` (`pfma_drainage.city_tidal_mouths` of the build's added streams, T1246): the city creeks' own
+    tidal mouths, so each takes the Area its mouth lies in. Refused as None when the graph holds an added city line
+    (a negative blk): the creeks would silently drain to no Area.
 
     ``prof`` (optional ``pipeline.common.utils.profiling.Profiler``) breaks the ~60-min stage into
     sub-phases; pass one or set env ``PIPELINE_PROFILE=1`` to see where the time goes."""
@@ -525,10 +529,14 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
         # P2 / plan 2.13: NO SILENT SKIP. Without the PFMA layer DFO section E's tidal scopes do not resolve, and a
         # warning in a 60-minute log is how they would vanish from a shipped atlas; the build stops, naming the fetch.
         from pipeline.atlas.splits import pfma_drainage
+        if city_mouths is None and any(n.blk.startswith("-") for n in graph.nodes.values() if n.blk):
+            raise ValueError("the graph holds added city lines but build_registry got no `city_mouths` "
+                             "(pfma_drainage.city_tidal_mouths): their Areas cannot be found (T1246)")
         try:
             # T349: + Region 2's 13/15/16/28/29; the atlas build's own gpkg (checked by its FWADataAccessor)
             basins = pfma_drainage.basin_areas(pfma_drainage.MINTED_AREAS,
-                                               pfma_drainage._GPKG if gpkg is None else str(gpkg))
+                                               pfma_drainage._GPKG if gpkg is None else str(gpkg),
+                                               city_mouths=city_mouths or ())
         except Exception as exc:                      # noqa: BLE001 — re-raised, never swallowed
             raise SystemExit(f"registry: drainage areas could not be built ({exc}) — DFO section E's tidal scopes "
                              "need the PFMA layer: python -m data.fetch_data --layers pfma_areas") from exc
