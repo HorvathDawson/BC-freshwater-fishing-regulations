@@ -4,7 +4,7 @@ Status: IN REVIEW — built on fix/T1246-city-creeks-own-water; owner: see ## Ow
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1246 | Turner Creek is filed under Noons Creek by a code fault; it is its own water | IN REVIEW — owner: see ## Owner | 9ca5edb50, 17ac1714e | STOPPED at the proof: two answer changes need the owner (## Owner); then the main chat's PR |
+| T1246 | Turner Creek is filed under Noons Creek by a code fault; it is its own water | IN REVIEW — owner: see ## Owner | 9ca5edb50, 17ac1714e | the owner's look at the 25-creek salmon list (## Owner); then the main chat's PR and the re-cut's parity |
 
 Source: the owner, 2026-11-27 (planning chat), verbatim. First "Show me the map first"; after the map: "Make it its own
 water (Recommended)". Earlier, on Noons Creek (T1191, Q4): the FWA stream and the city stream of the same name in the
@@ -61,6 +61,22 @@ no other item in either box changes. But two answers change, so the lane stopped
 Proof harness: a bbox build stops in `registry.outside_area_items` (areas named outside the box), so both sides
 ran through one scratch harness that hands that pass only what the box holds. Not run: a reach run on the boxes.
 
+## The owner's three answers, built (2026-11-27)
+- Salmon, "(a) Fix it properly now": `pfma_drainage.OWN_MOUTH_TAKES_ITS_AREA`: a city creek that drains to the sea
+  takes the Area its own mouth lies in (nearest Area polygon); one that drains into a river or creek inherits its
+  receiver's through the code. A city mouth on the line between two Areas is refused by name (none today). FWA's
+  basins keep their own pick (56 FWA basins touch two Areas, the Skeena's 3 and 4 among them: unchanged, listed in
+  the lane notes for a look). Measured: the three keep Area 28, and 25 more city creeks (52 lines, 21.98 km) go from
+  no Area to Area 28, so DFO's "no fishing for salmon ... flowing into Areas 28 and 29" now covers them: a closing,
+  no opening. The list is in the lane's `city_creek_areas.md`.
+- Turner's tidal limit, "rail bridge again ... like noons": the Ioco Spur (the railway that bridges Noons Creek)
+  crosses Turner Creek 126 m above its mouth: a cut there and a `split` row in `tidal_limits.json`; the lowest 126 m
+  is tidal (instead of the 21 m the coast cut would make).
+- Tunnel's Seymour leave-out row, "(a) Remove the row too": removed; `accepted` is empty.
+- Re-proved on the bbox side atlases: the items above; the three and their tributaries in Area 28; Turner's one tidal
+  piece; Noons, Seymour and "Squatters" lose only those lines; nothing else changes in either box. The side atlases
+  need a scratch harness: a bbox build stops in `registry.outside_area_items` (T1253).
+
 ## Report only
 25 items answer to a city-supplied name that is not their own (Port Moody 4, Burnaby 15, Squamish 6). Only these 3 are
 separate creeks; the other 22 are classed by which lines each item holds, not checked for connection one by one.
@@ -74,6 +90,7 @@ Does not block the re-cut. Depends: T1150. Owner: yes (below).
 ## Owner
 
 - [x] 2026-11-27 — Turner Creek and its two kin (Tunnel Creek, Capitol Creek): (a) fix all three together in T1150, in the hardening release (the data chat's recommendation; the re-cut ships Turner as a part of Noons with its right rules); (b) Turner only now, in the re-cut, removing his 2026-11-11 leave-out row; (c) all three now, in the re-cut. No data change until he answers. → "All three now, in the re-cut" (2026-11-27)
-- [ ] 2026-11-27 — The three creeks (3.92 km) leave DFO's Region 2 "flowing into Areas 28 and 29" salmon closure, because a city creek with its own code drains to no Area today (27 others already do not): (a) give city creeks their Area from their own mouth (a fix in `pfma_drainage`; it also closes salmon on the 27, km to measure), (b) ship the three outside it like the 27, (c) hold T1246. Default: none; ask.
-- [ ] 2026-11-27 — Turner Creek's lowest 21 m becomes tidal (the coast cut every city creek gets): yes / hold. Default: none; ask.
-- [ ] 2026-11-27 — Your 2026-11-11 Seymour leave-out row (Tunnel Creek's piece): it names nothing once Tunnel is its own water, and a stale row stops the reach run. Remove it / keep it (the re-cut's reach run stops). Default: none; ask.
+- [x] 2026-11-27 — The three creeks (3.92 km) leave DFO's Region 2 "flowing into Areas 28 and 29" salmon closure, because a city creek with its own code drains to no Area today (27 others already do not): (a) give city creeks their Area from their own mouth (a fix in `pfma_drainage`; it also closes salmon on the 27, km to measure), (b) ship the three outside it like the 27, (c) hold T1246. → "(a) Fix it properly now (Recommended)" (2026-11-27)
+- [x] 2026-11-27 — Turner Creek's lowest 21 m becomes tidal (the coast cut every city creek gets): yes / hold. → "tidal limit is rail bridge again I think. like noons" (2026-11-27)
+- [x] 2026-11-27 — Your 2026-11-11 Seymour leave-out row (Tunnel Creek's piece): it names nothing once Tunnel is its own water, and a stale row stops the reach run. Remove it / keep it (the re-cut's reach run stops). → "(a) Remove the row too (Recommended)" (2026-11-27)
+- [ ] 2026-11-27 — Before it merges: the 25 city creeks (52 lines, 21.98 km, Burnaby, Port Moody, Squamish) that now take Area 28 and so DFO's "no fishing for salmon" (a closing; no opening), and Turner's lowest 126 m tidal at the Ioco Spur: look at the list and the picture. Default: none; ask.
