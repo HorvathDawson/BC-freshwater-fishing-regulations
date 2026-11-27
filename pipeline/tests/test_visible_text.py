@@ -170,7 +170,7 @@ def test_a_line_drawn_before_the_text_is_no_strike_but_is_named(tmp_path):
     covers, maybe a rule. Not marked either way, and not silent: the page names it as a possible strike."""
     content = "0.14 w 0 G 41.5 53.5 m 54.5 53.5 l S " + _text("Oct 15")
     assert not any(s for _, _, s, _ in _verdict(tmp_path, content))
-    assert _notes(tmp_path, content) == ["2 char(s) kept, possible-strike: '15'"]
+    assert _notes(tmp_path, content) == ["kept, possible-strike: '15'"]
 
 
 def test_an_underline_is_no_strike(tmp_path):
@@ -192,9 +192,39 @@ def test_a_long_strike_through_a_sentence_is_found(tmp_path):
 # ---------------------------------------------------------------- what the method cannot be sure of: kept, named
 # (review of #323) a rule may hide a glyph only when it is sure; otherwise the glyph stays and the page says why.
 
-def test_an_image_clipped_away_from_the_text_hides_nothing(tmp_path):
-    content = _text("AB") + "q 100 0 100 100 re W n q 200 0 0 100 0 0 cm /Im Do Q Q"     # image clipped to the right
-    assert _seen(_verdict(tmp_path, content)) == "AB" and _notes(tmp_path, content) == []
+IMAGE = "q 200 0 0 100 0 0 cm /Im Do Q "        # an opaque image over the whole page
+
+
+def test_an_image_clipped_away_from_the_text_hides_nothing_and_says_the_clip_is_a_guess(tmp_path):
+    """Clipped to the right half, the image does not reach the text. MuPDF's drawing list gives clips no paint order, so
+    whether that clip was in force when the image was painted is a guess: the text stays either way, and is named."""
+    content = _text("AB") + "q 100 0 100 100 re W n " + IMAGE + "Q"
+    assert _seen(_verdict(tmp_path, content)) == "AB"
+    assert _notes(tmp_path, content) == ["kept, image-clip-unknown: 'AB'"]
+
+
+@pytest.mark.parametrize("name,content", [
+    # (re-review of #323) an UNCLIPPED full-page image painted over "AB": hidden on paper. A clip near it in the drawing
+    # list made the guess shrink the image off the text, and the text was kept with no word. Now it is named.
+    ("A: a clip pushed and popped between the last path and the image",
+     _text("AB") + "0 g 0 0 1 1 re f q 150 0 50 100 re W n Q " + IMAGE),
+    ("A': the same with no paths on the page", _text("AB") + "q 150 0 50 100 re W n Q " + IMAGE),
+    ("B: the last path before the image sits in a clip popped before it",
+     _text("AB") + "q 150 0 50 100 re W n 0 g 160 10 5 5 re f Q " + IMAGE),
+    ("B': the next path after the image is drawn in a clip", _text("AB") + IMAGE + "q 150 0 50 100 re W n 0 g 160 10 5 5 re f Q"),
+    ("D: an unclipped image, then a second one under a clip", _text("AB") + IMAGE + "q 150 0 50 100 re W n " + IMAGE + "Q"),
+])
+def test_an_image_whose_clip_is_a_guess_keeps_the_text_and_names_it(tmp_path, name, content):
+    assert _seen(_verdict(tmp_path, content)) == "AB", name
+    assert _notes(tmp_path, content) == ["kept, image-clip-unknown: 'AB'"], name
+
+
+def test_each_hit_is_its_own_whole_note(tmp_path):
+    """One note per hit, never joined and cut: a hit sharing a page with a long banner keeps every letter."""
+    banner = "NOTICE TO ANGLERS ICE FISHING HUTS THIN ICE AND OPEN WATER WARNING"   # 66 letters, 466 pt in Helvetica 12
+    content = ("0.14 w 0 G 5 83.5 m 470 83.5 l S " + _text(banner, x=5, y=80) + "0.14 w 0 G 41.5 53.5 m 54.5 53.5 l S "
+               + _text("Oct 15"))
+    assert _notes(tmp_path, content, width=500) == [f"kept, possible-strike: {banner!r}", "kept, possible-strike: '15'"]
 
 
 def test_an_image_clipped_by_a_rectangle_over_the_text_still_hides_it(tmp_path):
@@ -203,22 +233,22 @@ def test_an_image_clipped_by_a_rectangle_over_the_text_still_hides_it(tmp_path):
 
 
 def test_an_image_under_a_triangle_clip_hides_nothing_and_says_so(tmp_path):
-    content = _text("AB") + "q 0 0 m 200 0 l 200 100 l h W n q 200 0 0 100 0 0 cm /Im Do Q Q"
+    content = _text("AB") + "q 0 0 m 200 0 l 200 100 l h W n " + IMAGE + "Q"
     assert _seen(_verdict(tmp_path, content)) == "AB"
-    assert _notes(tmp_path, content) == ["2 char(s) kept, image-under-a-clip-path: 'AB'"]
+    assert _notes(tmp_path, content) == ["kept, image-clip-unknown: 'AB'"]
 
 
 def test_a_fill_under_a_triangle_clip_does_not_hide_text_outside_it(tmp_path):
     # the triangle (0,0)-(200,0)-(200,100) lies below the text at x 20, y 50: the red fill paints nothing there
     content = _text("AB") + "q 0 0 m 200 0 l 200 100 l h W n 1 0 0 rg 0 0 200 100 re f Q"
     assert _seen(_verdict(tmp_path, content)) == "AB"
-    assert _notes(tmp_path, content) == ["2 char(s) kept, fill-under-a-clip-path: 'AB'"]
+    assert _notes(tmp_path, content) == ["kept, fill-under-a-clip-path: 'AB'"]
 
 
 def test_an_even_odd_clip_with_a_hole_over_the_text_does_not_hide_it(tmp_path):
     content = _text("AB") + "q 0 0 200 100 re 15 40 30 25 re W* n 1 0 0 rg 0 0 200 100 re f Q"
     assert _seen(_verdict(tmp_path, content)) == "AB"
-    assert _notes(tmp_path, content) == ["2 char(s) kept, fill-under-a-clip-path: 'AB'"]
+    assert _notes(tmp_path, content) == ["kept, fill-under-a-clip-path: 'AB'"]
 
 
 def test_a_fill_under_a_rectangle_clip_still_hides_what_it_covers(tmp_path):
@@ -237,7 +267,7 @@ def test_the_colour_of_a_translucent_or_blended_fill_is_no_background(tmp_path, 
     """Only an opaque Normal fill is its own colour on the page; text of the colour of a translucent or blended
     one may well be seen (a mix shows under it), so it stays and is named."""
     assert _seen(_verdict(tmp_path, content)) == "AB", name
-    assert _notes(tmp_path, content) == ["2 char(s) kept, same-colour-as-a-translucent-or-blended-fill: 'AB'"], name
+    assert _notes(tmp_path, content) == ["kept, same-colour-as-a-translucent-or-blended-fill: 'AB'"], name
 
 
 def test_two_text_streams_that_differ_refuse_the_page():
@@ -307,3 +337,21 @@ def test_the_extractor_command_starts():
     with pytest.raises(SystemExit) as e:
         main(["--help"])
     assert e.value.code == 0
+
+
+def test_a_gated_hit_on_a_page_with_rows_is_on_one_line_and_new_unless_the_owner_listed_it():
+    from pipeline.regs.extraction.extract_synopsis import load_known_unsure, unsure_report
+    hits = [{"pdf_page": 19, "kind": "possible-strike", "text": "Oct 15"},
+            {"pdf_page": 24, "kind": "image-clip-unknown", "text": "REGION 2"}]
+    line, new = unsure_report(hits, [{"pdf_page": 24, "kind": "image-clip-unknown", "text": "REGION 2"}])
+    assert "\n" not in line and line.startswith("[unsure] 2 kept-but-unjudged item(s) on pages with rows, 1 NEW")
+    assert "PDF p.19 possible-strike 'Oct 15' NEW" in line and "PDF p.24 image-clip-unknown 'REGION 2';" not in line
+    assert new == hits[:1] and unsure_report([], []) == (None, [])
+    assert load_known_unsure() == []                    # the owner's list starts empty: no agent adds to it
+
+
+def test_the_gated_hits_never_reach_the_rows_file():
+    from pipeline.regs.extraction.models import PageMetadata, PageResult
+    r = PageResult(metadata=PageMetadata(page_number=19, region="R"), rows=[],
+                   unsure=[{"pdf_page": 19, "kind": "possible-strike", "text": "x"}])
+    assert r.to_dict() == {"context": {"page_number": 19, "region": "R"}, "rows": []}
