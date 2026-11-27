@@ -17,7 +17,7 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Before shipping, the device pass found and fixed two defects (background checks never ran under the code shrinker;
   a crash moving a frame to another water). One known issue shipped: a cold-start tab link can land short (fixed for
   0.9.1).
-- The release branch merges back into main by PR #140. Restart pages: `docs/START-HERE.md`.
+- The release branch merges back into main by PR #140. Restart pages: `docs/agents/START-HERE.md`.
 
 ## 2026-11-22 20:15: 0.9.0 batch chat, stopped early (low credits; no release)
 - Seven, then fourteen parallel lanes worked the 0.9.0 batch plus every small open ticket (your rule: no bathymetry,

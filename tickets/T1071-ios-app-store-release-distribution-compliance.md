@@ -86,7 +86,7 @@ Owner: yes (App Store Connect entries, the submit, any legal answers).
   chat's PR #238. Left: select the 0.10.0 build, Add for Review, Submit, after the privacy page (T1098) is live.
 
 ## Results (iOS release chat, 2026-11-24)
-- The page: `docs/ios/APP-STORE-SUBMISSION.md`. Restart page: `docs/ios/RESTART-ios-release-chat.md`.
+- The page: `docs/ios/APP-STORE-SUBMISSION.md`. Restart page: `docs/agents/RESTART-ios-release-chat.md`.
 - Read against the uploaded build's code (0.9.0 (45), 65f84020c, an Opus lane, read only). What changed against the
   T727 drafts: the push token is new (sent as `{platform, token, env}` only, never with the install id; kept until
   unregistered or dead, no age limit; declared under Device ID); Apple's "Precise" means 3 or more decimals, so the

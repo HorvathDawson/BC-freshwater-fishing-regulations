@@ -1,6 +1,6 @@
 # docs: what is here
 
-A map of this folder for a person. Pages marked (agent) are written for the Claude chats that work in this repo; you can
+A map of this folder for a person. The pages in `agents/` are written for the Claude chats that work in this repo; you can
 skip them. Tickets are in `../tickets/` (`../tickets/README.md`). Rules for working here: `../AGENTS.md`.
 
 ## Run it and release it
@@ -31,22 +31,22 @@ skip them. Tickets are in `../tickets/` (`../tickets/README.md`). Rules for work
 | `app-integration/README.md` | the folder's guide; most of it is ticket pictures (`T*-shots/`) and working files |
 | `COMPETITORS.md` | other apps and sites that show BC fishing waters, rules or maps |
 
-## For agent chats (agent)
+## For agent chats: `agents/` (skip it unless you run a chat)
 | page | what |
 |---|---|
-| `START-HERE.md` | a new chat's first page: what to read, in order |
-| `restart/*.md`, `RESTART-*.md`, `ios/RESTART-ios-release-chat.md` | one short restart page per live chat |
-| `ROADMAP-after-0.9.0.md` | the chats in order, and their prompts |
-| `STATUS.md` | where things stand: the release state, newest entry first |
-| `INBOX.md` | the owner's notes for Claude to turn into tickets |
-| `OWNER-PHONE.md` | the phone checks the owner can run |
-| `ios/START-HERE-ios.md` | the iOS chat's start page |
+| `agents/START-HERE.md` | a new chat's first page: what to read, in order (`START-HERE.md` here is a one-line pointer) |
+| `agents/restart/*.md`, `agents/RESTART-*.md` | one short restart page per live chat |
+| `agents/ROADMAP-after-0.9.0.md` | the chats in order, and their prompts |
+| `agents/STATUS.md` | where things stand: the release state, newest entry first |
+| `agents/INBOX.md` | the owner's notes for Claude to turn into tickets |
+| `agents/OWNER-PHONE.md` | the phone checks the owner can run |
+| `agents/START-HERE-ios.md`, `agents/RESTART-ios-release-chat.md` | the iOS chat's start and hand-over pages |
 
 ## Stores and the sites
 | folder | what |
 |---|---|
 | `play/`, `play-production-access/` | the Google Play listing and data safety; the closed-test record for production access |
-| `ios/` | the App Store submission page and listing words (`ios/store/`); the iOS chat's pages are in the agent table above |
+| `ios/` | the App Store submission page and listing words (`ios/store/`); the iOS chat's pages are in `agents/` |
 | `seo/` | what is built for search and how to measure it; outreach emails |
 
 ## Research and records
