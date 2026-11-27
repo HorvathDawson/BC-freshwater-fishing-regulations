@@ -145,15 +145,47 @@ def test_an_inlet_streams_row_binds_every_inflow_of_its_lake_by_the_walk(chain):
     assert "D:0" not in got, "the outlet is the row's other rule's (its own water), never the inlets' walk"
 
 
-def test_a_stretch_rule_still_stops_at_the_lake_at_its_top(chain):
-    """A stream is not a tributary of itself: "Down River downstream of Lower Lake, incl. tributaries" never takes what
-    feeds the lake at its top (RULINGS T18: a stretch rule does not climb)."""
-    entry = {"entry_id": "r4:down_river@4-1", "matched": ["gnis:D"], "includes_tributaries": True}
+def _area(reg, iid, secs):
+    reg = dict(reg)
+    reg[iid] = RegistryItem(id=iid, name="Test area", kind="area", section_ids=tuple(secs))
+    return reg
+
+
+def test_a_stretch_rule_still_stops_at_the_lake_at_its_top(chain, monkeypatch):
+    """A stream is not a tributary of itself: a stretch whose reach takes in the lake at its top ("Down River from Lower
+    Lake down", here an area that sweeps the lake in with the river) never takes what feeds the lake on its line (the
+    upper lake and the river above it) — the lake is no lake the rule binds (`A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE
+    _BINDS`). Naming the lake (`item_id`) makes it the rule's lake, and then every inflow is its tributary."""
+    g, reg = chain
+    reg = _area(reg, "area:test:lower", ("D:0", "lake:LL"))
+    entry = {"entry_id": "z4:lower_area", "matched": [], "includes_tributaries": True}   # an area row: no water of its own
+    rule = {"rule_id": "lower_area.r1", "verbatim": "x",
+            "extents": [{"op": "within", "area_id": "area:test:lower"}]}
+    b, d = build_reach(entry, rule, reg, g, owned=OWNED)
+    assert {"D:0", "C1"} <= set(b.sections), "the stretch, and the lake's own side creek (a tributary of the reach)"
+    assert not set(b.sections) & {"C2", "R:up", "RT"}, "never the upper lake's water through the stretch's top lake"
+    assert not [x for x in d if x.kind == "through_river"]
+    named = dict(rule, extents=[{"op": "whole", "item_id": "gnis:D"}, {"op": "whole", "item_id": "wbk:LL"}])
+    b, _ = build_reach({**entry, "matched": ["gnis:D"]}, named, reg, g, owned=OWNED)
+    assert {"C2", "R:up", "RT"} <= set(b.sections), "a lake the rule names takes every inflow"
+    monkeypatch.setattr(B, "A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS", False)
+    b, _ = build_reach(entry, rule, reg, g, owned=OWNED)
+    assert {"R:up"} <= set(b.sections), "False = every lake in the reach counts (the mutation pin)"
+
+
+def test_a_river_passing_through_its_lakes_mid_reach_takes_their_inflows_never_the_lakes(chain):
+    """A river row whose reach runs THROUGH lakes on its line (the lakes not in its item, as a named river's item leaves
+    them out): the lakes are the river passing through (`LAKE_MID_REACH_IS_THE_RIVER`), their inflows tributaries, the
+    lakes never covered and no `through_river` taken (the river above is the row's own)."""
+    g, reg = chain
+    reg = dict(reg)
+    reg["gnis:DR"] = RegistryItem(id="gnis:DR", name="Down River", kind="stream", section_ids=("D:0", "R:up"))
+    entry = {"entry_id": "r4:down_river@4-1", "matched": ["gnis:DR"], "includes_tributaries": True}
     rule = {"rule_id": "down_river.r1", "verbatim": "x",
             "extents": [{"op": "whole"}, {"op": "between", "splits": ["a", "b"]}]}
-    # a two-extent rule is no whole-water rule (`climbs_head_lakes`); the cut extent is unresolved here, the whole binds
-    got, _ = _bind(chain, entry, rule)
-    assert got == {"D:0"}
+    b, d = build_reach(entry, rule, reg, g, owned=OWNED)
+    assert set(b.sections) == {"D:0", "R:up", "C1", "C2", "RT"}
+    assert not [x for x in d if x.kind == "through_river"]
 
 
 
@@ -171,3 +203,41 @@ def test_a_head_lake_climb_is_stopped_too_and_a_walk_that_never_meets_the_except
     got, d = _bind(chain, low, {"rule_id": "low.r1", "verbatim": "x", "extents": [{"op": "whole"}]},
                    stops=lake_row_stops([UPPER], reg, g))
     assert got == {"D:0"} and not [x for x in d if x.kind == "lake_stop"], "no walk, no stop"
+
+
+@pytest.fixture
+def chain_with_a_lake_in_the_excepted_river(chain):
+    """The chain, with a lake WL on the river above UL (the Columbia's Windermere Lake above Kinbasket): R:up flows out
+    of WL, R:top flows into it on the same line, and the creek WC feeds it. UL's row excepts the whole river (gnis:R)."""
+    g, reg = chain
+    extra = [_n("lake:WL", L, name="Windermere-like Lake", wsc="900-1", order=5),
+             _n("R:top", blk="D", lo=70000, hi=80000, name="Down River", wsc="900-1", order=4),
+             _n("WC", blk="WC", name="Window Creek", wsc="900-1-000900", order=2)]
+    for n in extra:
+        g.nodes[n.node_id] = n
+    for a, b, k, m in [("lake:WL", "R:up", "lake_out", 60000), ("R:top", "lake:WL", "lake_in", 70000),
+                       ("WC", "lake:WL", "lake_in", 65000)]:
+        g.edges.append(FlowEdge(from_node=a, to_node=b, kind=k, at_measure=m))
+        i = len(g.edges) - 1
+        g.up_adj.setdefault(b, []).append(i)
+        g.down_adj.setdefault(a, []).append(i)
+    reg = dict(reg)
+    reg["gnis:R"] = RegistryItem(id="gnis:R", name="Up River", kind="stream", section_ids=("R:up", "R:top"))
+    reg["wbk:WL"] = RegistryItem(id="wbk:WL", name="Windermere-like Lake", kind="lake", section_ids=("lake:WL",))
+    return g, reg
+
+
+def test_a_stop_holds_only_for_a_walk_that_enters_its_lake(chain_with_a_lake_in_the_excepted_river):
+    """Review of the book branch (T1177): a lake row INSIDE the excepted river (Windermere Lake's own tributaries) must
+    keep its whole walk — UL's exception holds only for walks that enter UL. Before the fix every walk not touching UL
+    or the excepted water was blocked by it, and this row bound nothing."""
+    g, reg = chain_with_a_lake_in_the_excepted_river
+    stops = lake_row_stops([UPPER], reg, g)
+    assert {"WC"} <= set(stops[0].excluded) and "lake:WL" not in stops[0].excluded
+    entry = {"entry_id": "r4:windermere_like_lake_s_tributaries@4-1", "matched": ["wbk:WL"]}
+    rule = {"rule_id": "wl.r1", "verbatim": "x", "tributaries_only": True, "extents": [{"op": "whole"}]}
+    got, d = _bind((g, reg), entry, rule, stops=stops)
+    assert "WC" in got and not [x for x in d if x.kind == "lake_stop"]
+    got, d = _bind((g, reg), stops=stops)                          # the lower lake's walk enters UL: stopped there
+    assert not got & {"R:up", "R:top", "RT", "WC"}
+    assert [x.payload for x in d if x.kind == "lake_stop"]

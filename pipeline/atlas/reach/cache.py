@@ -219,6 +219,7 @@ from __future__ import annotations
 #:     Only a printed exception keeps water out, and a lake row's printed exception also stops every walk through that
 #:     lake (`build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`, the narrower reading: Kinbasket's "Does not
 #:     include Columbia River upstream" holds for Lake Revelstoke's and Lower Arrow Lake's walks). No classify.py outcome
-#:     changed; the bump marks the binding diff.
+#:     changed; the bump marks the binding diff. With it (review): a stop holds only from where a walk ENTERS its lake,
+#:     and a lake at a stretch's top is no lake the rule binds (`build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS`).
 POLICY_VERSION = "52"
 

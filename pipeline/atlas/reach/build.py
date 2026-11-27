@@ -1248,14 +1248,12 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
         walk_passed = set(passed)
         applied: list = []
         if stops and A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT:
-            # ANOTHER LAKE ROW'S PRINTED EXCEPTION holds for this walk too where it climbs through that lake: never on a
-            # walk whose own reach or water is that lake or the excepted water (it is that row's, or its own)
+            # ANOTHER LAKE ROW'S PRINTED EXCEPTION holds for this walk too, FROM WHERE IT ENTERS THAT LAKE (the walk applies
+            # it, `tributaries_of_reach` `stops`): never on a walk whose own reach or water is that lake or the excepted
+            # water (it is that row's, or its own), and never on a walk that does not enter the lake (a lake row inside
+            # the excepted river: Windermere Lake on the Columbia above Kinbasket)
             mine = set(reach) | own_water
-            for st in stops:
-                if not ((st.lakes | st.excluded | st.passed) & mine):
-                    blocked = blocked | st.excluded
-                    walk_passed |= st.passed
-                    applied.append(st)
+            applied = [st for st in stops if not ((st.lakes | st.excluded | st.passed) & mine)]
         # EVERY INFLOW OF THE RULE'S LAKE IS ITS TRIBUTARY (T1177): the river on the lake's own line, unless a printed
         # exception keeps it out (`_through_rivers`)
         inflows, drop, expand.through = _through_rivers(graph, registry, owned, entry, rule, reach, own_water,
@@ -1277,9 +1275,11 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
                 row["stem"] = sorted(stem)
                 stems |= stem
         climb = frozenset(reach) if heads else frozenset()
+        met: list = []
         got = _tribs.expand(graph, frozenset(reach) | stems, only=only, excluded=blocked,
                             passed=walk_passed, cuts=cuts, registry=registry,
-                            own=own_water - set(reach) - stems, climb_from=climb, inflows=inflows)
+                            own=own_water - set(reach) - stems, climb_from=climb, inflows=inflows,
+                            stops=[(st.lakes, st.excluded, st.passed) for st in applied], met=met)
         if climb:
             expand.heads = [{**v, "name": graph.nodes[v["lake"]].display_name or "(unnamed)"}
                             for v in _tribs.head_lake_verdicts(graph, frozenset(reach) | stems, climb_from=climb,
@@ -1307,16 +1307,8 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
             if row["inlet"] in inflows:
                 # what the walk took through it: the through-river and everything above it the walk reached
                 row["joined"] = len(set(_tribs.subtree(graph, {row["inlet"]})) & (got - set(reach)))
-        # a lake row's exception this walk met: water it holds out flows straight into something the walk took (a
-        # walk that never came near the lake, or the excepted water, says nothing)
-        # (a lake is walked, never collected: the walk was in the stop's lake when it took one of the lake's inflows)
-        def _met(st) -> bool:
-            held = st.excluded | st.passed
-            walked = set(got) - set(reach)
-            inside = walked | {lk for lk in st.lakes
-                               if any(graph.edges[ei].from_node in walked for ei in graph.up_adj.get(lk, ()))}
-            return any(graph.edges[ei].from_node in held for s in inside for ei in graph.up_adj.get(s, ()))
-        expand.stopped = sorted({(st.entry_id, st.rule_id) for st in applied if _met(st)})
+        # a lake row's exception this walk met: the walk entered that row's lake (`tributaries_of_reach` `met`)
+        expand.stopped = sorted({(applied[i].entry_id, applied[i].rule_id) for i in met})
         if region is None:
             return got
         kept = {s for s in got if s in region}
@@ -1414,6 +1406,38 @@ def lake_row_stops(ents, registry, graph, covered_fn=None) -> tuple[LakeStop, ..
     return tuple(out)
 
 
+#: POLICY (T1177 review): A LAKE AT A STRETCH'S TOP IS NO LAKE THE RULE BINDS. "A stream is not a tributary of itself": a
+#: stretch rule ("X River downstream of Y Lake", or an area or cut that sweeps the lake in at the stretch's top) never takes
+#: what feeds the lake above it, even if the lake lands in its reach. A lake counts for
+#: `tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY` when it is the entry's own water or an extent names it
+#: (`item_id` / `item_ids`), or when it does not drain straight into a stream piece of the reach. False = every lake in
+#: the reach counts (the mutation pin).
+A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS = True
+
+
+def _named_lakes(rule, registry) -> set[str]:
+    """The sections of the lakes the rule's extents name by `item_id` / `item_ids`."""
+    out: set[str] = set()
+    for ex in rule.get("extents") or []:
+        if not isinstance(ex, dict):
+            continue
+        for iid in [ex.get("item_id")] + list(ex.get("item_ids") or []):
+            it = registry.get(iid) if iid and hasattr(registry, "get") else None
+            k = getattr(it, "kind", None)
+            if it is not None and str(getattr(k, "value", k)).lower() == "lake":
+                out |= set(it.section_ids)
+    return out
+
+
+def _tops_a_stretch(graph, registry, lake, reach) -> bool:
+    """Does the lake drain straight into a STREAM piece of the reach (the lake at the top of a stretch)?"""
+    for ei in graph.down_adj.get(lake, ()):
+        t = graph.edges[ei].to_node
+        if t in reach and _resolve._kind_of(graph, t, registry) == "stream":
+            return True
+    return False
+
+
 def _through_rivers(graph, registry, owned, entry, rule, reach, own_water, blocked):
     """THE THROUGH-RIVER OF EVERY LAKE THE RULE BINDS (`tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`,
     T1177; T468 before it): for each lake of `reach`, each inflow the walk would refuse as the river running through it
@@ -1431,8 +1455,12 @@ def _through_rivers(graph, registry, owned, entry, rule, reach, own_water, block
     inflows: set[str] = set()
     drop: set[str] = set()
     rows: list[dict] = []
+    named = _named_lakes(rule, registry) | own_water
     for lake in sorted(reach):
         if (not every and lake not in own_water) or _resolve._kind_of(graph, lake, registry) != "lake":
+            continue
+        if A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS and lake not in named \
+                and _tops_a_stretch(graph, registry, lake, reach):
             continue
         for inlet in sorted(_tribs.through_inlets(graph, reach, lake)):
             if inlet in blocked or inlet in own_water:

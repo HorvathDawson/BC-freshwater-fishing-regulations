@@ -86,9 +86,11 @@ def _through_blks(graph: StreamGraph, node_id: str) -> frozenset[str]:
 
     For a LAKE this is the outlet's blk: a lake fed and drained by the same river is a
     lake *on* that river, and the inflow sharing the outlet's blk is the river continuing
-    through — not a tributary of the lake. Without this, "Lake Koocanusa and its
-    tributaries" swallowed the entire Kootenay River above it (36,990 sections instead of
-    10,570).
+    through, refused here as `RIVER_CONTINUING` (a stretch's top lake, a lake on its river). For a lake the rule
+    binds that refusal is lifted per inflow by `Reach.inflows` (`EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`, T1177):
+    since then only a printed exception keeps the through-river out of a lake row (Kootenay Lake's "Does not include the
+    Kootenay River upstream ... to the U.S. border", Kinbasket's "Does not include Columbia River upstream"), never this
+    refusal alone. (Its origin, before T468: a "Koocanusa and its tributaries" walk once took the whole Kootenay.)
 
     For a stream the edge KIND already says this (`continuation`), so this returns nothing
     and the kind check does the work.
@@ -131,8 +133,8 @@ def _on_a_tributary_of_the_reach(graph: StreamGraph, lake_id: str, through: froz
 
     A row may name a lake beside its river: "SUMALLO RIVER (includes "Cedar" Lake)" matches the
     Sumallo and Cedar Lake. Cedar Lake sits on Ferguson Creek, a tributary of the Sumallo. As a
-    reach lake its through line (Ferguson) was skipped as "the reach's own flow continuing" — true
-    of a lake row (Koocanusa must not take the Kootenay above it) and false here: Ferguson above
+    reach lake its through line (Ferguson) was skipped as "the reach's own flow continuing" — the
+    refusal a lake's own river gets until `Reach.inflows` lifts it (T1177) — and wrong here: Ferguson above
     the lake, and the 67 streams feeding it, are tributaries of the Sumallo, and were bound only
     while the walk reached the lake as a tributary lake (69 sections lost when the lake was added).
 
@@ -752,7 +754,7 @@ def _dead_end_seeds(ctx: "Reach", seen: set[str], kept: set[str], refused: set[s
         cs = {g.nodes[x].wsc for x in s}
         if not all(ok.get(c) for c in cs):
             continue                            # a loop of several codes: every one must qualify
-        if any(x in ctx.blocked or x in ctx.own or g.nodes[x].is_barrier for x in s):
+        if any(x in ctx.blocked or x in ctx.held or x in ctx.own or g.nodes[x].is_barrier for x in s):
             continue
         out.extend(s)
     return sorted(set(out))
@@ -817,6 +819,9 @@ class Reach:
     heads: frozenset = frozenset()
     water: frozenset = frozenset()
     inflows: frozenset = frozenset()
+    #: (T1177) what the lake rows' printed exceptions hold out, ADDED as the walk enters each stop's lake
+    #: (`tributaries_of_reach` `stops`): refused like `blocked`
+    held: set = field(default_factory=set)
 
     def at_boundary(self, node: str) -> bool:
         return node in self.reach or node in self.online
@@ -877,7 +882,7 @@ def may_enter(ctx: Reach, src: str, dst: str, edge=None, *, via: str = FLOW) -> 
                           a code run's piece is not judged by order).
     """
     g = ctx.graph
-    if src in ctx.blocked:
+    if src in ctx.blocked or src in ctx.held:
         return CARVED_OUT
     if edge is not None and (edge.from_node, edge.to_node) in ctx.cuts:
         return CODE_DIVIDE
@@ -1001,8 +1006,14 @@ def tributaries_of_reach(
     climb_from: set[str] | frozenset[str] = frozenset(),
     registry=None,
     inflows: set[str] | frozenset[str] = frozenset(),
+    stops=(),
+    met: list | None = None,
 ) -> frozenset[str]:
     """Sections draining INTO `reach`, recursively. Excludes `reach` itself.
+
+    `stops`: `(lakes, excluded, passed)` per lake row's printed exception (`reach.build.lake_row_stops`): when the walk
+    ENTERS one of a stop's lakes, what it holds out is refused from then on (`excluded`, as `blocked`) or walked past
+    (`passed`); a walk that never enters the lake is untouched. `met` (a list) receives each stop's index the walk entered.
 
     `inflows`: the through-line inflows of the reach's lakes taken as tributaries
     (`EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`, T1177): `reach.build._expander` decides which (a printed exception
@@ -1052,6 +1063,16 @@ def tributaries_of_reach(
     stack: list[str] = sorted(ctx.reach)      # sorted: determinism, not correctness
     runs = code_runs(graph)[0] if BIFURCATIONS_FOLLOW_THE_CODE else {}
     refused: set[str] = set()                 # what a step was refused into (`A_DEAD_END_GOES_WITH_ITS_WATER`)
+    passed = set(passed)
+    entered: list[int] = []
+
+    def enter(x):
+        # (T1177) the walk is in a stop's lake: its row's printed exception holds for the rest of this walk
+        for i, (lakes, excluded, past) in enumerate(stops):
+            if x in lakes and i not in entered:
+                entered.append(i)
+                ctx.held.update(excluded)
+                passed.update(past)
 
     # A stream joining EXACTLY at the reach's lower cut belongs to the reach. When a
     # curator anchors a cut on a confluence — "upstream of the confluence with Slesse
@@ -1087,10 +1108,12 @@ def tributaries_of_reach(
                 seen.add(src)                  # walked as the river, never collected
                 ctx.online[src] = ctx.online.get(node, node)
                 stack.append(src)
+                enter(src)
             elif why is None:
                 seen.add(src)
                 out.add(src)
                 stack.append(src)
+                enter(src)
             else:
                 refused.add(src)
         # The walk is done: a dead end of a water it collected wholly goes with that water, and the walk
@@ -1106,6 +1129,8 @@ def tributaries_of_reach(
                 out.add(x)
                 stack.append(x)
 
+    if met is not None:
+        met.extend(sorted(entered))
     return frozenset(out - frozenset(passed) - ctx.own)
 
 
@@ -1159,7 +1184,8 @@ def _side_channel_seeds(ctx: "Reach", registry, seen: set[str], kept: set[str]) 
     out: set[str] = set()
     for iid in sorted({i for s in kept for i in owners.get(s, ())}):
         mine = frozenset(registry[iid].section_ids)
-        side = {s for s in mine if s not in kept and s not in seen and s not in ctx.blocked and s not in ctx.own
+        side = {s for s in mine if s not in kept and s not in seen and s not in ctx.blocked and s not in ctx.held
+                and s not in ctx.own
                 and (n := g.nodes.get(s)) is not None and n.kind == NodeKind.stream
                 and not fwa_edge_types.is_main_flow(n) and not n.is_barrier}
         done: set[str] = set()
@@ -1436,8 +1462,12 @@ def expand(
     own: set[str] | frozenset[str] = frozenset(),
     climb_from: set[str] | frozenset[str] = frozenset(),
     inflows: set[str] | frozenset[str] = frozenset(),
+    stops=(),
+    met: list | None = None,
 ) -> frozenset[str]:
     """The section set a tributary-scoped rule actually covers.
+
+    `stops` / `met`: the lake rows' printed exceptions, held from where the walk enters their lake (`tributaries_of_reach`).
 
     `only=True` is `tributaries_only` — the tributaries WITHOUT the mainstem, which is a real
     regulation shape ("no fishing in tributaries above Holt Creek", 44 rules). The reach is
@@ -1461,7 +1491,7 @@ def expand(
     tribs = frozenset(
         s for s in tributaries_of_reach(graph, reach, blocked=excluded, passed=passed,
                                         guarded=guarded, cuts=cuts, own=own, climb_from=climb_from,
-                                        registry=registry, inflows=inflows)
+                                        registry=registry, inflows=inflows, stops=stops, met=met)
         if not STREAMS_ONLY or kind_of(graph, registry, s) == "stream")
     base = frozenset() if only else (reach - excluded)
     return base | tribs
@@ -1492,11 +1522,8 @@ def tributaries_between(graph: StreamGraph, section_id: str,
 
 def lake_tributaries(graph: StreamGraph, lake_id: str,
                      guarded: bool = True) -> frozenset[str]:
-    """A lake's own tributaries, excluding the river running THROUGH it.
-
-    Lake Koocanusa swallowed the whole Kootenay above it — 36,990 sections instead of
-    10,570 — before that exclusion existed.
-    """
+    """A lake's tributaries by the bare walk, excluding the river running THROUGH it (no `Reach.inflows` here: a rule's
+    lake takes its through-river through `reach.build._expander`, T1177)."""
     return tributaries_of_reach(graph, {lake_id}, guarded=guarded)
 
 
