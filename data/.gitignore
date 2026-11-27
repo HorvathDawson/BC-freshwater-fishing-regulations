@@ -57,6 +57,13 @@ generated/review/refused-saves.jsonl
 generated/review/write-through.jsonl
 generated/review/pfma_basin_areas.json
 generated/review/dfo-*.md
+# T1193 (owner 2026-11-26): five review-tool inputs a command re-makes (data/generated/README.md, "Re-making the review
+# inputs that are not committed") are NOT committed. name-variants/candidates.json stays: a no-data test reads it.
+generated/review/dfo-preverify.json
+generated/review/dfo_closure_entries.json
+generated/review/entry-split-suggestions.json
+generated/review/tidal/tidal-preverify.json
+generated/review/tidal/pass2/
 # T324 (owner 2026-11-05): the gauge REVIEW QUEUE (`pipeline.gauges.generate.promote` writes it beside the curated
 # matches.json) is machine output, so it lives here, not in ../curated/. Committed because `check_curated --ci` reads it
 # in CI (a queued station is not STALE). `generated/gauges/` is un-excluded only to reach this one file.

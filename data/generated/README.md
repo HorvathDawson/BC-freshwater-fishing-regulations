@@ -50,7 +50,20 @@ makes one — so the situation that used to produce a wrong answer three builds 
 one legible line. `pipeline/tests/test_curated_paths.py` fails on any literal `output/` path
 and on any generated path that lands inside `../curated/`.
 
+## Re-making the review inputs that are not committed
+
+Five files the review tool reads are ignored, not committed (T1193); a fresh clone has none of them and the review
+tool shows no suggestion or check for what they feed until they are made. Each is re-made from the repo root with
+`.venv/bin/python` (none runs the LLM parser; the sources are the ones each module's docstring names):
+
+- `review/dfo-preverify.json`: `-m pipeline.regs.dfo_salmon.preverify` (network, atlas).
+- `review/dfo_closure_entries.json`: `-m pipeline.regs.dfo_salmon.closures`.
+- `review/entry-split-suggestions.json`: `-m pipeline.regs.review.split_suggest` (atlas).
+- `review/tidal/tidal-preverify.json`: `-m pipeline.tools.audit.tidal_preverify` (atlas, DEM).
+- `review/tidal/pass2/proposals.json`: `-m pipeline.tools.audit.tidal_pass2 extract`, then `... propose` (DFO pages, atlas).
+
 ## Git
 
 All of this is ignored (`data/.gitignore`) except the few files it un-ignores by name: `gauges/candidates.json` and
-`gauges/datum_proposals.json`, `sloughs/`, and the review tool's hand-made or unrebuildable inputs under `review/`.
+`gauges/datum_proposals.json`, `sloughs/`, and the review tool's hand-made or unrebuildable inputs under `review/`
+(the five above are ignored).
