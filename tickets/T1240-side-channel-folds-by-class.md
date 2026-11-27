@@ -1,6 +1,6 @@
 # T1240 — Side-channel parts fold into their river, by class (the 17 artefacts of the 23)
 
-Status: OPEN — in the 0.10.0 re-cut; the owner chose to hold the re-cut for all of the folds; owner: see ## Owner
+Status: OPEN — in the 0.10.0 re-cut; the owner chose to hold the re-cut for all of the folds
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
