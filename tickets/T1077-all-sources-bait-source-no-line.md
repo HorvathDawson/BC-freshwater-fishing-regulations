@@ -1,10 +1,10 @@
 # T1077 — "All sources" lists the bait rules' source, but the bait list on the page draws no Source line
 
-Status: IN REVIEW — owner: see ## Owner. Code 392a36531 (hardening lane); ships with the next app build, no data release.
+Status: IN PROGRESS — owner approved 2026-11-26; what's left: the PR merge. Code 392a36531 (hardening lane); ships with the next app build, no data release.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1077 | "All sources" lists the bait rules' source, but the bait list on the page draws no Source line | IN REVIEW — owner: see ## Owner | 392a36531 | owner looks at the before/after of the every-source sheet's order; hardening lane 2026-11-26 |
+| T1077 | "All sources" lists the bait rules' source, but the bait list on the page draws no Source line | IN PROGRESS | 392a36531 | the PR merge (owner approved 2026-11-26) |
 
 Source: the 0.9.1 chat, 2026-11-24, PR #126 (T1036): group 1 of the sheet counts the bait Source line's rules (`srcs:bait`) in `app/packages/core/src/regs/sheets/allsources.ts`, but BaitList draws no Source line, so the sheet lists a source the page gives no way to open.
 
@@ -34,4 +34,4 @@ Severity: low. Release: 0.9.2 (0.9.1 only if PR #126's lane takes it in the same
 
 ## Owner
 
-- [ ] 2026-11-26 — Look at the before/after of the every-source sheet's order (pictures in chat).
+- [x] 2026-11-26 — Look at the before/after of the every-source sheet's order (pictures in chat). Owner: "Yes, bait after gear is fine".
