@@ -1065,27 +1065,51 @@ def keep_page(result: PageResult, page_num: int) -> Optional[PageResult]:
 KNOWN_STRIKES = Path(__file__).resolve().parent / "known_strikes.json"
 #: (re-review of #323) what the visible-text method keeps but cannot judge, on a page with rows: each hit must be on the
 #: owner's list (KNOWN_UNSURE, by page + kind + text) or the gate fails. Banner pages without rows stay stderr notes.
-GATED_UNSURE = ("possible-strike", "image-clip-unknown")
+GATED_UNSURE = ("possible-strike", "image-clip-unknown", "fill-under-a-clip-path",
+                "same-colour-as-a-translucent-or-blended-fill")
 KNOWN_UNSURE = Path(__file__).resolve().parent / "known_unsure.json"
 
 
+def _file_sha256(path) -> str:
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def load_known_unsure(path: Path = KNOWN_UNSURE) -> List[Dict[str, Any]]:
-    """The hits the owner accepted. A missing or malformed file raises naming it (never 'none known')."""
+    """The hits the owner accepted, each for ONE book. A missing or malformed file, or an item without its book's
+    `pdf_sha256`, an integer `pdf_page`, a gated `kind` or a non-blank `text`, raises naming it (never 'none known')."""
     doc = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(doc.get("items"), list) or not all({"pdf_page", "kind", "text"} <= set(i) for i in doc["items"]):
-        raise ValueError(f"{path}: 'items' must be a list of {{pdf_page, kind, text, ...}}")
-    return doc["items"]
+    items = doc.get("items")
+    if not isinstance(items, list):
+        raise ValueError(f"{path}: 'items' must be a list")
+    for it in items:
+        ok = (isinstance(it, dict) and isinstance(it.get("pdf_sha256"), str)
+              and re.fullmatch(r"[0-9a-f]{64}", it["pdf_sha256"]) is not None
+              and isinstance(it.get("pdf_page"), int) and not isinstance(it.get("pdf_page"), bool)
+              and it.get("kind") in GATED_UNSURE and isinstance(it.get("text"), str) and it["text"].strip() != "")
+        if not ok:
+            raise ValueError(f"{path}: an item needs pdf_sha256 (64 hex), pdf_page (an integer), kind (one of "
+                             f"{', '.join(GATED_UNSURE)}) and a non-blank text: {it!r}")
+    return items
 
 
 def unsure_report(hits: List[Dict[str, Any]], known: List[Dict[str, Any]]) -> Tuple[Optional[str], List[Dict]]:
-    """ONE line for a run: every gated hit on a page with rows, the NEW ones (not on the owner's list) named."""
+    """ONE line for a run: every gated hit on a page with rows, the NEW ones (not on the owner's list FOR THIS BOOK:
+    matched on pdf_sha256 + page + kind + text) named. A hit without its book's sha is refused, never matched."""
     if not hits:
         return None, []
-    seen = {(k["pdf_page"], k["kind"], k["text"]) for k in known}
-    new = [h for h in hits if (h["pdf_page"], h["kind"], h["text"]) not in seen]
+    for h in hits:
+        if not h.get("pdf_sha256"):
+            raise ValueError(f"a visible-text hit without its PDF's sha cannot be matched to the owner's list: {h!r}")
+    seen = {(k.get("pdf_sha256"), k["pdf_page"], k["kind"], k["text"]) for k in known}
+    new = [h for h in hits if (h["pdf_sha256"], h["pdf_page"], h["kind"], h["text"]) not in seen]
     parts = [f"PDF p.{h['pdf_page']} {h['kind']} {h['text']!r}" + (" NEW" if h in new else "") for h in hits]
     line = (f"[unsure] {len(hits)} kept-but-unjudged item(s) on pages with rows"
-            + (f", {len(new)} NEW (not in {KNOWN_UNSURE.name})" if new else "") + ": " + "; ".join(parts))
+            + (f", {len(new)} NEW (not in {KNOWN_UNSURE.name} for this book)" if new else "") + ": " + "; ".join(parts))
     return line, new
 _STRUCK_RUN = re.compile(r"(?:[^\s~-]+ )?~~(.+?)~~")
 
@@ -1237,7 +1261,8 @@ class SynopsisExtractor:
         line, _new = strike_report([r.to_dict() for p in all_pages for r in p.rows], load_known_strikes())
         if line:
             print(line, file=sys.stderr)
-        line, _new = unsure_report([h for p in all_pages for h in p.unsure], load_known_unsure())
+        book = _file_sha256(self.pdf_path)
+        line, _new = unsure_report([dict(h, pdf_sha256=book) for p in all_pages for h in p.unsure], load_known_unsure())
         if line:
             print(line, file=sys.stderr)
 
