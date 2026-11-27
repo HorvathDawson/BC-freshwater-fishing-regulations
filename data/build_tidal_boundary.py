@@ -167,7 +167,7 @@ def run(skip_upload: bool = False, skip_copy: bool = False):
     # ── Step 5: outward buffer ────────────────────────────────────────────────
     # Expands the tidal polygon by BUFFER_M so that stream segments that reach
     # right to the tidal edge are correctly clipped.  This margin is baked into
-    # the stored polygon (same approach as process_tidal_boundary.py MARGIN_M).
+    # the stored polygon.
     logger.info(f"Step 5: outward buffer +{BUFFER_M} m…")
     t = time.time()
     step4_geom = step3_geom.buffer(BUFFER_M)

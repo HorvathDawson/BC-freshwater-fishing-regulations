@@ -14,7 +14,7 @@ that is not fixed here: `docs/repo-move/OUTSIDE-GIT.md`.
 | Node (the version in `app/.nvmrc`) and pnpm 9 (`app/package.json` `packageManager`) | the app, the workers, the commit-msg hook | `brew install node pnpm` (match `.nvmrc`; Node 22.18 or newer is the floor in `engines`) |
 | gh (GitHub CLI) | CI status in every build gate, `scripts/start-workflow.sh`, PRs | `brew install gh`, then `gh auth login` |
 | tippecanoe (with tile-join), pmtiles | the tiles stage, bootstrap's fetch | `brew install tippecanoe pmtiles` |
-| rclone | `upload.sh`, backups, `sync-inputs.sh` (uploads only) | `brew install rclone`, then a remote `r2:` (secrets.md) |
+| rclone | `upload.sh`, `sync-inputs.sh` (uploads only) | `brew install rclone`, then a remote `r2:` (secrets.md) |
 The phone toolchains are in sections 8 and 9. `CLAUDE.md` and `.claude/` are git-ignored, so a fresh clone has only
 `AGENTS.md` (rule A1 holds the parser rule).
 
