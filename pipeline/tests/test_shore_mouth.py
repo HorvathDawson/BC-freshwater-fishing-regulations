@@ -6,6 +6,7 @@ lowest piece held the edge and the line was dropped from the coast record. Synth
 """
 from __future__ import annotations
 
+from pipeline.atlas.splits import coast as C
 from pipeline.atlas.splits import shore as SH
 from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
 
@@ -22,16 +23,16 @@ def _graph(leave_m):
 
 def test_a_channel_leaving_high_up_is_not_the_mouth():
     g, leaves = _graph(8998.0)
-    assert SH.leaves_at_mouth(g, g.nodes["L:0"], leaves, 25.0) == []
+    assert SH.leaves_at_mouth(g, g.nodes["L:0"], leaves, C.STUB_M) == []
 
 
 def test_an_edge_at_the_mouth_or_unplaced_is_the_mouth():
-    for m in (0.0, 24.0, None):
+    for m in (0.0, C.STUB_M - 1.0, None):
         g, leaves = _graph(m)
-        assert SH.leaves_at_mouth(g, g.nodes["L:0"], leaves, 25.0) == [0], m
+        assert SH.leaves_at_mouth(g, g.nodes["L:0"], leaves, C.STUB_M) == [0], m
 
 
 def test_mutation_any_edge_on_the_lowest_piece_hides_the_sea_end(monkeypatch):
     monkeypatch.setattr(SH, "A_DISTRIBUTARY_HIGHER_UP_IS_NOT_THE_MOUTH", False)
     g, leaves = _graph(8998.0)
-    assert SH.leaves_at_mouth(g, g.nodes["L:0"], leaves, 25.0) == [0]
+    assert SH.leaves_at_mouth(g, g.nodes["L:0"], leaves, C.STUB_M) == [0]

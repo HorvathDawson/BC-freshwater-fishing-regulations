@@ -2,7 +2,8 @@
 
 G1 a member with more than floor - band of line beyond the band; G2 an open piece with line deeper than 5 m inside;
 G3 a piece under the floor an area cut made; G4 a non-member partly inside, or a member the geometry does not
-confirm; G5 a run of member pieces with no real inside water. Synthetic pieces and polygons, no gpkg.
+confirm; G5 a run of member pieces with no real inside water; G6 an open line hugging the edge with grazes on it.
+Synthetic pieces and polygons, no gpkg.
 """
 from __future__ import annotations
 
@@ -38,7 +39,7 @@ def test_a_clean_cut_passes_and_writes_its_numbers(tmp_path):
     """Out to 1000, in from there (the cut ON the edge): every check passes, and the file says so."""
     g, geoms = _graph(("X:0", 0, 1000, False, None, CUT), ("X:1000", 1000, 1600, True, CUT, None))
     res = _run(g, geoms, tmp_path)
-    assert res["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0}
+    assert res["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6": 0}
     got = json.loads((tmp_path / G.FILENAME).read_text())
     assert got["worst"]["shortest_area_piece_m"] == 600.0 and got["allowed_beyond_band_m"] == 50.0
 
@@ -91,7 +92,7 @@ def test_g4_a_non_member_partly_inside_or_a_member_far_from_the_area():
 def test_g4_a_dip_under_5m_is_positional_error():
     """An open piece reaching 4 m in: under the dip, so neither G2 nor G4."""
     g, geoms = _graph(("X:0", 0, 1004, False, None, None))
-    assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0}
+    assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6": 0}
 
 
 def test_g5_a_member_run_with_no_real_inside_water_stops_the_build():
@@ -117,6 +118,59 @@ def test_g5_a_short_line_wholly_inside_is_inside():
     two lakes). A run wholly inside is inside however short; G5 is for a run the polygon only brushes."""
     g, geoms = _graph(("X:1500", 1500, 1502.9, True, None, None))
     assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"]["G5"] == 0
+
+
+def _one_piece(nid, coords, member, aid=AID):
+    g, geoms = StreamGraph(), {}
+    line = LineString(coords)
+    g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.stream, blk=nid.split(":")[0], down_m=0.0, up_m=line.length,
+                              length_m=line.length, in_areas=(aid,) if member else ())
+    geoms[nid] = line
+    return g, geoms
+
+
+def test_g5_a_graze_then_a_hug_just_outside_is_refused():
+    """Review round 2: an 800 m member run that grazes the edge once and then runs 0.9 m OUTSIDE it is not a line lying
+    wholly inside; only a run whose inside part is its whole length (within `RUN_WHOLLY_INSIDE_M`) is."""
+    g, geoms = _one_piece("H:0", [(990, 100), (1001, 101), (999.1, 103), (999.1, 900)], member=True)
+    assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"]["G5"] == 1
+    from pipeline.common import tolerances as T
+    assert G.RUN_WHOLLY_INSIDE_M == T.RUN_WHOLLY_INSIDE_M == 0.5
+
+
+TALL = box(1000, 0, 3000, 3000)
+
+
+def _wiggle(amp=0.5, step=4.0, length=2000.0, x=1000.0):
+    """The reviewer's probe: a boundary river DRAWN wiggling across the edge, +-0.5 m, a crossing every 4 m (each run in
+    or out 4 m, under the dip), for 2 km."""
+    pts, y, k = [], 100.0, 0
+    while y <= 100.0 + length:
+        pts.append((x + (amp if k % 2 else -amp), y))
+        y += step
+        k += 1
+    return pts
+
+
+def test_g6_a_boundary_river_drawn_wiggling_across_the_edge_stops_the_build():
+    """Every crossing is under the dip, so the cutter leaves the line open (grazes are not crossings); the owner's rule
+    is that edge water stays closed. The builder does not decide it: G6 names it."""
+    from pipeline.atlas.splits import clean_cut as CC
+    line = LineString(_wiggle())
+    assert CC.decide_area(line, TALL, TALL.boundary)[1] == [], "the cutter leaves it open"
+    g, geoms = _one_piece("W:0", _wiggle(), member=False)
+    res = G.measure(g, geoms, [(AID, NAME, TALL)])
+    assert res["counts"]["G6"] == 1 and res["checks"]["G6"][0]["grazes"] > 100
+    assert {k: v for k, v in res["counts"].items() if k != "G6"} == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0}
+
+
+def test_g6_a_line_beside_the_edge_with_one_graze_or_none_is_never_inside_and_passes():
+    """Owner 2026-11-26, "Never inside": beside the edge 20 m out, with no graze or one, is an approach, not a boundary
+    river drawn on the edge. A hug shorter than the floor with two grazes passes too."""
+    for coords in ([(980, 100), (980, 2100)], [(990, 100), (1001, 101), (980, 110), (980, 2100)],
+                   [(990, 100), (1001, 101), (999, 102), (1001, 103), (990, 110), (0, 110)]):
+        g, geoms = _one_piece("B:0", coords, member=False)
+        assert G.measure(g, geoms, [(AID, NAME, TALL)])["counts"]["G6"] == 0, coords
 
 
 def test_the_gate_reads_the_cut_rules_numbers():
