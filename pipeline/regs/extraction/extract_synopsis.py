@@ -549,6 +549,9 @@ class FishingSynopsisParser:
         # 1. Keep only the visible characters (T1190: the PDF's painting rules, `visible.py`)
         page, verdict = self.get_cleaned_page(raw_page)
         result = self._rows_of_page(page, raw_page, page_num, save_debug)
+        for note in verdict.notes:
+            # (review of #323) a rule that might hide text but cannot be sure keeps it, and says so: never silent
+            print(f"  [visible] PDF page {page_num}: {note}", file=sys.stderr)
         if verdict.disagreements:
             # pdfplumber placed a glyph elsewhere than MuPDF (and both renderers) draw it: its verdict is sure, its
             # place in the layout is not. Refused where rows are read; said out loud where none are.

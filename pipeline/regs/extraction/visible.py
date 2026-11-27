@@ -55,7 +55,7 @@ ORIGIN_AGREEMENT_PT = 0.6
 #: a glyph box's sample points are pulled in by this share of its size (a glyph's ink lies inside its box)
 SAMPLE_INSET = 0.15
 #: a strike-through line: at most this tall (pt), at least this long (pt), shorter than a rule across a column (pt)
-STRIKE_MAX_HEIGHT, STRIKE_MIN_LENGTH, STRIKE_MAX_LENGTH = 1.2, 2.0, 200.0
+STRIKE_MAX_HEIGHT, STRIKE_MIN_LENGTH = 1.2, 2.0      # (review of #323) no length cap: STRIKE_ON_TEXT keeps rules out
 #: ... crossing the band between these shares of the glyph box's height from its top, over at least half its width,
 #: with at least this share of the line's length lying on glyphs of the line (a strike runs over text, not past it)
 STRIKE_BAND, STRIKE_MIN_OVERLAP, STRIKE_ON_TEXT = (0.35, 0.75), 0.5, 0.6
@@ -84,6 +84,7 @@ class Glyph:
     layer: str
     hidden: List[str] = field(default_factory=list)
     struck: bool = False
+    unsure: List[str] = field(default_factory=list)     # a rule that might hide it but cannot be sure: it stays, named
 
     @property
     def visible(self) -> bool:
@@ -99,6 +100,7 @@ class PageVerdict:
     struck: Set[int]
     disagreements: List[Tuple[int, str, Tuple[float, float], Tuple[float, float]]]
     hidden_reasons: Dict[int, List[str]]
+    notes: List[str] = field(default_factory=list)      # what the method kept because it could not be sure, by kind
 
 
 # ---------------------------------------------------------------- geometry
@@ -186,6 +188,12 @@ class Fill:
     color: Optional[Tuple[float, ...]]
     opaque: bool
     clip: Rect
+    clip_plain: bool = True        # every clip in force is one axis-aligned rectangle (else `clip` is only its box)
+
+    @property
+    def sure_cover(self) -> bool:
+        """It hides what is under it, surely: opaque, and clipped only by rectangles, so `covers_point` is exact."""
+        return self.opaque and self.clip_plain
 
     def covers_point(self, x: float, y: float) -> bool:
         if not (_inside(x, y, self.clip) and _inside(x, y, self.rect)):
@@ -211,12 +219,56 @@ def _trace(page: "pymupdf.Page") -> List[Glyph]:
     return glyphs
 
 
-def _paths(page: "pymupdf.Page", off_layers: frozenset) -> Tuple[List[Fill], List[dict]]:
+def _plain_rect(clip: dict) -> Optional[Rect]:
+    """The clip's region when it is exactly one axis-aligned rectangle (a `re`, an axis-aligned `qu`, or four lines
+    round a rectangle); None for any other path (a triangle, a curve, two rectangles under even-odd: a hole)."""
+    items = clip.get("items") or []
+    if len(items) == 1 and items[0][0] == "re":
+        r = items[0][1]
+        return (r.x0, r.y0, r.x1, r.y1)
+    pts: List[Tuple[float, float]] = []
+    if len(items) == 1 and items[0][0] == "qu":
+        q = items[0][1]
+        pts = [(q.ul.x, q.ul.y), (q.ur.x, q.ur.y), (q.lr.x, q.lr.y), (q.ll.x, q.ll.y)]
+    elif items and all(it[0] == "l" for it in items) and len(items) in (3, 4):
+        pts = [(it[1].x, it[1].y) for it in items] + [(items[-1][2].x, items[-1][2].y)]
+        if len(pts) == 5 and abs(pts[0][0] - pts[4][0]) < 1e-3 and abs(pts[0][1] - pts[4][1]) < 1e-3:
+            pts = pts[:4]
+    if len(pts) != 4:
+        return None
+    xs, ys = sorted({round(p[0], 3) for p in pts}), sorted({round(p[1], 3) for p in pts})
+    corners = {(round(p[0], 3), round(p[1], 3)) for p in pts}
+    if len(xs) != 2 or len(ys) != 2 or corners != {(x, y) for x in xs for y in ys}:
+        return None
+    for (ax, ay), (bx, by) in zip(pts, pts[1:] + pts[:1]):     # each side runs along one axis: no diagonal
+        if abs(ax - bx) > 1e-3 and abs(ay - by) > 1e-3:
+            return None
+    return (xs[0], ys[0], xs[1], ys[1])
+
+
+def _in_force(stack, page_r: Rect) -> Tuple[Rect, bool, bool]:
+    """For a stack of open groups and clips: the clip region (intersected), whether every clip is a plain rectangle
+    (else the region is only an outer box), and whether the groups leave paint opaque (Normal blend, opacity 1)."""
+    clip, plain, opaque = page_r, True, True
+    for _, kind, v in stack:
+        if kind == "clip":
+            rect, box = v
+            clip = _isect(clip, rect if rect is not None else box)
+            plain = plain and rect is not None
+        else:
+            bm, op = v
+            opaque = opaque and bm in ("Normal", "Compatible") and op >= 1.0
+    return clip, plain, opaque
+
+
+def _paths(page: "pymupdf.Page", off_layers: frozenset) -> Tuple[List[Fill], List[dict], List[dict]]:
     """Every filled path with whether it is OPAQUE (Normal blend, opacity 1 all the way up its group stack) and the
-    clip rectangle in force (the clip path's box); plus every painted path, for strike detection. A path in a layer
-    that is off paints nothing and is left out."""
+    clip in force (exact when every clip is a rectangle, else `clip_plain` is False); every painted path, for strike
+    detection; and the drawing list's order of paths and clip/group pushes (`timeline`), which places an image (the
+    bbox log has it, the drawing list does not) among the clips. A path in a layer that is off is left out."""
     fills: List[Fill] = []
     lines: List[dict] = []
+    timeline: List[dict] = []
     page_r = tuple(page.rect)
     stack: List[Tuple[int, str, object]] = []          # (level, kind, value) for the open groups and clips
     for x in page.get_drawings(extended=True):
@@ -226,33 +278,44 @@ def _paths(page: "pymupdf.Page", off_layers: frozenset) -> Tuple[List[Fill], Lis
         t = x["type"]
         if t == "group":
             stack.append((lvl, "group", (x.get("blendmode", "Normal"), x.get("opacity", 1.0))))
+            timeline.append({"push": stack[-1]})
             continue
         if t == "clip":
-            stack.append((lvl, "clip", tuple(x["scissor"])))
+            stack.append((lvl, "clip", (_plain_rect(x), tuple(x["scissor"]))))
+            timeline.append({"push": stack[-1]})
             continue
+        timeline.append({"seqno": x["seqno"], "stack": tuple(stack)})
         if x.get("layer") and x["layer"] in off_layers:
             continue
-        clip = page_r
-        normal, alpha = True, 1.0
-        for _, kind, v in stack:
-            if kind == "clip":
-                clip = _isect(clip, v)
-            else:
-                bm, op = v
-                normal = normal and bm in ("Normal", "Compatible")
-                alpha *= op
+        clip, plain, normal = _in_force(stack, page_r)
         if "f" in t:
             fill = tuple(x["fill"]) if x.get("fill") is not None else None
-            opaque = normal and alpha >= 1.0 and (x.get("fill_opacity") or 0) >= 1.0 and fill is not None
+            opaque = normal and (x.get("fill_opacity") or 0) >= 1.0 and fill is not None
             fills.append(Fill(x["seqno"], tuple(x["rect"]), _subpaths(x["items"]), bool(x.get("even_odd")),
-                              fill, opaque, clip))
+                              fill, opaque, clip, plain))
         lines.append({"seqno": x["seqno"], "rect": tuple(x["rect"])})
-    return fills, lines
+    return fills, lines, timeline
 
 
-def _images(page: "pymupdf.Page", log, off_layers: frozenset) -> List[Tuple[int, Rect, bool]]:
-    """Painted images in paint order (the bbox log's index is MuPDF's seqno) with opaque = a plain image, no mask, in
-    a layer that is on."""
+def _image_clip(seq: int, timeline: List[dict], page_r: Rect) -> Tuple[Rect, bool, bool]:
+    """The region an image painted at `seq` SURELY covers, as (clip, plain, opaque). The drawing list does not hold
+    images, so a clip pushed between the paths on either side of it may or may not be in force: the region is the
+    intersection of EVERY clip that might be (the stacks at both neighbours and every push between them), which is
+    the least the image can paint. A non-rectangular clip or a translucent or blended group among them: not plain."""
+    before = [k for k, e in enumerate(timeline) if "seqno" in e and e["seqno"] < seq]
+    after = [k for k, e in enumerate(timeline) if "seqno" in e and e["seqno"] > seq]
+    i = before[-1] if before else -1
+    j = after[0] if after else len(timeline)
+    maybe = list(timeline[i]["stack"]) if i >= 0 else []
+    maybe += list(timeline[j]["stack"]) if j < len(timeline) else []
+    maybe += [e["push"] for e in timeline[i + 1:j] if "push" in e]
+    return _in_force(maybe, page_r)
+
+
+def _images(page: "pymupdf.Page", log, off_layers: frozenset, timeline: List[dict]) -> List[Tuple[int, Rect, bool, bool]]:
+    """Painted images in paint order (the bbox log's index is MuPDF's seqno): (seqno, the rectangle it SURELY paints,
+    opaque = a plain image with no mask in a layer that is on, sure = its clip and groups are known to be rectangles
+    and opaque; when not sure, the rectangle is only an outer bound)."""
     info = page.get_image_info()
     painted = [(seq, tuple(r), kind, layer) for seq, (kind, r, layer) in enumerate(log)
                if kind in ("fill-image", "fill-imgmask")]
@@ -261,12 +324,14 @@ def _images(page: "pymupdf.Page", log, off_layers: frozenset) -> List[Tuple[int,
         raise PageNotJudged(page.number + 1, f"{len(plain)} images painted but {len(info)} described: cannot tell "
                                              f"which image has a mask")
     out, k = [], 0
+    page_r = tuple(page.rect)
     for seq, r, kind, layer in painted:
         opaque = False
         if kind == "fill-image":
             opaque = not info[k].get("has-mask") and not (layer and layer in off_layers)
             k += 1
-        out.append((seq, r, opaque))
+        clip, plain, normal = _image_clip(seq, timeline, page_r)
+        out.append((seq, _isect(r, clip), opaque, plain and normal))
     return out
 
 
@@ -294,14 +359,15 @@ def judge(page: "pymupdf.Page", off_layers: frozenset = frozenset()) -> List[Gly
     of layers that are off too (as pdfplumber's chars do); `off_layers` names the layers off in the default view."""
     crop = tuple(page.cropbox)
     glyphs = _trace(page)
-    fills, lines = _paths(page, off_layers)
+    fills, lines, timeline = _paths(page, off_layers)
     log = page.get_bboxlog(layers=True)
-    images = _images(page, log, off_layers)
+    images = _images(page, log, off_layers, timeline)
     clipped = _clipped_origins(page)
     painted_other = [(seq, tuple(r)) for seq, (kind, r, layer) in enumerate(log)
                      if kind in ("fill-image", "fill-imgmask", "fill-shade", "stroke-path", "fill-path")
                      and not (layer and layer in off_layers)]
-    opaque_fills = [f for f in fills if f.opaque]
+    opaque_fills = [f for f in fills if f.sure_cover]
+    maybe_fills = [f for f in fills if f.opaque]        # opaque, but some under a clip that is not a rectangle
 
     for g in glyphs:
         b = g.bbox
@@ -321,10 +387,16 @@ def judge(page: "pymupdf.Page", off_layers: frozenset = frozenset()) -> List[Gly
         later = [f for f in opaque_fills if f.seqno > g.seqno and _overlap(f.rect, b)]
         if later and all(any(f.covers_point(x, y) for f in later) for x, y in _samples(b)):
             g.hidden.append("covered")
-        for seq, r, opaque in images:
+        else:
+            maybe = [f for f in maybe_fills if f.seqno > g.seqno and _overlap(f.rect, b)]
+            if maybe and all(any(f.covers_point(x, y) for f in maybe) for x, y in _samples(b)):
+                g.unsure.append("fill-under-a-clip-path")   # covered only if the clip's box were the clip: kept
+        for seq, r, opaque, sure in images:
             if opaque and seq > g.seqno and r[0] <= b[0] and r[1] <= b[1] and r[2] >= b[2] and r[3] >= b[3]:
-                g.hidden.append("image")
-                break
+                if sure:
+                    g.hidden.append("image")
+                    break
+                g.unsure.append("image-under-a-clip-path")
 
     # overdrawn: a later copy of the same glyph at the same origin, in ANOTHER span (a ligature's parts share an
     # origin inside one span), wholly covers the earlier one
@@ -345,7 +417,7 @@ def judge(page: "pymupdf.Page", off_layers: frozenset = frozenset()) -> List[Gly
             continue
         b = g.bbox
         under = None
-        for f in fills:                                     # any fill: a Multiply fill over white shows its colour
+        for f in fills:
             if f.seqno < g.seqno and f.color is not None and f.covers_box(b):
                 under = f                                   # the topmost (last) one
         top = under.seqno if under is not None else -1
@@ -355,7 +427,12 @@ def judge(page: "pymupdf.Page", off_layers: frozenset = frozenset()) -> List[Gly
             continue
         bg = under.color if under is not None else (1.0,) * len(g.color)     # the page itself is white
         if len(bg) == len(g.color) and all(round(a, 4) == round(c, 4) for a, c in zip(bg, g.color)):
-            g.hidden.append("same-colour")
+            # only an opaque Normal fill, exactly clipped, IS that colour on the page: a translucent or blended one
+            # shows a mix of it and what lies under it, so text of its nominal colour may well be seen
+            if under is None or under.sure_cover:
+                g.hidden.append("same-colour")
+            else:
+                g.unsure.append("same-colour-as-a-translucent-or-blended-fill")
 
     # a space whose span shows nothing else
     by_seq: Dict[int, List[Glyph]] = {}
@@ -373,14 +450,15 @@ def judge(page: "pymupdf.Page", off_layers: frozenset = frozenset()) -> List[Gly
 
 def _mark_strikes(glyphs: List[Glyph], lines: List[dict], fills: List[Fill]) -> None:
     """A strike-through: a thin horizontal path (stroke or fill) painted after a visible glyph, itself visible, crossing
-    the glyph's middle band over at least half its width and lying mostly on glyphs of that line."""
+    the glyph's middle band over at least half its width and lying mostly on glyphs of that line. The same line painted
+    BEFORE the glyph is under it: maybe a strike the text covers, maybe a rule; not marked, named (`possible-strike`)."""
     def shown(s) -> bool:
         r = s["rect"]
         xm, ym = (r[0] + r[2]) / 2, (r[1] + r[3]) / 2
         return not any(f.seqno > s["seqno"] and f.covers_point(xm, ym) for f in fills)
 
     thin = [s for s in lines if (s["rect"][3] - s["rect"][1]) <= STRIKE_MAX_HEIGHT
-            and STRIKE_MIN_LENGTH <= (s["rect"][2] - s["rect"][0]) < STRIKE_MAX_LENGTH and shown(s)]
+            and STRIKE_MIN_LENGTH <= (s["rect"][2] - s["rect"][0]) and shown(s)]
     if not thin:
         return
     vis = [g for g in glyphs if g.visible and g.text.strip()]
@@ -391,15 +469,18 @@ def _mark_strikes(glyphs: List[Glyph], lines: List[dict], fills: List[Fill]) -> 
         for s in thin:
             r = s["rect"]
             ym = (r[1] + r[3]) / 2
-            if s["seqno"] < g.seqno or not (lo <= ym <= hi):
-                continue                                    # painted before the glyph: under it, not through it
-            if min(x1, r[2]) - max(x0, r[0]) < STRIKE_MIN_OVERLAP * w:
+            if not (lo <= ym <= hi) or min(x1, r[2]) - max(x0, r[0]) < STRIKE_MIN_OVERLAP * w:
                 continue
             on = sum(max(0.0, min(o.bbox[2], r[2]) - max(o.bbox[0], r[0])) for o in vis
                      if o.bbox[1] <= ym <= o.bbox[3])
-            if on >= STRIKE_ON_TEXT * (r[2] - r[0]):
-                g.struck = True
-                break
+            if on < STRIKE_ON_TEXT * (r[2] - r[0]):
+                continue
+            if s["seqno"] < g.seqno:                        # painted before the glyph: under it
+                if "possible-strike" not in g.unsure:
+                    g.unsure.append("possible-strike")
+                continue
+            g.struck = True
+            break
 
 
 # ---------------------------------------------------------------- pairing with pdfplumber's chars
@@ -466,7 +547,8 @@ def _mupdf_doc(pdf) -> Tuple["pymupdf.Document", frozenset]:
     got = _DOCS.get(pdf)
     if got is None:
         if getattr(pdf, "path", None) is not None:
-            data = open(pdf.path, "rb").read()
+            with open(pdf.path, "rb") as fh:
+                data = fh.read()
         else:
             pos = pdf.stream.tell()
             pdf.stream.seek(0)
@@ -487,9 +569,12 @@ def page_verdict(plumber_page) -> PageVerdict:
     chars = plumber_page.chars
     paired = pair(glyphs, chars, plumber_page.height, n)
     visible, struck, reasons, disagree = set(), set(), {}, []
+    unsure: Dict[str, List[str]] = {}
     for i, (c, g) in enumerate(zip(chars, paired)):
         if g.visible:
             visible.add(i)
+            for kind in g.unsure:
+                unsure.setdefault(kind, []).append(c["text"])
         else:
             reasons[i] = list(g.hidden)
         if g.struck:
@@ -498,4 +583,5 @@ def page_verdict(plumber_page) -> PageVerdict:
         if abs(ox - g.origin[0]) > ORIGIN_AGREEMENT_PT or abs(oy - g.origin[1]) > ORIGIN_AGREEMENT_PT:
             disagree.append((i, c["text"], (round(ox, 2), round(oy, 2)),
                              (round(g.origin[0], 2), round(g.origin[1], 2))))
-    return PageVerdict(n, visible, struck, disagree, reasons)
+    notes = [f"{len(t)} char(s) kept, {kind}: {''.join(t).strip()[:60]!r}" for kind, t in sorted(unsure.items())]
+    return PageVerdict(n, visible, struck, disagree, reasons, notes)

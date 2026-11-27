@@ -160,6 +160,33 @@ def cut(raw_path: Path, boxes_path: Path, pdf_path: Path, *, book: str, commit: 
     }
 
 
+def manifest_from_reading(got: List[Dict[str, Any]], pdf_sha: str, *, book: str, commit: str,
+                          note: str) -> Dict[str, Any]:
+    """(T1190) A manifest from a READING (`extract()`'s {key, box, row} list, as `dump` writes it) instead of an
+    extraction on disk: how one extractor read one PDF, so another extractor's reading of the same PDF is checked
+    against it with `check --manifest`. Rows are compared as the gate compares them (`canonical`: the text too)."""
+    rows: Dict[str, Dict[str, Any]] = {}
+    counts: Dict[str, int] = {}
+    for g in got:
+        r = g["row"]
+        if g["key"] in rows:
+            raise SystemExit(f"manifest: two rows at {g['key']}")
+        rows[g["key"]] = {"image": r["image"], "water": r["water"], "sha": row_sha(r), "fields": field_shas(r)}
+        counts[str(r["pdf_page"])] = counts.get(str(r["pdf_page"]), 0) + 1
+    return {
+        "_about": ("T1190: one extractor's READING of one PDF, row by row (key = PDF page + row box), cut by "
+                   "`python -m pipeline.regs.extraction.baseline cut-reading` from a `dump`. Checked against with "
+                   "`baseline check --manifest <this> --accepted <its accepted_diffs.json> --pdf <the PDF>`. Not the "
+                   "current book's gate (that is baseline/<book>.json)."),
+        "version": VERSION, "book": book, "pdf_sha256": pdf_sha, "raw_data_sha256": None,
+        "extractor": {"commit": commit, "note": note},
+        "compared": ("canonical(row) over " + ", ".join(FIELDS) + "; symbols as a sorted set, everything else "
+                     "exact (whitespace included)"),
+        "rows_count": len(rows), "pages": dict(sorted(counts.items(), key=lambda kv: int(kv[0]))),
+        "rows": dict(sorted(rows.items())),
+    }
+
+
 def write_json(doc: Dict[str, Any], path: Path, one_line_key: Optional[str] = "rows") -> None:
     """Indented, but each row of `one_line_key` on one line: a diff of the baseline reads one line per row."""
     if one_line_key and isinstance(doc.get(one_line_key), dict):
@@ -405,6 +432,16 @@ def main(argv=None) -> int:
     k.add_argument("--out", type=Path, default=DEFAULT_MANIFEST)
     k.add_argument("--accepted-out", type=Path, default=DEFAULT_ACCEPTED,
                    help="reset to an empty list for the new baseline")
+    d = sub.add_parser("dump", help="(T1190) this code's reading of a PDF, row by row, as JSON (whole book = heavy)")
+    d.add_argument("--pdf", type=Path, required=True)
+    d.add_argument("--out", type=Path, required=True)
+    d.add_argument("--workers", type=int, default=4)
+    r = sub.add_parser("cut-reading", help="(T1190) a manifest + empty accepted diffs from a dump")
+    r.add_argument("--dump", type=Path, required=True, help="a `dump` file: {pdf_sha256, rows: [{key, box, row}]}")
+    r.add_argument("--book", required=True)
+    r.add_argument("--commit", required=True, help="the extractor commit that made the dump")
+    r.add_argument("--note", default="")
+    r.add_argument("--out-dir", type=Path, required=True, help="writes <out-dir>/reading.json + accepted_diffs.json")
     f = sub.add_parser("fixture", help="capture rows' characters for the fast tier")
     f.add_argument("--rows", nargs="+", required=True, help="row image keys (page_018_row_021.png)")
     f.add_argument("--pdf", type=Path, default=None)
@@ -413,6 +450,20 @@ def main(argv=None) -> int:
     if a.cmd == "check":
         pdf = a.pdf or book_pdf(json.loads(a.manifest.read_text(encoding="utf-8")))
         return check(a.manifest, a.accepted, pdf, pages=a.pages, workers=a.workers, report=a.report)
+    if a.cmd == "dump":
+        got = extract(a.pdf, None, a.workers)
+        write_json({"pdf": a.pdf.name, "pdf_sha256": file_sha(a.pdf), "rows": got}, a.out, one_line_key=None)
+        print(f"dump: {len(got)} rows of {a.pdf.name} -> {a.out}")
+        return 0
+    if a.cmd == "cut-reading":
+        dump = json.loads(a.dump.read_text(encoding="utf-8"))
+        doc = manifest_from_reading(dump["rows"], dump["pdf_sha256"], book=a.book, commit=a.commit, note=a.note)
+        a.out_dir.mkdir(parents=True, exist_ok=True)
+        write_json(doc, a.out_dir / "reading.json")
+        write_json({"_about": ACCEPTED_ABOUT, "baseline": "reading.json", "baseline_rows": rows_digest(doc),
+                    "accepted": []}, a.out_dir / "accepted_diffs.json", one_line_key=None)
+        print(f"cut-reading: {doc['rows_count']} rows on {len(doc['pages'])} pages -> {a.out_dir}")
+        return 0
     from pipeline.common.synopsis_pages import default_pdf
     pdf = a.pdf or Path(default_pdf())
     if a.cmd == "cut":
