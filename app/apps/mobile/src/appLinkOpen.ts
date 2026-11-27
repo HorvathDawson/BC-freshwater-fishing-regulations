@@ -14,6 +14,8 @@ import { START_NOTICE_WORDS, type AppLinkOpen, type RegsStart } from "@app/ui";
 export interface OpenRequest {
   item: string | null; n: number; view?: "regs" | "conditions" | "map"; part?: number | null;
   fit?: readonly [number, number, number, number];
+  /** (T1194) a gauge's own page (`/?gauge=<station>`): the Conditions map with that page over it */
+  gauge?: string;
   /** (T1038) the day it opens on (null: today); absent: the day is left as it is (a notification's tap) */
   day?: Date | null;
   /** (T1038) the Conditions horizon it opens on; absent: left as it is */
@@ -41,6 +43,7 @@ export function applyAppLink(o: AppLinkOpen, d: AppLinkDeps): void {
   const days = { day: o.day, horizon: o.horizon ?? 0 };
   d.setOpenRequest((r) => ("home" in o ? { item: null, home: true, ...days, n: (r?.n ?? 0) + 1 }
                           : "fit" in o ? { item: null, fit: o.fit, ...days, n: (r?.n ?? 0) + 1 }
+                          : "gauge" in o ? { item: null, gauge: o.gauge, ...days, n: (r?.n ?? 0) + 1 }
                                       : { item: o.item, view: o.view, part: o.part, ...days, regs: o.regs ?? undefined,
                                           ...(o.whole ? { whole: true } : {}), n: (r?.n ?? 0) + 1 }));
 }

@@ -329,12 +329,11 @@ def test_the_curated_tree_loads_without_the_marks_store(tmp_path, monkeypatch):
     from pipeline.common import curated as C
     monkeypatch.delenv(C.ROOT_ENV, raising=False)
     blob = yaml.safe_load(C.CONFIG.read_text(encoding="utf-8"))
-    gone = tmp_path / "no-marks.jsonl"
-    blob["curated"]["review"]["marks"] = str(gone)
+    blob["curated"]["review"]["marks"] = "review/no-marks.jsonl"     # (T1192) a name under the curated root
     cfg = tmp_path / "config.yaml"
     cfg.write_text(yaml.safe_dump(blob))
     got = C.load(cfg)
-    assert got.review.marks == gone and not gone.exists()
+    assert got.review.marks == got.base / "review" / "no-marks.jsonl" and not got.review.marks.exists()
 
 
 def test_a_live_build_keeps_latests_reach_run_before_reach_reruns(tmp_path, monkeypatch, capsys):

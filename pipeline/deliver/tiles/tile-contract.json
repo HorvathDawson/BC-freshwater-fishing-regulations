@@ -26,7 +26,7 @@
       "featureId": null,
       "decorative": true,
       "mvtId": false,
-      "minzoom": 8,
+      "minzoom": 4,
       "maxzoom": 13,
       "ladder": "none",
       "flows": null
@@ -45,6 +45,20 @@
       "minzoom": 4,
       "maxzoom": 13,
       "ladder": "area",
+      "flows": null
+    },
+    "lake_name": {
+      "geometry": "point",
+      "attrs": [
+        "name",
+        "area_m2"
+      ],
+      "featureId": null,
+      "decorative": true,
+      "mvtId": false,
+      "minzoom": 4,
+      "maxzoom": 7,
+      "ladder": "none",
       "flows": null
     },
     "under_lake": {

@@ -68,6 +68,8 @@ export interface CrashContext extends CrashWhere { app: string; env: string; pla
 export function routeKind(r: Route | null | undefined): RouteKind {
   if (!r) return "other";
   if (r.mode === "water") return "water";
+  // (T1194) a gauge's page is opened over the Conditions map and is reported as Conditions (the wire's kinds are the worker's)
+  if (r.mode === "gauge") return "conditions";
   switch (r.tab) {
     case "map": return "map";
     case "conditions": return "conditions";
@@ -86,6 +88,7 @@ export function crashWhere(r: Route | null | undefined): CrashWhere {
   if (!r) return NO_WHERE;
   const f = waterFrame(r);
   const sheet: CrashSheet | null = r.mode === "water" ? (r.spot ? "spot" : null)
+    : r.mode === "gauge" ? null
     : r.adding ? "adding" : r.spot ? "spot" : r.search ? "search" : null;
   return {
     route: routeKind(r),

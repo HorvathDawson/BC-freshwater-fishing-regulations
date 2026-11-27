@@ -47,7 +47,7 @@ def cut_mode(area_def: dict) -> str | None:
 
 
 def load_area_split_defs(path: str | None = None) -> list[dict]:
-    p = Path(path) if path else CURATED.waters.areas   # curated: a missing file raises (P2)
+    p = Path(path) if path else CURATED.waters.area_closures   # curated: a missing file raises (P2)
     return json.loads(p.read_text()).get("areas", [])
 
 

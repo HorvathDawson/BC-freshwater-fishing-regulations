@@ -50,7 +50,7 @@ function Probe({ system, out }: { system: SystemBack; out: { go?: (a: RouteActio
   out.b = useBack(route, go, system);
   return null;
 }
-const frames = (r: Route) => (r.mode === "water" ? r.stack.map((f) => `${f.item}/${f.view}`) : [`browse:${r.tab}`]);
+const frames = (r: Route) => (r.mode === "water" ? r.stack.map((f) => `${f.item}/${f.view}`) : r.mode === "gauge" ? [`gauge:${r.station}`] : [`browse:${r.tab}`]);
 
 describe("useBack, mounted", () => {
   it("Android's system back pops exactly one frame, and at the browse root hands the press to Android", () => {

@@ -26,6 +26,12 @@
  * section), so it offers Regulations and Conditions (`frameViews`); only the water Map is a named water's. From the Map
  * tab Regulations is in front, from the Conditions map Conditions — the same frame either way.
  *
+ *   gauge    (T1194) ONE GAUGE'S OWN PAGE, opened by a tap on a gauge dot of the Conditions map (or `?gauge=<station>`): the
+ *            station's chart, reading and the waters it serves, with no water latched. `from` is the browse state
+ *            underneath, kept whole (the Conditions tab, its camera in the Shell's ref), so Back returns to the map as left.
+ *            A water opened off the page is a water route whose `via` is this gauge route: Back from it lands HERE. It is
+ *            built only by `openGauge`, and changes no water's lead gauge (the page is not a second lead).
+ *
  * ONE BACK RULE: the views are lateral, not history — in water mode back leaves the water on screen whatever view is in
  * front: to the water the reader flowed in from, else to the browse state underneath, whole (the tab, the open spot,
  * the map camera the Shell keeps). In browse mode back closes what is open on the tab (a spot being added, a spot,
@@ -45,7 +51,7 @@
  */
 import { useReducer } from "react";
 import { WATER_VIEWS, type WaterView } from "@app/core";
-import type { ItemId, SectionId } from "@app/data";
+import type { ItemId, SectionId, StationId } from "@app/data";
 
 export type BrowseTab = "map" | "conditions" | "runs" | "spots" | "more";
 /** The tabs search opens over (T48): the maps — (T261) the Runs map too, so its top bar (search, sync, the bell) is
@@ -100,12 +106,19 @@ export interface BrowseRoute {
 export interface WaterRoute {
   mode: "water"; stack: readonly WaterFrame[]; from: BrowseRoute;
   /**
+   * (T1194) The gauge page this water was opened from (the page's "Waters this gauge serves"): back from the first frame,
+   * and ×, return to it, whole (`from` is still the browse state under both). Absent: opened from the map or a search.
+   */
+  via?: GaugeRoute;
+  /**
    * (T131) A saved spot opened OVER the water — its pin tapped on the water's map: one back layer (back is the water as
    * it was). While it is open nothing of the water moves; its tab bar leaves the water for that tab. Absent: none.
    */
   spot?: SpotId;
 }
-export type Route = BrowseRoute | WaterRoute;
+/** (T1194) One gauge's page: the station, over the browse state it was opened from. */
+export interface GaugeRoute { mode: "gauge"; station: StationId; from: BrowseRoute }
+export type Route = BrowseRoute | WaterRoute | GaugeRoute;
 
 export type RouteAction =
   | { type: "tab"; tab: BrowseTab }
@@ -124,6 +137,11 @@ export type RouteAction =
       fromSearch?: boolean;
       /** (T203) The water Map opens framed on the whole water. */
       whole?: boolean }
+  /**
+   * (T1194) A gauge dot tapped on the Conditions map (or `?gauge=`): that gauge's page. Built ONLY by `openGauge`
+   * (openWater.ts). Only from browse mode.
+   */
+  | { type: "openGauge"; station: StationId }
   /** (T48) Open or close search over the map on screen. */
   | { type: "search"; open: boolean }
   /** `parts` (T1140): onto the Map with its list of parts open (`WaterFrame.parts`; on another view it means nothing). */
@@ -238,6 +256,8 @@ export function reduce(r: Route, a: RouteAction): Route {
         const f = opened(a);
         return f === null ? r : { mode: "water", from: a.fromSearch ? { ...r, search: false } : r, stack: [f] };
       }
+      // (T1194) the gauge's page over the browse state, search closed (a tap on a dot beside open results ends them)
+      case "openGauge": return { mode: "gauge", station: a.station, from: r.search ? { ...r, search: false } : r };
       // a spot opens over the map it was picked on (the rail's menu); back returns to that map
       case "openSpot": return { ...r, spot: a.id, adding: null, search: false };
       case "savedSpot": return { mode: "browse", tab: "spots", spot: a.id, adding: null, search: false };
@@ -251,11 +271,23 @@ export function reduce(r: Route, a: RouteAction): Route {
       default: return r;            // view / part / flowInto / cross mean nothing without a water
     }
   }
+  if (r.mode === "gauge") {         // (T1194) the page: back and × return to the browse state, whole; a water opens over it
+    switch (a.type) {
+      case "back": case "close": return r.from;
+      case "tab": return reduce(r.from, a);
+      case "openGauge": return { ...r, station: a.station };
+      case "openWater": {
+        const f = opened(a);
+        return f === null ? r : { mode: "water", from: r.from, via: r, stack: [f] };
+      }
+      default: return r;
+    }
+  }
   if (r.spot !== undefined) {       // (T131) a spot over the water: back drops it; × and a tab leave the water too
     switch (a.type) {
       case "openSpot": return { ...r, spot: a.id };
       case "back": { const { spot: _gone, ...water } = r; return water; }
-      case "close": return r.from;
+      case "close": return r.via ?? r.from;
       case "tab": return reduce(r.from, a);
       default: return r;
     }
@@ -280,7 +312,7 @@ export function reduce(r: Route, a: RouteAction): Route {
       return withTop(r, { whole: t.whole ? undefined : true });
     }
     case "carry":
-      return a.stack.length ? { ...r, stack: a.stack.slice(-STACK_CAP) } : r.from;
+      return a.stack.length ? { ...r, stack: a.stack.slice(-STACK_CAP) } : r.via ?? r.from;
     case "flowInto": {
       const f = opened({ type: "openWater", item: a.item, part: a.part });
       return f === null ? r : enter(r, f);
@@ -295,8 +327,8 @@ export function reduce(r: Route, a: RouteAction): Route {
     }
     case "back":                    // the views are lateral: back leaves the water, whatever view is in front
       if (r.stack.length > 1) return { ...r, stack: r.stack.slice(0, -1) };
-      return r.from;
-    case "close": return r.from;    // every water at once
+      return r.via ?? r.from;       // (T1194) the gauge page it was opened from, else the browse state
+    case "close": return r.via ?? r.from;    // every water at once
     default: return r;              // a tab, search or adding a spot is impossible: there is no bar
   }
 }
