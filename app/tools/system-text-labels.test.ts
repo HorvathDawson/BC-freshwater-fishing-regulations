@@ -127,6 +127,8 @@ describe("T1201 fixed-size labels at a larger system text size, laid out in Chro
   }, 120_000);
 });
 
-describe("T1201 pictures: the whole map rail (set T1201_SHOTS)", () => {
-  it.skipIf(!process.env.T1201_SHOTS)("lays the rail out at 1, 1.15 and 1.3", () => { laidOut("rail"); });
+describe("T1201 the switch in place: the whole map rail (T1201_SHOTS saves its pictures)", () => {
+  it("under locate and layers the switch's labels are still one line and whole at 1, 1.15 and 1.3", () => {
+    expect(faults(laidOut("rail"), [SALMON_WORDS.toggle.rail.standard, SALMON_WORDS.toggle.rail.salmon])).toEqual([]);
+  }, 120_000);
 });
