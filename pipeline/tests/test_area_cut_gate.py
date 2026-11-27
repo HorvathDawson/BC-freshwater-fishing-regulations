@@ -112,6 +112,13 @@ def test_g5_a_member_run_with_no_real_inside_water_stops_the_build():
     assert G.measure(*graph_along(1003.0), [(AID, NAME, RESERVE)])["counts"]["G5"] == 0
 
 
+def test_g5_a_short_line_wholly_inside_is_inside():
+    """The side build of 2026-11-27 stopped on four: FWA's own lines 1.5-3.8 m long lying wholly inside a park (between
+    two lakes). A run wholly inside is inside however short; G5 is for a run the polygon only brushes."""
+    g, geoms = _graph(("X:1500", 1500, 1502.9, True, None, None))
+    assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"]["G5"] == 0
+
+
 def test_the_gate_reads_the_cut_rules_numbers():
     from pipeline.atlas.splits import clean_cut as CC
     from pipeline.common import tolerances as T

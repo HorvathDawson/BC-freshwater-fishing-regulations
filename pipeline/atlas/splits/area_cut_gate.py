@@ -13,8 +13,8 @@ stops the build on any of:
   G4  the naming design's rule, that a cut area's part is wholly in or out: a piece that is NOT a member with an inside
       run of at least `DEEP_M` making a `SHARE` of its length, or a MEMBER piece with no line within `EDGE_M` of the
       polygon (a member the geometry does not confirm). A piece straddling its cutter's inside is the sliver gate's.
-  G5  a RUN of member pieces (consecutive on one blue line) holding no run inside the polygon at least `DEEP_M` long: a
-      line that never truly crosses — grazes under the dip are positional error — made inside by the band (review of
+  G5  a RUN of member pieces (consecutive on one blue line) holding no run inside the polygon at least `DEEP_M` long, and
+      not lying wholly inside (a run wholly inside is inside however short): a line that never truly crosses — grazes under the dip are positional error — made inside by the band (review of
       T1199: a 2 m graze once closed 2 km of a creek hugging the edge 20 m out).
 
 Lakes and wetlands are never cut and keep the outline test (`border.mark_inside_areas`); they are not checked here.
@@ -46,6 +46,9 @@ FLOOR_SLACK_M = _tol.AT_CUT_M
 #: run this much under `DEEP_M` is that run computed twice (the cutter's measure against the pieces' geometry).
 _MEET_M = _tol.SAME_PLACE_M
 _RUN_NOISE_M = 1e-3
+#: G5: a run within this of the polygon everywhere lies wholly inside it (`tolerances.AT_CUT_M`: a line ending on a lake
+#: hole's edge or on the edge itself)
+_WHOLLY_IN_M = _tol.AT_CUT_M
 #: How many offenders of each check are printed (all are written).
 _PRINT = 25
 
@@ -85,6 +88,8 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
             continue
         shapely.prepare(poly)
         band = _cc.edge_band(poly, edge_m)
+        inside_near = poly.buffer(_WHOLLY_IN_M)
+        shapely.prepare(inside_near)
         deep = poly.buffer(-DEEP_M)
         shapely.prepare(deep)
         c = per.setdefault(aid, {"members": 0, "member_m": 0.0, "member_beyond_band_m": 0.0, "near_outside": 0})
@@ -125,7 +130,9 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
                 part = shapely.line_merge(shapely.union_all([geoms[n.node_id] for n in run])).intersection(poly)
                 part = shapely.line_merge(part) if part.geom_type == "MultiLineString" else part
                 longest = max((p.length for p in _parts(part) if not p.is_empty), default=0.0)
-                if longest < DEEP_M - _RUN_NOISE_M:
+                # a run lying wholly inside is inside however short (FWA's own 1.5 m line between two lakes in a park)
+                if longest < DEEP_M - _RUN_NOISE_M and not inside_near.covers(
+                        shapely.union_all([geoms[n.node_id] for n in run])):
                     checks["G5"].append({"area": aid, "blk": blk, "from_m": round(run[0].down_m, 1),
                                          "to_m": round(run[-1].up_m, 1), "longest_inside_run_m": round(longest, 2)})
         if tree is None:
