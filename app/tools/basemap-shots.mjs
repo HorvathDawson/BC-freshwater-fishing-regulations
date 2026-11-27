@@ -87,9 +87,10 @@ function sendFile(req, res, path, type) {
 
 const PAGE = `<!doctype html><html><head><meta charset="utf-8">
 <style>body{margin:0;display:flex}div.m{position:relative}</style>
-<script src="/maplibre-gl.js"></script><script src="/pmtiles.js"></script></head><body>
+<script src="/pmtiles.js"></script></head><body>
 <div class="m" id="a"></div><div class="m" id="b"></div>
-<script>
+<script type="module">
+import * as maplibregl from "/maplibre-gl.mjs";
 (async () => {
   const cfg = await (await fetch("/config.json")).json();
   const proto = new pmtiles.Protocol();
@@ -142,7 +143,10 @@ async function main() {
   let finish;
   const done = new Promise((r) => { finish = r; });
   const files = { "/before.pmtiles": [before, "application/octet-stream"], "/after.pmtiles": [after, "application/octet-stream"],
-    "/maplibre-gl.js": [join(APP, "node_modules/maplibre-gl/dist/maplibre-gl.js"), "text/javascript"],
+    // (T1252) GL 6 is ES modules only: the page imports maplibre-gl.mjs, which starts its worker from beside itself
+    "/maplibre-gl.mjs": [join(APP, "node_modules/maplibre-gl/dist/maplibre-gl.mjs"), "text/javascript"],
+    "/maplibre-gl-shared.mjs": [join(APP, "node_modules/maplibre-gl/dist/maplibre-gl-shared.mjs"), "text/javascript"],
+    "/maplibre-gl-worker.mjs": [join(APP, "node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs"), "text/javascript"],
     "/pmtiles.js": [join(APP, "node_modules/pmtiles/dist/pmtiles.js"), "text/javascript"] };
   const server = createServer((req, res) => {
     if (req.method === "POST") {

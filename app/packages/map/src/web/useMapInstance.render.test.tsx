@@ -9,8 +9,10 @@ import type { MapProps } from "../map-props";
 import type { WebMapRefs } from "./refs";
 
 vi.mock("maplibre-gl", () => ({
-  Map: class { constructor() { throw new Error(JSON.stringify({ statusMessage: "no GPU", type: "webglcontextcreationerror", message: "Failed to initialize WebGL" })); } },
-  addProtocol: () => {},
+  // (T1252) GL 6's no-WebGL error: a GPUInitializationError carrying the browser's reason
+  Map: class { constructor() { throw Object.assign(new Error("WebGL2 is required to display this map."),
+                                                   { name: "GPUInitializationError", statusMessage: "no GPU" }); } },
+  addProtocol: () => {}, setWorkerUrl: () => {}, getVersion: () => "6.19.0",
 }));
 const { useMapInstance } = await import("./useMapInstance");
 
@@ -27,7 +29,7 @@ describe("T1005 useMapInstance with no WebGL", () => {
     renderHook(() => useMapInstance(refs, { at, theme: "light", modes: undefined, gauges: undefined, initial: { lon: -123, lat: 49, zoom: 6 },
                                             onError: (e: Error) => { errors.push(e); } } as never, (u) => { said.push(u); }));
     expect(said).toEqual([true]);
-    expect(errors.map((e) => `${e.name}: ${e.message}`)).toEqual(["MapUnavailable: Failed to initialize WebGL (webglcontextcreationerror: no GPU)"]);
+    expect(errors.map((e) => `${e.name}: ${e.message}`)).toEqual(["MapUnavailable: Failed to initialize WebGL (no GPU)"]);
     expect(refs.map.current).toBeNull();
   });
 
@@ -46,6 +48,6 @@ describe("T1005 useMapInstance with no WebGL", () => {
     unsink();
     expect(said).toEqual([true, true]);
     expect(failures.map((e) => `${(e as Error).name}: ${(e as Error).message}`))
-      .toEqual(["MapUnavailable: Failed to initialize WebGL (webglcontextcreationerror: no GPU)"]);
+      .toEqual(["MapUnavailable: Failed to initialize WebGL (no GPU)"]);
   });
 });

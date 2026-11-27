@@ -35,6 +35,9 @@ class FakeGl {
   private json: { layers: { id: string; source?: string; minzoom?: number }[] };
   touchZoomRotate = { disableRotation: () => {} };
   keyboard = { disableRotation: () => {} };
+  /** (T1252) GL 6 asks this for an image a layer wants and the style lacks (`styleimagemissing` only notifies) */
+  missing: ((id: string) => void) | null = null;
+  setMissingStyleImageResolver(fn: (id: string) => void) { this.missing = fn; }
   constructor(opts: Record<string, unknown>) {
     gl = this;
     this.json = opts.style as FakeGl["json"];
@@ -97,7 +100,8 @@ class FakeGl {
 class Control { constructor(_o?: unknown) {} }
 vi.mock("maplibre-gl", () => ({ Map: FakeGl, NavigationControl: Control, ScaleControl: Control,
                                 Marker: class { setLngLat() { return this; } addTo() { return this; } remove() {} },
-                                Popup: class { setText() { return this; } }, addProtocol: () => {} }));
+                                Popup: class { setText() { return this; } }, addProtocol: () => {},
+                                setWorkerUrl: () => {}, getVersion: () => "6.19.0" }));
 vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
 
 const { Map: WebMap } = await import("./Map.web");

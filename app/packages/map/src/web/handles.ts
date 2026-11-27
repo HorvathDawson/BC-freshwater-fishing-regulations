@@ -37,7 +37,7 @@ export const copyTarget = (m: maplibregl.Map): CopyTarget => ({
 /**
  * THE PUBLIC ROUTE to the sections the map holds: `querySourceFeatures` per source-layer, over every tile it has
  * rendered. Heavier than reading one tile's ids (`web/tileIds.ts`), and blind to tiles in the out-of-view cache, but it
- * uses nothing private — it is what runs when 5.24's internals are not there.
+ * uses nothing private — it is what runs when GL's internals are not there.
  */
 export function publicSections(m: maplibregl.Map): TileSections {
   const out: Record<string, number[]> = {};

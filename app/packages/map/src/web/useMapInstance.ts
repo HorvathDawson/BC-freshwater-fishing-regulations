@@ -125,7 +125,8 @@ export function useMapInstance(refs: WebMapRefs,
     // offline device fails every imagery tile, and the caller answers that by drawing the map's own ground. The status
     // travels (GL JS's AJAXError carries it; a network failure has none).
     m.on("error", (e) => {
-      const ev = e as { sourceId?: string; error?: Error & { status?: number } };
+      // (T1252) GL 6 types the event's `error` as `{ message }`; the source's id and the AJAXError's status ride on it
+      const ev = e as typeof e & { sourceId?: string; error?: { status?: number } };
       if (ev.sourceId === IMAGERY.source && imageryError.current) {
         imageryError.current(typeof ev.error?.status === "number" ? ev.error.status : undefined);
         return;
@@ -144,13 +145,15 @@ export function useMapInstance(refs: WebMapRefs,
      * MapLibre's response to a missing `icon-image` is to draw the text and log a warning,
      * so every label rendered as bare text on the basemap and nothing looked broken.
      *
-     * `styleimagemissing` is the belt to that brace: MapLibre fires it the moment a layer
+     * The missing-image resolver is the belt to that brace: MapLibre asks it the moment a layer
      * asks for an image it does not have, so the pill arrives however the ordering falls.
+     * (T1252) GL 6 made `styleimagemissing` notify-only — an image added in its listener no longer
+     * answers the request that fired it — so the answer is the resolver, which GL awaits first.
      */
     const addPill = () => addImages(m, themeNow.current);
     pill.current = addPill;
-    m.on("styleimagemissing", (e: { id: string }) => {
-      if (isGeneratedImage(e.id))
+    m.setMissingStyleImageResolver((id) => {
+      if (isGeneratedImage(id))
         pill.current?.();
     });
     m.on("load", addPill);
@@ -167,7 +170,7 @@ export function useMapInstance(refs: WebMapRefs,
      * The status used to arrive after `idle` (every tile in, the 300 ms symbol fade over) and a React round trip —
      * half a second of grey on every new tile. Synchronous, no React, ids already seen skipped: about 0.1 ms a pan.
      *
-     * The ids come from 5.24's internals (`web/tileIds.ts`, pinned by a test). Where they are not there, the PUBLIC
+     * The ids come from GL's internals (`web/tileIds.ts`, pinned by a test). Where they are not there, the PUBLIC
      * route: one `querySourceFeatures` scan per burst of tile events, in a microtask — still before the next frame —
      * and on `moveend` as well, because the public route cannot see a cached tile coming back into view.
      */
