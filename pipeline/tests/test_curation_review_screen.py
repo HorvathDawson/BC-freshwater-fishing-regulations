@@ -370,9 +370,12 @@ def test_re_resolve_writes_only_the_resolution_and_never_changes_a_match(env, re
     after = _snapshot(env["root"])
     changed = _changed(before, after)
     backups = [k for k in changed if k != key]
-    if burst:
+    # the branch follows the backup folder, not the clock: a second Re-resolve more than BURST_S after the first
+    # takes a new snapshot, one inside the burst reuses the first's
+    fresh = [b for b in (env["root"] / "backups").glob("*-inseason-resolve") if b not in burst]
+    if not fresh:
         # the burst's one snapshot, unchanged, still holds the resolution from before the first write
-        assert key in changed and backups == [], changed
+        assert burst and key in changed and backups == [], changed
         assert sorted((env["root"] / "backups").glob("*-inseason-resolve")) == burst
         (snap,) = burst[0].rglob("resolved.json")
         assert snap.read_bytes() == original, "the burst's backup is not the file as it was before the burst"
