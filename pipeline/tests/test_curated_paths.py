@@ -144,6 +144,11 @@ BLOCKS = [()] + [k for k, block in _keys(_real_blob()) if block]
 LEAVES = [k for k, block in _keys(_real_blob()) if not block]
 
 
+#: the refusal's hint for a key stated in a block of the schema's names (`C.DECLARE_HERE`, typed out: the pin)
+DECLARE = (" (a new file's name is declared in pipeline/common/curated.py: a field there with `At(\"<name>\")` and "
+           "its note)")
+
+
 def _edit(tmp_path, keys, fn):
     """A temp config.yaml: the real one with `fn(parent, last)` applied at `keys` (a block the file does not state, as
     `curated`, is stated for it)."""
@@ -172,7 +177,8 @@ class TestTheWholeFileIsStrict:
         dotted = ".".join((*at, "t1192_typo"))
         with pytest.raises(C.ConfigError) as e:
             C.parse_config(p)
-        assert str(e.value).splitlines() == [f"{p}: unknown key {dotted}"]
+        # `source` holds the schema's names beside the gpkg: a new key there is a file stated in the wrong place
+        assert str(e.value).splitlines() == [f"{p}: unknown key {dotted}" + (DECLARE if at == ("source",) else "")]
 
     @pytest.mark.parametrize("at", KEYS, ids=".".join)
     def test_a_missing_key_is_refused_naming_it(self, tmp_path, at):
@@ -188,7 +194,56 @@ class TestTheWholeFileIsStrict:
         p = _edit(tmp_path, (*at, "t1192_typo"), lambda n, last: n.__setitem__(last, "x"))
         with pytest.raises(C.ConfigError) as e:
             C.parse_config(p)
-        assert str(e.value).splitlines() == [f"{p}: unknown key {'.'.join((*at, 't1192_typo'))}"]
+        assert str(e.value).splitlines() == [f"{p}: unknown key {'.'.join((*at, 't1192_typo'))}{DECLARE}"]
+
+    def test_a_new_file_stated_in_config_yaml_is_told_where_files_are_declared(self, tmp_path):
+        """A person adding a file the way config.yaml once took one (`curated.waters.<stem>: "waters/<file>"`) is
+        refused with where it goes now; a key outside the schema's blocks gets no such hint."""
+        p = _edit(tmp_path, ("curated", "waters", "new"), lambda n, last: n.__setitem__(last, "waters/new.json"))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value) == f"{p}: unknown key curated.waters.new{DECLARE}"
+        p = _edit(tmp_path, ("roots", "new"), lambda n, last: n.__setitem__(last, "x"))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value) == f"{p}: unknown key roots.new"
+
+    @pytest.mark.parametrize("at", [("curated",), ("cache",), ("generated",), ("curated", "waters"),
+                                    ("generated", "atlas")], ids=".".join)
+    @pytest.mark.parametrize("value", [{}, None], ids=["empty", "null"])
+    def test_a_block_of_only_schema_names_stated_empty_or_null_is_refused_naming_it(self, tmp_path, at, value):
+        """A block config.yaml has nothing of its own in states nothing when empty or null: refused by name, for the
+        right reason, by every reader (never merged into the schema's names as if it were not there)."""
+        p = _edit(tmp_path, at, lambda n, last: n.__setitem__(last, value))
+        what = "null" if value is None else "an empty block"
+        for read in (C.parse_config, C.read_config):
+            with pytest.raises(C.ConfigError) as e:
+                read(p)
+            assert str(e.value) == (f"{p}: {'.'.join(at)} is {what}: remove it (every name in it is declared in "
+                                    "pipeline/common/curated.py)")
+
+    def test_a_block_with_keys_of_its_own_says_what_it_needs(self, tmp_path):
+        p = _edit(tmp_path, ("source",), lambda n, last: n.__setitem__(last, {}))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value) == f"{p}: missing key source.fwa_gpkg"
+        p = _edit(tmp_path, ("source",), lambda n, last: n.__setitem__(last, None))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value) == f"{p}: source is null: state its keys"
+        p = _edit(tmp_path, ("curated",), lambda n, last: n.__setitem__(last, "waters"))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value) == f"{p}: curated is a block of keys, never a value (got 'waters')"
+
+    @pytest.mark.parametrize("value", ["../x", "/abs", "", ".", "..", "full/next", "a\\b"])
+    def test_atlas_build_is_a_bare_build_name(self, tmp_path, value):
+        """`atlas_build` names one directory under the builds; a path, `.`, `..` or empty is refused naming the key."""
+        p = _edit(tmp_path, ("atlas_build",), lambda n, last: n.__setitem__(last, value))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value) == (f"{p}: atlas_build: Value error, a bare build name under GENERATED.atlas.builds (as "
+                                f"\"full\"), never a path, `.`, `..` or empty (got {value!r})")
 
     @pytest.mark.parametrize("at", [("curated", "waters", "cuts"), ("generated", "atlas", "builds"),
                                     ("source", "coast_gpkg"), ("cache", "dfo_salmon")], ids=".".join)
@@ -457,7 +512,7 @@ class TestOneRootPerTree:
     def test_the_curated_base_is_its_root_and_no_key(self, tmp_path):
         assert C.load_repo().base == C.load_roots().curated == C.ROOT / _real_blob()["roots"]["curated"]
         p = _edit(tmp_path, ("curated", "base"), lambda n, last: n.__setitem__(last, "anywhere"))
-        with pytest.raises(C.ConfigError, match=r"unknown key curated\.base$"):
+        with pytest.raises(C.ConfigError, match=r"unknown key curated\.base" + re.escape(DECLARE) + "$"):
             C.parse_config(p)
 
     def test_the_live_curated_root_has_no_second_door(self):
@@ -561,7 +616,7 @@ class TestGeneratedTree:
         assert "base" not in C.Generated.model_fields and "release" not in C.Generated.model_fields
         for key in ("base", "release"):
             p = _edit(tmp_path, ("generated", key), lambda n, last: n.__setitem__(last, "x"))
-            with pytest.raises(C.ConfigError, match=rf"unknown key generated\.{key}$"):
+            with pytest.raises(C.ConfigError, match=rf"unknown key generated\.{key}{re.escape(DECLARE)}$"):
                 C.load_generated(p)
 
     def test_every_generated_path_is_absolute(self, gen):
@@ -715,3 +770,122 @@ class TestEachReadRecordsItsLeaf:
         p = tmp_path / "config.yaml"
         p.write_bytes(C.CONFIG.read_bytes())
         assert self.seen(monkeypatch, lambda: C._load.__wrapped__(p, None).waters.cuts) == set()
+
+
+# ======================================================================================
+# every name the schema declares, frozen: a rename is made in two places, on purpose
+# ======================================================================================
+
+#: Every `At("…")` of the schema (`C.NAMES`, flattened), typed out. Taken from the names when they moved out of
+#: config.yaml and checked then against that file (`git show <the commit before #358>:config.yaml`: all 77 equal, none
+#: missing), so this is the file list as it was, not a copy of a typo. `At("side")` -> `At("sides")` repoints a folder
+#: with every other test passing; here it fails until the same rename is made below.
+FROZEN_NAMES = {
+    "source.coast_gpkg": "fwa_coast.gpkg",
+    "source.synopsis_pdf": "fishing_synopsis.pdf",
+    "source.fetch_temp": "temp_bc_data",
+    "curated.waters.cuts": "waters/cuts.json",
+    "curated.waters.name_variants": "waters/name_variants.json",
+    "curated.waters.found_names": "waters/found_names.json",
+    "curated.waters.found_name_calls": "waters/found_name_calls.json",
+    "curated.waters.continuations": "waters/continuations.json",
+    "curated.waters.tidal_limits": "waters/tidal_limits.json",
+    "curated.waters.shore_held": "waters/shore_held.json",
+    "curated.waters.tidal_split_authority": "waters/tidal_split_authority.json",
+    "curated.waters.slough_calls": "waters/slough_calls.json",
+    "curated.waters.pond_calls": "waters/pond_calls.json",
+    "curated.waters.slough_page_calls": "waters/slough_page_calls.json",
+    "curated.waters.steelhead_waters": "waters/steelhead_waters.json",
+    "curated.waters.area_closures": "waters/area_closures.json",
+    "curated.waters.added_areas": "waters/added_areas.geojson",
+    "curated.waters.added_lakes": "waters/added_lakes.geojson",
+    "curated.waters.added_streams": "waters/added_streams.json",
+    "curated.waters.added_stream_calls": "waters/added_stream_calls.json",
+    "curated.waters.unmapped_waters": "waters/unmapped_waters.json",
+    "curated.waters.unplaced_piece_calls": "waters/unplaced_piece_calls.json",
+    "curated.regulations.synopsis": "regulations/synopsis",
+    "curated.regulations.book_name_links": "regulations/book_name_links.json",
+    "curated.regulations.reference": "regulations/reference",
+    "curated.regulations.word_reads": "regulations/word_reads.json",
+    "curated.regulations.under_closure_calls": "regulations/under_closure_calls.json",
+    "curated.regulations.local_closures": "regulations/local_closures",
+    "curated.review.marks": "review/marks.jsonl",
+    "curated.review.proposal_overrides": "review/proposal_overrides.json",
+    "curated.review.closed": "review/closed.json",
+    "curated.review.owner_carries": "review/owner_carries.json",
+    "curated.review.recheck": "review/recheck.json",
+    "curated.gauges.matches": "gauges/matches.json",
+    "curated.gauges.match_calls": "gauges/match_calls.json",
+    "curated.gauges.tidal_stations": "gauges/tidal_stations.json",
+    "curated.gauges.backwater_stations": "gauges/backwater_stations.json",
+    "curated.gauges.diversion_stations": "gauges/diversion_stations.json",
+    "curated.gauges.datum_change_stations": "gauges/datum_change_stations.json",
+    "curated.runtiming.run_calls": "runtiming/run_calls.json",
+    "curated.inseason.notice_waters": "inseason/notice_waters.json",
+    "curated.dfo_salmon.places": "dfo_salmon/places",
+    "curated.dfo_salmon.wording": "dfo_salmon/wording.json",
+    "curated.dfo_salmon.tidal_calls": "dfo_salmon/tidal_calls.json",
+    "curated.dfo_salmon.scope_places": "dfo_salmon/scope_places.json",
+    "curated.dfo_salmon.closed_areas": "dfo_salmon/closed_areas.json",
+    "curated.bathymetry.matches": "bathymetry/matches.json",
+    "curated.bathymetry.contour_matches": "bathymetry/contour_matches.json",
+    "curated.stocking.matches": "stocking/matches.json",
+    "generated.atlas.builds": "atlas",
+    "generated.reaches": "reaches",
+    "generated.bundle": "bundle",
+    "generated.tiles": "tiles",
+    "generated.added_streams": "added_streams",
+    "generated.scratch": "scratch",
+    "generated.regs.extraction": "regs/extraction",
+    "generated.regs.parse": "regs/parse",
+    "generated.regs.dfo_salmon": "regs/dfo_salmon",
+    "generated.regs.entries_backup": "regs/entries_backup",
+    "generated.regs.export": "regs/ui-rules-export.json",
+    "generated.gauges.feeds": "gauges/feeds",
+    "generated.gauges.match": "gauges/match.json",
+    "generated.gauges.candidates": "gauges/candidates.json",
+    "generated.gauges.datum_proposals": "gauges/datum_proposals.json",
+    "generated.gauges.hydat_daily": "gauges/hydat_daily",
+    "generated.runtiming": "runtiming",
+    "generated.inseason": "inseason",
+    "generated.review": "review",
+    "generated.sloughs": "sloughs",
+    "generated.side": "side",
+    "generated.bathymetry": "bathymetry",
+    "generated.stocking": "stocking",
+    "generated.debug": "debug",
+    "generated.synopsis": "synopsis",
+    "generated.steelhead": "steelhead",
+    "generated.curated_writes": "curated_writes",
+    "cache.dfo_salmon": "dfo_salmon",
+}
+
+
+def _flat(node: dict, at: tuple = ()) -> dict:
+    out = {}
+    for k, v in node.items():
+        out |= _flat(v, (*at, k)) if isinstance(v, dict) else {".".join((*at, k)): v}
+    return out
+
+
+def test_every_schema_name_is_pinned():
+    """A name added, removed or renamed in the schema (source, curated, generated, cache) fails until it is made
+    here too: a file never moves by one keystroke in one place."""
+    now = _flat(C.NAMES)
+    assert {k.split(".")[0] for k in now} == {"source", "curated", "generated", "cache"}
+    assert sorted(set(now) - set(FROZEN_NAMES)) == [], "a new name: add it to FROZEN_NAMES on purpose (and its file)"
+    assert sorted(set(FROZEN_NAMES) - set(now)) == [], "a name gone: remove it from FROZEN_NAMES on purpose"
+    assert {k: v for k, v in now.items() if FROZEN_NAMES[k] != v} == {}, (
+        "a renamed file: rename it here too, on purpose, and move the data file too (the live one and the mini copy)")
+
+
+@pytest.mark.parametrize("key, home", [
+    ("source.fwa_gpkg", "config.yaml"), ("roots.curated", "config.yaml"), ("roots", "config.yaml"),
+    ("atlas_build", "config.yaml"), ("*", "config.yaml"), ("source.coast_gpkg", "pipeline/common/curated.py"),
+    ("curated.waters.cuts", "pipeline/common/curated.py"), ("curated.waters", "pipeline/common/curated.py"),
+    ("generated", "pipeline/common/curated.py"), ("generated.atlas.default_build", "pipeline/common/curated.py"),
+    ("curated.waters.t1192_gone", "pipeline/common/curated.py")])
+def test_a_key_is_named_where_it_is_stated(key, home):
+    """`declared_in` (the atlas-behind line's label): config.yaml only for the keys it states (the roots, the gpkg's
+    name, `atlas_build`, the whole file); a schema name, a whole block of them and a key gone since are curated.py's."""
+    assert C.declared_in(key) == home

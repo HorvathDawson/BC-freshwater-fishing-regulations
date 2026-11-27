@@ -1,10 +1,10 @@
 # T1192 — config.yaml clean-up: paths only, the file list in the schema (Option A)
 
-Status: IN PROGRESS — lane: the repo clean chat; PRs 1-5 merged, PR 7 in review.
+Status: IN PROGRESS — lane: the repo clean chat; PRs 1-5 and 7 merged; PR 8 and PR 9 (PR 7's review follow-ups) up.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 7 (the file list in the schema) in review; then PR 6 (the review tool's one-tree override) and PR 8 (the field notes in plain words, no ticket ids or dates) |
+| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 6, the review tool's ~25 per-file CURATION_* path overrides become one whole-tree override; PR 8 (plain field notes) and PR 9 (PR 7's review follow-ups) up |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "the config.yaml i feel has a lot of stuff in it that is noit
 needed too? like there is a lot of bloat because of the way stuff is formatted could we audit this and maybe use it as
@@ -26,18 +26,16 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
    and a short header. No key or value changes.
 2. Loud validation: `extra="forbid"` at every level, a top-level schema, no defaults, no `null`; delete `data.base`
    and the two null `match_calls`; an unknown or missing key fails naming its dotted key.
-   PR 2 (done on its branch): `curated.Config` covers all six blocks, `parse_config` is the one load path (`project_config`
-   a view on it, `get_path(default=)` gone); the `null` `stocking` / `bathymetry` blocks are deleted rather than
-   declared (no such file exists yet; `bathymetry/accept.py` `SETS` names them; PR 4 declares them when they ship).
+   PR 2 (merged): `curated.Config` covers all six blocks, `parse_config` is the one load path (`project_config` a view
+   on it, `get_path(default=)` gone); the `null` `stocking` / `bathymetry` blocks deleted (PR 4 declares them).
 3. One `source:` block (the FWA gpkg has three names today); the fetcher writes through it.
    PR 3 (merged): one `source:` block (`fwa_gpkg`, `coast_gpkg`, `synopsis_pdf`, `fetch_temp`; `curated.Source`) read as
    `SOURCE.<name>` by every reader and the fetcher; the five `project_config` accessors retired; `check_data_paths.py`
    refuses the gpkg names in code. A read records `source.<name>` + its root, per leaf.
 4. Relative paths under `roots`; rename `waters.areas` → `area_closures`, `waters.tidal` → `tidal_limits`; declare the
    unlisted curated files (`closed_areas.json`, `owner_carries.json`, `recheck.json`, bathymetry, stocking) and the
-   generated folders; `release` becomes a root. [x] (From PR 2's review) Point `check_curated`'s stocking / bathymetry
-   entries at `pipeline/bathymetry/accept.py`'s frozen paths (`frozen_path`), not `None`: today's report says "not
-   declared in config.yaml", which is awkward once they are declared.
+   generated folders; `release` becomes a root. [x] (PR 2's review) `check_curated`'s stocking / bathymetry entries
+   read `pipeline/bathymetry/accept.py`'s frozen paths (`frozen_path`), not `None`.
    PR 4 (merged): one `roots:` block (source, curated, generated, release, cache); every other path is a
    name under the root of its block (`curated.TREES`), refused when absolute or climbing out; `data_tree`,
    `curated.base`, `generated.base`, `generated.release` and their cross-check gone; `CURATED_ROOT` moves the one
@@ -61,17 +59,17 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
      (writers not traced).
    - [ ] `closed_areas.json` absent reads as no closed areas (unchanged behaviour; a later guard could raise when the
      marks hold a verified closed area and the file is missing).
-5. Per-leaf C lines. PR 5 (merged): a read records its key + root per access (`curated._Tree`); a whole node
-   taken (`model_dump`, iteration) records the node. [ ] Import-time constants (`gauges.matches.MATCH_FILE`) key every
-   deliver step on `gauges.matches`. [ ] A guard: each curated key a stage reads has its content in that stage's key.
+5. Per-leaf C lines. PR 5 (merged): a read records its key + root per access (`curated._Tree`); a whole node taken
+   (`model_dump`, iteration) records the node. [ ] Import-time constants (`gauges.matches.MATCH_FILE`) key every deliver
+   step on `gauges.matches`. [ ] A `test_stage_content_keys`-style pin: each curated / generated read is in its stage key.
 6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused.
-7. Option A: the file list moves into the schema; config.yaml about 12 lines. PR 7 (done on its branch): config.yaml
+7. Option A: the file list moves into the schema; config.yaml about 12 lines. PR 7 (merged, #358): config.yaml
    = `roots:`, `source.fwa_gpkg`, `atlas_build` (was `generated.atlas.default_build`); every other name is an `At` on its
    field, added to the parsed file by `curated.read_config` (the loaders' and `config_now`'s one source; a name stated in
    both is refused). A rename is a curated.py edit: every stage reruns (its bytes are in every code key).
-   - [ ] `kind` (spin-off 7) as data on `At`: not built (the notes' kinds are uneven; the consumers are `build.py`'s).
-   - [ ] Retire `project_config.py` (left: `project_root`, `dfo_salmon_cache`, `get_path`; 6 importers, CI path lists).
-   - [ ] Docs that still name a curated key "in config.yaml": `data/curated/README.md`, `waters/README.md`, docs/research.
+   Left / found, not fixed: [ ] each file's `kind` (authored / promoted / applied / reviewed) as schema data on `At`,
+   read by one consumer. [ ] Retire `project_config.py` (`project_root`, `dfo_salmon_cache`, `get_path`; 6 importers +
+   CI path lists). [x] PR 9: the stale docs, the unknown-key hint, empty / null blocks, `atlas_build`, every `At` pinned.
 
 ## Acceptance
 Each PR proves, in its body: every resolved path (`CURATED`, `GENERATED`, `SOURCE`, every `get_config()` accessor)
@@ -85,3 +83,5 @@ Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
 
 - [x] 2026-11-26 — Strip the existing notes' ticket ids and dates too: "Yes, strip them too (Recommended)" (PR 8);
   the two stale notes were fixed with the renames (PR 4).
+- [ ] 2026-11-27 — AGENTS rule 36 says "All paths come from config.yaml"; since #358 only the roots, the FWA gpkg name
+  and `atlas_build` do (every other name: `pipeline/common/curated.py`). His wording to change; default: left as it is.
