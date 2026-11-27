@@ -1,10 +1,10 @@
 # T1207 — A water closed all year to salmon and game fish shows ONE schedule, not two
 
-Status: OPEN — design, pictures first.
+Status: IN PROGRESS — option A built (lane T1207, branch feat/T1207-one-schedule-when-all-closed); release: 0.10.0 re-cut.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1207 | A water closed all year to salmon and game fish shows one schedule, not two (splits again when they differ) | OPEN — design, pictures first | — | owner picks A / B / C (pictures below); default no change; then build behind `closedWithSalmon` |
+| T1207 | A water closed all year to salmon and game fish shows one schedule, not two (splits again when they differ) | IN PROGRESS — A built, 0.10.0 re-cut | see git | owner picked A 11-26; built behind `closedWithSalmon`; review + the 0.10.0 re-cut |
 
 Source: the owner, 2026-11-26, via the planning chat, verbatim: "we could combine the salmon and game fish schedules for
 year round closures tho if they are both always closed (they could split again if it ever changes)."
@@ -65,6 +65,19 @@ Nelson Creek draws one schedule; Kirkup, Old Kootenay and every non-gated page d
 
 Size: S. Depends: T1052 (merged gate). Owner: yes (the pick). Default: no change until he picks.
 
+## Built (option A, owner pick 2026-11-26)
+- Core: `closedWithSalmon` (`core/src/regs/withSalmon.ts`) also sets `banner.schedule` = `{ title: SOURCE_WORDS.both, tag: SOURCE_WORDS.salmonTag.book }`
+  ("Salmon and game fish", tagged "B.C. Synopsis": the merged closures are the rule book's, never DFO's); type in `model.ts`, words in `glance.ts`.
+  One gate, one function; the screen only draws. No stored state: a page that fails the gate has no `schedule` and draws two blocks.
+- UI: `KeepTab.tsx` draws no Salmon block and gives the game-fish block `schedule.title` / `schedule.tag`. `SourceTag.tsx`: the title row wraps (the tag
+  drops under the name at a large text size, kept one line); the block's header names both fish for a screen reader.
+- Other places checked: Gear / Methods / Licence tabs are hidden on a fully closed page (strip closed), as before; the water's Map view and the map card draw
+  no salmon block (nothing to change); the public water page (`tools/seo/pane.tsx`) draws the app's own `Shell`, so it follows the same code.
+- Tests: `core/src/regs/withSalmon.test.ts` (schedule set on Nelson, absent in every split case), `ui-native/src/WaterScreen.oneClosure.test.tsx` (one block / one bar on a merged
+  water; two on DFO-decided, another rule, part-year), `tools/one-schedule.release.test.ts` (live release: Nelson one; Kirkup and Old Kootenay two),
+  `tools/one-schedule-title.test.ts` (title and tag whole at 320 / 360 / 412 wide, text 1 to 1.3, light and dark).
+- Pictures of the built app: `T1207-shots/built-sheet.png` (today vs built, dark, 360 wide at 1.3x emulated by scaling the page's font sizes, the two split waters unchanged).
+
 ## Owner
 
-- [ ] 2026-11-26 — Combine the two year calendars on an all-closed water: A (one block, one bar; recommended), B (one block, no bar), or C (one bar, both tags small)? Pictures `tickets/T1207-shots/contact-sheet.png`. Default: no change until you pick.
+- [x] 2026-11-26 — Combine the two year calendars on an all-closed water: A, B or C? → "One block \"Salmon and game fish\" with one year bar" (2026-11-26)
