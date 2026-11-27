@@ -70,8 +70,8 @@ def test_bc_outline_reads_the_exact_outline(tmp_path, monkeypatch):
 @pytest.mark.slow
 def test_the_real_units_are_a_valid_coverage_and_the_outline_has_no_holes():
     """Measured 2026-10-06: 225 units, 0 invalid, a valid coverage, one polygon with no holes."""
-    from project_config import get_config
+    from pipeline.common.curated import SOURCE
 
-    gpkg = get_config().fwa_data_gpkg
+    gpkg = SOURCE.fwa_gpkg
     out, _ = bc_boundary.wmu_outline(gpkg)
     assert out is not None and out.geom_type == "Polygon" and not out.interiors

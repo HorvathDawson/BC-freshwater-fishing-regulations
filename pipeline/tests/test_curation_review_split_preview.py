@@ -20,7 +20,7 @@ pytestmark = [pytest.mark.needs_source, pytest.mark.needs_atlas]
 @pytest.fixture(autouse=True)
 def _the_gpkg(request):
     """FAILS without the FWA gpkg, naming the command that fetches it (the atlas is the conftest's own check)."""
-    need(request, "source", SOURCE / "bc_fisheries_data.gpkg", GPKG_HINT)
+    need(request, "source", SOURCE.fwa_gpkg, GPKG_HINT)
 
 
 @pytest.fixture(scope="module")

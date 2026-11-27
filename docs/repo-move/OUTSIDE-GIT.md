@@ -16,7 +16,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
 | curl, git | `/usr/bin` | bootstrap fetches, everything | macOS | yes: bootstrap.sh checks it |
 | Node (version in `app/.nvmrc`; 25.9 here) | `/opt/homebrew/bin` | app, workers, hooks, builds | `brew install node`, match `.nvmrc` | partly: README; bootstrap only warns |
 | pnpm 9.12.0 | `/opt/homebrew/bin` | app install | `packageManager` in `app/package.json` | partly: README; bootstrap silent |
-| rclone | `/opt/homebrew/bin` | `upload.sh`, `sync-inputs.sh`, `backup.sh` | `brew install rclone` + remote `r2:` | partly: bootstrap warns, no install |
+| rclone | `/opt/homebrew/bin` | `upload.sh`, `sync-inputs.sh` | `brew install rclone` + remote `r2:` | partly: bootstrap warns, no install |
 | jq | `/usr/bin/jq` | `sync-inputs.sh`, input formats, CI status | macOS, or `brew install jq` | yes: scripts say it when missing |
 | sqlite3 | `/usr/bin/sqlite3` | `hydat-fetch.sh`, `update-hydat.sh` | macOS | NO (not in any setup doc) |
 | gh (GitHub CLI) | `/opt/homebrew/bin` | CI status in builds, `start-workflow.sh`, pushes | `brew install gh`, then `gh auth login` | NO (only secrets.md: "login") |
@@ -122,7 +122,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
 | What | Where | Needed for | How it comes back | Written down today? |
 |---|---|---|---|---|
 | Review marks, curation edits | `data/curated/**` | the data build | in git; `git status` of the main checkout was clean | yes: T246 inventory |
-| Curated backup tarball | `~/canifishthis-backups/curated-20261029…tar.gz` | disaster recovery | `deploy/staging/backup.sh curated` | yes: T246 |
+| Curated backup tarball | `~/canifishthis-backups/curated-20261029…tar.gz` | disaster recovery | the owner's own copy (the script that made it was deleted, T1193) | yes: T246 |
 | Review refused-saves, write-through log | `data/generated/review/*.jsonl` | nothing (runtime state) | none | not needed |
 | Worktrees | 41 listed by git; `~/bcfish-*` (15 folders) | in-flight lanes | `git worktree list`; uncommitted work there is lost with them | partly: PREP.md section 3 |
 
@@ -143,7 +143,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
    RTK notes. A fresh clone has no `CLAUDE.md`, so an agent there does not see the parser rule. AGENTS.md rule A1 says
    the same, so the rule survives, but the file itself exists only on this Mac. `.claude/CLAUDE.md` likewise.
 2. **`data/source/fwa_coast.gpkg` (559 MB) is not pinned or fetched by bootstrap.** The atlas reads it
-   (`config.yaml` `coast_gpkg_path`, `pipeline/atlas/inputs.py`); `pins.json` has no entry and `bootstrap.sh` skips it.
+   (`config.yaml` `source.coast_gpkg`, `pipeline/atlas/inputs.py`); `pins.json` has no entry and `bootstrap.sh` skips it.
    The T416 proof (2026-11-05) pre-dates T678, so a fresh atlas build may stop here. Needs a try (T1120 step 2).
 3. **Installs bootstrap does not do:** no `pnpm install`, no `core.hooksPath`, no Node or pnpm version check. A fresh
    clone's first push fails `pre-push` (`.githooks/pre-push` needs `.venv`) until hooks and installs are done by hand.

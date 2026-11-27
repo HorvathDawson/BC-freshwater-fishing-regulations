@@ -216,8 +216,8 @@ def config_path() -> Path:
 def config_now(keys) -> dict[str, str]:
     """{config key: digest of its value in config.yaml NOW} for recorded keys (`*` = the whole file; "missing" for a
     key that is gone)."""
-    import yaml
-    blob = yaml.safe_load(config_path().read_text(encoding="utf-8")) or {}
+    from pipeline.common.curated import read_yaml     # (T1192) the loaders' rules: a duplicate key is refused
+    blob = read_yaml(config_path()) or {}
     out = {}
     for key in sorted(keys):
         v = blob

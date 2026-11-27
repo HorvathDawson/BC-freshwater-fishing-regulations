@@ -33,8 +33,7 @@ from, read by `pipeline/tools/audit/tidal_pass2.py`): keep them, they are the ev
 ## The scripts here
 
 - `fetch_data.py` — the upstream fetcher (above).
-- `build_tidal_boundary.py`, `process_tidal_boundary.py` — the DFO tidal polygon, processed once and stored on R2 (each
-  file's docstring has its steps).
+- `build_tidal_boundary.py` — the DFO tidal polygon, processed once and stored on R2 (its docstring has the steps).
 
 Licences: third-party material and its terms are listed in the root `NOTICE`; the OpenStreetMap-derived data is ODbL,
 `LICENSE-ODbL.md`.

@@ -189,6 +189,13 @@ describe("captureVisit — a new visit to a saved spot", () => {
     expect(v.panel).toEqual(answerFrom(PANEL, LIVE, "discharge"));
   });
 
+  it("(T1205) a reading not current by the clock (an offline phone's kept copy) is not frozen into the visit", async () => {
+    const spot = await saved();
+    const v = await captureVisit(spot, { source: SRC, weather: sky, feed: { index: async () => LIVE }, now: NOW + 9 * 3_600_000, id: () => "v3",
+                                         visitedAt: NOW + 9 * 3_600_000 });
+    expect(v.reading).toEqual({ station: "08MH001", discharge: null, level: null, percentile: null, at: null });
+  });
+
   it("an earlier day: that day's record (Q161), never the live feed", async () => {
     const spot = await saved();
     const v = await captureVisit(spot, { source: SRC, weather: sky, feed: { index: async () => LIVE }, now: NOW,

@@ -14,7 +14,7 @@ that is not fixed here: `docs/repo-move/OUTSIDE-GIT.md`.
 | Node (the version in `app/.nvmrc`) and pnpm 9 (`app/package.json` `packageManager`) | the app, the workers, the commit-msg hook | `brew install node pnpm` (match `.nvmrc`; Node 22.18 or newer is the floor in `engines`) |
 | gh (GitHub CLI) | CI status in every build gate, `scripts/start-workflow.sh`, PRs | `brew install gh`, then `gh auth login` |
 | tippecanoe (with tile-join), pmtiles | the tiles stage, bootstrap's fetch | `brew install tippecanoe pmtiles` |
-| rclone | `upload.sh`, backups, `sync-inputs.sh` (uploads only) | `brew install rclone`, then a remote `r2:` (secrets.md) |
+| rclone | `upload.sh`, `sync-inputs.sh` (uploads only) | `brew install rclone`, then a remote `r2:` (secrets.md) |
 The phone toolchains are in sections 8 and 9. `CLAUDE.md` and `.claude/` are git-ignored, so a fresh clone has only
 `AGENTS.md` (rule A1 holds the parser rule).
 
@@ -74,7 +74,7 @@ or for the app), makes `.venv`, then fetches:
 | `basemap.pmtiles` (the RELEASED basemap, basemap-6960ed933a82: the live release's ground) | `build.canifishthis.ca/source/<sha16>/` | 225 MB | sha256; bootstrap then releases it (`pipeline.deliver.tiles.basemap --release-only`) |
 | `generated/regs/extraction/{synopsis_raw_data,row_boxes}.json` (the synopsis extraction and its row boxes: the PDF highlight of every rule) | `build.canifishthis.ca/source/<sha16>/` | 0.8 MB | sha256 (the old `extraction/` backup was stale; a release without the row boxes is refused) |
 | DFO salmon pages, typed | DFO's live pages (`pipeline.regs.dfo_salmon.live`) | small | today's pages |
-| `fwa_coast.gpkg` (the atlas's coast cut, `config.yaml` `coast_gpkg_path`; without it the atlas fails in one second) | same bucket (pinned 2026-11-26; upstream: `data/fetch_data.py` layers `fwa_rivers`, `fwa_land`) | 0.6 GB | sha256 |
+| `fwa_coast.gpkg` (the atlas's coast cut, `config.yaml` `source.coast_gpkg`; without it the atlas fails in one second) | same bucket (pinned 2026-11-26; upstream: `data/fetch_data.py` layers `fwa_rivers`, `fwa_land`) | 0.6 GB | sha256 |
 
 Downloads resume (`curl -C -`); rerun the script after a drop (the message says "rerun to resume" for a 404 too). A file whose sha256 differs is deleted and the run fails.
 About 7 minutes at ~24 MB/s; on 2026-11-25 (3-8 MB/s, a shared link) the 10 GB file dropped three times and took four runs.

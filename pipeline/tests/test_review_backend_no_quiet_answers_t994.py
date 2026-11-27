@@ -54,7 +54,7 @@ def _blob(geom) -> bytes:
 
 
 def test_14_a_missing_geopackage_is_said_not_drawn_as_the_river(be, tmp_path, monkeypatch):
-    monkeypatch.setattr(be, "SOURCE", tmp_path)
+    monkeypatch.setattr(be, "SOURCE", be.SOURCE.under(tmp_path))       # the named files, under an empty tree
     be._fwa_lake_poly.cache_clear()
     with pytest.raises(FileNotFoundError, match="bc_fisheries_data.gpkg is missing"):
         be._fwa_lake_poly("123")
@@ -62,8 +62,8 @@ def test_14_a_missing_geopackage_is_said_not_drawn_as_the_river(be, tmp_path, mo
 
 def test_14_only_no_row_is_none_and_a_bad_blob_raises_every_time(be, tmp_path, monkeypatch):
     from shapely.geometry import box
-    _gpkg(tmp_path / "bc_fisheries_data.gpkg", [(123, _blob(box(0, 0, 1, 1))), (7, b"GP\x00\x00\x00\x00\x00\x00junk")])
-    monkeypatch.setattr(be, "SOURCE", tmp_path)
+    _gpkg(be.SOURCE.under(tmp_path).fwa_gpkg, [(123, _blob(box(0, 0, 1, 1))), (7, b"GP\x00\x00\x00\x00\x00\x00junk")])
+    monkeypatch.setattr(be, "SOURCE", be.SOURCE.under(tmp_path))
     be._fwa_lake_poly.cache_clear()
     assert be._fwa_lake_poly("123").equals(box(0, 0, 1, 1))
     assert be._fwa_lake_poly("999") is None                                  # not a lake: the caller's through-line
