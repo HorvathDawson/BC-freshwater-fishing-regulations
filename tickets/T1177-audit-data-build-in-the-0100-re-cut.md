@@ -36,7 +36,7 @@ diff where a binding moves), listed for his look before the build ships. Related
    `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`.
 7. The D6 rebinds of T1118 ride the same build (Mosquito, Bear, McLennan, and the four lake rebinds he approved: McDonell 6-4, the Twin Lakes 4-34 versus Yankee and Canuck, Hall Lake 4-20 versus the 4-34 Hall lakes, the Malcolm Knapp Lost Lake versus the Whistler Lost Lake; Panther is only the name-variant pointer fix).
 8. **P7b (ruled, the strictest reading):** the Region 5 spring closure is lifted only where a row prints its own exemption or "open
-   all year" (whole or part); gear or quota rows keep it. Closes 330.9 km in spring, plus the lower Quesnel River below the Cariboo (owner: "Yes, close it too (Recommended)", about 99.9 km; Region 5 total about 430.8 km) (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2,
+   all year" (whole or part); gear or quota rows keep it. Closes 330.9 km in spring, plus the lower Quesnel River below the Cariboo (owner: "Yes, close it too (Recommended)", about 100 km; Region 5 total about 431 km) (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2,
    Little Horsefly 17.8, Mitchell 15.4, Canim 9.2); opens nothing. GOTCHAS entry written; the Region 5 question is BOOK-ERRORS entry 19.
 9. O16 is confirmed (no change). The Oxbows label follows the general label rule (the final table goes to him).
 10. **The tributary walk (own work item; a walk change, needs a reach rerun and a rule-bindings diff):** "everything in is a tributary and only shouldnt be if an exception is listed

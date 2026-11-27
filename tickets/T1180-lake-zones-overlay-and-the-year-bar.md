@@ -1,6 +1,6 @@
 # T1180 — Lake zones: a design chat researches a clean way and brings proposals with pictures
 
-Status: OPEN — DESIGN only; round 2 done, the mix confirmed; nothing is built now except the year-bar run Z1 in the re-cut (owner 2026-11-26); owner: see ## Owner
+Status: OPEN — DESIGN only; round 2 done, the mix confirmed; nothing is built now (owner 2026-11-26; the year-bar run Z1 riding the re-cut is the design lane's proposal, not yet his pick); owner: see ## Owner
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -37,7 +37,8 @@ this and plan it out and figure out the best way so it isnt janky." The inputs: 
   have defined roles (the card's map shows this water only, with numbered parts and the list as its key); search lists
   the lake with its parts and marks under it, each with its answer and dates.
 - **His later picks (evening, verbatim):** cuts: "Every line or bay mouth, both pieces at least 0.5 km²: 11 cuts (Recommended)"; approximate edges: "Keep them as approximate marks until located" (only the 4 exact cuts now; 7 stay dashed marks); the card map and search are NOT approved: "more design please just this changes a lot so i want to make it more clear because it effects streams too..." (round 3: the card's map for lakes and streams as whole options). Nothing that changes a look merges without him.
-- **Timing:** cuts wait for 0.11.0 (heavy: atlas to release, a binding diff per rule, an owner check of each edge; 2-3 agent-days per batch). Z1, the year-bar
+- **His latest words (verbatim, later the same evening):** "in terms of the lake zones and cuts etc that is a big change and i dont think we should implement it yet we want to really prepare how it is going to happen first so weshould go through the rest of the prep I mention and we really want to nail down a few proposal of how it qworks with the current workflow and menus. with the card reg condition map items and the actual map." Plain reading: no build of lake zone cuts until he picks a whole proposal; the design lane prepares 2-4 whole proposals covering the card, the regulations view, the conditions map items and the map.
+- **Timing (the design lane's proposal, not his words):** cuts wait for 0.11.0 (heavy: atlas to release, a binding diff per rule, an owner check of each edge; 2-3 agent-days per batch). Z1 (the lane's proposal), the year-bar
   "part closed" run (about 35 lakes' answers change, no bindings), rides the 0.10.0 re-cut; Z2-Z8 are 0.11.0 and later.
 - **Open picks (9, recommended first):** which zones become cuts (all lines no floor: 18 / lines and bay mouths with both pieces at 0.5 km2 or more: 11 / only lines from exact points / round 1's rule: 2); the floor (0.5 km2 / 0.1 / none); cuts set by signs (a dashed "approximate edge · signs decide" / approximate marks until located); signs near a point with no distance (a pin / an approximate area); Dragon Lake (look for the Hallis Creek mouth / the badge); the card's map (this water only / today's Map view); search (marks under their lake / cut parts only); inside pieces for lakes partly in an area (the chip only, decide after 0.11.0 / 8 lakes / 19 lakes); the round-1 picks still open (Y1 year bar, O2 "closes soon", the "part closed today" suffix).
 
