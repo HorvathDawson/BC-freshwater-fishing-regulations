@@ -121,7 +121,7 @@ leave them out.
 | D18 | 2026-11-25 | found in development | owner | 0.9.0 data | A lake and its creek showed another, same-named lake's stricter rules (a name bound across management units) | T1117 (audit: T1118) | open | — |
 | D19 | 2026-11-25 | in person | owner | 0.9.0 web | A river's plain link opened the rules of one unnamed part (an ecological reserve side channel) and read "Closed"; parts were numbered instead of named | T1140 (T1146, T1149) | open | 0.10.0 (names); the landing in the next patch |
 | D20 | 2026-11-25 | in person | owner | 0.10.0 candidate | The game-fish status bar showed "open" in a different colour from the salmon bar | T1145 | fixed (#260) | 0.10.0 |
-| D21 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | At a larger system font the Salmon label of the mode switch wrapped onto two lines and the Conditions tab label was cut short | T1201 | open | 0.10.0 (pending) |
+| D21 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | At a larger system font the Salmon label of the mode switch wrapped onto two lines and the Conditions tab label was cut short | T1201 (follow-up T1203) | in progress (fixed on `main`; the screens not yet walked: T1203) | 0.10.0 (pending) |
 | D22 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | A lake with no salmon (Arctic drainage) led with a Salmon status bar (the regional rule applies; the question is whether to show it) | T1202 | open (owner's call) | — |
 
 ## Counts (refresh before applying)
