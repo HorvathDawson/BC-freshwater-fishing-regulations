@@ -14,7 +14,7 @@
  * (`onPart`) — so the Regulations and Conditions views agree with the map.
  */
 import { LoadingState } from "../LoadingState";
-import { useMemo, useRef, type ComponentProps } from "react";
+import { useMemo, useRef, useState, type ComponentProps } from "react";
 import { ScrollView, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
@@ -23,6 +23,7 @@ import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { inSeasonSections, markTap, useAsync, useBackLayer, useInSeasonCovers, useKeptWhilePending, useRegsStore, useReleaseLines, useSalmonKey, useTidalWaterMap, useWaterMap,
          type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
+import { MAP_GEOMETRY } from "@app/map";
 import { MapScreen } from "../MapScreen";
 import { useSplitReport, useWaterMapSplit, WaterInset, WaterSplit } from "../WaterFrame";
 import { Icon } from "../icons";
@@ -49,6 +50,9 @@ const stepHeight = (scale: number) => 2 * TYPE.bodyStrong.lineHeight * scale + 2
 /** The place kept for the "Flows into" line: the 44 px target the line has when it is drawn (its words capped at
  *  `CAPPED_SCALE`: one line of them, 42 px at 2×, fits). */
 const EXIT_SLOT = 44;
+
+/** (T1212) the ⤢ button's distance from the map's foot */
+const WHOLE_FOOT = 10;
 
 export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
                                onCross, onPart, whole = false, onWhole, day = null, listOpen = false }: {
@@ -139,9 +143,14 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   // (T731) a step into another water keeps the bar's height (an open parts list, a water with no exit: T875 holds the rest)
   const floor = useBarFloor(dv ? dv.regs.item : dt ? dt.regs.item : null);
 
+  // (T1212) THE ⤢ BUTTON STANDS OVER THE MAP'S FOOT, bottom-right, where the © is: the © (a licence credit) must stay seen and
+  // pressable, so it, its opening line and its card stand above the button, by the button's measured height (it grows with
+  // the text size) and the grid's gap; the scale bar stays at the foot. Both the web and the phone map read `insetCredits`.
+  const [wholeH, setWholeH] = useState(0);
+  const creditsAbove = dv ? WHOLE_FOOT + wholeH + MAP_GEOMETRY.gap - MAP_GEOMETRY.bottom : undefined;
   const mapPane = (
       <View style={split ? { flex: 1, minWidth: 0, minHeight: 0 } : { flex: 1 }}>
-        <MapScreen palette={palette} {...map} onDrawn={onDrawn}
+        <MapScreen palette={palette} {...map} onDrawn={onDrawn} insetCredits={creditsAbove ?? map.insetCredits}
                    highlight={dv?.selected ?? []}
                    inSeason={d.inSeason}
                    water={dv?.water ?? []}
@@ -172,7 +181,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         {dv && (
           <Pressable onPress={() => { if (!kept) d.act({ type: "whole" }); }} accessibilityRole="button"
                      accessibilityLabel={dv.whole.aria} testID="water-map-whole" aria-disabled={kept}
-                     style={{ position: "absolute", right: 10, bottom: 10, minHeight: 44, paddingHorizontal: 12,
+                     onLayout={(e) => setWholeH(e.nativeEvent.layout.height)}
+                     style={{ position: "absolute", right: 10, bottom: WHOLE_FOOT, minHeight: 44, paddingHorizontal: 12,
                               justifyContent: "center", backgroundColor: palette.card, borderWidth: 1.5,
                               borderColor: palette.ink, ...palette.lift }}>
             <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{dv.whole.label}</Text>

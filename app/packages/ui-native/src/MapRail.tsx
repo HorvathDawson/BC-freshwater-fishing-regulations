@@ -4,8 +4,8 @@
  * kind of thing). A stack of one keeps the rail's shape, so a later map tool joins it without a new place. One card
  * column, a hairline between buttons, the lift; square, like everything here. Its icon is the app's one set (`icons.tsx`).
  *
- * Under MapLibre's zoom stack on the web (top-right, `@app/map` controls.css); at the top on a phone, where the map
- * has none. An icon alone is a guess, so every button says its name aloud; the words are `@app/core` `MAP_RAIL`.
+ * Under MapLibre's zoom stack on a wide web window (top-right, `@app/map` controls.css); at the top, level with the day
+ * chip, on a phone, where the map has none (T1212). An icon alone is a guess, so every button says its name aloud; the words are `@app/core` `MAP_RAIL`.
  */
 import type { ReactNode } from "react";
 import { LAYER_WORDS, MAP_RAIL, MY_LOCATION } from "@app/core";
@@ -17,6 +17,7 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 import { useCoachRefs } from "./CoachMarks";
+import { useLayoutClass, type LayoutClass } from "@app/ui";
 import { OpenSettings } from "./OpenSettings";
 
 /** One button of the stack: 44 px square (T258, owner 2026-10-29: grown from 40 so the web reaches the 44 target as drawn). */
@@ -24,12 +25,25 @@ const SIZE = 44;
 /** (N1) the rail's icon: 20 px, the bar's size, so Layers and the tabs are one set at one weight. */
 const RAIL_ICON = 20;
 /**
- * How far under the map's top bar (`top`) the rail starts: clear of MapLibre's zoom stack on the web (two 28 px buttons
- * from 10 px in, then 16 px), 8 px on a phone, whose map draws none.
+ * (T1212, owner 2026-11-26: "definitely drop +/-"; option A "Tidy") THE + / − ARE FOR WIDE WINDOWS ONLY. The web map draws
+ * MapLibre's zoom stack on a tablet or desktop window (`MapProps.zoomButtons`); on a phone-wide window it draws none, as the
+ * phone app's map never did. A phone zooms by pinch and double tap (`MAP_GESTURES`).
  */
-export const RAIL_BELOW = Platform.OS === "web" ? 84 : 8;
-/** On the web its right edge lines up with that zoom stack's (MapLibre's 10 px control margin); 14 elsewhere. */
-export const RAIL_RIGHT = Platform.OS === "web" ? 10 : 14;
+export function zoomButtonsShown(layout: LayoutClass): boolean {
+  return layout !== "phone";
+}
+/**
+ * How far under the map's top bar (`top`) the rail starts: 8 px, level with the day chip in the left corner (both 44 px:
+ * one line, T1212), unless the web's zoom stack is above it, when it starts clear of it (two 28 px buttons from 10 px in,
+ * then 16 px: `RAIL_BELOW_ZOOM`).
+ */
+export const RAIL_BELOW = 8;
+export const RAIL_BELOW_ZOOM = 84;
+/** Its right edge: 14 px, the search field's edge; under the zoom stack, that stack's (MapLibre's 10 px control margin). */
+export const RAIL_RIGHT = 14;
+export const RAIL_RIGHT_ZOOM = 10;
+/** is the web's zoom stack drawn above the rail? Only the web draws one, and only where `zoomButtonsShown` */
+const ZOOM_STACK_HERE = Platform.select({ web: true, default: false });
 
 export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, children }: {
   palette: Palette;
@@ -63,10 +77,12 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, chi
                   icon: <Icon name="layers" colour={palette.ink} size={RAIL_ICON} />, badge: layersChanged },
   ].filter((b): b is Exclude<typeof b, undefined | null> => !!b);
   const coach = useCoachRefs();   // (T293) the walkthrough points at the layers button (`layers`)
+  const underZoom = ZOOM_STACK_HERE && zoomButtonsShown(useLayoutClass());
   if (buttons.length === 0) return null;
   return (
     <View testID="map-rail-column" pointerEvents="box-none"
-          style={{ position: "absolute", right: RAIL_RIGHT, top: top + RAIL_BELOW, alignItems: "flex-end", gap: 8 }}>
+          style={{ position: "absolute", right: underZoom ? RAIL_RIGHT_ZOOM : RAIL_RIGHT, top: top + (underZoom ? RAIL_BELOW_ZOOM : RAIL_BELOW),
+                   alignItems: "flex-end", gap: 8 }}>
     <View accessibilityRole="toolbar" accessibilityLabel={MAP_RAIL.label}
           style={{ backgroundColor: palette.card,
                    borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.box, overflow: "hidden",

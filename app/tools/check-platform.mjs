@@ -197,7 +197,6 @@ for (const scope of SHARED) {
  * A count above is refused (a new branch); a count below must be lowered here (the list stays exact).
  */
 const INLINE_ALLOWED = {
-  "packages/ui-native/src/MapRail.tsx": [2, "two sizes: the rail clears MapLibre's web zoom stack (84 / 10 on the web, 8 / 14 on a phone)"],
   "packages/ui-native/src/MiniMap.tsx": [1, "one style value: the browser's `touchAction` on the minimap"],
   "packages/ui-native/src/NetBanner.tsx": [1, "a flag: the phone's banner says loading and takes no press"],
   "packages/ui-native/src/Shell.tsx": [1, "a flag: the web preloads its later parts when idle (the phone has them at once)"],

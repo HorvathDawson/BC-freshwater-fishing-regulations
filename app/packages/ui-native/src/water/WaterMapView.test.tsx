@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ItemId, SectionId } from "@app/data";
-import type { MapProps } from "@app/map";
+import { MAP_GEOMETRY, type MapProps } from "@app/map";
 import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines, sectionNames } from "@app/data/release/node";
 import { loadWaterGroup, openRegsStore } from "@app/data/regs";
 import { markLabel, partName, partWhere, setFailureSink } from "@app/core";
@@ -230,6 +230,34 @@ describe("<WaterMapView>", () => {
     // group's numbers, never typed)
     const chw = await groupOf("gnis:8634"), up = chw.parts[1]!.partIx;
     expect(calls).toEqual([`open gnis:3062 at ${chw.exit!.part}`, `part gnis:8634 ${up}`, `regs gnis:8634 part ${up}`]);
+  }, 30_000);
+
+  it("(T1212) the © stands above the ⤢ button, by its measured height: the licence credit is never under it", async () => {
+    // jsdom has no layout: a ResizeObserver that reports on observe, and ⤢ measured 52 px (grown with the text), then 66
+    let h = 52;
+    vi.stubGlobal("ResizeObserver", class {
+      constructor(private cb: (e: unknown[]) => void) {}
+      observe(target: Element) { this.cb([{ target }]); }
+      unobserve() {} disconnect() {}
+    });
+    const own = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true,
+      get(this: HTMLElement) { return this.getAttribute("data-testid") === "water-map-whole" ? h : 0; } });
+    try {
+      mount("gnis:8634", 0);
+      await ready();
+      // the 5000 is a wait bound in ms, not a release number
+      await waitFor(() => expect(seen.props?.insetCredits).toBe(h + MAP_GEOMETRY.gap), { timeout: 5000 });
+      const whole = screen.getByTestId("water-map-whole");
+      const wholeTop = Number.parseFloat(getComputedStyle(whole).bottom) + h;
+      // the © chip's own foot is `bottom` up from the block it is handed (MapCredits: G.bottom + insetBottom)
+      const chipFoot = MAP_GEOMETRY.bottom + (seen.props?.insetCredits ?? 0);
+      expect(chipFoot - wholeTop).toBe(MAP_GEOMETRY.gap);
+      expect(wholeTop).toBe(10 + 52);
+    } finally {
+      if (own) Object.defineProperty(HTMLElement.prototype, "offsetHeight", own); else delete (HTMLElement.prototype as { offsetHeight?: number }).offsetHeight;
+      vi.unstubAllGlobals();
+    }
   }, 30_000);
 
   it("⤢ frames the whole river and back to the part", async () => {
