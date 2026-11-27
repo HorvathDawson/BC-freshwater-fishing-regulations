@@ -60,3 +60,8 @@ Depends: —. Size: S. Owner: no.
   Smallest candidate fixes: run git through posix_spawn, which runs no atfork handlers (absolute `/usr/bin/git`,
   `-C <repo>` instead of cwd=, close_fds=False: `subprocess` then uses posix_spawn here, `_USE_POSIX_SPAWN` True);
   or make the temp repo once per module before the app (and PROJ) is imported.
+
+## Follow-ups
+
+- `tools/curation-review/backend/inseason.py:89-93` `_in_effect` re-implements the in-force rule and disagrees with `M.on` on a row with no dates (`in_effect: None` but banner "in force"): derive it from the banner; not done here.
+- The intermittent fork crash and the fixture memory growth in the review data tests get their own ticket from the planning chat.
