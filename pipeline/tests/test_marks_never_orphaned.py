@@ -383,7 +383,7 @@ def test_a_historic_only_place_is_its_own_item_with_its_dormant_rewordings():
     its water is live. T742 B (owner 2026-11-14, grouping removed): a dormant rewording is its own
     place too, never folded into a group head, so `historic_only` no longer takes the groups."""
     import sys
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     import dfo as B
     locs = _locs(_loc("up", "upstream of the 216th Street bridge to the signs at Allco park"),
                  _loc("north", "above 216th Street, including the North Alouette River", status="dormant"),

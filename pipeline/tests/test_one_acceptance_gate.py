@@ -178,7 +178,7 @@ def test_ingest_refuses_an_absorbed_id():
 
 def _model_api():
     spec = importlib.util.spec_from_file_location(
-        "model_api_t119", REPO / "curation-review" / "backend" / "model_api.py")
+        "model_api_t119", REPO / "tools" / "curation-review" / "backend" / "model_api.py")
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
@@ -214,7 +214,7 @@ CHECKS = {"resolve_exempt_ids", "canonicalise_splits", "absorbed_ids_named", "sp
 def _calls(names: set[str]):
     """(file, enclosing function, called name) for every non-test call of `names`."""
     out = []
-    files = list((REPO / "pipeline").rglob("*.py")) + list((REPO / "curation-review").rglob("*.py"))
+    files = list((REPO / "pipeline").rglob("*.py")) + list((REPO / "tools" / "curation-review").rglob("*.py"))
     for p in sorted(files):
         if "tests" in p.parts or p.name.startswith("test_"):
             continue
@@ -240,10 +240,10 @@ def test_only_gate_calls_a_check():
 
 def test_ingest_and_the_app_call_the_gate():
     assert _calls({"gate"}) == [
-        ("curation-review/backend/model_api.py", "check", "gate"),
         # (8f69a2f4c) not the catalogue's gate: continuation.py's own `gate` (only the owner's reviewed links ship)
         ("pipeline/deliver/bundle/continuation.py", "gate_bundle", "gate"),
-        ("pipeline/regs/parsing/ingest_catalogue.py", "ingest", "gate")]
+        ("pipeline/regs/parsing/ingest_catalogue.py", "ingest", "gate"),
+        ("tools/curation-review/backend/model_api.py", "check", "gate")]
 
 
 # --- the corpus ----------------------------------------------------------------------------------

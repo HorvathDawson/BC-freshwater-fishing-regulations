@@ -173,7 +173,7 @@ def test_the_curated_list_names_the_little_qualicum_place_on_its_mark_in_force()
 
 def test_the_checklist_reads_the_list(monkeypatch, tmp_path):
     import sys
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     sys.modules.pop("checks", None)
     import checks as B
     sys.modules.pop("checks", None)
@@ -193,7 +193,7 @@ def test_the_review_app_names_the_places_it_covers_and_no_longer_warns_on_one_si
     used to warn that the salmon chain ordered the two by id; the chain now puts this place after the places it rides
     on (`deliver.salmon.chain_order` `rides`, `test_t229_cascade_order.py`), so the warning is gone"""
     import sys
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     sys.modules.pop("dfo", None)
     import dfo as BD
     sys.modules.pop("dfo", None)

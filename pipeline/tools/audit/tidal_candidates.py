@@ -22,7 +22,7 @@ against what the words say:
 
 Each candidate: the proposed split (where it should go, label "<water>: mouth (tidal boundary)"),
 the polygon's own crossing, every source with whether it agrees, and a confidence. READ ONLY on
-every input; the output is a proposal file the curation review shows (`curation-review/backend/
+every input; the output is a proposal file the curation review shows (`tools/curation-review/backend/
 tidal.py`), accepted one by one into a mark — never into splits.json.
 """
 from __future__ import annotations

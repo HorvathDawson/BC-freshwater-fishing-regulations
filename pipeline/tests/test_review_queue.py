@@ -548,7 +548,7 @@ def test_commit_marks_refuses_a_store_that_does_not_load(tmp_path):
 def _py_sources():
     for p in sorted((REPO / "pipeline").rglob("*.py")):
         yield p, p.read_text(encoding="utf-8")
-    for p in sorted((REPO / "curation-review" / "backend").glob("*.py")):
+    for p in sorted((REPO / "tools" / "curation-review" / "backend").glob("*.py")):
         yield p, p.read_text(encoding="utf-8")
 
 
@@ -566,7 +566,7 @@ def test_no_second_copy_of_the_order_the_prechecks_the_tickets_or_the_run_reader
             if k in text:
                 hits[k].append(rel)
         # the review side reads the reach run's diagnostics in ONE place
-        if rel.startswith(("curation-review/", "pipeline/regs/review/")) and (
+        if rel.startswith(("tools/curation-review/", "pipeline/regs/review/")) and (
                 "rule_diagnostic" in text or "rule_unresolved" in text):
             run_readers.append(rel)
     assert hits == {
@@ -577,7 +577,7 @@ def test_no_second_copy_of_the_order_the_prechecks_the_tickets_or_the_run_reader
         "def commit_marks(": ["pipeline/regs/review/commit_marks.py"],
         "def refusal_words(": ["pipeline/regs/review/marks.py"],
         "def risks(": ["pipeline/regs/review/tiers.py"],
-        "def splits_to_verify(": ["pipeline/regs/review/tiers.py", "curation-review/backend/reuse.py"],
+        "def splits_to_verify(": ["pipeline/regs/review/tiers.py", "tools/curation-review/backend/reuse.py"],
         "def is_curated_pick(": ["pipeline/regs/review/runfacts.py"],
         "def statuses_now(": ["pipeline/regs/review/tickets.py"],
         "def on_disk(": ["pipeline/regs/review/fingerprint.py"],
@@ -587,7 +587,7 @@ def test_no_second_copy_of_the_order_the_prechecks_the_tickets_or_the_run_reader
     # read around it), a curated pick `runfacts.is_curated_pick` — never re-derived beside them
     for p, text in _py_sources():
         rel = str(p.relative_to(REPO))
-        if p.name.startswith("test_") or not rel.startswith(("curation-review/",
+        if p.name.startswith("test_") or not rel.startswith(("tools/curation-review/",
                                                               "pipeline/regs/review/")):
             continue
         if rel != "pipeline/regs/review/runfacts.py":
@@ -600,6 +600,6 @@ def test_the_screen_says_the_no_name_refusal_in_the_server_s_words():
     """The verdict bar refuses a mark with no name before the round trip; it says it in
     `marks.REFUSAL_WORDS`' words, not a second wording (T142 adversarial review)."""
     from pipeline.regs.review.marks import REFUSAL_WORDS
-    src = (REPO / "curation-review" / "frontend" / "src" / "components" / "useMarking.tsx").read_text(
+    src = (REPO / "tools" / "curation-review" / "frontend" / "src" / "components" / "useMarking.tsx").read_text(
         encoding="utf-8")
     assert f'setErrors(["{dict(REFUSAL_WORDS)["a mark needs the reviewer\'s name"]}"])' in src

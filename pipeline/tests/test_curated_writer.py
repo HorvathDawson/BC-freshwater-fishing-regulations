@@ -98,7 +98,7 @@ def test_parsing_atomic_write_is_the_one_copy():
 #: Every production module that reads the curated tree (or names `atomic_write`) and writes files, with WHAT it
 #: writes. "curated via the writer": its curated writes go through `curated_write`; the raw writes the scan sees are
 #: generated / scratch / release files. HANDED OVER: the review app's own write path (T600 item 2: chat 10's paths,
-#: listed, not edited) — the marks store and the in-season matches, through `curation-review/backend/writes.py`.
+#: listed, not edited) — the marks store and the in-season matches, through `tools/curation-review/backend/writes.py`.
 CLASSIFIED = {
     "pipeline/common/curated_write.py": "THE writer",
     "pipeline/common/curated.py": "make_root: copies the live tree to a sandbox root (never into the live tree)",
@@ -110,8 +110,8 @@ CLASSIFIED = {
                                                     "cleaned layers under source/municipal/cleaned (a dev step)",
     # --- handed over (the review app's write path)
     "pipeline/regs/review/marks.py": "HANDED OVER: marks.append, the marks store (atomic_write under the store lock)",
-    "curation-review/backend/writes.py": "HANDED OVER: writes.commit, marks + in-season matches, its own backup/rollback",
-    "curation-review/backend/inputs_sync.py": "its own log under generated/review (open 'a')",
+    "tools/curation-review/backend/writes.py": "HANDED OVER: writes.commit, marks + in-season matches, its own backup/rollback",
+    "tools/curation-review/backend/inputs_sync.py": "its own log under generated/review (open 'a')",
     # --- build stages: write their build / run / bundle / tiles / release dirs only (read-only tree: test_atlas_inputs)
     "pipeline/build.py": "the build manifest and stage logs (generated)",
     "pipeline/release.py": "the release candidate, ledger and LATEST (data/release, generated)",
@@ -201,7 +201,7 @@ def in_scope(src: str) -> bool:
 
 def _scope() -> set[str]:
     out = set()
-    for top in ("pipeline", "curation-review/backend"):
+    for top in ("pipeline", "tools/curation-review/backend"):
         for p in sorted((ROOT / top).rglob("*.py")):
             rel = p.relative_to(ROOT).as_posix()
             if "/tests/" in rel or "node_modules" in rel:

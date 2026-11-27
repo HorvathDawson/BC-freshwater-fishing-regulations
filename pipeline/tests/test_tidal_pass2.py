@@ -360,7 +360,7 @@ def test_the_review_reopens_a_mark_older_than_its_words(monkeypatch):
     import sys
     from types import SimpleNamespace
     from pipeline.regs.review import marks as M
-    backend = str(Path(__file__).resolve().parents[2] / "curation-review" / "backend")
+    backend = str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend")
     monkeypatch.syspath_prepend(backend)
     sys.modules.pop("tidal", None)
     import tidal as B

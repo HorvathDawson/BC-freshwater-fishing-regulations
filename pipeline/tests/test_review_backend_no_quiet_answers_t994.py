@@ -19,7 +19,7 @@ import pytest
 
 from pipeline.tests.conftest import curated_root
 
-BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 _MODS = ("app", "reuse", "writes", "review", "write_through", "awaiting_water", "reports", "dfo", "inseason")
 
 

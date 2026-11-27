@@ -14,17 +14,18 @@ Work in a scratchpad worktree of `origin/main`, never the main checkout.
 
 ## Left, in order
 
-1. **Land the second cut** if its PR is not on main yet (review findings fixed, `scripts/before_pr.sh`, queue on the
+1. **Land the second cut** if its PR is not on main yet (review findings fixed, `scripts/before_pr.sh --title "<title>"`, queue on the
    planning chat's word).
 2. **The rename is done** (#310, 2026-11-26 11:31 MST): tickets are top-level `tickets/`, the rest is `docs/`. Each
    open branch (#286, `release/0.10.0`, the parked hardening branches) runs `python3 scripts/rename_handoff.py
    --commit`, then merges main; on `release/0.10.0` it also rewrites the Step 8 record files written at old paths
    (`play-production-access/`). The memory notes' old paths are rewritten. Left here: the legacy restart pages move
    into this folder and `LEGACY_RESTART` goes.
-3. **The review tool gets one home** (suggested `tools/curation-review/`; the server side may stay in
-   `pipeline/regs/review`), CI on its own files only, a README. A saved-mark write-through test is proven before
-   and after. Never the owner's marks, `data/curated/review` or `data/generated/review`.
-4. **The pages held on 2026-11-25**, one small PR after 0.10.0 is merged back: `runbooks/release.md`,
+3. **The review tool has one home** (done, owner pick 2026-11-26): `tools/curation-review/` (backend, frontend, README); the
+   server side stays in `pipeline/regs/review`. CI runs its tests through the pipeline area's path filter. Never the
+   owner's marks, `data/curated/review` or `data/generated/review`.
+4. **The pages held on 2026-11-25**, WAITING: one small PR only after `release/0.10.0` is merged back to main (it holds
+   unmerged edits to these runbooks at the old paths): `runbooks/release.md`,
    `release-by-hand.md`, `release-gates-explained.md` and `release/PRODUCTION.md` become one `release.md` plus a
    short by-hand page; the T1140 page and the T1053 head-lake list go when their tickets no longer need them. Take
    each off `PAGE_LONG` / `WORKING_PAGES` in the same PR and lower `readingLines`.
