@@ -24,9 +24,9 @@ FIELDS = ("scope", "target", "mark_date", "mark", "binding", "decision", "words"
 
 
 def path() -> Path:
-    """beside the marks store (moved with the whole tree by `CURATED_ROOT`)"""
+    """`CURATED.review.owner_carries` (moved with the whole tree by `CURATED_ROOT`); it may be absent"""
     from pipeline.common.curated import CURATED
-    return Path(CURATED.review.marks).parent / "owner_carries.json"
+    return Path(CURATED.review.owner_carries)
 
 
 def load(p: Optional[Path] = None) -> list[dict]:

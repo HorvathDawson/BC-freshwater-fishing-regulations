@@ -25,7 +25,7 @@ from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT
 
 
 def generated_path() -> Path:
-    return Path(GENERATED.base) / "steelhead" / "steelhead_waters.json"
+    return Path(GENERATED.steelhead) / "steelhead_waters.json"
 
 
 def _key(w: dict) -> str:

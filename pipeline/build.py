@@ -80,7 +80,7 @@ from datetime import date
 from pathlib import Path
 
 from pipeline.common import source_hash
-from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, ROOTS, SOURCE
 from pipeline.gauges.consume.bundle_tables import CLIM_PATH
 
 MANIFEST = GENERATED.bundle.parent / "build-manifest.json"
@@ -187,10 +187,15 @@ def code_digest(roots) -> str:
 #: minus these, which no stage reads: review inputs and worklists (the slough page calls, the split confidence
 #: overrides, the owner's found-name calls — `tools.mined_names` turns those into `found_names.json`, which IS hashed —
 #: the closed-domains list) and the hand worklist with no build reader (`unmapped_waters`).
-NOT_DELIVER_INPUTS = ("base", "review.proposal_overrides", "review.closed",
+NOT_DELIVER_INPUTS = ("review.proposal_overrides", "review.closed",
                       "waters.slough_page_calls", "waters.found_name_calls", "waters.unmapped_waters",
                       # T679 #13: read by the added-streams generator only (its output, added_streams.json, is read)
-                      "waters.added_stream_calls")
+                      "waters.added_stream_calls",
+                      # declared by T1192 and kept out as they were before it: review state read by the review app and
+                      # the proposals only; the accepted bathymetry / stocking matches, which no stage reads yet; and
+                      # the closed areas, which the reach run reads (deliver is covered through its reach dependency)
+                      "review.owner_carries", "review.recheck", "bathymetry.matches", "bathymetry.contour_matches",
+                      "stocking.matches", "dfo_salmon.closed_areas")
 
 
 def curated_digest() -> str:
@@ -477,7 +482,7 @@ def tiles_key(build_dir: Path, m: dict | None = None) -> dict:
     place names or anything a data release changes, so a data-only `pipeline build` never rebuilds (or re-ships) the
     tiles."""
     from pipeline.common.section_handles import digest_for
-    areas = Path(CURATED.waters.areas)
+    areas = Path(CURATED.waters.area_closures)
     # (T173) the fish obstacles' own fetched file; missing, the key says so and the stage runs (and names the fetch)
     ob = obstacles_source()
     return {"handles": digest_for(build_dir), "gpkg": stamp(sources()["gpkg"]),
@@ -545,7 +550,7 @@ class Homes:
     def of(cls, build_dir: Path, side: Path | None = None) -> "Homes":
         if side is None:
             return cls(Path(CLIM_PATH), GENERATED.reaches / build_dir.name, Path(GENERATED.tiles), None,
-                       Path(GENERATED.release))
+                       Path(ROOTS.release))
         side = Path(side)
         return cls(side / "clim.json", side / "reaches" / build_dir.name, side / "tiles", side / "deliver",
                    side / "deliver" / "release")
@@ -596,7 +601,7 @@ def prepare_side(build_dir: Path) -> None:
     live_meta = Path(GENERATED.tiles) / "basemap.meta.json"
     if live_meta.exists() and not (h.tiles / "basemap.meta.json").exists():
         (h.tiles / "basemap.meta.json").write_bytes(live_meta.read_bytes())
-    bm = Path(GENERATED.release) / "basemap"
+    bm = Path(ROOTS.release) / "basemap"
     if bm.is_dir() and not (h.release / "basemap").exists():
         (h.release / "basemap").symlink_to(bm.resolve(), target_is_directory=True)
 

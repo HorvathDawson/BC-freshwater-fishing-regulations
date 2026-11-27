@@ -15,7 +15,7 @@ THE ENVIRONMENT CONTRACT (all optional; unset = this checkout's live tree). The 
     UI_EXPORT_BUNDLE     bundle.sqlite            (default GENERATED.bundle / bundle.sqlite)
     UI_EXPORT_VERDICTS   verdicts.sqlite          (default beside the bundle)
     STATUS_INDEX         status_index.bin         (default beside the bundle)
-    ANSWERS_EXPORT_DIR   the export / answers dir (default UI_EXPORT_DIR/regs, else GENERATED.base / regs)
+    ANSWERS_EXPORT_DIR   the export / answers dir (default UI_EXPORT_DIR/regs, else the folder of GENERATED.regs.export)
     UI_EXPORT_DIR        a side set's `deliver all --out-dir` dir: its `release/` is the release root
     ATLAS_BUILD          the atlas build dir      (default GENERATED.build())
     UI_EXPORT_REACHES    the reach run            (default GENERATED.reaches / <build name>)
@@ -55,7 +55,7 @@ def _bundle() -> Path:
 
 def _export_dir() -> Path:
     side = _env("UI_EXPORT_DIR")
-    return _env("ANSWERS_EXPORT_DIR") or (side / "regs" if side else GENERATED.base / "regs")
+    return _env("ANSWERS_EXPORT_DIR") or (side / "regs" if side else GENERATED.regs.export.parent)
 
 
 def _atlas() -> Path:

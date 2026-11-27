@@ -48,10 +48,10 @@ def release_dir(release: Optional[Path] = None) -> Path:
         if not (d / "manifest.json").is_file():
             raise FileNotFoundError(f"no release at {d} (no manifest.json)")
         return d
-    from pipeline.common.curated import GENERATED
-    d = latest(GENERATED.release)
+    from pipeline.common.curated import ROOTS
+    d = latest(ROOTS.release)
     if d is None:
-        raise FileNotFoundError(f"no release under {GENERATED.release} — make one with: python -m pipeline.deliver all")
+        raise FileNotFoundError(f"no release under {ROOTS.release} — make one with: python -m pipeline.deliver all")
     return d
 
 

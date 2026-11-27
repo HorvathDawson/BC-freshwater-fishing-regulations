@@ -232,9 +232,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if a.release:
         rel = Path(a.release)
     else:
-        from pipeline.common.curated import GENERATED
+        from pipeline.common.curated import ROOTS
         from pipeline.deliver.release.manifest import live
-        rel = live(GENERATED.release)
+        rel = live(ROOTS.release)
     waters, ends = release_waters(rel)
     bad = (problems(waters, ends, limit=10_000) + run_problems(*_release_runs(rel), limit=10_000)
            + slice_problems(rel, limit=10_000))
