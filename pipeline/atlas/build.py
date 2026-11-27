@@ -1590,7 +1590,7 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     stamped after every cut (`mark_membership`), so no closure area is an item yet and `outside_area_items`, which
     refuses a missing area, is left out; no tidal answer reads an area item.
 
-    Reads: splits, lake_names, wetland_names, _nv_all, wb_polys, _mined, added_lake_parts, area_defs."""
+    Reads: splits, lake_names, wetland_names, _nv_all, wb_polys, _mined, added_lake_parts, area_defs, city_mouths."""
     from pipeline.atlas.registry import (add_boundary_confidence, add_curated_wbk_items, add_lake_parts,
                                          add_waterbody_items, build_registry as _items, outside_area_items)
     info: dict = {}

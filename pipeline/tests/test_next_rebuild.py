@@ -76,7 +76,8 @@ def _stage(tmp_path, monkeypatch, extra, limits, held=None):
     b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", coast_gpkg="unused-coast.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
                         fid_index=idx, applied_splits=[], fids=fids, chains=build_blk_chains(fids, {}), bbox=None,
                         tidal_limits=limits, tidal_ids={}, tick=lambda label: None, splits=[], lake_names={},
-                        wetland_names={}, _nv_all=[], wb_polys={}, _mined=[], added_lake_parts={}, area_defs=[])
+                        wetland_names={}, _nv_all=[], wb_polys={}, _mined=[], added_lake_parts={}, area_defs=[],
+                        city_mouths=[])
     B.cut_shores(b)
     return b
 
