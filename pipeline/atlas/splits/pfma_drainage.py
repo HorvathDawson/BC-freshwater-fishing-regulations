@@ -149,8 +149,8 @@ def basin_of(watershed_code: str) -> Optional[str]:
     return groups[0] + "-"
 
 
-def city_tidal_mouths(streams: Iterable[dict]) -> list[tuple[str, float, float]]:
-    """(basin prefix, x, y) in EPSG:3005 of every added city line that drains straight to the sea (`receiver_kind`
+def city_tidal_mouths(streams: Iterable[dict]) -> list[tuple[str, float, float, str]]:
+    """(basin prefix, x, y, its name and blk) in EPSG:3005 of every added city line that drains straight to the sea (`receiver_kind`
     "tidal"): its mouth is its line's first point (the added streams are stored mouth first). The input to
     `basin_areas(city_mouths=...)`; a line whose receiver is a river or another creek is not one (it inherits)."""
     out = []
@@ -163,12 +163,12 @@ def city_tidal_mouths(streams: Iterable[dict]) -> list[tuple[str, float, float]]
             raise ValueError(f"added stream {s.get('blk')} ({s.get('name')}) drains to the sea but has no code or no "
                              "line: its Area cannot be found")
         x, y = segs[0]["coords3005"][0][:2]
-        out.append((basin, float(x), float(y)))
+        out.append((basin, float(x), float(y), f"{s.get('name') or '(unnamed)'} (blk {s.get('blk')})"))
     return sorted(out)
 
 
 def basin_areas(areas: Iterable[int] = SECTION_E_AREAS, gpkg: str = _GPKG, *,
-                city_mouths: Iterable[tuple[str, float, float]]) -> Dict[str, int]:
+                city_mouths: Iterable[tuple[str, float, float, str]]) -> Dict[str, int]:
     """`{basin prefix -> area number}` for every basin draining into one of `areas`.
 
     A section belongs to a basin iff its watershed code starts with the prefix, so this map is the
@@ -222,22 +222,25 @@ def basin_areas(areas: Iterable[int] = SECTION_E_AREAS, gpkg: str = _GPKG, *,
         from shapely.geometry import Point
         polys = _CACHE[key]["areas"]
         city: Dict[str, tuple] = {}
-        for basin, x, y in city_mouths:
+        for basin, x, y, who in city_mouths:
             if basin in picked:
                 continue                          # an FWA basin: its own mouth answers (T1150's seven)
             dist = polys.geometry.distance(Point(x, y))
             dmin = float(dist.min())
             near_areas = sorted({int(a) for a in polys.loc[dist == dmin, AREA_FIELD]})
             if len(near_areas) > 1:
-                raise ValueError(f"city creek mouth at ({x:.0f}, {y:.0f}) (code {basin}) lies on the line between "
-                                 f"Areas {near_areas}: no rule picks one (pfma_drainage.CITY_MOUTH_ON_AN_AREA_LINE)")
+                raise ValueError(f"city creek {who}: its mouth at ({x:.0f}, {y:.0f}) (code {basin}) lies on the line "
+                                 f"between Areas {near_areas}: no rule picks one (pfma_drainage.CITY_MOUTH_ON_AN_AREA_LINE)")
+            if dmin > MAX_MOUTH_OFFSET_M:          # FWA's far basins (inland majors) drop; a city creek to the sea never
+                raise ValueError(f"city creek {who}: its mouth at ({x:.0f}, {y:.0f}) (code {basin}) lies {dmin:,.0f} m "
+                                 f"from the nearest Area, beyond MAX_MOUTH_OFFSET_M: it drains to the sea but to no Area")
             prev = city.get(basin)
             if prev is not None and prev[1] != near_areas[0] and prev[0] == dmin:
-                raise ValueError(f"two mouths of one city creek (code {basin}) lie equally near Areas "
-                                 f"{sorted({prev[1], near_areas[0]})}")
+                raise ValueError(f"two mouths of one city creek (code {basin}: {prev[2]}, {who}) lie equally near "
+                                 f"Areas {sorted({prev[1], near_areas[0]})}")
             if prev is None or dmin < prev[0]:
-                city[basin] = (dmin, near_areas[0])
-        picked.update(city)
+                city[basin] = (dmin, near_areas[0], who)
+        picked.update({b: (d, a) for b, (d, a, _w) in city.items()})
     reached = {b: a for b, (d, a) in picked.items() if d <= MAX_MOUTH_OFFSET_M}
     logger.info("%d basins; %d drain to a Pacific tidal Area, %d do not (inland majors — Arctic, Peace, Liard)",
                 len(picked), len(reached), len(picked) - len(reached))
