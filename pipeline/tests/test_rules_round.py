@@ -84,8 +84,8 @@ D4_LIFTS = [("1", "r1:nitinat_river@1-4", "nitinat_river.r1"),
             ("8", "r8:similkameen_river@8-2", "similkameen_river.r3")]
 
 #: Lift-only rules of a ✱ row whose exemption the ROW does not print, so D4 does not walk them:
-#: Region 5's spring closure excepts "other streams listed in the tables" (p.42, L13) — the
-#: Mitchell River itself, not its tributaries.
+#: Region 5's spring closure excepts "other streams listed in the tables" (p.42, L28) — the
+#: Mitchell River itself below its lake, where the row prints its own closures, not its tributaries.
 NOT_PRINTED_BY_THE_ROW = {"r5:mitchell_river@5-15::mitchell_river.r3x"}
 
 

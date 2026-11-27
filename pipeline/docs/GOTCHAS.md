@@ -90,7 +90,7 @@ say how the DATA treats the ones that look like a bug.
 
 The row prints "No Fishing Nov 15-May 14"; the neighbours print "Nov 15-June 30", so May 14 is read as a replacement
 for the spring closure. Owner: "yes to open since it seems to be a replacement closure time to the springf closure."
-The Fraser-watershed (Region 6) and Zone A (7A) closures lift from May 15. Built in T1177; check the lift on both parts.
+The Fraser-watershed (Region 6) and Zone A (7A) closures lift from May 15: built in T1177 (RULINGS L27), checked on every section of both parts.
 
 ## Region 5's spring closure is lifted only by a row's own exemption or "open all year" (P7b)
 
