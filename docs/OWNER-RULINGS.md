@@ -242,7 +242,7 @@ His words, verbatim. Answers given in the planning chat and relayed verbatim to 
 ### Reserve and park cut rule (T1199, T1240-T1242)
 - **Edge water along a reserve or park:** "Closed, like a boundary river (Recommended)".
 - **A stream beside an area that never crosses:** "Never inside (Recommended)". With his design words: "also if a stream never enters a eco area at all then it will never get cut and will not get considered inside. it must cross at least once or be very close. ... we dont want tiny artifacts left because of the 25m or whatever distance rule."
-- **Timing:** "In the 0.10.0 re-cut (Recommended)". The cut rule built is T1199 (real crossings, 50 m band, no piece under 100 m).
+- **Timing:** "In the 0.10.0 re-cut (Recommended)". The cut rule built is T1199 (real crossings, 50 m band, no piece under 100 m). **The opens list and the two edge stretches G6 named (2026-11-27):** "Merge with the list; close both edge stretches (Recommended)": T1199 merges into the 0.10.0 re-cut, the Beaverfoot River along Yoho (123 m) is closed as edge water; for the creek along the Klanawa River Ecological Reserve, shown its picture: "Stop at 370 m" (closed to 370.0 m as today, its last 51.6 m open as today) (`waters/area_edge_calls.json`). Both came after his night answer "Hold for the loop-removal trial" (Return batch 4).
 - **The water option:** "D: simplify the water itself"; late folds: "Hold the re-cut for all of them"; loop removal: "Run the loop-removal trial first, then I decide" (T1242). Snehumption's fold: "i need to see on map for how to handle it" (T1240).
 
 ### Tributary and place picks of the one-offs batch (data chat)

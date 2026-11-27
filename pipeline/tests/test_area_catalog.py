@@ -13,7 +13,7 @@ def test_area_id_scheme():
 def test_catalog_entries_kind_cut_and_defaults():
     defs = [
         {"id": "provincial_parks", "kind": "park", "cut": False},
-        {"id": "national_parks", "kind": "park", "cut": "clean", "rejoin_m": 1000},
+        {"id": "national_parks", "kind": "park", "cut": "clean"},
     ]
     polys = {
         "provincial_parks": {"Wells Gray Park": box(0, 0, 1, 1)},
@@ -28,7 +28,7 @@ def test_cut_entry_wins_on_id_collision():
     # same kind+name from a membership def and a cut def -> the cut one is kept
     defs = [
         {"id": "membership", "kind": "reserve", "cut": False},
-        {"id": "cutter", "kind": "reserve", "cut": "clean", "rejoin_m": 1000},
+        {"id": "cutter", "kind": "reserve", "cut": "clean"},
     ]
     polys = {
         "membership": {"Oak Bay Islands": box(0, 0, 1, 1)},
