@@ -112,6 +112,8 @@ CLASSIFIED = {
     "pipeline/regs/review/marks.py": "HANDED OVER: marks.append, the marks store (atomic_write under the store lock)",
     "tools/curation-review/backend/writes.py": "HANDED OVER: writes.commit, marks + in-season matches, its own backup/rollback",
     "tools/curation-review/backend/inputs_sync.py": "its own log under generated/review (open 'a')",
+    "tools/curation-review/backend/region_cascade.py": "(T1246) READS the added streams' mouths; writes only "
+                                                       "generated/review/pfma_basin_areas.json (`--basins`)",
     # --- build stages: write their build / run / bundle / tiles / release dirs only (read-only tree: test_atlas_inputs)
     "pipeline/build.py": "the build manifest and stage logs (generated)",
     "pipeline/release.py": "the release candidate, ledger and LATEST (data/release, generated)",

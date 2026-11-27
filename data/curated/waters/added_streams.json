@@ -3256,7 +3256,7 @@
   },
   {
    "blk": "-2000000390",
-   "wsc": "900-078372",
+   "wsc": "900-078371",
    "name": "Tunnel Creek",
    "source": "burnaby",
    "src_id": 247,
@@ -41030,7 +41030,7 @@
   },
   {
    "blk": "-2000000142",
-   "wsc": "900-053687-249200",
+   "wsc": "900-053686-249200",
    "name": "Capitol Trib.1",
    "source": "burnaby",
    "src_id": 11,
@@ -41042,7 +41042,7 @@
    "stream_magnitude": 1,
    "receiver_kind": "added",
    "receiver_blk": "-2000000141",
-   "receiver_wsc": "900-053687",
+   "receiver_wsc": "900-053686",
    "base_measure": 0.0,
    "connector": {
     "to_blk": -2000000141,
@@ -41138,7 +41138,7 @@
   },
   {
    "blk": "-2000000141",
-   "wsc": "900-053687",
+   "wsc": "900-053686",
    "name": "Capitol Creek",
    "source": "burnaby",
    "src_id": 297,
@@ -67607,7 +67607,7 @@
   },
   {
    "blk": "-2200000392",
-   "wsc": "900-057239",
+   "wsc": "900-057238",
    "name": "Turner Creek",
    "source": "port_moody",
    "src_id": 112,
@@ -68368,7 +68368,7 @@
   },
   {
    "blk": "-2200000393",
-   "wsc": "900-057239-436900",
+   "wsc": "900-057238-436900",
    "name": "Turner Creek Trib.1",
    "source": "port_moody",
    "src_id": 115,
@@ -68380,7 +68380,7 @@
    "stream_magnitude": 1,
    "receiver_kind": "added",
    "receiver_blk": "-2200000392",
-   "receiver_wsc": "900-057239",
+   "receiver_wsc": "900-057238",
    "base_measure": 0.0,
    "connector": {
     "to_blk": -2200000392,
