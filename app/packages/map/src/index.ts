@@ -27,4 +27,4 @@ export { type TraceProp } from "./trace-overlay";
 export { pressSpot } from "./spots";
 export { MapLab } from "./MapLab";
 export { LAB_ON } from "./lab";
-export { mapChrome } from "./chrome";
+export { mapChrome, GEOMETRY as MAP_GEOMETRY } from "./chrome";

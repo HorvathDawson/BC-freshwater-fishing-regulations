@@ -205,9 +205,9 @@ describe("the credit is shown first, then folds (OSMF attribution guideline)", (
 describe("T1212 the opening credit line never meets the key row or the scale (review, 320 wide)", () => {
   it("beside a floating key (plain, or with its isolate row) it stands over the foot block, its width stopping short of the scale", () => {
     const G = GEOMETRY;
-    // at 320, 360 and 412 the widest the line may be leaves it clear of the scale bar's widest end (it wraps, never reaches)
-    for (const width of [320, 360, 412])
-      expect([width, width - G.right - startupMaxWidth(width) >= G.scaleLeft + G.scaleMax + G.gap]).toEqual([width, true]);
+    // the widest the line may be, pinned: 320 - 14 - (14 + 92 + 6) = 194, 360 -> 234, 412 -> 286 (it wraps, never reaches the scale)
+    expect([320, 360, 412].map(startupMaxWidth)).toEqual([194, 234, 286]);
+    expect([G.right, G.scaleLeft, G.scaleMax, G.gap]).toEqual([14, 14, 92, 6]);
     const look = { view: "plain", modes: {}, groups: {}, basemap: "drawn" } as never;
     for (const foot of [54, 106]) {   // the key chip's row; with the isolate row ("Showing: … / Show all") over it
       resetStartupCredit();

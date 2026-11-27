@@ -61,4 +61,11 @@ describe("(T1212) the © and the scale on one grid; + / − for wide windows onl
     expect(web).toMatch(/zoomButtons = true/);
     expect(css).toMatch(/\[data-zoom-buttons="off"\] \.maplibregl-ctrl-top-right \.maplibregl-ctrl-group \{ display: none; \}/);
   });
+
+  it("(T1212) both maps hand MapCredits the foot block as footBottom, and insetCredits (else insetBottom) as the © block", () => {
+    for (const src of [web, native]) {
+      const call = /<MapCredits [^]*?\/>/.exec(src)?.[0] ?? "";
+      expect([call.includes("insetBottom={insetCredits ?? insetBottom}"), call.includes("footBottom={insetBottom}")]).toEqual([true, true]);
+    }
+  });
 });
