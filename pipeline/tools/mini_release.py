@@ -503,9 +503,11 @@ def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[st
     ]
 
 
-def build(out: Path, stop_after: str | None = None) -> dict:
+def build(out: Path, stop_after: str | None = None, trace: Path | None = None) -> dict:
     """Inputs then every stage into `out` (emptied first). Each stage's log is `out/logs/<stage>.log`; a failed stage
-    stops the build and raises naming it and its log's last lines. Returns {stage: seconds}."""
+    stops the build and raises naming it and its log's last lines. Returns {stage: seconds}. (T1229) `trace`: each stage
+    runs under the recorder (`PIPELINE_TRACE=<trace>/<stage>`), which the stage-key guard reads
+    (`test_stage_content_keys.py`)."""
     out = Path(out).resolve()
     _refuse_inside_repo_data(out)
     before = listing(watched_dirs())
@@ -526,7 +528,8 @@ def build(out: Path, stop_after: str | None = None) -> dict:
         with log.open("w", encoding="utf-8") as fh:
             fh.write("$ " + " ".join(cmd) + "\n")
             fh.flush()
-            rc = subprocess.run(cmd, cwd=REPO_ROOT, env=_env(), stdout=fh, stderr=subprocess.STDOUT).returncode
+            env = _env() if trace is None else dict(_env(), PIPELINE_TRACE=str(Path(trace).resolve() / name))
+            rc = subprocess.run(cmd, cwd=REPO_ROOT, env=env, stdout=fh, stderr=subprocess.STDOUT).returncode
         took[name] = round(time.perf_counter() - t, 1)
         print(f"mini release: {name:14} {'ok' if rc == 0 else f'FAILED rc={rc}':12} {took[name]:7.1f}s  {log}",
               flush=True)
