@@ -30,7 +30,6 @@ generated:
   release: "data/release"
 
 data:
-  base: "data/source"
   fetch:
     output_gpkg: "data/source/bc_fisheries_data.gpkg"
     temp_dir: "data/source/temp_bc_data"
@@ -95,9 +94,3 @@ curated:
     backwater_stations: "data/curated/gauges/backwater_stations.json"
     diversion_stations: "data/curated/gauges/diversion_stations.json"
     datum_change_stations: "data/curated/gauges/datum_change_stations.json"
-  stocking:
-    matches: null
-    match_calls: null
-  bathymetry:
-    matches: null
-    match_calls: null
