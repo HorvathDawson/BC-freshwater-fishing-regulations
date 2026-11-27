@@ -21,7 +21,7 @@ proof is in this PR); the app half on `feat/T1210-water-names-in-tiles`, after l
    pass keeps every point (`--drop-rate=1`, that pass only). Pure, sorted, rounded: two runs write the same bytes.
 2. App style (the second PR, after look A): river names along `stream_name` from z4, lake names from `lake_name` below z8,
    biggest first.
-3. The pipeline half alone changes no look: today's style reads no `lake_name` and draws `stream_name` from z5 as
+3. The pipeline half alone changes no look: today's style reads no `lake_name` and draws `stream_name` from z8 as
    before (the proof build in this PR: every other layer's tiles byte for byte, and the map's pixels).
 
 ## The rebuild (the 0.10.0 re-cut's data build; not run by the lane)
