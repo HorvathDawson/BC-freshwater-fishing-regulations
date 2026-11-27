@@ -112,7 +112,7 @@ the coastal estimate skips FWA codes, and the atlas build and the generator refu
 (`added_streams/validate.py` `fwa_code_collisions`). Left here: the seven other lines, named in
 `FWA_CODE_SHARED_PENDING` (Kask's Camp, Village, Mamquam Blind Channel Wetland, Kyle, Wilkes, Aliceville, Rainbow);
 "keep earlier codes" (a regeneration still re-mints every coastal code in order, so it would move hand-set codes);
-the Seymour leave-out row (T1246's owner line).
+both his leave-out rows are gone (T1246).
 
 ## Owner
 

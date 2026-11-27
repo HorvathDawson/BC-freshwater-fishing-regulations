@@ -4,7 +4,7 @@ Status: IN REVIEW — built on fix/T1246-city-creeks-own-water; owner: see ## Ow
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1246 | Turner Creek is filed under Noons Creek by a code fault; it is its own water | IN REVIEW — owner: see ## Owner | 9ca5edb50, 17ac1714e | the owner's look at the 25-creek salmon list (## Owner); then the main chat's PR and the re-cut's parity |
+| T1246 | Turner Creek is filed under Noons Creek by a code fault; it is its own water | IN REVIEW — owner: see ## Owner | 9ca5edb50, 17ac1714e | the owner's look at the 25-creek salmon list (## Owner, merged under his away rule); the re-cut's parity |
 
 Source: the owner, 2026-11-27 (planning chat), verbatim. First "Show me the map first"; after the map: "Make it its own
 water (Recommended)". Earlier, on Noons Creek (T1191, Q4): the FWA stream and the city stream of the same name in the
@@ -36,9 +36,8 @@ or removed).
   Turner Creek Trib.1 -> 900-057238-436900, Tunnel 900-078372 -> 900-078371, Capitol 900-053687 -> 900-053686, Capitol
   Trib.1 -> 900-053686-249200. Each is the nearest Level-2 no FWA line, city line, earlier added-streams file or
   committed id holds (no FWA line is coded under it either).
-- His 2026-11-11 Noons/Turner leave-out row removed from `unplaced_piece_calls.json`. Tunnel's Seymour row is KEPT (not
-  approved): once Tunnel leaves the Seymour it names no piece, and a stale row stops the reach run (owner line below).
-  Capitol has no row.
+- His 2026-11-11 Noons/Turner leave-out row removed from `unplaced_piece_calls.json`. Tunnel's Seymour row went too,
+  on his later answer (below): `accepted` is empty. Capitol had no row.
 - Ids: new waters wsc:900-057238 (Turner), wsc:900-078371 (Tunnel), wsc:900-053686 (Capitol); moved:
   wsc:900-057239-436900 -> wsc:900-057238-436900, wsc:900-053687-249200 -> wsc:900-053686-249200 (their two URLs in
   `app/seo/slug-map.json` follow). No owner mark, match, gauge, bathymetry, in-season or name-variant row names a moved
@@ -93,4 +92,4 @@ Does not block the re-cut. Depends: T1150. Owner: yes (below).
 - [x] 2026-11-27 — The three creeks (3.92 km) leave DFO's Region 2 "flowing into Areas 28 and 29" salmon closure, because a city creek with its own code drains to no Area today (27 others already do not): (a) give city creeks their Area from their own mouth (a fix in `pfma_drainage`; it also closes salmon on the 27, km to measure), (b) ship the three outside it like the 27, (c) hold T1246. → "(a) Fix it properly now (Recommended)" (2026-11-27)
 - [x] 2026-11-27 — Turner Creek's lowest 21 m becomes tidal (the coast cut every city creek gets): yes / hold. → "tidal limit is rail bridge again I think. like noons" (2026-11-27)
 - [x] 2026-11-27 — Your 2026-11-11 Seymour leave-out row (Tunnel Creek's piece): it names nothing once Tunnel is its own water, and a stale row stops the reach run. Remove it / keep it (the re-cut's reach run stops). → "(a) Remove the row too (Recommended)" (2026-11-27)
-- [ ] 2026-11-27 — Before it merges: the 25 city creeks (52 lines, 21.98 km, Burnaby, Port Moody, Squamish) that now take Area 28 and so DFO's "no fishing for salmon" (a closing; no opening), and Turner's lowest 126 m tidal at the Ioco Spur: look at the list and the picture. Default: none; ask.
+- [ ] 2026-11-27 — His look: the 25 city creeks (52 lines, 21.98 km, Burnaby, Port Moody, Squamish) that now take Area 28 and so DFO's "no fishing for salmon" (a closing; no opening), and Turner's lowest 126 m tidal at the Ioco Spur. Shown to him as a look (planning chat, 11-27); merged under his away rule after the independent review; this line stays open until he has looked.
