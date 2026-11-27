@@ -1354,14 +1354,14 @@ def climbs_head_lakes(rule: dict) -> bool:
 #: Reported as `channels_out` on the `through_river` diagnostic. False = the mutation pin.
 A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS = True
 
-#: POLICY (T1177, the narrower reading of the owner's chain ruling, pending his word): A LAKE ROW'S PRINTED EXCEPTION
+#: POLICY (T1177; owner 2026-11-27, RULINGS T19: "thatr seems like a fair assumption"): A LAKE ROW'S PRINTED EXCEPTION
 #: STOPS EVERY WALK THAT CLIMBS THROUGH THAT LAKE. Since every inflow of a rule's lake is its tributary
 #: (`tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`), a lower lake's walk climbs through the reservoirs above
 #: it: Lake Revelstoke's (and Lower Arrow Lake's) "Bull trout catch and release" through Mica Dam into Kinbasket Lake —
 #: and, read literally, on up the Columbia River above Kinbasket, the water Kinbasket's own row prints "Does not include
 #: Columbia River upstream of Kinbasket Reservoir" for (about 20,800 km). The rulings say "climb through everything" and
-#: "only shouldnt be if an exception is listed saying otherwise"; whether an exception printed on the UPPER lake's row
-#: also holds for the lower rows is not ruled, so the narrower answer is built: a carve-out (`tributary_excludes`) of a
+#: "only shouldnt be if an exception is listed saying otherwise"; an exception printed on the UPPER lake's row also
+#: holds for the lower rows (the narrower reading, built first and then ruled): a carve-out (`tributary_excludes`) of a
 #: lake's tributaries row (`tributaries_only`, every water it binds a lake) blocks every other walk where it climbs
 #: through that lake (`lake_row_stops`, handed to every walk by `build_reaches`), as it blocks the row's own walk. Never
 #: a walk whose own reach or water is that lake or the excepted water. Reported per rule (`lake_stop` diagnostic).

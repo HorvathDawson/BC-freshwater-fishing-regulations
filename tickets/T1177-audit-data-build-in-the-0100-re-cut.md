@@ -77,6 +77,8 @@ the lists before the re-cut ships. Severity: medium (several are "A": an angler 
 - Blue Lead Creek below the falls (0.9 km, kept lifted by its Aug 15-Oct 31 closure): "Keep it open in spring (Recommended)" (as built).
 - The annual quota under its own row's release (T1243): "Hide the annual quota while release applies (Recommended)".
 - Strathcona-Westmin Park as "Strathcona Park" for the rules that name it: "Yes, treat it as Strathcona Park (Recommended)" (T1240).
+- 2026-11-27 ~10:45, merge order: "Wording fix first, then the walk, both in 0.10.0 (Recommended)": the walk (PR #365) merges after T1249's gear wording.
+- 2026-11-27 ~10:45, the lake exceptions (Kinbasket, Buttle): "wait so you mean kibasket lake will stop other tributaries from below the lake from walking up as well as not havign its own walk up columbia? thatr seems like a fair assumption and add to gotcha": yes to what is built (RULINGS T19, GOTCHAS item 6; the planning chat confirms it back).
 
 ## Owner
 

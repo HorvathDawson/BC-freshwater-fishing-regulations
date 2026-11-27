@@ -21,11 +21,11 @@ The RULINGS T4, T14, T18 amendments (T1053; all-year part proposed) and T19 (T11
    unnamed widening): it is the stream. Bowman Slough takes Williston Lake's Zone A rule with its streams.
 5. **A whole-water ✱ rule climbs through its head lake** (RULINGS T18): Eagle Creek's "No Fishing" reaches Dick Creek
    above Dick Lake. A stretch rule, a DFO place and a licensing record stop at the lake.
-6. **A lake's tributaries are EVERY inflow, through every lake above** (RULINGS T19): the river FWA draws down through
-   the lake on one blue line too, even with a row of its own (it gets both; item 1 decides). Chehalis Lake's "No
-   Fishing" binds the Chehalis River above the lake (180 km); John Hart Lake's closure climbs into Buttle and Upper Campbell
-   lakes' creeks. Only a printed exception keeps water out; a lake row's exception also stops lower rows there
-   (proposed: the Columbia above Kinbasket). A stretch ("A from x to y") never takes A above x. Inlet rows = the walk.
+6. **A lake's tributaries are EVERY inflow, through every lake above** (RULINGS T19): its own line's river too, even
+   with a row of its own: Chehalis Lake's "No Fishing" binds the Chehalis above it. A stretch "A from x to y" never takes
+   A above x; inlet rows = the walk. **A lake row's printed exception also stops the rows of the lakes below it** (owner
+   11-27), only on water reached through it: Lake Revelstoke's and Lower Arrow's bull trout release add nothing above
+   Kinbasket; John Hart's and Lower Campbell's closures stop at Buttle's "except Thelwood Creek" (16.3 km, Buttle's r2 closes it all year).
 
 ## Questions the owner will put to BC Fish and Wildlife
 
