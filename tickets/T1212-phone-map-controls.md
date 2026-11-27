@@ -5,7 +5,7 @@ Status: IN PROGRESS — option A (Tidy) being built, lane T1212b (worktree wt-T1
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1212 | The phone map's controls as one set: the Today chip, no + / −, and the rest reworked (pictures first) | IN PROGRESS — 0.10.0 re-cut | 2c32f0b12, de0879941, b3f88f6ad, + review fixes | review approved; next: merge main after look A, the whole suite and check:fast, the PR; the Zoom buttons switch is T1214 |
+| T1212 | The phone map's controls as one set: the Today chip, no + / −, and the rest reworked (pictures first) | IN PROGRESS — 0.10.0 re-cut | 2c32f0b12, de0879941, b3f88f6ad, 1e4eb9fa0, ae53d9832, 4564bb45a (merge) | review approved; next: merge main after look A, the whole suite and check:fast, the PR; the Zoom buttons switch is T1214 |
 
 Source: the owner, 2026-11-26, relayed by the planning chat, on T1200's round-3 pictures (07-day-selector, 08-other-ideas):
 on the day selector ("still seem clunky") he picked "One \"Today\" chip that opens the calendar (Recommended)"; on the
@@ -129,7 +129,7 @@ the map's own scale and © words are not scaled. On `main` alone, b and c put th
    Help had no words about the arrows. The date sheet's back is unchanged (BACK.md untouched).
 
 Tests: `T1212.tidy.test.tsx`, `DayCalendar.test.tsx` (the chip), `MapCredits.render.test.tsx`, `tools/map-credits.test.ts`.
-App suite 2026-11-27: 6 failures, all failing on look A's tip without this change (its gates and `MapDay.shell.test`).
+Merged with look A's branch (2026-11-27): its gates and `MapDay.shell.test` pass; `check:fast` and `tsc -b` clean.
 Pictures of the built app against today (412, 360, 320; text 1.3 emulated): the lane's `T1212-pictures/built-sheet.png`.
 Zoom buttons for those who cannot pinch: not built (## Owner).
 

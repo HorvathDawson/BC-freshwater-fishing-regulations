@@ -6,9 +6,10 @@
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { Dimensions } from "react-native";
 import { GEOMETRY, mapChrome } from "./chrome";
 import { creditLines, lineText, partsHtml, MAP_CREDITS_DRAWN, ATLAS_CREDIT, BASEMAP_CREDIT } from "./credits";
-import { MapCredits, STARTUP_CREDIT, STARTUP_MS, resetStartupCredit } from "./MapCredits";
+import { MapCredits, STARTUP_CREDIT, STARTUP_MS, resetStartupCredit, startupMaxWidth } from "./MapCredits";
 
 afterEach(cleanup);
 const PLAIN = { view: "plain", modes: {}, groups: {}, basemap: "map" } as const;
@@ -198,5 +199,23 @@ describe("the credit is shown first, then folds (OSMF attribution guideline)", (
     first.unmount();
     render(<MapCredits look={PLAIN} chrome={chrome} />);
     expect(screen.queryByTestId("map-credits-startup")).toBeNull();
+  });
+});
+
+describe("T1212 the opening credit line never meets the key row or the scale (review, 320 wide)", () => {
+  it("beside a floating key (plain, or with its isolate row) it stands over the foot block, its width stopping short of the scale", () => {
+    const G = GEOMETRY;
+    // at 320, 360 and 412 the widest the line may be leaves it clear of the scale bar's widest end (it wraps, never reaches)
+    for (const width of [320, 360, 412])
+      expect([width, width - G.right - startupMaxWidth(width) >= G.scaleLeft + G.scaleMax + G.gap]).toEqual([width, true]);
+    const look = { view: "plain", modes: {}, groups: {}, basemap: "drawn" } as never;
+    for (const foot of [54, 106]) {   // the key chip's row; with the isolate row ("Showing: … / Show all") over it
+      resetStartupCredit();
+      render(<MapCredits look={look} chrome={mapChrome("light")} insetBottom={0} footBottom={foot} />);
+      const s = getComputedStyle(screen.getByTestId("map-credits-startup"));
+      expect([foot, parseFloat(s.bottom) >= foot + G.bottom, parseFloat(s.maxWidth)])
+        .toEqual([foot, true, startupMaxWidth(Dimensions.get("window").width)]);
+      cleanup();
+    }
   });
 });
