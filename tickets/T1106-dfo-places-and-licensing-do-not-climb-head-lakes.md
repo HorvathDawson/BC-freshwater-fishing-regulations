@@ -24,3 +24,6 @@ The list exists and the owner has ruled per source; RULINGS says it; any build h
 Depends: T1053. Severity: medium until the list exists (a salmon closure or a classified-water licence that should
 reach above a lake would be missing there; unknown how many). Release: 0.9.2 (the list), the build after his pick.
 Model: Opus. Size: S for the list. Owner: yes (the ruling).
+
+## 2026-11-26: the owner's ruling
+"unless you have exact dfo words saying what they mean by tributaries we should have a single tributary logic that is the saame across the board." So DFO places climb head lakes like the book's rows unless DFO's own written definition says otherwise: step 1 becomes "find DFO's exact words". Built in T1177 (`docs/OWNER-RULINGS.md`). Licensing records follow P2 (the licence climbs like the fish rules).

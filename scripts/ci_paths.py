@@ -84,7 +84,7 @@ AREAS: dict[str, list[str]] = {
     "pipeline": ["pipeline/**", "data/**", "config.yaml", "project_config.py",
                  "requirements.txt", "constraints.txt",
                  # (T535) the review app's backend tests and the path gate's own dirs live here; fast-fail runs both too
-                 "curation-review/**", "scripts/**",
+                 "tools/curation-review/**", "scripts/**",
                  # (T995 review) what the pipeline's tests read outside those: every workflow and action
                  # (test_workflow_pins), the hooks, the deploy scripts (test_deploy_gates, the fail-safe tests), the
                  # app (generated copies, fixtures, goldens, the tree scanners), the README, the pytest setup, two

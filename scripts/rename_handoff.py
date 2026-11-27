@@ -51,7 +51,7 @@ NEVER = {
     # moved whole, never edited (the owner's records and marks; T1081 "Never touch"): both spellings, before and after
     **{f"{root}/{sub}": "a move-only folder: its bytes never change" for root in (OLD_PLAN, NEW_PLAN) for sub in (
         "play-production-access/", "app-integration/store/", "repo-move/", "sloughs/marks/",
-        "curation-review/tidal/owner-decisions.json")},
+        "tools/curation-review/tidal/owner-decisions.json")},
 }
 
 #: (file, old, new, replace_all): the places a path is BUILT from parts, or spelled in a way the prefix rules do not reach.

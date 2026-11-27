@@ -29,7 +29,7 @@ steps never beside a release build).
 **Rules for every chat** (memory `credit-efficient-structure`, owner 2026-11-23; they start after the 0.9.0 chat):
 - Scope is frozen when the chat starts. New asks become tickets for the next chat unless something is broken.
 - At most 3–4 lanes at once, one ticket each, reports of 15 lines or fewer.
-- One review round. Lanes run `scripts/before_pr.sh` and check their own diff first (W46, mutation-proved tests).
+- One review round. Lanes run `scripts/before_pr.sh --title "<the PR title>"` and check their own diff first (W46, mutation-proved tests).
 - Each chat keeps its own restart page and ledger rows current, so the next chat starts cheap.
 - Every chat keeps the Play production-access record current (owner 2026-11-24): each piece of feedback becomes a
   feedback-log row and a ticket; each release adds a releases.md row, sets "Fixed in", and updates questionnaire Q3, Q7

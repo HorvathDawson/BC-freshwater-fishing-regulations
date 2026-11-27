@@ -7,7 +7,7 @@ import importlib
 import sys
 from types import SimpleNamespace
 
-sys.path.insert(0, "curation-review/backend")
+sys.path.insert(0, "tools/curation-review/backend")
 
 from pipeline.atlas.reach.build import REST_BEHIND            # noqa: E402
 from pipeline.tests.test_review_audit import place            # noqa: E402

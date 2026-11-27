@@ -1,7 +1,7 @@
 """T325: lands review marks in their final curated files — the same for every open domain.
 
 WRITE-THROUGH (owner 2026-10-30: "it should just work naturally from marks"): the review app runs `run()` for the
-mark's domain right after each save (`curation-review/backend/write_through.py`), so the owner runs nothing and
+mark's domain right after each save (`tools/curation-review/backend/write_through.py`), so the owner runs nothing and
 locks nothing. This command is the same apply by hand — a catch-up after marks were made with the server off:
 
     python -m pipeline.regs.review.apply                 # every open domain

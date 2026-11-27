@@ -6,7 +6,7 @@ outcome, and `build` runs the whole corpus. It lives here rather than under `reg
 because it is reach logic, not registry storage — the registry only supplies the
 item -> sections map it reads.
 
-Lifted out of `curation-review/backend/reuse.py` so the review app and the artifact builder run ONE
+Lifted out of `tools/curation-review/backend/reuse.py` so the review app and the artifact builder run ONE
 implementation. If the builder had its own, the bundle and the app would disagree — and the app is
 where a human signed off, so the divergence would be invisible until a user hit a wrong reach.
 
@@ -21,7 +21,7 @@ whose two cuts sit on different blue lines is the intersection of two half-lines
 (`_between_across_lines`) — that is how a reach spanning a name change resolves.
 
 The graph and registry are passed in rather than read from module state, so a caller can resolve
-against any build. `curation-review/backend/reuse.py` supplies its cached pair; the builder supplies
+against any build. `tools/curation-review/backend/reuse.py` supplies its cached pair; the builder supplies
 its own.
 """
 

@@ -97,7 +97,7 @@ class TestNoBypass:
     each spelled the area key. Mutation: re-inline either in any of them and this fails."""
 
     SCANNED = ("pipeline/regs/matching/matcher.py", "pipeline/atlas/registry/build.py",
-               "curation-review/backend/reuse.py", "pipeline/atlas/reach/extent.py",
+               "tools/curation-review/backend/reuse.py", "pipeline/atlas/reach/extent.py",
                "pipeline/deliver/bundle/place_names.py")
 
     def test_no_reader_asks_kind_area_or_spells_the_area_key(self):

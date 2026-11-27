@@ -221,7 +221,7 @@ def test_the_dfo_screen_logic_runs():
     node = shutil.which("node")
     # the review app runs on node; without it the screen's logic is unchecked, which must fail, never skip
     assert node is not None, "node is not installed: the DFO screen's functions cannot be run"
-    front = Path(__file__).resolve().parents[2] / "curation-review/frontend"
+    front = Path(__file__).resolve().parents[2] / "tools/curation-review/frontend"
     got = subprocess.run([node, "--test", "--test-reporter=tap", "tests/*.test.ts"], cwd=front,
                          capture_output=True, text=True)
     assert "# fail 0" in got.stdout and "# pass 0" not in got.stdout, got.stdout
@@ -275,7 +275,7 @@ def _backend(monkeypatch):
     """the review backend's `dfo` module, fresh (its readers patched per test)"""
     import sys
     from pathlib import Path
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     sys.modules.pop("dfo", None)
     import dfo
     return dfo

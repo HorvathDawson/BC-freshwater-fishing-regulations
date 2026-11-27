@@ -19,7 +19,7 @@ from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 REPO = Path(__file__).resolve().parents[2]
 #: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
 LIVE_CURATED = under_test.curated().base
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 CANDIDATES = under_test.generated().review / "tidal" / "tidal-candidates.json"
 #: Pitt River: the synopsis p.21 box's CPR Bridge, the polygon and a tidal gauge all agree
 PITT = "tidal:356360869"

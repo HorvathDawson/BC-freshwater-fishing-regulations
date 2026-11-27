@@ -47,7 +47,7 @@ repo switch for Dependabot security updates (an owner item, 2026-11-25 afternoon
   now"; #305 vitest 3 to 4 closed (it fails a test: T1174); #307 fflate 0.8.2 to 0.8.3 merged on "Fix the lockfile,
   merge".
 - Finds: there is no `.github/dependabot.yml` on main; a pnpm PR arrives without `app/pnpm-lock.yaml` (#307 was fixed
-  by hand); the root `app/package.json` still pins fflate 0.8.2, so two versions coexist.
+  by hand); the root `app/package.json` still pins fflate 0.8.2, so two versions coexist (the follow-up: pin the root to the same fflate, one version; no separate ticket, 2026-11-26).
 - Pillow 13 (#292) may change the bytes of the next release's synopsis copy and bathymetry TIFFs (T416): the re-cut
   may need its release-backed pins re-recorded.
 

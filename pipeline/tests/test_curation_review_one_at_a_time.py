@@ -13,7 +13,7 @@ from pipeline.tests import under_test
 from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 LOC = "2:test-river:from-the-bridge"
 
 
