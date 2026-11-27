@@ -4,7 +4,7 @@ Status: OPEN — lane: the repo clean chat, after T1192 PR 1; the audit (`repo-u
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | — | read the usability audit when it is written, put its picks to the owner, then one PR per crowded place |
+| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | — | PR 1: deleted 9 ran/superseded files; kept drop-v1.sh, feeds-placeholder, perfetto/pinch.py (still referenced; see Done); PR 2: one ledger-hook script |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "same with scripts too and a few others that feel like they
 have way too many things that it would be hard for a human to use the repo themselves." and "also these scripts feel
@@ -23,3 +23,10 @@ A developer who has never seen the repo can, from the README alone, set up, run 
 and cut a release, each by one obvious command or page.
 
 Depends: the usability audit. Size: M-L. Owner: yes (which places, after the audit). Model: Opus.
+
+## Done (PR 1, delete what ran)
+Deleted: `data/process_tidal_boundary.py`, `deploy/staging/{play-listing-images.py,flood-test.mjs}`, `app/tools/perfetto/q1-q3.py`,
+`app/tools/testbed/{lab-shots,tap-glide}.mjs`, `app/tools/polish-shots.mjs` (their stray doc/comment references fixed).
+Kept: `deploy/prod/drop-v1.sh` (docs/release/PRODUCTION.md, upload.sh and test_prod_prune.py name it; the doc is a
+release page), `deploy/prod/feeds-placeholder*` (feeds.sh tells a person to run it, app/tools/seo/build.ts and
+deploy/lib/input-formats.sh name it, a test pins its worker.js), `app/tools/perfetto/pinch.py` (the zoom-pinch scenario's reader).
