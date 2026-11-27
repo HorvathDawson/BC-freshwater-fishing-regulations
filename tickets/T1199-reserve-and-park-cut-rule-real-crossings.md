@@ -56,7 +56,8 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
   FWA's 1.5-3.8 m lines between lakes in a park). G6 stops the build on an open line hugging the edge for over 100 m
   with 2+ grazes (a boundary river drawn wiggling on the edge). The pre-check finds two, both opened by the graze fix:
   the Beaverfoot in Yoho (123 m within the band, 2 grazes up to 0.3 m) and a Klanawa ER creek (103 m, 2 grazes up to
-  3.3 m). Owner question: closed (edge water) or open; the next build stops on them until it is answered.
+  3.3 m). Owner question: closed (edge water) or open. Proposed (as `closed`) in `waters/area_edge_calls.json`;
+  the next build stops on them until he accepts a row (`closed`: the cutter closes it; `open`: accepted open).
 - Strathcona's rule binds 9.7 m more (Megin River ER): the floor grew the reserve's 9.7 m mouth piece to 100 m, merged
   with park water; the park's overlap membership now holds the whole piece.
 - Coast: moving the closure cuts after the coast cut hid four sea ends (a channel leaving the lowest piece 5-9 km up:
