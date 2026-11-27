@@ -30,8 +30,8 @@ shasum -a 256 data/source/fishing_synopsis.pdf      # cite the repo copy's SHA: 
 
 Each extractor change must still read the CURRENT book exactly as before, or it shows up later as a fake "the book
 changed" row. In this order: **2a** change `pipeline/regs/extraction/extract_synopsis.py` for the new layout (`--page
-<pdf page>` tries one page); **2b** the fast tier is green (`pytest -q pipeline/tests/test_extract_fixtures.py
-pipeline/tests/test_extract_baseline.py`); **2c** `--check-against` on the current book is clean (heavy):
+<pdf page>` tries one page); **2b** the fast tier is green (`pytest -q --with-data pipeline/tests/test_extract_fixtures.py
+pipeline/tests/test_extract_baseline.py`: the baseline reads the book); **2c** `--check-against` on the current book is clean (heavy):
 
 ```bash
 bash scripts/heavy.sh synopsis-check 50 -- .venv/bin/python -m pipeline.regs.extraction.extract_synopsis \
@@ -101,7 +101,7 @@ the owner's review list; `removed` rows are confirmed gone.
 
 The province/zone tables are not parsed: the owner compares the new region pages and
 `data/curated/regulations/reference/*.md` with last year's by eye; Claude edits the `z…` entries and reference files to
-match. Then pin them to the new print: `.venv/bin/python -m pytest -q pipeline/tests/test_base_rules_in_print.py
+match. Then pin them to the new print: `.venv/bin/python -m pytest -q --with-data pipeline/tests/test_base_rules_in_print.py
 pipeline/tests/test_catalogue_entries.py`. A figure the new book does not print is an owner question (`DISAGREE`),
 never edited to pass. If the new layout moves the column gutters, fix `synopsis_print.GUTTERS`
 (`python -m pipeline.common.synopsis_print 13` prints a page as read).

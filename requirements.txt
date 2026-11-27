@@ -46,7 +46,6 @@ mapbox-vector-tile
 
 # Configuration
 pyyaml
-python-dotenv
 
 # HTTP (feeds, gauges)
 requests

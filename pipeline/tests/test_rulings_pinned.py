@@ -14,8 +14,11 @@ no file (`read._RULES_BY_PATH`), the established pattern of `test_competition.py
   Z10  Peaceful Lake stays in the Malcolm Knapp closure; Goose Lake (2.2 % inside) is out
   Q20  Adams Lake's bull trout / lake trout quota is permanent; the Adams River's dated bull trout quota
        holds on its dates only, the zone outside them
-  L14  the Stellako is closed Nov 15-Jun 30 (its own closure and the Fraser-watershed spring closures)
+  L27  the Stellako opens May 15: its own Nov 15-May 14 replaces both spring closures (L14 superseded, T1177)
   L16  Chimney Creek is open all year below Brunson Lake; above, the spring closure holds
+  L28  Region 5's spring closure holds on a row printing no closure of its own; lifted only on a printed stretch
+  L29  the Little River: map A's dates replace Region 3's spring closure for rainbow trout and char only
+  Q31  Region 6's Nov 1-Jun 30 stream trout release holds beside a row's undated "trout daily quota = 1"
   T8   a spot closure closes the tributaries joining within the spot, and only those
   G8   the Columbia's towing and engine rules follow Fairmont-Donald; the Salmon River's two clauses
        follow the Hwy 97 bridge at Falkland — none is a note on the whole river
@@ -349,24 +352,32 @@ def test_q20_only_lines_that_print_dates_are_dated(db):
     assert f"{AR}::adams_river_upstream.r4" in _q20(db, undated)[(9, 15)][1]
 
 
-# =========================================================================================== L14
+# =========================================================================================== L27
+# (L14, "the Stellako stays under the spring closure, closed Nov 15-Jun 30", is superseded by L27: owner P7a, T1177)
 STELLAKO = "gnis:7836"
-STELLAKO_CLOSED = [("01-01", "06-30"), ("11-15", "12-31")]
+STELLAKO_CLOSED = [("01-01", "05-14"), ("11-15", "12-31")]
+STELLAKO_LIFTS = ("r6:stellako_river@6-4+7-12::stellako_river.r1x", "r7:stellako_river@7-12::stellako_river.r1x")
+STELLAKO_SPRING = {"z7a:spring_stream_closure::spring_stream_closure.r1",
+                   "z6:iskut_fraser_closure::iskut_fraser_closure.r2"}
 
 
-def test_l14_the_stellako_stays_under_the_fraser_watershed_spring_closure(db):
-    """Every Stellako section, both regions: closed Nov 15-Jun 30 — its own "No Fishing Nov 15-May 14"
-    and the spring closure (Zone 7A's streams; Region 6's Fraser watershed) to Jun 30. MUTATION: the row
-    prints an exemption (its all-year rainbow release lifting both spring closures, as "exempt from
-    spring closure" would) — closed to May 14 only."""
+def test_l27_the_stellako_opens_may_15_its_dates_replace_both_spring_closures(db):
+    """Every Stellako section, both regions: closed Nov 15-May 14 only — the row's own "No Fishing Nov 15-May 14"
+    replaces the spring closures (Zone 7A's streams; Region 6's Fraser watershed), so the river opens May 15. Both
+    closures are bound on the river (each on its region's parts) and lifted wherever they are. MUTATION: the two
+    lift-only rules lift nothing — closed to Jun 30 again (the L14 answer)."""
     sids = _sections(db, STELLAKO)
     assert len(sids) > 3
+    bound = {f"{e}::{r}" for s in sids for e, r, _ in T.bind(db, s)}
+    assert STELLAKO_SPRING <= bound and set(STELLAKO_LIFTS) <= bound
     assert {s: _closed_ranges(db, s, "RB") for s in sids} == {s: STELLAKO_CLOSED for s in sids}
-    lift = [{"entry_id": "z7a:spring_stream_closure", "rule_id": "spring_stream_closure.r1"},
-            {"entry_id": "z6:iskut_fraser_closure", "rule_id": "iskut_fraser_closure.r2"}]
-    bad = _mutated(**{"r6:stellako_river@6-4+7-12::stellako_river.r3": {"exempts": lift},
-                      "r7:stellako_river@7-12::stellako_river.r4": {"exempts": lift}})
-    assert _closed_ranges(db, sids[0], "RB", bad) == [("01-01", "05-14"), ("11-15", "12-31")]
+    for s in sids:
+        got = _ask(db, s, (5, 20), "RB")
+        assert {k: got[k]["state"] for k in STELLAKO_SPRING if k in got} \
+            == {k: "lifted" for k in STELLAKO_SPRING if k in got}, s
+    bad = _mutated(**{k: {"exempts": None} for k in STELLAKO_LIFTS})
+    assert {s: _closed_ranges(db, s, "RB", bad) for s in sids} == {
+        s: [("01-01", "06-30"), ("11-15", "12-31")] for s in sids}
 
 
 # =========================================================================================== L16
@@ -395,6 +406,103 @@ def test_l16_chimney_creek_is_open_all_year_below_brunson_lake_only(db):
     want = {"below": {("lifted", CHIMNEY_ROW)}, "above": {("speaks", None)}}
     assert _l16(db) == want
     assert _l16(db, _mutated(**{CHIMNEY_ROW: {"exempts": None}}))["below"] == {("speaks", None)}
+
+
+# =========================================================================================== L28
+#: (owner P7b, T1177) the Region 5 rows that print only gear, quota or release rules: the spring closure holds on
+#: every section of theirs it is bound to (Canim's Region 3 part answers to Region 3's closure instead): Cariboo,
+#: Little Horsefly, McKinley, Canim, Moffat
+R5_KEEP_THE_CLOSURE = ("gnis:37911", "gnis:10857", "gnis:25591", "gnis:1992", "gnis:14045")
+MOFFAT, MOFFAT_ROW = "gnis:14045", ("r5:moffat_creek@5-2", "moffat_creek.r1")
+#: the rows that print their own closure on a stretch: lifted on that stretch only (the item, the row's closures that
+#: name the stretch, the lift-only rule)
+R5_LIFTED_ON_THE_STRETCH = {
+    "gnis:14477": ("r5:blue_lead_creek@5-15", ("blue_lead_creek.r1",), "blue_lead_creek.r1x"),
+    "gnis:29965": ("r5:mitchell_river@5-15", ("mitchell_river.r1", "mitchell_river.r2", "mitchell_river.r3"),
+                   "mitchell_river.r3x")}
+
+
+def _spring5(db, item: str, path: str = BUNDLE) -> dict:
+    """{sid: (state, by)} of Region 5's spring closure on May 1, every section of the item it is bound to."""
+    out = {}
+    for sid in _sections(db, item):
+        x = _ask(db, sid, (5, 1), "RB", path).get(SPRING5)
+        if x is not None:
+            out[sid] = (x["state"], x.get("by"))
+    return out
+
+
+def test_l28_region_5s_spring_closure_holds_on_a_row_printing_no_closure_of_its_own(db):
+    """p.42 "EXCEPT the mainstem of the Fraser River and other streams listed in the tables", read strictly: a row
+    printing only gear, quota or release rules (Cariboo, Little Horsefly, McKinley, Canim, Moffat) keeps the closure on
+    every section; a row printing its own closure on a stretch (Blue Lead below the falls, Mitchell below its lake) has
+    it lifted there and nowhere else. MUTATION: Moffat Creek's catch and release lifting the closure (as
+    `moffat_creek.r1x` did) — the creek below the falls is open on May 1."""
+    for item in R5_KEEP_THE_CLOSURE:
+        got = _spring5(db, item)
+        assert got and set(got.values()) == {("speaks", None)}, (item, got)
+    for item, (eid, stretch, lift) in R5_LIFTED_ON_THE_STRETCH.items():
+        below = set().union(*(_bound_to(db, eid, r) for r in stretch))
+        got = _spring5(db, item)
+        on = {s for s in got if s in below}
+        assert on and {got[s] for s in on} == {("lifted", f"{eid}::{lift}")}, item
+        assert got.keys() - on and {got[s] for s in got.keys() - on} == {("speaks", None)}, item
+    lift = [{"entry_id": "z5:spring_stream_closure", "rule_id": "spring_stream_closure.r1"}]
+    bad = _mutated(**{"::".join(MOFFAT_ROW): {"exempts": lift}})
+    below = _bound_to(db, *MOFFAT_ROW)
+    got = _spring5(db, MOFFAT, bad)
+    assert below and {got[s][0] for s in below if s in got} == {"lifted"}
+
+
+# =========================================================================================== L29
+LITTLE_RIVER = "gnis:33426"
+SHUSWAP_ROW = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
+
+
+def test_l29_little_rivers_map_a_dates_replace_the_spring_closure_for_rainbow_and_char(db):
+    """O1 (p.32, map A on p.28): "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar
+    14" binds the WHOLE Little River (it lies wholly inside map A). Rainbow trout and char: closed Mar 15-May 14 only,
+    released the rest of the year (Jul 15: the row's release speaks); every other fish (kokanee) keeps Region 3's
+    spring closure, Jan 1-Jun 30. MUTATION: the lift-only `shuswap_lake.r2x` lifts nothing — rainbow trout closed Jan
+    1-Jun 30."""
+    sids = _sections(db, LITTLE_RIVER)
+    assert sids
+    for s in sids:
+        assert {(e, r) for e, r, _ in T.bind(db, s)} >= {(SHUSWAP_ROW, f"shuswap_lake.r{i}") for i in ("1b", "2b", "2x")}
+        assert _closed_ranges(db, s, "RB") == [("03-15", "05-14")], s
+        assert _closed_ranges(db, s, "LT") == [("03-15", "05-14")], s
+        assert _closed_ranges(db, s, "KO") == [("01-01", "06-30")], s
+        assert _ask(db, s, (7, 15), "RB")[f"{SHUSWAP_ROW}::shuswap_lake.r2b"]["state"] == "speaks", s
+    bad = _mutated(**{f"{SHUSWAP_ROW}::shuswap_lake.r2x": {"exempts": None}})
+    assert _closed_ranges(db, sids[0], "RB", bad) == [("01-01", "06-30")]
+
+
+# =========================================================================================== Q31
+#: (owner P7c, T1177) "Bait ban; open all year; trout daily quota = 1 (no minimum size)": Hevenor (McQueen), Station
+#: and Two Mile creeks, Region 6
+P7C = {"gnis:37312": "r6:hevenor_mcqueen_creek@6-30::hevenor_creek.r2",
+       "gnis:2404": "r6:station_creek@6-9::station_creek.r2",
+       "gnis:30327": "r6:two_mile_creek@6-8::two_mile_creek.r2"}
+R6_STREAM_RELEASE = "z6:daily_quotas::trout_char_quota.r7"
+
+
+def test_q31_region_6s_nov_1_jun_30_stream_release_holds_beside_a_rows_undated_trout_1(db):
+    """Region 6's "Trout of any size from streams, Nov 1-June 30" speaks on every section of the three creeks on Jan
+    15, beside the row's undated "trout daily quota = 1 (no minimum size)"; on Jul 15 the row's 1 speaks and the
+    release is out of its dates. MUTATION: the row's quota lifting the release — it no longer speaks on Jan 15."""
+    for item, quota in P7C.items():
+        sids = _sections(db, item)
+        assert sids, item
+        for s in sids:
+            jan, jul = _ask(db, s, (1, 15), "RB"), _ask(db, s, (7, 15), "RB")
+            assert jan[R6_STREAM_RELEASE]["state"] == "speaks", (item, s)
+            assert jul[quota]["state"] == "speaks", (item, s)
+            assert R6_STREAM_RELEASE not in jul or jul[R6_STREAM_RELEASE]["state"] != "speaks", (item, s)
+    lift = [{"entry_id": "z6:daily_quotas", "rule_id": "trout_char_quota.r7"}]
+    bad = _mutated(**{q: {"exempts": lift} for q in P7C.values()})
+    for item in P7C:
+        s = _sections(db, item)[0]
+        assert _ask(db, s, (1, 15), "RB", bad)[R6_STREAM_RELEASE]["state"] != "speaks", item
 
 
 # ============================================================================================ T8

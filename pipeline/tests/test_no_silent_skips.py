@@ -186,8 +186,8 @@ def test_every_kind_is_a_registered_marker_and_strict():
 
 @pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_ci_deselects_slow_and_every_data_kind():
-    """The no-data tier must leave out every marker that needs data, and `slow` (the command line
-    `-m` REPLACES the ini's `-m "not slow"`, so CI must say it again)."""
+    """The no-data tier must leave out every marker that needs data, and `slow` (CI's `-m` is the whole
+    selection, so it says `not slow` itself; a plain run reuses this expression, T1193)."""
     wf = (ROOT / ".github" / "workflows" / "pipeline-ci.yml").read_text(encoding="utf-8")
     m = re.search(r"python -m pytest[^\n]*-m \"([^\"]+)\"", wf)
     assert m, "the CI Tests step does not select a tier with -m"

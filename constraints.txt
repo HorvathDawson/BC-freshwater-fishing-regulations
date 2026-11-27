@@ -67,6 +67,7 @@ pyproj==3.7.2
 pytest==9.1.1
 pytest-xdist==3.8.0
 python-dateutil==2.9.0.post0
+# (T1222) uvicorn[standard] needs python-dotenv; the pipeline does not import it (not in requirements.txt)
 python-dotenv==1.2.2
 PyYAML==6.0.3
 requests==2.34.2

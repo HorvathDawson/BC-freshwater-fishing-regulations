@@ -61,5 +61,5 @@ Every App Store Connect screen stays as saved.
 7. After the release: the push proof (T996) on a second iPhone, see the State table.
 
 ## Step 0 (reports) from a worktree
-`<main checkout>/.venv/bin/python -m pipeline reports --no-save` with the main checkout's `.env` loaded. To read the
+`<main checkout>/.venv/bin/python -m pipeline reports --no-save` (no `.env` is read: T1222). To read the
 two workers too, symlink the git-ignored `app/workers/feeds/.run-token` and `.run-token.prod` from the main checkout.
