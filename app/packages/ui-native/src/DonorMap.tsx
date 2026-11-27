@@ -124,7 +124,7 @@ function KeyRow({ palette, label, children }: {
   palette: Palette; label: string; children: ReactNode;
 }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, maxWidth: "100%" }}>
       <View style={{ minWidth: 14, alignItems: "center" }}>{children}</View>
       <Text style={{ ...TYPE.micro, color: palette.sub, flexShrink: 1 }}>{label}</Text>
     </View>

@@ -27,7 +27,7 @@ import { MapScreen } from "../MapScreen";
 import { useSplitReport, useWaterMapSplit, WaterInset, WaterSplit } from "../WaterFrame";
 import { Icon } from "../icons";
 import { useTestbedFlag } from "../testbedFlag";
-import { CAPPED_SCALE, TYPE } from "../type";
+import { CAPPED_SCALE, LABEL_SCALE, TYPE } from "../type";
 import { useCappedScale } from "../textScale";
 import { SPACE, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
@@ -254,7 +254,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                   <Pressable onPress={() => onOpenWater(dv.exit!.item as ItemId, dv.exit!.part)} accessibilityRole="link"
                              accessibilityLabel={dv.exit.label} testID="water-map-exit"
                              style={{ minHeight: EXIT_SLOT, justifyContent: "center" }}>
-                    <Text numberOfLines={1} maxFontSizeMultiplier={CAPPED_SCALE} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{dv.exit.label}</Text>
+                    <Text numberOfLines={1} maxFontSizeMultiplier={LABEL_SCALE} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{dv.exit.label}</Text>
                   </Pressable>
                 )}
               </View>

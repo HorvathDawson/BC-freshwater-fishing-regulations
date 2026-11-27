@@ -15,7 +15,8 @@ import { Pressable } from "./Pressable";
 import { GestureDetector, GestureHandlerRootView, ScrollView as GHScrollView, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@app/ui";
 import { SHEET_WORDS } from "@app/core";
-import { TYPE } from "./type";
+import { LABEL_SCALE, TYPE } from "./type";
+import { useCappedScale } from "./textScale";
 import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
 import { hitProps } from "./regs/hit";
@@ -33,6 +34,7 @@ const DONE_HIT = hitProps({ w: 34, h: TYPE.bodyStrong.lineHeight });
  *  the app (map and regs alike). It was "DONE", 11 px caps — the only all-caps control on a regs sheet, against the
  *  prototype's own rule (#7: caps only on section kickers; `.done { text-transform: none }`) and the smallest word in it. */
 const DONE_WORD = TYPE.bodyStrong;
+const BREAK_ANYWHERE = { overflowWrap: "anywhere" } as Record<string, unknown>;
 const OPTION_HIT = hitProps({ w: 44, h: 44 });
 /**
  * (T82 O5, Claude 2026-10-23) THE SHEET'S TITLE: the screen face at 19 px on a 23 px line. It spread TYPE.screen (23 on
@@ -127,10 +129,15 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const shown = open ? { title, sub, children, icon, head } : kept.current;
   // (T405) the web's Modal is a role=dialog: named by its title (aria-labelledby; a label on it would swallow its content)
   const titleId = useId();
-  const titleText = <Text nativeID={titleId} accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
+  // (T1203) AT THE DEFAULT TEXT SIZE THE HEADER IS 0.9.0's, pixel for pixel. At a larger one a word wider than the title's share (a
+  // long name at 2x on a 320 px window) breaks where it must, never over Done, and Done keeps its place and its room.
+  const grown = useCappedScale() > 1;
+  const titleText = <Text nativeID={titleId} accessibilityRole="header"
+                          style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1, ...(grown ? { minWidth: 0, ...BREAK_ANYWHERE } : null) } as never}>{shown.title}</Text>;
   const titleEl = shown.icon
     ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 }}>{shown.icon}{titleText}</View>
-    : titleText;
+    : grown ? <View style={{ flexShrink: 1 }}>{titleText}</View> : titleText;
+  const doneStyle = grown ? { flexShrink: 0, marginLeft: 12 } as const : undefined;
   useEffect(() => {
     /*
      * The wide dialog's Modal shows `open` itself and runs no motion of ours, so a close there must put `up` down at once:
@@ -194,7 +201,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                paddingBottom: 10, borderBottomWidth: 1.5,
                                borderBottomColor: palette.ink }}>
                   {titleEl}
-                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done} {...DONE_HIT}>
+                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done} {...DONE_HIT} style={doneStyle}>
                     <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                   </Pressable>
                 </View>
@@ -251,7 +258,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                              borderBottomColor: palette.ink }}>
                 {titleEl}
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done}
-                           {...DONE_HIT}>
+                           {...DONE_HIT} style={doneStyle}>
                   <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                 </Pressable>
               </View>
@@ -366,17 +373,20 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
   /** (T237) pills on a page that sets its own gutter: no inset of their own */
   flush?: boolean;
 }) {
+  // (T1203) past LABEL_SCALE the equal segments cannot hold their words side by side: they stack, one to a line (at or under it, as before)
+  const stacked = useCappedScale() > LABEL_SCALE;
   if (variant === "segmented")
     return (
       <View accessibilityRole="radiogroup" accessibilityLabel={label}
-            style={{ flexDirection: "row", borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.box, marginBottom: 8 }}>
+            style={{ flexDirection: stacked ? "column" : "row", borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.box, marginBottom: 8 }}>
         {options.map((o, i) => {
           const on = o.k === value;
           return (
             <Pressable key={o.k} testID={`btn:${o.k}`} onPress={() => onChange(o.k)} accessibilityRole="radio" aria-checked={on} accessibilityLabel={o.t} {...OPTION_HIT}
                        style={{ flex: 1, minHeight: 44, paddingVertical: 4, paddingHorizontal: 6, alignItems: "center", justifyContent: "center",
                                 backgroundColor: on ? palette.ink : "transparent",
-                                borderLeftWidth: i ? 1.5 : 0, borderLeftColor: palette.ink }}>
+                                ...(stacked ? { borderTopWidth: i ? 1.5 : 0, borderTopColor: palette.ink }
+                                            : { borderLeftWidth: i ? 1.5 : 0, borderLeftColor: palette.ink }) }}>
               <Text style={{ ...TYPE.regsTab, textAlign: "center", color: on ? palette.card : palette.sub }}>{o.t}</Text>
             </Pressable>
           );

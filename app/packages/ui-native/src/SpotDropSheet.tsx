@@ -10,8 +10,12 @@ import { Text } from "./Text";
 import { Button } from "./Button";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
+import { useCappedScale } from "./textScale";
 import type { Palette } from "./theme";
 import { CoachSpot } from "./CoachMarks";
+
+/** (T1203) at a larger text size Continue keeps this much room, so the row wraps (Continue to its own line) rather than squeezing it off the sheet */
+export const CONTINUE_MIN = 150;
 
 export function SpotDropSheet({ at, palette, onCancel, onContinue, overlay }: {
   /** The pin; null: the sheet is down. */
@@ -19,6 +23,7 @@ export function SpotDropSheet({ at, palette, onCancel, onContinue, overlay }: {
   /** (T466) the walkthrough's card while its step is about this sheet (the sheet is its own window) */
   overlay?: React.ReactNode;
 }) {
+  const scale = useCappedScale();   // (T1203) the growth is for a larger text size only: at the default size nothing moves
   return (
     <Sheet open={at !== null} onClose={onCancel} title={SPOT_DROP.title} palette={palette} overlay={overlay}>
       <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 6 }}>
@@ -27,9 +32,10 @@ export function SpotDropSheet({ at, palette, onCancel, onContinue, overlay }: {
         </Text>
         <Text style={{ ...TYPE.small, color: palette.sub }}>{SPOT_DROP.detail}</Text>
       </View>
-      <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20, paddingTop: 18 }}>
+      {/* (T1203) wraps at a large text size: Continue drops to its own line, never off the edge */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, paddingHorizontal: 20, paddingTop: 18 }}>
         <Button palette={palette} label={SPOT_DROP.cancel} onPress={onCancel} kind="ghost" />
-        <CoachSpot k="spot:drop" style={{ flex: 1 }}><Button palette={palette} label={SPOT_DROP.go} onPress={onContinue} /></CoachSpot>
+        <CoachSpot k="spot:drop" style={{ flex: 1, ...(scale > 1 ? { minWidth: CONTINUE_MIN } : null) }}><Button palette={palette} label={SPOT_DROP.go} onPress={onContinue} /></CoachSpot>
       </View>
     </Sheet>
   );

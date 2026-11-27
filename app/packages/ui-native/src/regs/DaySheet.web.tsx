@@ -18,6 +18,7 @@ import { Text } from "../Text";
 import { TYPE } from "../type";
 import { Sheet } from "../Sheet";
 import { GUTTER } from "../theme";
+import { useCappedScale } from "../textScale";
 import type { DaySheetProps } from "./DaySheet";
 import { hitProps } from "./hit";
 
@@ -34,6 +35,7 @@ function anchorEl(testID: string): HTMLElement | undefined {
 
 export function DaySheet({ open, onClose, palette, day, onDay, range, now, anchor }: DaySheetProps) {
   const desktop = tabsAsRail(useLayoutClass());
+  const larger = useCappedScale() > 1;   // (T1203) see DaySheet.native.tsx: the phone sheet's body scrolls at a large text size
   // the popover's one back (the browser's back and Escape); below desktop the <Sheet> registers its own
   const pop = desktop && open;
   const requestClose = useBackLayer(pop, onClose);
@@ -89,8 +91,8 @@ export function DaySheet({ open, onClose, palette, day, onDay, range, now, ancho
 
   // a phone or a narrow window: the phone's bottom sheet, exactly as DaySheet.native.tsx draws it
   if (!desktop) return (
-    <Sheet open={open} onClose={onClose} title={WORDS.DAY_SHEET_TITLE} palette={palette}>
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: 8 }}>
+    <Sheet open={open} onClose={onClose} title={WORDS.DAY_SHEET_TITLE} palette={palette} scroll={larger}>
+      <View style={{ paddingHorizontal: larger ? 0 : GUTTER, paddingTop: 8 }}>
         <DayCalendar palette={palette} day={day} onDay={onDay} range={range} now={now} />
       </View>
     </Sheet>
