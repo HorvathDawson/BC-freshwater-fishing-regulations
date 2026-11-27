@@ -6,6 +6,7 @@ declare const __DEV__: boolean | undefined;
 import * as maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import { COPY_SOURCE } from "../water-copy";
+import { glWorkerUrl } from "./glWorker";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
 export const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -16,8 +17,10 @@ export const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
  * first map is still using it.
  */
 let registered = false;
+/** …and GL's worker named before the first map starts it (`glWorker.ts`). */
 export function registerPMTiles() {
   if (registered) return;
+  maplibregl.setWorkerUrl(glWorkerUrl(maplibregl.getVersion()));
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
   registered = true;
 }
@@ -89,6 +92,6 @@ export const devCost = (c: ColourCost) => {
   if (typeof __DEV__ !== "undefined" && __DEV__)
     ((globalThis as { __colourCost?: ColourCost[] }).__colourCost ??= []).push(c);
 };
-/** Development only: take the public route even where 5.24's internals are there — to measure what it costs. */
+/** Development only: take the public route even where GL's internals are there — to measure what it costs. */
 export const forcePublic = () => typeof __DEV__ !== "undefined" && __DEV__
   && (globalThis as { __colourPublic?: boolean }).__colourPublic === true;

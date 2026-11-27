@@ -9,6 +9,8 @@ const workspaceRoot = path.resolve(projectRoot, "../.."); // app/
 
 // (T251) the app's version, build number, commit and build day, inlined into the bundle as EXPO_PUBLIC_* (version-stamp.js)
 require("./version-stamp").stampVersion(projectRoot);
+// (T1252) the web map's GL worker, copied into public/maplibre-gl-<version>/ (gl-worker.js)
+require("./gl-worker").placeGlWorker(projectRoot);
 
 const config = getDefaultConfig(projectRoot);
 

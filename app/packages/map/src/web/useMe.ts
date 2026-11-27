@@ -34,7 +34,9 @@ export function useMe({ map }: WebMapRefs, me: MapProps["me"], theme: string) {
       else m.addSource(ME_SOURCE, { type: "geojson", data: data as never });
       const look = mePaint(theme, fix);
       for (const [id, paint] of [[ME_ACCURACY, look.accuracy], [ME_DOT, look.dot]] as const) {
-        if (m.getLayer(id)) for (const [k, v] of Object.entries(paint)) m.setPaintProperty(id, k, v);
+        // (T1252) GL 6 types each property's name and value: these are a circle layer's, as `addLayer` below takes them
+        if (m.getLayer(id)) for (const [k, v] of Object.entries(paint))
+          m.setPaintProperty(id, k as keyof NonNullable<maplibregl.CircleLayerSpecification["paint"]>, v as never);
         else m.addLayer({ id, type: "circle", source: ME_SOURCE, paint: paint as never } as maplibregl.LayerSpecification);
       }
     });

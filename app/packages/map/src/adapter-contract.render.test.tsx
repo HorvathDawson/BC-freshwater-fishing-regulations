@@ -46,6 +46,9 @@ class FakeGl {
   private style: { layers: { id: string; source?: string }[]; sources: Record<string, unknown> };
   touchZoomRotate = { disableRotation: () => { web.rotationOff = true; } };
   keyboard = { disableRotation: () => { web.keyboardRotationOff = true; } };
+  /** (T1252) GL 6 asks this for an image a layer wants and the style lacks (`styleimagemissing` only notifies) */
+  missing: ((id: string) => void) | null = null;
+  setMissingStyleImageResolver(fn: (id: string) => void) { this.missing = fn; }
   constructor(opts: Record<string, unknown>) {
     web.opts = opts; web.map = this;
     this.style = opts.style as FakeGl["style"];
@@ -122,7 +125,8 @@ class Marker {
   remove() { this.el?.remove(); }
 }
 vi.mock("maplibre-gl", () => ({ Map: FakeGl, NavigationControl: Control, ScaleControl: Control, Marker,
-                                Popup: class { setText() { return this; } }, addProtocol: () => {} }));
+                                Popup: class { setText() { return this; } }, addProtocol: () => {},
+                                setWorkerUrl: () => {}, getVersion: () => "6.19.0" }));
 // the protocol handler is the web renderer's (faked); the archive reader is the real one (T831: the route lines)
 vi.mock("pmtiles", async (real) => ({ ...(await real<typeof import("pmtiles")>()), Protocol: class { tile = () => {}; } }));
 

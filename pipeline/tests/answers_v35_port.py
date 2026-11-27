@@ -456,9 +456,12 @@ def classify_card(page: dict, out: dict, rule_ids: list, record_rules: Set[str])
 
 def stub(fx: dict):
     """The fixture's stub bundle: its rules (keyed (entry, rule), as `rows.Part` reads `B.rules`) and its
-    `trib_nearer` pairs, seeded where `read._nearer_of` looks for a path that is no file."""
+    `trib_nearer` pairs, seeded where `read._nearer_of` (and `read._upstream_of`, T1251) looks for a path that is no file."""
     from pipeline.deliver.bundle import read
     read._NEARER_BY_PATH[STUB_PATH] = frozenset(tuple(p) for p in fx["nearer"])
+    # (T1251) the pairs that name a closure: the fixture froze no `trib_upstream`; its `trib_nearer` pairs are a part of it
+    read._UPSTREAM_BY_PATH[STUB_PATH] = frozenset(tuple(p) for p in fx["nearer"])
+    read._OWN_BY_PATH[STUB_PATH] = {}       # (T1251) the fixture froze no `set_own`: no part names an own row first
     return SimpleNamespace(rules={tuple(k.split("::", 1)): v for k, v in fx["rules"].items()}, sets={},
                            path=STUB_PATH)
 
