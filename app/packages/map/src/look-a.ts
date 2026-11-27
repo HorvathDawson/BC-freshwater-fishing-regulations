@@ -130,3 +130,26 @@ export function quieterGround<L extends { id: string; type?: string; paint?: Rec
     return { ...l, paint: { ...l.paint, "fill-opacity": scaled(l.paint?.["fill-opacity"]) } };
   return l;
 }
+
+/** (T1210) A lake's name zoomed out, from the tiles' `lake_name` points (one per lake water); `lake__label` from z8. */
+export const LAKE_NAMES = "lake-names";
+
+/**
+ * (T1210) THE LAKES NAMED ZOOMED OUT, biggest first: 150 km² and up at z4, 60 from z5, 20 from z6, 10 from z7 (look A's
+ * middle density, owner 2026-11-26). Drawn from `lake_name`, which a tiles build writes (pipeline `export_lake_names`);
+ * until the served tiles carry it, the layer draws nothing and the map is today's.
+ */
+export function lakeNamesLayer(t: Tokens) {
+  const area = ["get", "area_m2"];
+  return {
+    id: LAKE_NAMES, type: "symbol" as const, source: "atlas", "source-layer": "lake_name", minzoom: 4, maxzoom: 8,
+    filter: ["any", ["all", [">=", ["zoom"], 7], [">=", area, 1e7]], ["all", [">=", ["zoom"], 6], [">=", area, 2e7]],
+             ["all", [">=", ["zoom"], 5], [">=", area, 6e7]], [">=", area, 1.5e8]],
+    layout: { "symbol-placement": "point" as const, "text-field": ["get", "name"], "text-font": ["Noto Sans Italic"],
+              "text-size": ["interpolate", ["linear"], ["zoom"], 4, 10.5, 7, 11.5], "text-letter-spacing": 0.06,
+              "text-max-width": 7, "symbol-sort-key": ["-", 0, area], "text-padding": 4 },
+    paint: { "text-color": tk(t, "color.label.water") as string, "text-halo-color": tk(t, "color.outside") as string,
+             "text-halo-width": 1.4, "text-halo-blur": 0.5 },
+  };
+}
+

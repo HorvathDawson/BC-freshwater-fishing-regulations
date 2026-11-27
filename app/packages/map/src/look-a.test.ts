@@ -5,11 +5,13 @@
  * every region named at every tier's zoom and no two town names in each other's way there.
  */
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { MAP_STYLE, resolveTheme, STYLE_META } from "./style";
 import { runtimeStyle } from "./runtime-style";
 import { PMTILES } from "./tile-access";
 import { NOACCESS_LAYER } from "./paint";
-import { OUR_TOWN_NAMES, REGION_BAND, REGION_NAMES, REGION_POINTS, TIER_ZOOM, TOWN_DOTS, TOWN_LIST, TOWN_NAMES, TOWNS_UNTIL } from "./look-a";
+import { LAKE_NAMES, OUR_TOWN_NAMES, REGION_BAND, REGION_NAMES, REGION_POINTS, TIER_ZOOM, TOWN_DOTS, TOWN_LIST, TOWN_NAMES, TOWNS_UNTIL } from "./look-a";
 
 type L = { id: string; type?: string; source?: string; filter?: unknown; minzoom?: number; maxzoom?: number;
            paint?: Record<string, unknown>; layout?: Record<string, unknown> };
@@ -195,5 +197,25 @@ describe("(T1209) the towns to find your way by", () => {
       }
     }
     expect(failed).toEqual([]);
+  });
+});
+
+describe("(T1210) lake and river names zoomed out, from the tiles' own label layers", () => {
+  const contract = JSON.parse(readFileSync(fileURLToPath(new URL("../../../../pipeline/deliver/tiles/tile-contract.json", import.meta.url)), "utf8")) as
+    { layers: Record<string, { geometry: string; attrs: string[]; minzoom: number; maxzoom: number }> };
+  it("the tiles declare them: `stream_name` from z4, `lake_name` (a point with name and area) to z7", () => {
+    expect(contract.layers["stream_name"]!.minzoom).toBe(4);
+    expect(contract.layers["lake_name"]).toMatchObject({ geometry: "point", attrs: ["name", "area_m2"], minzoom: 4, maxzoom: 7 });
+  });
+  it("a river is named from z4 (order 9; 8 from z5; 7 from z6), on `stream_name`", () => {
+    const l = (MAP_STYLE.layers as L[]).find((x) => x.id === "stream__label")!;
+    expect([l.minzoom, (l as { "source-layer"?: string })["source-layer"]]).toEqual([4, "stream_name"]);
+    expect(JSON.stringify(l.filter)).toContain('[">=",["zoom"],4],[">=",["get","ord"],9]');
+  });
+  it("a lake is named below z8 from `lake_name`, biggest first, placed before the rivers' names", () => {
+    const s = composed("light"), l = s.layers.find((x) => x.id === LAKE_NAMES)!;
+    expect([(l as { "source-layer"?: string })["source-layer"], l.minzoom, l.maxzoom]).toEqual(["lake_name", 4, 8]);
+    expect(ids(s).indexOf(LAKE_NAMES)).toBeGreaterThan(ids(s).indexOf("stream__label"));
+    expect(l.layout!["symbol-sort-key"]).toEqual(["-", 0, ["get", "area_m2"]]);
   });
 });
