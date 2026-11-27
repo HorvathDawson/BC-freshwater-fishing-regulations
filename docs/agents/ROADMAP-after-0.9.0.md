@@ -74,7 +74,7 @@ like hardening items and patches."). Its fixes are on main; `release/0.10.0` is 
 the strategy and his words. In order:
 1. **Finish what is open** (tonight): the clean-up chat (second markdown cut #273, then the folder rename, the
    review tool's home, close T1081) and the repo-move chat (T1131 Linux render proof, T1120 fresh-clone proof).
-2. **Speed** (the speed build chat, `docs/restart/speed.md`): T1144 (CI: one test run not three, in
+2. **Speed** (the speed build chat, `docs/agents/restart/speed.md`): T1144 (CI: one test run not three, in
    parallel), T1161 (the Mac awake, stage times), T1135 (the checks after a build: 48 to about 21 min, pins in one
    file, resume), T1171 (data build cache holes, then a hashed store), T1063 + T1170 (phone builds: lock,
    watchdogs, the MapLibre library as a stored build), T1159 (the pre-cut owner pack and gate), T1165 (a web-only
@@ -94,12 +94,12 @@ the strategy and his words. In order:
 |---|---|---|
 | P planning | `bc-freshwater-fishing-regulations-8e` | this file + the ledger; it alone numbers tickets (from T1055) |
 | 1 ship 0.9.0 | `bc-freshwater-fishing-regulations-37` | `docs/NEXT-SESSION-2026-11-24-after-090.md` (chat finished 2026-11-24) |
-| 2 0.9.1 follow-ups | `bc-freshwater-fishing-regulations-56` | `docs/RESTART-091-chat.md` |
-| 5i iOS full release | RETIRED 2026-11-25 by the owner; its leftovers (the privacy page check, his three submit clicks, the T1071 record, the T996 push proof) are the planning chat's. Was `bc-freshwater-fishing-regulations-06` (started 2026-11-24 23:10) | `docs/ios/RESTART-ios-release-chat.md`; the paste-from page is `docs/ios/APP-STORE-SUBMISSION.md` |
-| S store content | CLOSED 2026-11-25 by the owner; PR #256 (T1134) is finished by the repo-move chat, PR #238 (T1072) waits for his look at frame 3. Was `bc-freshwater-fishing-regulations-a1` (started 2026-11-24 ~23:30) | `docs/RESTART-store-content-chat.md` |
-| 3 repo move | `bc-freshwater-fishing-regulations-38` (started 2026-11-25 13:12; the move is DONE and checked 2026-11-25 15:55, the merge queue is on, T1062 is built; left: PR #256's fix, then T1120 and T1131) | `docs/RESTART-repo-move-chat.md`; prep in the repo-move folder beside it |
-| D clean-up (T1081) | `bc-freshwater-fishing-regulations-c8` (second cut PR #273; the rename on the planning chat's word; the first chat -77 stopped 2026-11-25 19:27) | `docs/restart/cleanup.md` |
-| Speed build | `bc-freshwater-fishing-regulations-ae` (started 2026-11-25 late by the owner; CI and release speed, no Mac builds) | `docs/restart/speed.md` |
+| 2 0.9.1 follow-ups | `bc-freshwater-fishing-regulations-56` | `docs/agents/RESTART-091-chat.md` |
+| 5i iOS full release | RETIRED 2026-11-25 by the owner; its leftovers (the privacy page check, his three submit clicks, the T1071 record, the T996 push proof) are the planning chat's. Was `bc-freshwater-fishing-regulations-06` (started 2026-11-24 23:10) | `docs/agents/RESTART-ios-release-chat.md`; the paste-from page is `docs/ios/APP-STORE-SUBMISSION.md` |
+| S store content | CLOSED 2026-11-25 by the owner; PR #256 (T1134) is finished by the repo-move chat, PR #238 (T1072) waits for his look at frame 3. Was `bc-freshwater-fishing-regulations-a1` (started 2026-11-24 ~23:30) | `docs/agents/RESTART-store-content-chat.md` |
+| 3 repo move | `bc-freshwater-fishing-regulations-38` (started 2026-11-25 13:12; the move is DONE and checked 2026-11-25 15:55, the merge queue is on, T1062 is built; left: PR #256's fix, then T1120 and T1131) | `docs/agents/RESTART-repo-move-chat.md`; prep in the repo-move folder beside it |
+| D clean-up (T1081) | `bc-freshwater-fishing-regulations-c8` (second cut PR #273; the rename on the planning chat's word; the first chat -77 stopped 2026-11-25 19:27) | `docs/agents/restart/cleanup.md` |
+| Speed build | `bc-freshwater-fishing-regulations-ae` (started 2026-11-25 late by the owner; CI and release speed, no Mac builds) | `docs/agents/restart/speed.md` |
 
 Build chats list new finds under "For the planning chat" on their restart page and message the planning chat; it
 replies with the Tnnn.
@@ -126,8 +126,8 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 
 **P. Planning (background, keep it open)**
 > Start in a scratchpad worktree of origin/main and read everything from there (never touch the main checkout). Then
-> docs/START-HERE.md (step 0, reports first; link the git-ignored worker tokens from the main checkout into
-> the worktree's app/workers/feeds/ so both workers are read) and ROADMAP-after-0.9.0.md (row P, "Who is who",
+> docs/agents/START-HERE.md (step 0, reports first; link the git-ignored worker tokens from the main checkout into
+> the worktree's app/workers/feeds/ so both workers are read) and docs/agents/ROADMAP-after-0.9.0.md (row P, "Who is who",
 > "Release contents"). You are the planning chat: never write code, never run lanes, builds, emulators or heavy jobs.
 > You alone create ticket numbers (file + ledger row, check-tickets.mjs before every commit). Triage each item:
 > severity, release or future chat, model and lane size. Keep current: this roadmap, the release contents,
@@ -138,7 +138,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > batch also as a push notification; answers into the ticket and OWNER-TODO the same turn. CONFIRM_PROD is the owner's.
 
 **1. Ship 0.9.0**
-> Start at docs/START-HERE.md (step 0, reports first). You orchestrate. Scope: ship 0.9.0 only, nothing new.
+> Start at docs/agents/START-HERE.md (step 0, reports first). You orchestrate. Scope: ship 0.9.0 only, nothing new.
 > Continue runbooks/release-by-hand.md from where the restart page says: the staging check, then the emulator device
 > pass (the restart page's T-list), then hand me every production command in order (CONFIRM_PROD is mine), then the
 > Play Closed promote. Update play-production-access/releases.md and the feedback-log "Fixed in" column. End with the
@@ -146,8 +146,8 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 
 **2. 0.9.1 follow-ups (paste tonight; runs overnight)**
 > First make a scratchpad worktree of origin/main and read everything from it: the main checkout is on release/0.9.0
-> and has neither the roadmap nor the newest tickets. Then docs/START-HERE.md (step 0) and
-> docs/ROADMAP-after-0.9.0.md row 2. You orchestrate on Fable; scope frozen to row 2. I'm asleep: work
+> and has neither the roadmap nor the newest tickets. Then docs/agents/START-HERE.md (step 0) and
+> docs/agents/ROADMAP-after-0.9.0.md row 2. You orchestrate on Fable; scope frozen to row 2. I'm asleep: work
 > overnight unattended, at most 4 lanes, one ticket each (group the small ones), the model by task (Opus for
 > pipeline/data/Android/tricky app logic, Sonnet for docs and mechanical work), one review round, PRs to main with
 > auto-merge once the independent review is clean. Another chat is shipping 0.9.0 tonight: never touch the main
@@ -166,7 +166,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 
 **3. Repo move + merge queue** (rewritten 2026-11-25; the owner: "we will work on all this. plus repo swap")
 > First make a scratchpad worktree of origin/main and read from it; never touch the main checkout (the 0.10.0
-> release runs from it). Then docs/START-HERE.md (step 0), ROADMAP-after-0.9.0.md row 3, T1041's "Transfer
+> release runs from it). Then docs/agents/START-HERE.md (step 0), ROADMAP-after-0.9.0.md row 3, T1041's "Transfer
 > checklist", T1120, T1062, and docs/runbooks/fresh-machine.md and secrets.md. You orchestrate on Fable;
 > scope frozen to T1041's move, T1120 and T1062; one lane at a time (Sonnet for docs and the slug flip, Opus only for
 > the worker token path), one review round.
@@ -182,11 +182,11 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > scripts/heavy.sh, never while a release build runs; no production step, no parser run); fix the docs it trips on.
 > (5) T1062: the release-candidate plan, one page for me to agree, nothing built.
 > Ask me as multiple choice in chat. CONFIRM_PROD is only ever mine. New finds go to the planning chat, which numbers
-> the tickets. Keep your own restart page (docs/RESTART-repo-move-chat.md).
+> the tickets. Keep your own restart page (docs/agents/RESTART-repo-move-chat.md).
 
 **5i. iOS full release (first after 0.9.1)**
-> First make a scratchpad worktree of origin/main and read from it. Then docs/START-HERE.md (step 0),
-> ROADMAP-after-0.9.0.md row 5i, T1071, T727 and docs/ios/. You orchestrate on Fable; scope frozen to T1071;
+> First make a scratchpad worktree of origin/main and read from it. Then docs/agents/START-HERE.md (step 0),
+> docs/agents/ROADMAP-after-0.9.0.md row 5i, T1071, T727 and docs/ios/. You orchestrate on Fable; scope frozen to T1071;
 > docs and my clicks, no feature work; at most 2 lanes (Sonnet for the checklist and listing pages, Opus only where
 > a privacy or compliance answer needs the code read), one review round. Write one page under docs/ios/ I
 > paste from, with every App Store Connect answer drafted or marked mine. (Production push, T996: I moved it to
@@ -196,8 +196,8 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > restart page.
 
 **S. Store content (beside 5i)**
-> First make a scratchpad worktree of origin/main and read from it. Then START-HERE.md (step 0),
-> ROADMAP-after-0.9.0.md row S, T1072, T1076, T319. You orchestrate on Fable; scope frozen to T1072 + T1076; Sonnet
+> First make a scratchpad worktree of origin/main and read from it. Then docs/agents/START-HERE.md (step 0),
+> docs/agents/ROADMAP-after-0.9.0.md row S, T1072, T1076, T319. You orchestrate on Fable; scope frozen to T1072 + T1076; Sonnet
 > lanes, at most 2, one review round. First fix the reshoot tool (T1076) so it builds its own store-shots export.
 > Then show me 2–3 directions for the screenshot set as pictures, in chat, and wait for my pick. Then ONE new set
 > from the 0.9.x app, the same frames for Android and iPhone (my ask of 11-24), in every Play and App Store size, in
@@ -207,8 +207,8 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > either store: hand me the files and the steps. New finds go to the planning chat.
 
 **2b. 0.9.2 hardening (after chat 3)**
-> First make a scratchpad worktree of origin/main and read from it. Then START-HERE.md (step 0) and
-> ROADMAP-after-0.9.0.md row 2b. You orchestrate on Fable; scope frozen to row 2b, no features; the four lanes and
+> First make a scratchpad worktree of origin/main and read from it. Then docs/agents/START-HERE.md (step 0) and
+> docs/agents/ROADMAP-after-0.9.0.md row 2b. You orchestrate on Fable; scope frozen to row 2b, no features; the four lanes and
 > their models are in the row; one review round; PRs to main with auto-merge once the independent review is clean;
 > heavy jobs only through scripts/heavy.sh. New finds go to the planning chat, which numbers the tickets. When the
 > lanes are merged, cut 0.9.2 to staging and Play Closed and hand me the production commands (CONFIRM_PROD is mine).
@@ -216,7 +216,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 
 **D. Repo clean-up and docs lean-out** (owner 2026-11-25 15:22: "as soon as repo move is done and thigns are working on 0.10.0 again maybe we should (with merge queues etc start the big repoo clean and purge / doc cleanup etc also the fresh install check etc.)")
 > First make a scratchpad worktree of origin/main of canifishthis/canifishthis and read from it; never touch the
-> main checkout (the 0.10.0 release runs from it). Then docs/START-HERE.md (step 0), ROADMAP-after-0.9.0.md
+> main checkout (the 0.10.0 release runs from it). Then docs/agents/START-HERE.md (step 0), ROADMAP-after-0.9.0.md
 > row D and "Order from here", and T1081 with its section "Widened by the owner 2026-11-25". You orchestrate on
 > Fable; scope frozen to T1081; no code is cut by this chat (candidates go to the planning chat for tickets).
 > The goal in my words: a human can go through the code and not get super lost; much less content; tickets
@@ -237,7 +237,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 
 **D2. Finish the clean-up** (owner 2026-11-25 evening, relayed by the first clean-up chat: "Why can't we do that stuff now before 0.10 all of it seems fine to do. Also it feels like we could remove more markdown. The ticket mark down is okay but we want to simplify the other files. It should be simple enough to be human resdble in not a super long period if time. Without an agent summarizing it."). The prompt above (D) is done: its cut is PR #262.
 > First make a scratchpad worktree of origin/main of canifishthis/canifishthis and read from it; never touch the
-> main checkout (the 0.10.0 release runs from it). Read docs/restart/cleanup.md (your restart page: what is
+> main checkout (the 0.10.0 release runs from it). Read docs/agents/restart/cleanup.md (your restart page: what is
 > done, what is left, what never to touch), AGENTS.md, and T1081. You finish T1081. You orchestrate on Fable;
 > Sonnet lanes, at most 3, by folder; Opus only where a rule or contract is judged; lanes spawn no sub-agents; one
 > review round; every PR through the merge queue, one docs PR at a time (few runners). No code is cut; code
@@ -255,14 +255,14 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > notes that spell the old paths.
 > Step 3: the curation review tool gets one home, with a saved-mark write-through test proven before and after.
 > Step 4: close T1081 with the final counts; fix what T1120 (the fresh-clone check) tripped on in the docs.
-> Ask me as multiple choice in chat. Keep docs/restart/cleanup.md current (60 lines at most).
+> Ask me as multiple choice in chat. Keep docs/agents/restart/cleanup.md current (60 lines at most).
 
 **4a / 4b / 4c. A 0.10 feature** (one chat per feature)
-> Start at docs/START-HERE.md and ROADMAP-after-0.9.0.md row 4a (or 4b, 4c). Feature chat for 0.10. Research
+> Start at docs/agents/START-HERE.md and ROADMAP-after-0.9.0.md row 4a (or 4b, 4c). Feature chat for 0.10. Research
 > first (source, licence, effort), then pictures of the look for me to pick. Build only after I pick: at most 3 lanes,
 > one review round. Keep the feature's own page in docs current.
 
 **5. Launch**
-> Start at docs/START-HERE.md and docs/play-production-access/. You orchestrate; mostly docs and my
+> Start at docs/agents/START-HERE.md and docs/play-production-access/. You orchestrate; mostly docs and my
 > clicks. Get the production-access application ready (I fill the TODO numbers), then T240, T404, T319, T514 and T463
 > (I run /code-review). No feature work.

@@ -72,7 +72,7 @@ export function useMenu(): MenuControls {
  */
 export function routeWhere(r: Route, day: string | null): ReportWhere {
   const f = waterFrame(r);
-  const out: ReportWhere = { screen: f ? `water · ${f.view}` : r.mode === "browse" ? r.tab : null };
+  const out: ReportWhere = { screen: f ? `water · ${f.view}` : r.mode === "browse" ? r.tab : r.mode === "gauge" ? "gauge" : null };
   if (f?.item) out.water = f.item;
   if (f && f.part !== null) out.part = f.part;
   if (f && f.tapSid !== null) out.section = f.tapSid;

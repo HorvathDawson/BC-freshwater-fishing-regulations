@@ -9,6 +9,7 @@ import type { MapProps } from "../map-props";
 import type { WebMapRefs } from "./refs";
 import { hitMark } from "./markers";
 import { hitSpot } from "./useSpots";
+import { hitGauge } from "./gaugeHit";
 import { PIN_ICON } from "../point-marks";
 
 export function useMoved({ map }: WebMapRefs, onMoved: MapProps["onMoved"]) {
@@ -72,7 +73,8 @@ export function useLongPress({ map, longPress }: WebMapRefs, onLongPress: MapPro
   }, [onLongPress !== undefined, at.atlas, at.basemap, at.glyphs, at.sprite, at.assets]);
 }
 
-export function useMapPoint({ map, longPress }: WebMapRefs, onMapPoint: MapProps["onMapPoint"]) {
+export function useMapPoint({ map, longPress }: WebMapRefs, onMapPoint: MapProps["onMapPoint"],
+                            onPressGauge?: MapProps["onPressGauge"]) {
   useEffect(() => {
     const m = map.current;
     if (!m || !onMapPoint) return;
@@ -80,20 +82,23 @@ export function useMapPoint({ map, longPress }: WebMapRefs, onMapPoint: MapProps
     const onTap = (e: maplibregl.MapMouseEvent) => {
       // (T317) nor is a tap on a boundary mark: the mark's layer took it (`useMarks`)
       // (T316) nor a tap on a spot: its mark took it (`useSpots`)
+      // (T1194) nor on a gauge dot: it opens that gauge
       if (!longPress.current?.fired() && hitMark(m, e.point.x, e.point.y) === null
-          && hitSpot(m, e.lngLat.lat, e.lngLat.lng) === null) onMapPoint(e.lngLat.lat, e.lngLat.lng);
+          && hitSpot(m, e.lngLat.lat, e.lngLat.lng) === null
+          && (!onPressGauge || hitGauge(m, e.point.x, e.point.y, e.lngLat) === null)) onMapPoint(e.lngLat.lat, e.lngLat.lng);
     };
     m.on("click", onTap);
     return () => { m.off("click", onTap); };
-  }, [onMapPoint]);
+  }, [onMapPoint, onPressGauge]);
 }
 
 export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPressFeature: MapProps["onPressFeature"],
                                 onError: MapProps["onError"], onPressObstacle?: MapProps["onPressObstacle"],
-                                onPressNotFishing?: MapProps["onPressNotFishing"], onPressStart?: MapProps["onPressStart"]) {
+                                onPressNotFishing?: MapProps["onPressNotFishing"], onPressStart?: MapProps["onPressStart"],
+                                onPressGauge?: MapProps["onPressGauge"]) {
   useEffect(() => {
     const m = map.current, r = renderer.current;
-    if (!m || !r || (!onPressFeature && !onPressObstacle && !onPressNotFishing)) return;
+    if (!m || !r || (!onPressFeature && !onPressObstacle && !onPressNotFishing && !onPressGauge)) return;
     const onClick = (e: maplibregl.MapMouseEvent) => {
       if (longPress.current?.fired()) return;       // the click a long press may leave behind is not a tap
       if (hitMark(m, e.point.x, e.point.y) !== null) return;   // (T317) a boundary mark's: it opens no water under it
@@ -117,6 +122,11 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
        * "lake"), the same on both maps: a native feature does not say which style layer it came from.
        */
       const { lat, lng } = e.lngLat;
+      // (T1194) a gauge dot first of all (Conditions tab): the finger means the dot, and no water under it opens
+      if (onPressGauge) {
+        const g = hitGauge(m, e.point.x, e.point.y, e.lngLat);
+        if (g !== null) { onPressGauge(g); return; }
+      }
       // (T173) a fish obstacle mark first: a tap on the mark is the mark's, and opens no water under it
       const { x, y } = e.point;
       void (async () => {
@@ -136,7 +146,7 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };
-  }, [onPressFeature, onPressObstacle, onPressNotFishing, onPressStart]);
+  }, [onPressFeature, onPressObstacle, onPressNotFishing, onPressStart, onPressGauge]);
 }
 
 /*
@@ -148,9 +158,9 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
  * slower answer than the next move is dropped. A failed ask goes to `onError`, as a click's does.
  */
 export function useHoverCursor({ map, renderer }: WebMapRefs, on: {
-  feature: boolean; obstacle: boolean; notFishing: boolean; mark: boolean },
+  feature: boolean; obstacle: boolean; notFishing: boolean; mark: boolean; gauge?: boolean },
                                onError: MapProps["onError"]) {
-  const key = `${on.feature}${on.obstacle}${on.notFishing}${on.mark}`;
+  const key = `${on.feature}${on.obstacle}${on.notFishing}${on.mark}${!!on.gauge}`;
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r) return;
@@ -159,6 +169,7 @@ export function useHoverCursor({ map, renderer }: WebMapRefs, on: {
     const set = (hand: boolean) => { canvas.style.cursor = hand ? "pointer" : ""; };
     const ask = async (x: number, y: number, lat: number, lng: number): Promise<boolean> => {
       if (on.mark && hitMark(m, x, y) !== null) return true;
+      if (on.gauge && hitGauge(m, x, y, { lat, lng }) !== null) return true;
       if (hitSpot(m, lat, lng) !== null) return true;
       if (m.getLayer(PIN_ICON) && m.queryRenderedFeatures([[x - 12, y - 12], [x + 12, y + 12]], { layers: [PIN_ICON] })
         .some((g) => typeof g.properties?.title === "string" && g.properties.title)) return true;

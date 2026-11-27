@@ -4,7 +4,7 @@
  * so a test pins the line the reader sees.
  */
 export type ScreenName = "map" | "conditions" | "runs" | "spots" | "more" | "water" | "spot" | "newSpot" | "app"
-  | "page" | "sheet" | "search" | "key";
+  | "page" | "sheet" | "search" | "key" | "gauge";
 
 const LINES: Readonly<Record<ScreenName, string>> = {
   map: "The map hit a problem and could not be drawn.",
@@ -14,6 +14,7 @@ const LINES: Readonly<Record<ScreenName, string>> = {
   more: "More hit a problem and could not be drawn.",
   water: "This water hit a problem and could not be drawn.",
   spot: "This spot hit a problem and could not be drawn.",
+  gauge: "This gauge hit a problem and could not be drawn.",
   newSpot: "Adding a spot hit a problem and could not be drawn.",
   // (T1164) a page opened from More (the menu's pages, the glossary), the sheets and cards drawn over a screen, the search bar and
   // its results, the map's key: each has its own boundary, so a fault there leaves the map and the tab bar working

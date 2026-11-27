@@ -25,7 +25,8 @@ between that moment and the end of the run — the output came from what was rea
                         `pandas._libs._cyutility`).
     C <key> <digest>    (T1171) a config.yaml value read (`config_read`, called by the two config loaders): its dotted
                         key (`*` = the whole file) and the digest of its value — so a stage is keyed on the config
-                        values it reads, not on the whole file
+                        values it reads, not on the whole file; (T1192) one line per value READ (`curated._Tree`),
+                        never a block for touching it
 
 Each line is written straight to the file descriptor (no buffer), so a worker killed by its pool still left its lines.
 

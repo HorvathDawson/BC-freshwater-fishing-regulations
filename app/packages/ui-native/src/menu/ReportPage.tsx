@@ -129,7 +129,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
               <View style={{ flex: 1, gap: 2, opacity: on[r.k] ? 1 : 0.45 }}>
                 <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.label}</Text>
                 {r.lines.map((l, i) => (
-                  <Text key={i} selectable style={{ ...TYPE.figure, fontSize: 12, color: palette.sub }}>{l}</Text>
+                  <Text key={i} selectable style={{ ...TYPE.figure, fontSize: 12, color: palette.sub, overflowWrap: "anywhere" } as never}>{l}</Text>
                 ))}
               </View>
               <Switch value={!!on[r.k]} onValueChange={(v) => setOff((o) => ({ ...o, [r.k]: !v }))}

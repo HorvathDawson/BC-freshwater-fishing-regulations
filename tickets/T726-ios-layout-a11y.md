@@ -4,11 +4,11 @@ Status: OPEN — stopped 2026-11-22 by lane L8: simulator shots on four iPhones,
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T726 | iOS: safe areas, Dynamic Island, portrait lock, dark/light, Dynamic Type, VoiceOver (IOS-9) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-9 in docs/ios/START-HERE-ios.md |
+| T726 | iOS: safe areas, Dynamic Island, portrait lock, dark/light, Dynamic Type, VoiceOver (IOS-9) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-9 in docs/agents/START-HERE-ios.md |
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-9 in
-`docs/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
+`docs/agents/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
 
 ## Work
 **IOS-9. Layout: safe areas, Dynamic Island, rotation, dark/light, Dynamic Type, VoiceOver.** Acceptance: shots on iPhone

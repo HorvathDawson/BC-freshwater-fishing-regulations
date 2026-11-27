@@ -52,7 +52,7 @@ import { HorizonPicker } from "./HorizonPicker";
 import { useCoachTarget } from "./CoachMarks";
 import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
-import { TYPE } from "./type";
+import { LABEL_SCALE, TYPE } from "./type";
 import { changeRampStops, flowRampStops, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
 
@@ -406,7 +406,8 @@ export function Kicker({ palette, children, oneLine }: {
   palette: Palette; children: ReactNode; oneLine?: boolean;
 }) {
   return (
-    <Text numberOfLines={oneLine ? 1 : undefined}
+    // (T1203) a one-line kicker is a fixed row's label: it follows the system size to LABEL_SCALE and stays whole
+    <Text numberOfLines={oneLine ? 1 : undefined} maxFontSizeMultiplier={oneLine ? LABEL_SCALE : undefined}
           style={{ ...TYPE.kicker, color: palette.faint }}>{children}</Text>
   );
 }

@@ -366,10 +366,19 @@ def code_behind(build_dir: Path) -> list[str]:
             else:
                 out.append(f"package {d} {code['packages'][d]} -> {pk[d]} (code: packages): the atlas was built with "
                            f"{d} {code['packages'][d]} (owner pick A: a routine bump of a package it imports counts)")
+    # (T1192) per value read: a key the atlas never read is not here, and one renamed or deleted since says so
+    # a key is stated in config.yaml (the roots, the gpkg, `atlas_build`) or is a name the schema declares (`At`)
+    from pipeline._trace import CONFIG_MISSING
+    from pipeline.common.curated import declared_in
     cf = stepcache.config_now(code["config"])
     for k in sorted(cf):
-        if cf[k] != code["config"][k]:
-            out.append(f"config.yaml {k} (code: config): "
+        if cf[k] == code["config"][k]:
+            continue
+        if cf[k] == CONFIG_MISSING and code["config"][k] != MOVED:
+            out.append(f"config key {k} (code: config): no longer in config.yaml or pipeline/common/curated.py "
+                       "(renamed or deleted since the atlas was built)")
+        else:
+            out.append(f"{declared_in(k)} {k} (code: config): "
                        + (MOVED if code["config"][k] == MOVED else "changed since the atlas was built"))
     env = stepcache.stage_env()
     for k in sorted(env):

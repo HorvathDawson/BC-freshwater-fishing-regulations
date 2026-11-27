@@ -9,7 +9,7 @@ Files in this folder:
 | File | What it holds | Who keeps it current, and when |
 |---|---|---|
 | `README.md` | Google's rules, the clock, the checklist to apply | Claude, when a checklist item changes; the owner fills the owner fields |
-| `feedback-log.md` | one row per piece of tester feedback, report or crash, linked to its ticket and the release that fixed it | every chat, at `START-HERE.md` step 0 (reports first): each new item is a row plus a ticket |
+| `feedback-log.md` | one row per piece of tester feedback, report or crash, linked to its ticket and the release that fixed it | every chat, at `docs/agents/START-HERE.md` step 0 (reports first): each new item is a row plus a ticket |
 | `releases.md` | one row per app release since testing began, with the feedback rows it answered | every release (`runbooks/release-by-hand.md` Step 8): add the row, set "Fixed in" on the rows it closes |
 | `questionnaire-draft.md` | the application form's 8 questions in form order, each with a draft answer from repo facts | Claude refreshes the numbers before the owner applies; the owner rewrites in his own words |
 
@@ -80,7 +80,7 @@ Owner-only steps are marked **[you]**; everything else Claude keeps ready.
 
 ## How each file is kept up to date
 
-- **Every chat, `START-HERE.md` step 0:** run the reports command; each NEW report, crash kind, TestFlight item or
+- **Every chat, `docs/agents/START-HERE.md` step 0:** run the reports command; each NEW report, crash kind, TestFlight item or
   relayed tester message becomes a ticket AND a `feedback-log.md` row (status "open", "Fixed in" empty). Ask the owner
   whether Play testing feedback came in (no API) and log what he relays.
 - **Every release, `runbooks/release-by-hand.md` Step 8:** add a `releases.md` row (version, date, tracks, what changed,

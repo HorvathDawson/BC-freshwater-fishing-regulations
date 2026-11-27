@@ -124,3 +124,41 @@ def test_hard_pages_read_as_the_baseline(request):
     res = B.compare(m, B.extract(pdf, HARD_PAGES, workers=2), B.load_accepted(B.DEFAULT_ACCEPTED, m), HARD_PAGES)
     assert res["unexplained"] == [] and res["stale"] == [], res
     assert res["compared"] == sum(m["pages"].get(str(p), 0) for p in HARD_PAGES) == 331
+
+
+# ---------------------------------------------------------------- (T1190) a reading of any PDF as a manifest
+
+def test_a_dump_cut_into_a_reading_checks_clean_against_itself_and_names_a_changed_text(tmp_path):
+    rows = [(BOX_A, A), (BOX_B, Bw)]
+    dump = tmp_path / "dump.json"
+    dump.write_text(json.dumps({"pdf_sha256": "a" * 64, "rows": _got(rows)}))
+    assert B.main(["cut-reading", "--dump", str(dump), "--book", "x", "--commit", "abc", "--out-dir", str(tmp_path)]) == 0
+    m = json.loads((tmp_path / "reading.json").read_text())
+    acc = B.load_accepted(tmp_path / "accepted_diffs.json", m)           # the digest of the rows it was cut from
+    assert (m["rows_count"], m["pdf_sha256"], m["extractor"]["commit"], acc["accepted"]) == (2, "a" * 64, "abc", [])
+    assert B.compare(m, _got(rows), acc)["unexplained"] == []
+    (d,) = B.compare(m, _got([(BOX_A, A), (BOX_B, dict(Bw, raw_regs="**No Fishing** Jan 1"))]), acc)["unexplained"]
+    assert (d["water"], d["kind"], d["fields"]) == ("B RIVER", "changed", ["raw_regs"])  # the text is compared
+
+
+def test_a_reading_refuses_two_rows_at_one_key():
+    with pytest.raises(SystemExit, match="two rows"):
+        B.manifest_from_reading(_got([(BOX_A, A), (BOX_A, Bw)]), "a" * 64, book="x", commit="abc", note="")
+
+
+def test_dump_writes_a_reading_of_a_pdf(tmp_path):
+    from pipeline.tests.test_visible_text import _pdf, _text
+    pdf = tmp_path / "t.pdf"
+    pdf.write_bytes(_pdf(_text("AB")))                   # no table: a reading with no rows, but the file and its sha
+    assert B.main(["dump", "--pdf", str(pdf), "--out", str(tmp_path / "d.json"), "--workers", "1"]) == 0
+    d = json.loads((tmp_path / "d.json").read_text())
+    assert (d["rows"], d["pdf_sha256"]) == ([], B.file_sha(pdf))
+
+
+def test_the_committed_august_reading_and_its_accepted_diffs_agree():
+    """`baseline/2026-08/`: the pre-T1190 extractor's reading of the August 2026 copy, the T1190 comparison's base."""
+    m = json.loads((B.HERE / "2026-08" / "reading.json").read_text(encoding="utf-8"))
+    acc = B.load_accepted(B.HERE / "2026-08" / "accepted_diffs.json", m)
+    assert m["pdf_sha256"] == "a83fc5995b29ab2322b18ed20435b4a964bc1480e527ba500768409b64369617"
+    assert m["rows_count"] == len(m["rows"]) == sum(m["pages"].values()) == 1393 and acc["accepted"] == []
+    assert B.DEFAULT_MANIFEST.name == "2025-27.json"     # the reading's folder never becomes the current book's gate

@@ -93,7 +93,7 @@ gave the licence for the Province's vector lake maps (T201).
 
 ## Order for open tickets
 
-The order lives on the restart pages `docs/START-HERE.md` lists and in `docs/ROADMAP-after-0.9.0.md`, not here (T540: the 2026-10-22 list
+The order lives on the restart pages `docs/agents/START-HERE.md` lists and in `docs/agents/ROADMAP-after-0.9.0.md`, not here (T540: the 2026-10-22 list
 named 73 closed tickets out of 80; git has it, `git log -p -- tickets/README.md`).
 
 ## Owner blocks (T1081)

@@ -1,0 +1,14 @@
+{
+ "_about": "T1190: every struck-through item of a book already seen, by water + the struck run with the word before it (as raw_regs_marked prints it). Read by extract_synopsis (the one [struck] warning line of a run, which names any item not here as NEW) and by the T426 gate (--check-against fails on a NEW strike, and on an item recorded for its book's pdf_sha256 that it no longer reads). The owner's call (2026-11-26): struck text stays in the row, marked; no per-row review flag; only a new strike is flagged. Claude adds an item, with where and why, when the owner has seen it.",
+ "strikes": [
+  {
+   "water": "NANAIMO RIVER",
+   "text": "Oct ~~15~~",
+   "pdf_page": 19,
+   "page": 17,
+   "pdf_sha256": "08f58537261ffe51c513193013ba165754285719dec8d0332beaef1cbab8ecfa",
+   "first_seen": "2026-11-26",
+   "note": "'No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15': a 0.14 pt line drawn through '15' (pdf-extraction study, T1190); pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md entry 15"
+  }
+ ]
+}

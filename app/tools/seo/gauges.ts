@@ -25,7 +25,7 @@ import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
 import { gaugeFindForm } from "./gaugeFind";
 import type { SearchGauge } from "./gaugeSearch";
-import { bestServes, gaugePath, gaugeSubject, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
+import { authorityWeb, bestServes, gaugePath, gaugeSubject, STORE_CONTACT, TRUST_RANK, type GaugeFlags, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
 import type { StationClim } from "@app/data";
 import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
@@ -44,6 +44,8 @@ export interface GaugeModel {
   readonly rough: readonly WaterLink[];
   /** (T1045) what the release holds for the station (`gauge_clim`): the words of its title, heading and links */
   readonly parameters: readonly GaugeParameter[];
+  /** (T1194) the station's flags: the tide note, and no Level trend word on tidal water */
+  readonly flags: GaugeFlags;
 }
 
 export { gaugePath };
@@ -59,7 +61,7 @@ export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink 
     out.push({ station: g.station, name: g.name, path: gaugePath(g.station, g.name), lat: g.lat, lon: g.lon,
                close: links.filter((l) => l.t !== "weak").map((l) => l.w),
                main: links.filter((l) => TRUST_RANK[l.t] <= TRUST_RANK.good).map((l) => l.w), more: links.filter((l) => TRUST_RANK[l.t] > TRUST_RANK.good).map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w),
-               parameters: (clim?.get(g.station) ?? []).map((c) => c.parameter) });
+               parameters: (clim?.get(g.station) ?? []).map((c) => c.parameter), flags: g.flags ?? { tidal: false, backwater: false, diversion: false } });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name) || a.station.localeCompare(b.station));
 }
@@ -82,15 +84,9 @@ export const CORE_INLINE: readonly (readonly [file: string, names: readonly stri
   ["weatherFigure.ts", ["round1", "weatherFigure"]],
   ["spotWords.ts", ["SPOT_WINDOW"]],
   ["flow.ts", ["MONTHS", "monthAbbr", "WEEKDAY_NAMES", "weekdayAbbr"]],
-  // (T908) the Conditions legend's "Normal" band, and where a percentile sits on the colour bar
-  ["gauge-policy.generated.ts", ["PERCENTILE_KNOTS"]],
-  ["flow.ts", ["KNOTS", "standing", "NORMAL_BAND"]],
-  // (T908) the colour bar's legend words (T1039: the forecast options are the app's chart's own now, gaugeChart.tsx)
-  ["conditions.ts", ["FLOW_LEGEND"]],
+  // (T1194) the reading, standing and colour bar are the shared piece's now (gaugeChart.tsx): only the day, time and weather words stay
+  ["standing.ts", ["figure"]],
   ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcClockWords", "bcIsoDayWords"]],
-  ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend"]],
-  ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords", "readingAgeBrief"]],
-  ["standing.ts", ["figure", "BAND_WORDS", "PRIOR_BAND_WORDS", "bandOfWord", "bandWord", "standingNowLine", "gaugeSummaryLine", "side", "daysShort", "daysNear"]],
 ];
 const plain = (ts_: string): string =>
   ts.transpileModule(ts_, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText
@@ -117,7 +113,7 @@ export function clientScript(): string {
   if (/^\s*import\b/m.test(js)) throw new Error("seo: gaugeClient.ts must not import anything but core (it ships as one plain script)");
   const core = CORE_INLINE.map(([f, names]) => inlineCore(f, names)).join("\n");
   // the feed's age line is judged by the stale time the facts file names; `freshness`' default is that same table's value
-  return `(function(){"use strict";\nconst STALE_AFTER_MS=${STALE_AFTER_MS};\n${core}\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
+  return `(function(){"use strict";\n${core}\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
 }
 
 /** the page reporter (gaugeClient.ts `pageReporter` and what it calls), written into a region hub's find script */
@@ -243,6 +239,10 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
     contact: STORE_CONTACT,
     // (T1039) where the day's sunrise and sunset are worked out (the gauge's own point; core `sunLine`, read time)
     place: g.lat === null || g.lon === null ? null : { lat: g.lat, lon: g.lon },
+    // (T1194) the readings' source, linked from the failure line
+    source: authorityWeb("eccc"),
+    // (owner 2026-11-27) the flags the shared reading and its notes read: no Level trend word on tidal water; the tide's note
+    flags: g.flags,
   };
 }
 
@@ -252,7 +252,7 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
  * own name, which already holds the water's word ("Alouette River Near Haney"), so the title adds none of its own and never says
  * "river river". WHAT it measures is the release's (`gaugeSubject` of its `gauge_clim`): a level-only gauge says "level", a
  * flow-only one "flow", one the release knows nothing of "conditions". "Forecast" is not in it: whether the River Forecast
- * Centre runs one is live data, said in the lede and description as "where ... runs one".
+ * Centre runs one is live data, said in the description as "where ... runs one".
  */
 export function gaugeTitle(g: Pick<GaugeModel, "name" | "station" | "parameters">): string {
   const tail = ` ${gaugeSubject(g.parameters)} (${g.station})`;
@@ -262,14 +262,6 @@ export function gaugeTitle(g: Pick<GaugeModel, "name" | "station" | "parameters"
 export const gaugeHeading = (g: Pick<GaugeModel, "name" | "parameters">): string => `${g.name} ${gaugeSubject(g.parameters)}`;
 /** (T1045) the forecast, said only as what it is: the River Forecast Centre's run, where it runs one, for as many days as that run covers */
 export const FORECAST_WORDS = "where the BC River Forecast Centre runs one";
-/**
- * (T1045) the lede under the heading, in the static HTML: what the page shows. The flow forecast has no day count (it varies by
- * gauge and run); only the weather has a horizon of its own (`WEATHER_DAYS`).
- */
-export const gaugeLede = (g: Pick<GaugeModel, "name" | "station" | "parameters">): string =>
-  `${gaugeSubject(g.parameters) === "conditions" ? "Live conditions" : `Live ${gaugeSubject(g.parameters)}`}, and the weather for ${g.name}, from Water Survey of Canada gauge ${g.station}, ` +
-  `with the flow forecast ${FORECAST_WORDS}, for as many days as that run covers. The weather is for the next ${WEATHER_DAYS} days.`;
-
 export function gaugeDescription(g: GaugeModel): string {
   const w = g.close[0]?.name ?? g.rough[0]?.name;
   const what = gaugeSubject(g.parameters) === "conditions" ? "conditions" : gaugeSubject(g.parameters).replace(" and ", " or ");
@@ -295,12 +287,13 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
   const cfg = JSON.stringify(gaugeConfig(g, release, chart)).replace(/</g, "\\u003c");
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
     `<h1>${esc(gaugeHeading(g))}</h1>` +
-    `<p class="lede">${esc(gaugeLede(g))}</p>` +
-    `<p class="small">Water Survey of Canada gauge ${esc(g.station)}${g.lat !== null && g.lon !== null ? ` at ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)}` : ""} · read each time this page opens.</p>` +
-    `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
+    // (T1194, owner 2026-11-26: "this is bloated … or actually just removed") NO INTRO PARAGRAPH: the page opens as the app's does (the name, then
+    // the reading); what it is and where it is from live in the description, the JSON-LD place and the credit at the foot. This line stays
+    // because the JSON-LD's station and coordinates are held to the page (`checkJsonLd`)
+    `<p class="small">Station ${esc(g.station)}${g.lat !== null && g.lon !== null ? ` · ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)}` : ""}</p>` +
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>` +
     // (T1039) the app's own chart, drawn by its deferred script (gaugeChart.tsx); the box keeps its place meanwhile
-    `<h2>Readings and forecast</h2><div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div>` +
+    `<div id="gauge-chart"><p class="small">Drawing the chart…</p></div>` +
     `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div><div id="gauge-sun"></div>` +
     `<h2>Waters this gauge serves</h2>` +
     (g.main.length ? `<ul>${g.main.map(line).join("")}</ul>` : "") +
@@ -308,19 +301,19 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     (g.more.length ? `<details><summary>${esc(moreSummary(g))}</summary>` +
       `<ul class="cols">${g.more.map(line).join("")}</ul></details>` : "") +
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
-    `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
-    // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
-    `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a></div>` +
-    // (T1039, owner 2026-11-23: "chart should use same buttons as spots too for now") the web app's own "Get the app"
-    // block (ui-native `GetAppBlock`), drawn by the chart's script
-    `<div id="gauge-get-app"></div></div></div>` +
+    // (T1194, owner 2026-11-26: "the open on the website button and get the app stuff … janky") ONE CLOSING SECTION: the sources (the readings'
+    // and the forecast's credit, gaugeClient.ts `creditHtml`) directly over one primary action, then the quiet Get the app (ui-native
+    // `GetAppBlock` compact, drawn by the chart's script). The action is the web app on the first water, named for what it is
+    `<section class="gfoot"><p class="small gl">Sources</p><div id="gauge-credit"></div>` +
+    `<a class="app" href="${esc(`${first.path}?view=conditions`)}">Open ${esc(first.name)} in the web app</a>` +
+    `<div id="gauge-get-app"></div></section></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
     `<script src="${esc(chartHref)}" defer></script>`;
 }
 
 /**
  * (T1045) what is wrong with a gauge page's search words, against the gauge's data: the title and heading say what the release
- * holds for the station, once, no word twice in a row; the page has its lede; "forecast" is only ever hedged ("where the BC River
+ * holds for the station, once, no word twice in a row; "forecast" is only ever hedged ("where the BC River
  * Forecast Centre runs one"), never in the title or heading.
  */
 export function gaugeWordsProblems(g: GaugeModel, title: string, description: string, body: string): string[] {
@@ -334,9 +327,7 @@ export function gaugeWordsProblems(g: GaugeModel, title: string, description: st
     const twice = /\b([A-Za-z]{3,})\s+\1\b/i.exec(t);
     if (twice) bad.push(`${what} "${t}" says "${twice[0]}" twice in a row`);
   }
-  if (!body.includes('<p class="lede">')) bad.push("no lede");
-  for (const [what, t] of [["description", description], ["lede", /<p class="lede">([^<]*)<\/p>/.exec(body)?.[1] ?? ""]] as const)
-    if (/forecast/i.test(t) && !t.includes(FORECAST_WORDS) && !(what === "description" && t.endsWith("…"))) bad.push(`${what} says forecast without "${FORECAST_WORDS}"`);
+  if (/forecast/i.test(description) && !description.includes(FORECAST_WORDS) && !description.endsWith("…")) bad.push(`description says forecast without "${FORECAST_WORDS}"`);
   if (!/forecast/i.test(description) && !description.endsWith("…")) bad.push(`description lacks "forecast"`);
   return bad;
 }
