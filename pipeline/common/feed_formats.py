@@ -59,3 +59,9 @@ FEED_MIN_APP = {
 #: (T905) the keys of a DFO region's own bookkeeping, kept in the `dfo_state` file and never in the published index
 #: (regs/dfo_salmon/live.py and the worker's dfo/state.ts read this one list; AGENTS 40)
 DFO_STATE_KEYS = ("sha256", "changed", "failures", "header", "unresolved", "texts")
+
+#: (T1167, owner 2026-11-25 "2 weeks before to the end (Recommended)") how many days before the first day of the range an
+#: in-season notice states in its own text ("No fishing July 30 to September 15") its banner shows, as upcoming. Read by
+#: `pipeline.regs.inseason.matches.on` and core `inSeasonOn` (emitted; AGENTS 40); the shared case file
+#: `app/packages/core/src/inseason-span.parity.json` pins the rule on both sides.
+INSEASON_LEAD_DAYS = 14

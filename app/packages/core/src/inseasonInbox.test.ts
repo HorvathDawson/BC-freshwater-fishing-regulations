@@ -351,3 +351,29 @@ describe("(T867) since install, read on open, short, with the app's own updates"
     } finally { undo(); }
   });
 });
+
+describe("(T1167) an upcoming notice in the inbox: listed as upcoming with its dates, never opening the bell by itself", () => {
+  // the production Okanagan row (effective July 30, 2026; its text's range Jul 30–Sep 15), not on the map yet, met on a
+  // device that already has a history
+  const OK = row({ id: "is-2fa458fef3c3", region: "8", water: "Okanagan River", effective: "July 30, 2026", from: "2026-07-30",
+                   change: "No fishing July 30 to September 15.", status: "new", firstSeen: "2026-07-20T10:00:00Z",
+                   parsed: { kinds: ["closure"], window: { from_month: 7, from_day: 30, to_month: 9, to_day: 15 } } });
+  const A = row({ id: "is-a" });
+  const LA = links({ "is-a": ["gnis:1"] });
+  const s0 = read(null, feed([A]), LA, "2026-07-01");
+  it("the 14 days before: unread, 'Upcoming' with its range, no bell opening; its first day: in force, and then it opens", () => {
+    const s1 = read(s0, feed([A, OK]), LA, "2026-07-20");
+    expect([inboxUnread(s1), inboxWantsOpen(s1)]).toEqual([1, false]);
+    const row1 = inboxVM(s1, "2026-07-20").groups[0]!.rows.find((r) => r.id === OK.id)!;
+    expect([row1.tag, row1.date, row1.note, row1.label]).toEqual(["Upcoming", "Jul 30–Sep 15", "Not on the map yet",
+      "Unread. Upcoming: Okanagan River, Region 8, Jul 30–Sep 15. Not on the map yet. No fishing July 30 to September 15."]);
+    expect(inboxDetail(s1, OK.id, "2026-07-20")).toEqual({ id: OK.id, tag: "Upcoming", head: "Okanagan River · Region 8", dates: "Jul 30–Sep 15",
+      text: "No fishing July 30 to September 15.", url: SRC,
+      note: "This change starts Jul 30. I have not placed this change on the map yet. Check it before you fish." });
+    // the saved history reads back (the mark is part of it)
+    expect(parseInbox(inboxText(s1))).toEqual(s1);
+    const s2 = read(s1, feed([A, OK]), LA, "2026-07-30");
+    expect([s2.items.find((i) => i.id === OK.id)!.upcoming, inboxWantsOpen(s2), inboxVM(s2, "2026-07-30").groups[0]!.rows.find((r) => r.id === OK.id)!.tag])
+      .toEqual([undefined, true, "New"]);
+  });
+});

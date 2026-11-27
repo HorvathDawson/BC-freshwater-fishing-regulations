@@ -45,6 +45,12 @@ are short and neutral, in our words; no quotes that identify anyone (the tickets
 | F14 | 2026-11-21 | in person | T-4 | 0.8.x | The Trout / Salmon switch did not show clearly which one was on | T986 | fixed | 0.8.5 |
 | F15 | 2026-11-22 | in person | CT-1 | 0.8.4–0.8.5 Android | Switching regulation sub-tabs (keep ↔ licence) scrolled through every section in between. Same message: positive overall on how much fits on a screen while staying readable | T1025 | fixed | 0.9.0 |
 | F16 | 2026-11-22 | in person | CT-2 | 0.8.4–0.8.5 | The day picker stopped at December 2026 though the rule book is valid to March 31, 2027 | T1026 | fixed | 0.9.0 |
+| F47 | 2026-11-26 | email | CT-3 | 0.9.0 Android | Zoomed out, the map shows almost no lake or river names, so a particular water is hard to find. Same message: positive overall (everything for a river system in one place; the rules looked accurate on the rivers checked; no bugs met) | T1200 #1 | open (options as pictures first) | 0.10.0 (pending) |
+| F48 | 2026-11-26 | email | CT-3 | 0.9.0 Android | Asked for a few more main towns on the zoomed-out map, as landmarks | T1200 #2 | open (options as pictures first) | 0.10.0 (pending) |
+| F49 | 2026-11-26 | email | CT-3 | 0.9.0 Android | The tapped water does not stand out enough; suggested a colour change to accent it | T1200 #3 | open (options as pictures first) | 0.10.0 (pending) |
+| F50 | 2026-11-26 | email | CT-3 | 0.9.0 Android | The many lines on the zoomed-out map (read as roads) made it hard to tell what everything is | T1200 #4, #5 | open (options as pictures first) | 0.10.0 (pending) |
+| F51 | 2026-11-26 | email | CT-3 | 0.9.0 Android | A water's regulations page is accurate but a lot at first glance; suggested very distinct headings or a slight colour change between sections (less so on a second look) | T890 #4 | open | 0.10.0 (pending) |
+| F52 | 2026-11-26 | email | CT-3 | 0.9.0 Android | Another map app the tester uses is easier on the eyes and shows the water more clearly (but has no labels); the tester finds a lake by scrolling and zooming, not by search | T1200 #6, #7 | open (options as pictures first) | 0.10.0 (pending) |
 
 ## In-app reports (Report a problem)
 
@@ -59,6 +65,7 @@ are short and neutral, in our words; no quotes that identify anyone (the tickets
 | F23 | 2026-11-22 | in-app report (staging) | R-5 | 0.8.5 Android | Switching to Runs took a very long time the first time | T1013 | in progress (two cuts in 0.9.0; the timing read is left) | 0.9.0 (part) |
 | F24 | 2026-11-23 | in-app report (staging) | R-6 | 0.8.5 Android | "Flows into …" should open the receiving water on its map, not its regulations | T1023 | fixed | 0.9.0 |
 | F25 | 2026-11-23 | in-app report (staging) | R-7 | 0.8.5 Android | Odd highlighting on a lake (not reproduced on the web yet) | T1024 | fixed, owner read pending | 0.9.0 |
+| F54 | 2026-11-26 | in-app report (prod) | R-9 | 0.9.0 | A feature ask: no "Report a problem" on a saved-spot page, and the layout and flow for a spot visited more than once | T1197 | open (design first) | — |
 
 ## Crash reports (automatic)
 
@@ -87,6 +94,9 @@ Each row is one crash kind, or one triage of many kinds. Counts and stacks are i
 | F44 | 2026-11-24 | in-app report (staging) | R-8 | 0.9.0 | Asked for a place to record fish measurements on a saved location, several per location, editable later | T1095 | open (feature; design first) | — |
 | F45 | 2026-11-25 | told the owner | T-5 | 0.9.0 | The first download should respect mobile data: ask before downloading on data, and ask again if Wi-Fi is lost | T1109 | open | — |
 | F46 | 2026-11-25 | crash report (prod) | auto | 0.9.0 iPhone | No push token arrived within 30 seconds while the developer was testing notifications on TestFlight | T996 | open (the push proof is owed after the App Store release) | — |
+| F53 | 2026-11-26 | crash report (prod) | auto | 0.9.0 | A stored-data connection was closing while the app used it (a database "InvalidStateError"; stack and platform still to read) | T1195 | open | — |
+| F55 | 2026-11-26 | crash report (staging) | auto | 0.7.3-0.8.0 | Triage: 26 staging error reports from builds 0.7.3 to 0.8.0 (2026-11-13 to 11-18) marked old-build noise, no tickets (owner: "Mark as old-build noise, no tickets"); a kind that reproduces on 0.9.0 or later gets its own row | T1057 | declined (old builds; reopened per kind if it reproduces) | — |
+| F56 | 2026-11-26 | crash report (prod) | auto | 0.9.0 | A fresh occurrence of the known "app ended while on screen" native crash kind (about 191 MB in use); still reported on 0.9.0 | T1057 (nearest: T1094) | open | — |
 
 ## The developer's own finds on a shipped build (not tester feedback)
 
@@ -115,6 +125,8 @@ leave them out.
 | D18 | 2026-11-25 | found in development | owner | 0.9.0 data | A lake and its creek showed another, same-named lake's stricter rules (a name bound across management units) | T1117 (audit: T1118) | open | — |
 | D19 | 2026-11-25 | in person | owner | 0.9.0 web | A river's plain link opened the rules of one unnamed part (an ecological reserve side channel) and read "Closed"; parts were numbered instead of named | T1140 (T1146, T1149) | open | 0.10.0 (names); the landing in the next patch |
 | D20 | 2026-11-25 | in person | owner | 0.10.0 candidate | The game-fish status bar showed "open" in a different colour from the salmon bar | T1145 | fixed (#260) | 0.10.0 |
+| D21 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | At a larger system font the Salmon label of the mode switch wrapped onto two lines and the Conditions tab label was cut short | T1201 (follow-up T1203) | in progress (fixed on `main`; the screens not yet walked: T1203) | 0.10.0 (pending) |
+| D22 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | A lake with no salmon (Arctic drainage) led with a Salmon status bar (the regional rule applies; the question is whether to show it) | T1202 | open (owner's call) | — |
 
 ## Counts (refresh before applying)
 
@@ -124,5 +136,6 @@ the owner's read pending (F34), 6 fixed in 0.9.0 (shipped 2026-11-24, r-0aec88ed
 owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 10 open (F40–F44 added 2026-11-24, F45 on 11-25).
 Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
 answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2); D14 open (0.9.1); D15–D17 open (0.9.2); D18 open (0.9.1).
+2026-11-26: F47–F52 added (tag CT-3, by email; all open, for the 0.10.0 re-cut) and D21, D22; later that day F53 (a crash kind, T1195), F54 (an in-app feature report, T1197), F55 (26 old-build staging items marked noise, no tickets) and F56 (a fresh native-crash occurrence on 0.9.0, T1057); not in the numbers above.
 Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not
 know how to use the Play form). Recount before applying.

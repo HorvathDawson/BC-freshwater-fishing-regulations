@@ -26,7 +26,7 @@ diff where a binding moves), listed for his look before the build ships. Related
    seven P10 overrides' notes are already rewritten.
 5. **The one-offs:** O1 Little River: both rules bind the whole river, row dates replace the spring closure. O2 Upper
    Chehalis River: close it; **a lake-tributary closure must override** (check the pattern). O3 Lost Lake near Whistler:
-   move the electric-motor rule to the Whistler lake. O4 Hatton Creek: add fly-only (Sep 1-Jul 14). O5 Gwillim and
+   move the electric-motor rule to the Whistler lake. O4 Hatton Creek: fly only ALL YEAR on Hatton Creek and the Caycuse main stem above the Hatton confluence (final ruling, replaces Sep 1-Jul 14; no other tributary; the Caycuse Jul 15-Aug 31 closure stays on the whole Caycuse). O5 Gwillim and
    Muncho: the zone's limit is kept. O8 Robb Lake: the zone's dates are kept. **O7: a "X Lake's tributaries" row binds
    ALL the lake's inflows**; sweep every such row province-wide (Connor Lake's tributaries bind to Forsyth Creek above
    the lakes). **O10: catch and release only on the Goat main stem between Leadville Creek (km 33.1) and Cameron Creek (km 42.6); the rest takes the regional quota (GOTCHAS written). O13: the closure below Healy Lake, as a GLOBAL extent on the water, not rule-level.** O16 Shuswap above
@@ -34,7 +34,7 @@ diff where a binding moves), listed for his look before the build ships. Related
 6. Kept, no change (recorded in the rulings page): O6, O9, O11, O12, O14, O15 (the book prints two Tamihi lines, closed all year below the falls and May 1-June 30 above; the data
    matches both, only the distance differs: "Our cut is the falls" stands), O17; their errors are on
    `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`.
-7. The D6 rebinds of T1118 ride the same build (Mosquito, Bear, Twin, Hall, McDonnel, Panther, McLennan).
+7. The D6 rebinds of T1118 ride the same build (Mosquito, Bear, McLennan, and the four lake rebinds he approved: McDonell 6-4, the Twin Lakes 4-34 versus Yankee and Canuck, Hall Lake 4-20 versus the 4-34 Hall lakes, the Malcolm Knapp Lost Lake versus the Whistler Lost Lake; Panther is only the name-variant pointer fix).
 8. **P7b (ruled, the strictest reading):** the Region 5 spring closure is lifted only where a row prints its own closure or "open
    all year" (whole or part), on that stretch; gear or quota rows keep it. Closes about 430.8 km in spring (Cariboo 143.7, Quesnel below
    the Cariboo 99.9, Moffat 88.1, McKinley 38.5, Blue Lead 18.2, Little Horsefly 17.8, Mitchell 15.4, Canim 9.2); opens nothing. GOTCHAS
@@ -56,10 +56,9 @@ diff where a binding moves), listed for his look before the build ships. Related
 Each change has its answers diff and every moved binding is explained; unchanged items are proved unchanged; he has seen
 the lists before the re-cut ships. Severity: medium (several are "A": an angler could break the law). Model: Opus. Size: L.
 
-## Batch 3 answers (the owner, 2026-11-26 night, verbatim; question numbers not relayed to the build lane)
+## Batch 3 answers (the owner, 2026-11-26 night, verbatim; the lower Quesnel's is in item 8)
 - Stellako (opens 16.5 km May 15-Jun 30; Region 6 steelhead only Jun 16-30): "Yes, open May 15 as built (Recommended)".
 - Little River (3.6 km; lift for rainbow trout and char only; catch and release Jul 1-Dec 31): "yes we want the strictest here."
-- Lower Quesnel (below the Cariboo River, about 99.9 km, closed Apr 1-Jun 30): "Yes, close it too (Recommended)".
 
 ## Owner
 

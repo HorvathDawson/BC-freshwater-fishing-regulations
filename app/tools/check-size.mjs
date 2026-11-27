@@ -38,7 +38,7 @@ export const BUDGETS = {
   // (T1144, 2026-11-26; the owner confirms) the restart pages are NOT in this total: each live chat adds one, so with about
   // 112 lines of room the third chat to save its state failed docs-ci and its push the night credits ran short. They keep
   // their own cap (`restart`, 60 lines each) and are deleted when their chat ends.
-  readingLines: [11287, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],   // +15 (T1189: the Province list read from the PDF); +6 (T1177: RULINGS L27-L29, Q31, the owner's P7 / O1 rulings); +6 (T1177: his batch 3 answers, the lower Quesnel)
+  readingLines: [11379, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],   // +15 (T1189: the Province list read from the PDF); +9 (T1200: eight feedback-log rows and their count line, a closed tester's email); +77 (T1195: the Province list's 17 new entries, the batch 3 rulings, four feedback-log rows); +11 (T1195: the late rulings, the Snehumption entry); +1 (T1167: the in-season banner window, one decision line); +6 (T1177: RULINGS L27-L29 and Q31, the owner's P7 / O1 rulings)
   // the docs tree (docs/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
   treeLines:    [23000, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],
   treeFiles:    [1600, "tracked files in the docs tree"],
@@ -75,7 +75,7 @@ export const MARKDOWN_LONG = {
  *  leaves the list when it is cut; a NEW long page needs an entry here, in its PR, with the reason beside it. */
 export const PAGE_LONG = {
   "pipeline/docs/RULINGS.md": 458,                                         // the owner's rulings on how the book is read: his words, never shortened (T1177: +6, L27-L29 and Q31)
-  "docs/OWNER-RULINGS.md": 228,                                    // his standing rulings, in his words, never shortened (T1177: audit batch 2; +5 batch 3); like RULINGS.md
+  "docs/OWNER-RULINGS.md": 283,                                    // his standing rulings, in his words, never shortened (T1177: audit batch 2); like RULINGS.md; +50 (T1195: audit batch 3, the evening's rulings); +9 (T1195: the rulings made after the first draft)
   "pipeline/docs/GOTCHAS.md": 210,                                 // the gotchas (T1177: the audit rulings' entries); the Province's list is its own page
   "docs/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
   "docs/play-production-access/questionnaire-draft.md": 173,       // the Play production access record
