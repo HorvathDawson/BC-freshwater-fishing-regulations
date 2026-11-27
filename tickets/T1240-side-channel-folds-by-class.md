@@ -1,10 +1,10 @@
 # T1240 — Side-channel parts fold into their river, by class (the 17 artefacts of the 23)
 
-Status: OPEN — in the 0.10.0 re-cut; the owner chose to hold the re-cut for all of the folds; owner: see ## Owner
+Status: OPEN — in the 0.10.0 re-cut; the owner chose to hold the re-cut for all of the folds
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1240 | Side-channel parts fold into their river, by class (the 17 artefacts of the 23) | OPEN — in the re-cut, which holds for the folds; owner: see ## Owner | — | five fix classes; the owner's pick (Strathcona-Westmin); Snehumption ruled |
+| T1240 | Side-channel parts fold into their river, by class (the 17 artefacts of the 23) | OPEN — in the re-cut, which holds for the folds | — | five fix classes; Strathcona-Westmin ruled; Snehumption ruled |
 
 Source: the owner's picks of 2026-11-26 (planning chat), verbatim: side channels, after the naming round 2: "yes to all
 3 but it begs the question why the side channel has different regs and is not combined with neighbours if it is not
@@ -48,4 +48,5 @@ Severity: medium (3 wrong answers today). Model: Opus. Size: L over the classes.
 
 ## Owner
 
-- [ ] 2026-11-26 — Strathcona-Westmin: does "Strathcona - Westmin Park" count as the Strathcona Park the rule names? Thelwood's channel is 100% in it, its main line 18%. Default: yes, the rule applies in Westmin.
+- [x] 2026-11-26 — Strathcona-Westmin: does "Strathcona - Westmin Park" count as the Strathcona Park the rule names? Thelwood's channel is 100% in it, its main line 18%. Default: yes, the rule applies in Westmin.
+  ANSWERED 2026-11-27, verbatim: "Yes, treat it as Strathcona Park (Recommended)".
