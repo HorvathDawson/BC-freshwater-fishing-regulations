@@ -75,9 +75,9 @@
     "1-5"
    ]
   },
-  "note": "FWA has MU 1-6, regulation has MU 1-5 (boundary issue)",
+  "note": "A POINTER ROW (\"See Healy Lake\"), REBOUND to Healy Lake (owner 2026-11-26, T1118 D6: \"fix the pointer for panther lake and make sure it is in name variants\"): gnis 20189, wbk 329467599, MU 1-5. The book prints \"HEALY (Panther) LAKE 1-5\" in every edition checked, so Panther Lake here is Healy Lake's other name; PANTHER LAKE is a regulation name on Healy Lake in name_variants. Dropped: Panther Lake 1-6 (gnis 21965, wbk 328966275, 11.4 ha), a separate lake stocked under its own name to 2005, which the old note called a boundary issue.",
   "gnis_ids": [
-   "21965"
+   "20189"
   ]
  },
  {

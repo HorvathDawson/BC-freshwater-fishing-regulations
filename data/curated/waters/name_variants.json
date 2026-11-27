@@ -643,11 +643,6 @@
   "names": [
    {
     "name": "PANTHER LAKE",
-    "source": "regulation",
-    "note": "FWA has MU 1-6, regulation has MU 1-5 (boundary issue); REGION 1 - Vancouver Island; MU 1-5"
-   },
-   {
-    "name": "PANTHER LAKE",
     "source": "bathymetry",
     "note": ""
    },
