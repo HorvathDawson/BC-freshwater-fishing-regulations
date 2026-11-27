@@ -25,6 +25,13 @@ export type SheetKey =
   | "src:trout"
   /** (T990) the page's every source, from the button at the Regulations page's foot */
   | "src:all";
+
+/**
+ * (T900, T1077) A Source line FOLDED INTO ITS SECTION'S ONE LINE, so no screen draws it: a per-row gear line's (`srcs:gl|…`)
+ * and the bait list's (`srcs:bait`). The Gear section's one line (`srcs:gear`, `mergedSource`) carries their rules and pages.
+ * Every walk of what the screen draws (the every-source sheet's, the Source row's pages) skips them by this one test.
+ */
+export const foldedSource = (open: string): boolean => open.startsWith("srcs:gl|") || open === "srcs:bait";
 /**
  * (T1036 review) THE KEYS A SCREEN LINE BUILDS TO OPEN A SHEET, composed in this ONE place: a component that opens a sheet
  * from a field of its view model (a trout row's key, a salmon row's code, a caveat / timed line's or a boat chip's rule, a

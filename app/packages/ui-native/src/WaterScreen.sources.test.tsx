@@ -137,11 +137,11 @@ describe("the Regulations Source row cites exactly what the drawn screen cites (
     // (T1036, owner 2026-11-24 "Add back but maybe have them separate?") the second group, under its one head: what the
     // sheets one tap from the drawn screen cite (a fish row's, Possession's), none of the first group's
     // (review of PR 126) the sheets one tap away, read by pressing every press target of the screen, not by core's walk:
-    // core's list holds every one of them; what core lists beyond them is only a section Source sheet no line draws
-    // (the bait list draws no Source line), whose rules are the first group's already
+    // core's list is exactly them: (T1077) every Source sheet it lists is one a drawn Source line opens (the bait list's
+    // own, which no line draws since T900, is not listed)
     const pressed = pressedSheets({ act, fireEvent, screen }, () => document.body, handed.opened);
     const core: string[] = reachableSheets(handed.drawn as unknown[], handed.salmon as SalmonCardVM | null);
-    expect([pressed.filter((k) => !core.includes(k)), core.filter((k) => !pressed.includes(k) && !k.startsWith("srcs:"))]).toEqual([[], []]);
+    expect([pressed.filter((k) => !core.includes(k)), core.filter((k) => !pressed.includes(k))]).toEqual([[], []]);
     expect([sheet.other, sheet.heads]).toEqual([expectedOtherKeys(pressed, handed.host, handed.rules as ProbeIndex, sheet.keys), c.bare ? 0 : 1]);
     expect([sheet.other.length > 0, sheet.other.filter((k) => sheet.keys.includes(k))]).toEqual([!c.bare, []]);
   }, 40_000);

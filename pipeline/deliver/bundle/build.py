@@ -617,6 +617,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # (T1140) the added city lines' own names, kept past the graph (`side_channels.own_name_rows`)
     from pipeline.deliver.bundle import side_channels as _side_channels
     _added_names = _side_channels.added_stream_names(graph)
+    # (T1172) the FWA measures of the junctions on every main line's lowest piece, kept past the graph: the check that
+    # every main line is drawn from its mouth (`side_channels.check_stem_order`)
+    _stem_marks = _side_channels.stem_marks(db, graph, list(_read_handles(build_dir)[0]))
     del graph, geoms, registry_items
     # ACCESS (T54): the no-access, permit, reserve and private land each section runs through, and how much of it —
     # measured against the TILES' OWN polygons and section geometry (`tiles`, default GENERATED.tiles), refused when the
@@ -767,7 +770,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         _continuation.write(db, _continues, cov, built_with=_settled)
         # (T1140) a part with no main stem: its channels' joins the flow does not say, and the area it lies inside —
         # measured on the shapes, before the marks and names are read from the spans
-        _side_channels.write(db, named_geo, build_dir, cov, added=_added_names)
+        _side_channels.write(db, named_geo, build_dir, cov, added=_added_names, marks=_stem_marks)
+        del _stem_marks
         _topology.write(db, named_geo, cov, mouths=_mouths, codes=_codes,
                         dfo_places=(_place_words, _chain_places) if _reaches is not None else None)
         del named_geo
