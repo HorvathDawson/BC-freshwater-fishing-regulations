@@ -6,8 +6,8 @@ only. When app/packages/core/src/regulations.ts grows its reader, it answers the
 way, and `pipeline/tests/test_competition.py` is the list of cases it must reproduce.
 
 The named POLICY switches (`MOOT_SIZE_CLAUSE_HIDDEN`, `WATER_CLOSURE_DOMINANT`, `OWN_ROW_BEATS_INHERITED`,
-`OWN_ROW_REPLACES_INHERITED`, `NEARER_ROW_BEATS_FARTHER`) live here, beside the steps that read them, so a
-test that switches one off (on this module) proves the step is what decides it.
+`OWN_ROW_REPLACES_INHERITED`, `NEARER_ROW_BEATS_FARTHER`, `SAME_ROW_RELEASE_SILENCES_ANNUAL`) live here, beside
+the steps that read them, so a test that switches one off (on this module) proves the step is what decides it.
 """
 from __future__ import annotations
 
@@ -81,6 +81,15 @@ NEARER_ROW_BEATS_FARTHER = True
 #: "retention" = a rule of that row about keeping or closing (a `retention_limit`) that speaks for the fish asked,
 #: any day; "any" = any rule of that row at all (a bait ban too). None = off (T4/T14 as before: the mutation pin).
 ALL_YEAR_INHERITED_CLOSURE_YIELDS = "retention"
+
+#: POLICY (RULINGS Q32, owner 2026-11-26, T1243: "Hide the annual quota while release applies"): RU-3 READS
+#: THE ANNUAL QUOTA TOO. A row's dated outright release or closure silences that same row's undated ANNUAL quota for the
+#: fish on its dates, as it silences the row's daily one (`_same_row_releaser`, step 5): Shuswap Lake's "Rainbow trout
+#: and char — release all, May 15-Mar 14" silences its "Rainbow trout — 5 per licence year over 50 cm" on those dates,
+#: so a card no longer reads "release all" beside "5 per year". Outside the release's dates the annual quota speaks as
+#: before. Same scope as the daily rule (the same row, the release dated, the quota undated, every origin it keeps
+#: released). False = the daily dimension only (the mutation pin: the Shuswap annual 5 speaks beside the release).
+SAME_ROW_RELEASE_SILENCES_ANNUAL = True
 
 #: The states of a rule that is IN the answer (`effective_rules`). With `trace=True` the answer also
 #: holds the rules that took part and lost, each with a state outside this set ("lifted",
@@ -382,7 +391,9 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          lakes' lake trout releases over their "1 per day"; and, as built, a row's dated
          closure over its own quota — Quatse r1 May 1-Jun 15 over r2, the Region 7 lakes'
          "No fishing Nov 1-Apr 30" over their quotas, Kitimat r2 Mar 16-May 31 over its
-         hatchery steelhead 2, the Okanagan's Oct 1-Nov 15 over its perch quota).
+         hatchery steelhead 2, the Okanagan's Oct 1-Nov 15 over its perch quota). The row's
+         undated ANNUAL quota too (RULINGS Q32, `SAME_ROW_RELEASE_SILENCES_ANNUAL`): Shuswap
+         Lake's "release all, May 15-Mar 14" over its "5 per licence year" on those dates.
      5b. A ZONE SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE OF THE SAME FISH is not shown (RULINGS
          Q9): a zone-side size-only clause ("none under 60 cm") gives way to any
          surviving outright release or closure in force here — water, zone or superior — that
@@ -1234,8 +1245,17 @@ def _same_row_releaser(s: _Ask, k):
     return next((o for o in sorted(rel)
                  if o != k and o[0] == k[0] and s.water_side(o) and s.family(o) != s.family(k)
                  and bool((every[o].get("when") or {}).get("dates"))
-                 and _base_dimension(every[o]) == _base_dimension(x)
+                 and _silenced_dimension(_base_dimension(every[o]), _base_dimension(x))
                  and keeps(x) <= rel[o]), None)
+
+
+def _silenced_dimension(release: str, quota: str) -> bool:
+    """Does a same-row dated release of base dimension `release` reach a quota of base dimension
+    `quota` (RU-3)? Its own dimension always; and a daily release (take 0: nothing kept on the day)
+    also silences the row's ANNUAL count on its dates (`SAME_ROW_RELEASE_SILENCES_ANNUAL`, RULINGS
+    Q32)."""
+    return release == quota or (SAME_ROW_RELEASE_SILENCES_ANNUAL and release == "daily"
+                                and quota == "annual")
 
 
 def _step5_water_release(s: _Ask) -> None:

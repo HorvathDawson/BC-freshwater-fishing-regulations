@@ -236,7 +236,12 @@ def ladder(pick) -> dict:
                             "silences its own quota on those dates, as do the Region 7 lakes' "
                             "'No fishing Nov 1-Apr 30' and Kitimat's Mar 16-May 31 — and, being "
                             "the water's own closure, its size clauses and possession limits "
-                            "too (`closure_any_key`).",
+                            "too (`closure_any_key`). The row's undated ANNUAL quota is such a "
+                            "number too (RULINGS Q32, 2026-11-26): a row's 'release all' on "
+                            "printed dates silences the same row's '5 per licence year' for the "
+                            "fish on those dates, as it does the row's daily number; outside "
+                            "them, and where no dated release of the row binds, the annual "
+                            "quota speaks as printed. Another water's row never silences it.",
         "zone_release_any_water": "A ZONE RELEASE WITH NO WATER KIND EMPTIES ITS TABLE'S 'FROM "
                                   "STREAMS' CLAUSE (RU-4, 2026-10-04). Region 5's 'you must "
                                   "release: ALL STEELHEAD' displaces its own table's keeping "
