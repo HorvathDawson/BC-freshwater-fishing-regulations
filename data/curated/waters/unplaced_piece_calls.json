@@ -1,18 +1,5 @@
 {
   "_about": "T632 (owner 2026-11-11): every piece the reach run could not place (any reason: straddles_the_cut, meets_the_line_at_the_cut, flows_to_the_sea_unjoined, leaves_bc_unjoined, ...) STOPS the run unless a row in `accepted` names it. Key: entry_id (a synopsis entry, or a DFO location id with kind \"dfo\"), rule_id (\"\" for an entry's scope or a DFO place), piece (section id), reason. An accepted row needs accepted_by + accepted_on; a row naming no piece of the run (stale) stops it too. `proposed` rows are NOT accepted: they are Claude's proposals for the owner, read by nothing; to accept one, move it to `accepted` and add accepted_by / accepted_on. A provincial piece that straddles a cut is never accepted (the straddle gate, T67: the atlas's braid sweep must cut it). Authored by the owner; read by pipeline.atlas.reach.build.load_unplaced_calls (reach run).",
-  "accepted": [
-    {
-      "entry_id": "r2:seymour_river@2-8",
-      "rule_id": "seymour_river.r1",
-      "piece": "-2000000390:0",
-      "reason": "flows_to_the_sea_unjoined",
-      "kind": "unclassified",
-      "note": "Seymour River (gnis:6105), an added-stream piece of 216 m that reaches the sea without joining the river's own line. The rule is 'No Fishing downstream of Seymour Lake'. Not checked whether it lies in that stretch. Owner 2026-11-11 from map A2: leave out. The piece is on the south shore of Burrard Inlet, 1,068 m from the Seymour's line; not Seymour River water.",
-      "proposed_by": "Claude (T632)",
-      "proposed_on": "2026-11-10",
-      "accepted_by": "owner",
-      "accepted_on": "2026-11-11"
-    }
-  ],
+  "accepted": [],
   "proposed": []
 }
