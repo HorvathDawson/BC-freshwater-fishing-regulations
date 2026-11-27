@@ -180,6 +180,10 @@ export interface BannerVM {
   /** (T1052) the closure(s) here close the salmon too, by the same rule, all year (`closedWithSalmon`): the banner says it
    *  for both and the Salmon row of the species list is not drawn. Absent: the banner speaks for game fish only. */
   readonly salmon?: true;
+  /** (T1207, owner 2026-11-26 "One block "Salmon and game fish" with one year bar") present exactly when `salmon` is: the ONE
+   *  status block the Keep tab draws for both fish in place of the Salmon block and the Game fish block: its name and the
+   *  tag of whose rule closes it (the rule book: `closedWithSalmon` joins only closures the book makes). Absent: two blocks. */
+  readonly schedule?: { readonly title: string; readonly tag: string; readonly label: string };
 }
 
 /** prototype per-article block; page v36 cardBlock / treeBlock / rowTitle / scopeBadge */

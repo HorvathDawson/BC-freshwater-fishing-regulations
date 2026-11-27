@@ -392,3 +392,29 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
     }
   });
 });
+
+describe("(T1207, owner 2026-11-26) the one status block, drawn from core's `banner.schedule`", () => {
+  const STRIP = { title: "Salmon (DFO)", by: "book", status: "closed", mark: "✕", word: "Closed", when: "today", soon: null,
+    generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "closed", label: "✕ closed" }], runs: [{ drawn: "closed", days: 365 }] } as const;
+  const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
+  const GLANCE = { salmon: { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false }, card: () => <span>salmon card</span> } } as never;
+  const base = keepOf(vedder615);
+  const SCHEDULE = { title: "Salmon and game fish", tag: "B.C. Synopsis", label: "Salmon and game fish: closed all year" };
+  const idsOf = (c: HTMLElement) => [...c.querySelectorAll("[data-testid='salmon-strip'],[data-testid='salmon-block'],[data-testid='keep-strip'],[data-testid='glance:salmon']")].map((e) => e.getAttribute("data-testid"));
+
+  it("with a schedule, a salmon strip and a salmon glance row present: ONE block (the game-fish strip, renamed), no Salmon block, no Salmon row", () => {
+    const keep = { ...base, banner: { ...base.banner!, salmon: true as const, schedule: SCHEDULE } };
+    const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Nov 24" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={GLANCE} />);
+    expect(idsOf(r.container)).toEqual(["keep-strip"]);
+    expect(["keep-strip-title", "keep-strip-title:tag"].map((t) => screen.getByTestId(t).textContent)).toEqual(["Salmon and game fish", "B.C. Synopsis"]);
+    expect(screen.getByTestId("keep-strip-title").getAttribute("aria-label")).toBe("Salmon and game fish: closed all year");
+    expect(screen.queryByTestId("salmon-strip-title")).toBeNull();
+  });
+
+  it("without a schedule (the gate refused), the same props draw today's two blocks and the Salmon row", () => {
+    const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={base} dateLabel="Nov 24" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={GLANCE} />);
+    expect(idsOf(r.container)).toEqual(["salmon-block", "salmon-strip", "keep-strip", "glance:salmon"]);
+    expect(["keep-strip-title", "salmon-strip-title"].map((t) => screen.getByTestId(t).textContent)).toEqual(["Game fish", "Salmon"]);
+  });
+});
+

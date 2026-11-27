@@ -1,16 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
-  INSEASON_FAILURES, INSEASON_LINKS_FORMAT, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, inSeasonDates, inSeasonSpan, inSeasonSummary,
-  inSeasonWhere, joinInSeason, parseInSeasonFeed, parseInSeasonLinks, type InSeasonChange, type InSeasonFeed, type InSeasonRow,
+  INSEASON_FAILURES, INSEASON_LINKS_FORMAT, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, inSeasonDates,
+  inSeasonLineTone, inSeasonSummary, inSeasonWhere, joinInSeason, parseInSeasonFeed, parseInSeasonLinks, type InSeasonChange, type InSeasonFeed, type InSeasonRow,
   type InSeasonRun, type InSeasonSection,
 } from "./inseason";
 // imported, never read from disk: core has no platform (AGENTS rule 22, the boundaries gate)
+import { inSeasonKeepOf } from "./inseasonKeep";
+import { INSEASON_UNDATED, inSeasonDating, inSeasonSpan } from "./inseasonWindow";
 import parity from "./inseason-cover.parity.json" with { type: "json" };
 const PARITY = parity as unknown as {
   water: InSeasonSection[]; cases: { name: string; runs: number[][]; lakes: boolean; expect: number[] }[] };
 import spanCases from "./inseason-span.parity.json" with { type: "json" };
 const SPAN = spanCases as unknown as { cases: { name: string; row: Partial<InSeasonRow> & { id: string };
-  effective?: { from?: string; to?: string }; expect: [string | null, string | null]; inForce: Record<string, boolean> }[] };
+  effective?: { from?: string; to?: string }; dating: "dated" | "undated" | "unreadable"; dated: boolean; seven?: true;
+  expect: [string | null, string | null]; on: Record<string, "upcoming" | "in force" | null> }[] };
 
 const SRC = "https://www2.gov.bc.ca/fishing-regulations";
 const row = (o: Partial<InSeasonRow> & { id: string }): InSeasonRow =>
@@ -60,18 +63,95 @@ describe("in-season: reading the feed and links", () => {
   });
 });
 
-describe("one case file, two readers (T548): Python span and inSeasonSpan agree", () => {
+describe("one case file, two readers (T548, T1167): Python dating / span / on and core's agree", () => {
   for (const c of SPAN.cases)
     it(c.name, () => {
       const r = row({ ...c.row, id: c.row.id });
-      expect(inSeasonSpan(r, c.effective)).toEqual({ from: c.expect[0], to: c.expect[1] });
+      expect(inSeasonDating(r).kind).toBe(c.dating);
+      expect(inSeasonSpan(r, c.effective)).toEqual({ from: c.expect[0], to: c.expect[1], dated: c.dated });
       const links = c.effective ? parseInSeasonLinks({ format: INSEASON_LINKS_FORMAT,
         notices: { [r.id]: { ...c.effective, waters: { "gnis:1": { all: true } } } } }) : null;
-      for (const [day, want] of Object.entries(c.inForce)) {
+      for (const [day, want] of Object.entries(c.on)) {
         const j = joinInSeason(feed([r]), links, day);
-        expect([day, j.matched.length + j.unmatched.length === 1]).toEqual([day, want]);
+        expect([day, [...j.matched, ...j.unmatched].map((x) => x.phase)]).toEqual([day, want === null ? [] : [want]]);
       }
     });
+});
+
+describe("(T1167) a notice's banner window: two weeks before its stated first day, through its last day", () => {
+  const okanagan = row({ id: "is-2fa458fef3c3", region: "8", water: "Okanagan River", effective: "July 30, 2026", from: "2026-07-30",
+                         change: "No fishing July 30 to September 15.",
+                         parsed: { kinds: ["closure"], window: { from_month: 7, from_day: 30, to_month: 9, to_day: 15 } } });
+  const on = (day: string) => [...joinInSeason(feed([okanagan]), null, day).unmatched].map((c) => c.phase);
+  it("day -15 nothing, day -14 upcoming, the first day in force, the last day in force, the day after nothing", () => {
+    expect(["2026-07-15", "2026-07-16", "2026-07-29", "2026-07-30", "2026-09-15", "2026-09-16"].map(on))
+      .toEqual([[], ["upcoming"], ["upcoming"], ["in force"], ["in force"], []]);
+    // over: counted as met (`ended`), never shown again
+    expect(joinInSeason(feed([okanagan]), null, "2026-09-16").ended).toEqual(["is-2fa458fef3c3"]);
+  });
+  it("the seven July 30-Sept 15, 2026 closures show nothing on 2026-11-26 (they all did before T1167)", () => {
+    const seven = SPAN.cases.filter((c) => c.seven).map((c) => row({ ...c.row, id: c.row.id }));
+    expect(seven).toHaveLength(7);
+    const j = joinInSeason(feed(seven), null, "2026-11-26");
+    expect([j.matched, j.unmatched, j.ended.length]).toEqual([[], [], 7]);
+    expect(joinInSeason(feed(seven), null, "2026-08-01").unmatched.map((c) => c.phase)).toEqual(Array(7).fill("in force"));
+  });
+  it("a notice with no range in its text keeps the rule of 2026-11-11: no lead, shown until the page drops it", () => {
+    const stave = row({ id: "is-c77bf6cd7da6", from: "2025-11-18", change: "No Fishing in the Northrop Spawning Channel" });
+    expect(inSeasonDating(stave)).toEqual({ kind: "undated" });
+    expect(joinInSeason(feed([stave]), null, "2025-11-04").unmatched).toEqual([]);
+    expect(joinInSeason(feed([stave]), null, "2026-11-26").unmatched.map((c) => [c.phase, c.dated, c.to])).toEqual([["in force", false, null]]);
+  });
+  it("an unreadable range is undated (shown, as before), with why (the feeds worker tells the owner, `undatableEvent`)", () => {
+    const fraser = row({ id: "is-8cd37f6e5bf9", region: "2", water: "Fraser River", from: "2025-09-16",
+                         parsed: { kinds: ["closure"], window: { from_month: 8, from_day: 15, to_month: 12, to_day: 31 } } });
+    expect(joinInSeason(feed([fraser, okanagan]), null, "2026-11-26").unmatched.map((c) => [c.id, c.phase, c.dated])).toEqual([["is-8cd37f6e5bf9", "in force", false]]);
+    expect(inSeasonDating(fraser)).toEqual({ kind: "unreadable", why: INSEASON_UNDATED.notOnEffective });
+    expect(INSEASON_UNDATED.notOnEffective).toBe("its range does not open on its effective day, so its year cannot be read");
+  });
+  it("an effective day that is not a real day (2026-02-30) is unreadable: no effective date, never a thrown or guessed year", () => {
+    const bad = row({ id: "is-bad-day", from: "2026-02-30",
+                      parsed: { kinds: ["closure"], window: { from_month: 7, from_day: 30, to_month: 9, to_day: 15 } } });
+    expect(inSeasonDating(bad)).toEqual({ kind: "unreadable", why: INSEASON_UNDATED.noEffective });
+  });
+});
+
+describe("(T1167) louder: the banner's words in each state, the status line's pointer, the year bars' marks", () => {
+  const dated = { id: "is-a", region: "8", water: "Okanagan River", text: "No fishing July 30 to September 15.", from: "2026-07-30",
+                  to: "2026-09-15", dated: true, source: SRC, waters: null } as const;
+  const upcoming = inSeasonBanner({ ...dated, phase: "upcoming" }, { where: null });
+  /** a page that draws the game-fish strip (only whether it does is read) */
+  const STRIP = { strip: {} as never, order: ["strip" as const] };
+  const inForce = inSeasonBanner({ ...dated, phase: "in force" }, { where: null });
+  it("before the window: 'Upcoming', with its dates; inside: the in-force head", () => {
+    expect([upcoming.head, inSeasonSummary([upcoming])]).toEqual(
+      ["Upcoming in-season change (Jul 30–Sep 15)", "Upcoming in-season change (Jul 30–Sep 15) · see ›"]);
+    expect(upcoming.line).toBe("Upcoming in-season change (Jul 30–Sep 15): No fishing July 30 to September 15. — B.C. in-season changes ↗");
+    expect([inForce.head, inSeasonSummary([inForce])]).toEqual(
+      ["In-season change (Jul 30–Sep 15)", "In-season change (Jul 30–Sep 15) · see ›"]);
+    expect(inSeasonSummary([inForce, upcoming, { ...upcoming, id: "is-b", mark: "New" }])).toBe("3 in-season changes (1 new, 2 upcoming) · see ›");
+  });
+  it("(T1167, owner 2026-11-26) in force wears the warning tone and the caution mark; upcoming stays quiet (grey)", () => {
+    expect([[inForce.tone, inForce.warn], [upcoming.tone, upcoming.warn]]).toEqual([["warn", "⚠"], ["quiet", null]]);
+    expect([inSeasonLineTone([upcoming, inForce]), inSeasonLineTone([upcoming])]).toEqual([{ tone: "warn", warn: "⚠" }, { tone: "quiet", warn: null }]);
+    expect([inSeasonKeepOf(STRIP, [inForce]).pointerWarn, inSeasonKeepOf(STRIP, [upcoming]).pointerWarn]).toEqual(["⚠", null]);
+  });
+  it("the status line points at a notice in force, never at an upcoming one", () => {
+    const pointer = (bs: typeof upcoming[]) => inSeasonKeepOf(STRIP, bs).pointer;
+    expect([pointer([inForce]), pointer([inForce, { ...inForce, id: "is-b" }]), pointer([upcoming]), pointer([])])
+      .toEqual(["See the in-season notice above", "See the 2 in-season notices above", null, null]);
+    // drawn on the game-fish strip when the page draws one, else at the top of the Keep tab (salmon block, trout table, banner)
+    expect([inSeasonKeepOf(STRIP, [inForce]).pointerOn, inSeasonKeepOf({ strip: null, order: ["trout"] }, [inForce]).pointerOn,
+            inSeasonKeepOf({ strip: STRIP.strip, order: ["banner"] }, [inForce]).pointerOn]).toEqual(["strip", "tab", "tab"]);
+  });
+  it("whole-year bars mark a dated notice's range (book days), one over the new year in two; undated: none", () => {
+    const marks = (bs: typeof upcoming[]) => inSeasonKeepOf(STRIP, bs).marks;
+    expect(marks([upcoming])).toEqual({ runs: [{ at: 210 / 365, len: 48 / 365 }], label: "In-season notice, Jul 30–Sep 15" });
+    const winter = inSeasonBanner({ ...dated, from: "2026-11-01", to: "2027-03-31", phase: "in force" }, { where: null });
+    expect(marks([winter, inForce])).toEqual({ runs: [{ at: 0, len: 90 / 365 }, { at: 210 / 365, len: 48 / 365 }, { at: 304 / 365, len: 61 / 365 }],
+                                                           label: "In-season notices" });
+    expect(marks([inSeasonBanner({ ...dated, dated: false, to: null, phase: "in force" }, { where: null })])).toBeNull();
+  });
 });
 
 describe("in-season: when a row is in effect", () => {
@@ -93,7 +173,7 @@ const WATER: InSeasonSection[] = [...[1, 2, 3, 4].map((sid): InSeasonSection =>
 /** (T517) the release's `display.ends` (what "Where" says, through the one end resolver) */
 const TABLE = { a: ["A"], b: ["B"], mouth: ["Mouth"], source: ["Source"] };
 const ch = (waters: InSeasonChange["waters"]): InSeasonChange =>
-  ({ id: "is-a", region: "2", water: "W", text: "No fishing", from: null, to: null, source: SRC, waters });
+  ({ id: "is-a", region: "2", water: "W", text: "No fishing", from: null, to: null, dated: false, phase: "in force" as const, source: SRC, waters });
 
 describe("inSeasonWhere (T518, T520): the sentence, composed in core from end tokens", () => {
   const W = { hg: ["Hell's Gate"], sp: ["Spuzzum Creek confluence"], p: ["Pitt Lake outlet", "to:Pitt Lake inlet"],
@@ -165,18 +245,18 @@ describe("in-season: the words, whole", () => {
   });
   it("the banner line, as the owner wrote it", () => {
     const b = inSeasonBanner({ id: "is-a", region: "8", water: "Okanagan River", from: "2026-10-15",
-      to: "2026-11-30", text: "No fishing July 30 to September 15.", source: SRC, waters: null }, { where: null });
+      to: "2026-11-30", text: "No fishing July 30 to September 15.", dated: false, phase: "in force" as const, source: SRC, waters: null }, { where: null });
     expect(b.line).toBe("In-season change (Oct 15–Nov 30): No fishing July 30 to September 15. — B.C. in-season changes ↗");
     expect([b.url, b.where, b.note]).toEqual([SRC, null, "Shown as posted; the answers on this page do not include it yet."]);
     // (T518) a change on part of the page says where, in its own ends
-    const p = inSeasonBanner({ id: "x", region: "8", water: "W", from: null, to: null, text: "T", source: SRC, waters: null },
+    const p = inSeasonBanner({ id: "x", region: "8", water: "W", from: null, to: null, text: "T", dated: false, phase: "in force" as const, source: SRC, waters: null },
       { where: "From Hell's Gate to Spuzzum Creek confluence" });
     expect([p.where, p.line]).toEqual(["Where: From Hell's Gate to Spuzzum Creek confluence",
       "In-season change: T Where: From Hell's Gate to Spuzzum Creek confluence. — B.C. in-season changes ↗"]);
   });
   it("(T694) an unread notice's mark leads its line", () => {
     const b = inSeasonBanner({ id: "is-a", region: "8", water: "Okanagan River", from: "2026-10-15",
-      to: "2026-11-30", text: "No fishing.", source: SRC, waters: null }, { where: null }, "updated");
+      to: "2026-11-30", text: "No fishing.", dated: false, phase: "in force" as const, source: SRC, waters: null }, { where: null }, "updated");
     expect([b.mark, b.line]).toEqual(["Updated", "Updated · In-season change (Oct 15–Nov 30): No fishing. — B.C. in-season changes ↗"]);
   });
 });
@@ -211,14 +291,14 @@ describe("in-season: ONE file, any release (T673, owner 2026-11-13)", () => {
 });
 
 describe("inSeasonSummary (T472)", () => {
-  const b = (from: string | null) => inSeasonBanner({ id: "x", region: "2", water: "Fraser River", from, to: null, text: "t", source: "u", waters: null }, { where: null });
+  const b = (from: string | null) => inSeasonBanner({ id: "x", region: "2", water: "Fraser River", from, to: null, text: "t", dated: false, phase: "in force" as const, source: "u", waters: null }, { where: null });
   it("none: null; one: its head and see; several: the count", () => {
     expect(inSeasonSummary([])).toBeNull();
     expect(inSeasonSummary([b("2025-05-16")])).toBe("In-season change (since May 16, 2025) · see ›");
     expect(inSeasonSummary([b(null), b(null)])).toBe("2 in-season changes · see ›");
   });
   it("(T694) unread marks: one says its mark first; several count them", () => {
-    const m = (mark: "new" | "updated" | null) => inSeasonBanner({ id: "x", region: "2", water: "Fraser River", from: "2025-05-16", to: null, text: "t", source: "u", waters: null }, { where: null }, mark);
+    const m = (mark: "new" | "updated" | null) => inSeasonBanner({ id: "x", region: "2", water: "Fraser River", from: "2025-05-16", to: null, text: "t", dated: false, phase: "in force" as const, source: "u", waters: null }, { where: null }, mark);
     expect(inSeasonSummary([m("new")])).toBe("New · In-season change (since May 16, 2025) · see ›");
     expect(inSeasonSummary([m("new"), m("updated"), m(null)])).toBe("3 in-season changes (1 new, 1 updated) · see ›");
     expect(inSeasonSummary([m("updated"), m("updated")])).toBe("2 in-season changes (2 updated) · see ›");

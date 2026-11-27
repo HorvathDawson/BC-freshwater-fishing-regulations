@@ -20,7 +20,7 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = GENERATED.review / "dfo-suggestions.json"
@@ -84,8 +84,7 @@ def items(bundle: Path, gpkg: Optional[str] = None) -> List[dict]:
             w = ef.water(loc.water_id)
             water_items[loc.location_id] = list(getattr(w, "item_ids", None) or [])
     if gpkg is None:
-        from project_config import get_config
-        gpkg = str(get_config().fwa_data_gpkg)
+        gpkg = str(SOURCE.fwa_gpkg)
     out: List[dict] = []
     for o, d, u, lon, lat, cd, cu in db.execute(
             "SELECT ord, down_sid, up_sid, lon, lat, down_chain, up_chain FROM salmon_edge_gap ORDER BY ord"):
