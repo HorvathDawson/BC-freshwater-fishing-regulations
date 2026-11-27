@@ -37,8 +37,35 @@ describe("web and phone draw the same credits, and the corners never meet (T424)
     const G = GEOMETRY;
     for (const width of [320, 360, 390, 1440]) {
       const scaleEnd = G.scaleLeft + G.scaleMax;
-      const creditsStart = width - G.right - G.chip - G.gap - G.esriBadgeMax;
+      // (T1212) Esri's badge stands over the ©, so the widest thing in the corner is the badge
+      const creditsStart = width - G.right - Math.max(G.chip, G.esriBadgeMax);
       expect(scaleEnd).toBeLessThan(creditsStart);
+    }
+  });
+});
+
+describe("(T1212) the © and the scale on one grid; + / − for wide windows only", () => {
+  it("both maps hand MapCredits the ©'s own inset (insetCredits, else insetBottom); the scale stays over the foot", () => {
+    expect(web).toContain("insetBottom={insetCredits ?? insetBottom}");
+    expect(native).toContain("insetBottom={insetCredits ?? insetBottom}");
+    expect(native).toMatch(/left: GEOMETRY\.scaleLeft, bottom: GEOMETRY\.scaleBottom \+ insetBottom/);
+  });
+
+  it("the web's scale is 14 px in (GEOMETRY.scaleLeft), past MapLibre's 10 px corner margin", () => {
+    expect(GEOMETRY.scaleLeft).toBe(14);
+    expect(css).toMatch(/\.maplibregl-ctrl-bottom-left \.maplibregl-ctrl\.maplibregl-ctrl-scale \{ margin-left: 14px; \}/);
+  });
+
+  it("a phone-wide web map hides MapLibre's + / − (zoomButtons false); wide windows and bare maps keep theirs", () => {
+    expect(web).toContain('data-zoom-buttons={zoomButtons ? undefined : "off"}');
+    expect(web).toMatch(/zoomButtons = true/);
+    expect(css).toMatch(/\[data-zoom-buttons="off"\] \.maplibregl-ctrl-top-right \.maplibregl-ctrl-group \{ display: none; \}/);
+  });
+
+  it("(T1212) both maps hand MapCredits the foot block as footBottom, and insetCredits (else insetBottom) as the © block", () => {
+    for (const src of [web, native]) {
+      const call = /<MapCredits [^]*?\/>/.exec(src)?.[0] ?? "";
+      expect([call.includes("insetBottom={insetCredits ?? insetBottom}"), call.includes("footBottom={insetBottom}")]).toEqual([true, true]);
     }
   });
 });

@@ -444,6 +444,44 @@ def test_the_stage_reads_the_edge_on_the_graphs_own_line_never_the_merged_chain(
     assert [p.split_id for p in b.applied_splits] == ["shore:X:100"]
 
 
+def _distributary_stage(tmp_path, monkeypatch):
+    """Lost Shoe Creek's shape (T1199 review): S runs from the sea at x = 0 inland for 9 km; a channel D leaves it 5 km
+    up. Nothing cuts S below the channel, so its LOWEST piece holds the edge out to D."""
+    from pipeline.atlas import build as B
+    from pipeline.common.models import FlowEdge
+    fids = [_fid("S1", "S", "60", [(0, 0), (5000, 0)], 0, 5000, name="S Creek", gnis="7"),
+            _fid("S2", "S", "60", [(5000, 0), (9000, 0)], 5000, 9000, name="S Creek", gnis="7"),
+            _fid("D1", "D", "61", [(5000, -2000), (5000, 0)], 0, 2000)]
+    g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    g.edges.append(FlowEdge("S:0", "D:0", 2000.0, x=5000.0, y=0.0))      # S feeds D where D leaves it, 5 km up
+    g.down_adj.setdefault("S:0", []).append(len(g.edges) - 1)
+    g.up_adj.setdefault("D:0", []).append(len(g.edges) - 1)
+    by_fid = {f.fid: f.geometry for f in fids}
+    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
+    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
+    patch_stage(monkeypatch, box(-500, -500, 0, 500))
+    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", coast_gpkg="unused-coast.gpkg", out=str(tmp_path)),
+                        graph=g, geoms=geoms, fid_index=idx, applied_splits=[], fids=fids,
+                        chains=build_blk_chains(fids, {}), bbox=None, tidal_limits=[], tidal_ids={},
+                        tick=lambda label: None)
+    B.cut_shores(b)
+    import json
+    return {r["blk"]: r for r in json.loads((tmp_path / "shore_cuts.json").read_text())["runs"]}
+
+
+def test_a_channel_leaving_the_lowest_piece_high_up_does_not_hide_the_sea_end(tmp_path, monkeypatch):
+    """`build.cut_shores` (T1199 review): the line still ends in the sea, so it is reached and its row written; the
+    old test ("the lowest piece has no edge out") dropped it."""
+    rows = _distributary_stage(tmp_path, monkeypatch)
+    assert rows["S"]["joins"] == "sea" and rows["S"]["not_cut"] == C.AT_MOUTH
+
+
+def test_mutation_any_edge_on_the_lowest_piece_drops_the_line(tmp_path, monkeypatch):
+    from pipeline.atlas.splits import shore as SH
+    monkeypatch.setattr(SH, "A_DISTRIBUTARY_HIGHER_UP_IS_NOT_THE_MOUTH", False)
+    assert "S" not in _distributary_stage(tmp_path, monkeypatch)
+
+
 def test_an_atlas_cut_by_the_first_coast_rule_still_carries_the_record(tmp_path):
     """the live atlas until the T685 build is promoted: `coast/1` is read through the record too"""
     import json

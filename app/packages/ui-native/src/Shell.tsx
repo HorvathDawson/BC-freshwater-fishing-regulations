@@ -52,6 +52,7 @@ import { BrowseHost } from "./shell/BrowseHost";
 import { ScreenBoundary } from "./ScreenBoundary";
 import { GaugeOnlyKey, MapLegend, mapFootInset, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
 import { HeldKey } from "./shell/HeldKey";
+import { creditsInset, keyFloats } from "./shell/mapCorner";
 import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { useSpotEdit } from "./shell/useSpotEdit";
@@ -255,6 +256,8 @@ export function Shell(p: ShellProps) {
                                 salmonOnDemand: !!(p.prefetch && loader), dfoFeed: p.salmonFeed ?? null,
                                 runTiming: p.runTiming ?? null, runSpeciesStore: p.runSpeciesStore ?? null,
                                 initialHorizon: p.initialHorizon ?? 0 });
+  // (T1212) the © takes the map's bottom-right corner beside the Map tab's floating key chip; over a bar, it stands above it
+  const insetCredits = creditsInset(keyFloats({ tab, tabsRail, statusOk: col.statusOk, waterDrawn: col.layers.water.drawn }), footInset);
   /*
    * (T566) THE KEY FOLLOWS THE MAP (`useHeldUntilDrawn`): a Trout / Salmon / Runs press re-lays out every tile on screen,
    * and the map draws the previous colouring until it has (`MapProps.onLookDrawn`). So the key under the map — and which
@@ -614,12 +617,11 @@ export function Shell(p: ShellProps) {
   const look = !pageOpen ? { col, lookKey } : browseLook.current ?? { col, lookKey };
   const browseLive = !pageOpen || (landed && warm) || browseKept
     ? screen(tab, tab, <BrowseHost nav={nav} col={look.col} search={search} rail={rail} palette={palette} theme={theme}
-                  themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footInset}
+                  themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footInset} insetCredits={insetCredits}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} me={me} photos={photos}
                   loader={loader} syncState={syncState} dfoCheckedAt={dfoCheckedAt} sync={sync} onSync={onSync} menu={menu} menuInfo={menuInfo} mapDay={mapDay} regsPrefetch={regsPrefetch}
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
-                  dayRange={dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}

@@ -21,8 +21,10 @@ import type { Palette } from "./theme";
 
 const DAY_HIT = hitProps({ w: 52, h: 34 });
 
-export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIcon = false }: {
+export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIcon = false, cellHeight }: {
   palette: Palette; chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void; testID: string; coach?: string;
+  /** (T1212) on the map's top row: `MAP_CELL`, 44 px like the rail (the panel's header keeps its 33 px strip) */
+  cellHeight?: number;
   /** (T367) the panel's header draws Change with the trend glyph beside its word (no heavier divider: it read as a break) */
   changeIcon?: boolean;
 }) {
@@ -50,7 +52,7 @@ export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIco
   ];
   return (
     <View ref={ring} collapsable={false} style={{ alignItems: "flex-start", gap: 6, maxWidth: "100%" }} pointerEvents="box-none">
-      <CornerStrip palette={palette} testID={testID} segments={segments} />
+      <CornerStrip palette={palette} testID={testID} segments={segments} cellHeight={cellHeight} />
       {/* (T367, owner 2026-11-04: "big shift here") ONE ROW of days under the strip, as wide as the strip, scrolling
           sideways — the three-row grid pushed the page down and pulled the heading beside it off its line */}
       {open && (

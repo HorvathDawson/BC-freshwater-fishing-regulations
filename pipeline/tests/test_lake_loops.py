@@ -187,8 +187,8 @@ def test_mutation_no_join_takes_them_out_of_the_river_only(monkeypatch):
 
 # ---- criterion 5: a loop never divides its lake (Kotcho Lake, 2026-11-15) ----------------------------------------
 
-AREA_DEFS = [{"id": "ecological_reserves", "cut": "clean", "rejoin_m": 1000},
-             {"id": "national_parks", "cut": "clean", "rejoin_m": 1000, "outside_items": {"np": ["wbk:L"]}},
+AREA_DEFS = [{"id": "ecological_reserves", "cut": "clean"},
+             {"id": "national_parks", "cut": "clean", "outside_items": {"np": ["wbk:L"]}},
              {"id": "provincial_parks", "kind": "park", "cut": False},
              {"id": "regions", "kind": "region", "cut": "first_last", "membership": "both_sides"}]
 ER, NP, PARK, R7 = ("area:ecological_reserves:er", "area:national_parks:np", "area:park:shore_park", "area:region:7b")

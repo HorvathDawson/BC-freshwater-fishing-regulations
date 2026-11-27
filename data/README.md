@@ -28,7 +28,7 @@ The book is `source/fishing_synopsis.pdf`; validate against nothing else (`pytho
 
 
 `source/dfo_tidal_areas/` is 380 saved DFO web pages in dated folders (snapshots of the tidal-area descriptions the tidal boundary was read
-from, read by `pipeline/tools/audit/tidal_pass2.py`): keep them, they are the evidence. `source/pins.json` pins the big files that are not in git.
+from, read by `pipeline/tools/audit/tidal_pass2.py`): keep them, they are the evidence. `source/pins.json` pins the big files that are not in git. `generated/review/tidal/pass2/entries.json` is an in-between file of that tool, not committed: run `extract` before `propose`.
 
 ## The scripts here
 

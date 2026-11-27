@@ -1,0 +1,28 @@
+{
+ "_about": "T1199 review (2026-11-27): the owner's calls on EDGE WATER the closure-area cutter leaves open — a boundary river drawn wiggling across a reserve's or park's edge, every crossing a graze under 5 m, which the cutter does not count as a crossing, although the owner's rule is that edge water stays closed. The builder does not decide it (AGENTS rule 12): the area-cut gate's G6 stops the atlas build and names every such stretch (area, blue line, measure range) no accepted row covers. Key: area (area id), blk + water (the blue line and its name), from_m / to_m (the stretch, route measures; never a section id). call `closed`: the stretch is edge water of that area, the cutter treats it as inside (it joins the member run); call `open`: it stays open, accepted. Every row has a note. Only `accepted` rows are read, each with accepted_by + accepted_on; `proposed` rows are Claude's proposals for the owner and are read by nothing (a proposal is no acceptance). An accepted row that matches no stretch any more is stale and stops the build too. Authored by the owner by hand; read by pipeline.atlas.splits.area_edge_calls (the closure cutter in build.cut_closure_areas, and area_cut_gate G6); checked by check_curated --waters.",
+ "accepted": [
+  {
+   "area": "area:national_parks:yoho_national_park_of_canada",
+   "blk": "356566041",
+   "water": "Beaverfoot River",
+   "from_m": 11976.2,
+   "to_m": 12099.2,
+   "call": "closed",
+   "note": "Beaverfoot River along Yoho: 123 m within the 50 m edge band, 2 grazes of up to 0.3 m. G6 of the area-cut gate (T1199, 2026-11-27): an open stretch within the band for more than the 100 m floor with two grazes into the polygon, both under the 5 m dip, so the cutter leaves it open. By metre: 11,976.2-12,099.2 m is closed today (the old rule kept the Beaverfoot inside Yoho) and the new rule would have opened it; his call keeps it closed. Picture: lane E pictures/T1199-edge-two-lines.png. OWNER 2026-11-27 (T1199, relayed verbatim by the planning chat): \"Merge with the list; close both edge stretches (Recommended)\" — closed as edge water.",
+   "accepted_by": "owner",
+   "accepted_on": "2026-11-27"
+  },
+  {
+   "area": "area:ecological_reserves:klanawa_river_ecological_reserve",
+   "blk": "354154906",
+   "water": "unnamed creek",
+   "from_m": 318.3,
+   "to_m": 370.0,
+   "call": "closed",
+   "note": "An unnamed creek along Klanawa River Ecological Reserve: the stretch G6 names is 318.3-421.6 m (103 m within the 50 m edge band, grazes of 3.3 m at 343.7 m and 1.0 m at 369.0 m, both under the 5 m dip). By metre: 318.3-370.0 m is closed today (the old rule cut at 370.0 m) and the new rule would have opened it; 370.0-421.6 m (51.6 m) is open today. OWNER 2026-11-27 (T1199, relayed verbatim by the planning chat): \"Merge with the list; close both edge stretches (Recommended)\"; then, shown the picture (lane E2 pictures/T1199-klanawa-stretch.png): \"Stop at 370 m\". So this row closes 318.3-370.0 m, as today; the 51.6 m beyond stays open, as today (no graze, under the 100 m floor: G6 does not name it).",
+   "accepted_by": "owner",
+   "accepted_on": "2026-11-27"
+  }
+ ],
+ "proposed": []
+}
