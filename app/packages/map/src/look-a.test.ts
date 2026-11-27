@@ -5,8 +5,6 @@
  * every region named at every tier's zoom and no two town names in each other's way there.
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { MAP_STYLE, resolveTheme, STYLE_META } from "./style";
 import { runtimeStyle } from "./runtime-style";
 import { PMTILES } from "./tile-access";
@@ -201,12 +199,7 @@ describe("(T1209) the towns to find your way by", () => {
 });
 
 describe("(T1210) lake and river names zoomed out, from the tiles' own label layers", () => {
-  const contract = JSON.parse(readFileSync(fileURLToPath(new URL("../../../../pipeline/deliver/tiles/tile-contract.json", import.meta.url)), "utf8")) as
-    { layers: Record<string, { geometry: string; attrs: string[]; minzoom: number; maxzoom: number }> };
-  it("the tiles declare them: `stream_name` from z4, `lake_name` (a point with name and area) to z7", () => {
-    expect(contract.layers["stream_name"]!.minzoom).toBe(4);
-    expect(contract.layers["lake_name"]).toMatchObject({ geometry: "point", attrs: ["name", "area_m2"], minzoom: 4, maxzoom: 7 });
-  });
+  // that the tiles declare them (the pipeline's tile contract): tools/look-a-labels.test.ts (a package reads no files)
   it("a river is named from z4 (order 9; 8 from z5; 7 from z6), on `stream_name`", () => {
     const l = (MAP_STYLE.layers as L[]).find((x) => x.id === "stream__label")!;
     expect([l.minzoom, (l as { "source-layer"?: string })["source-layer"]]).toEqual([4, "stream_name"]);
