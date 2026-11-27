@@ -169,3 +169,14 @@ def test_a_closed_call_whose_stretch_left_the_band_is_stale():
     ok = LineString([(990, 100), (990, 300)])
     g, geoms = _built(ok, [(0.0, ok.length)])
     assert G.measure(g, geoms, [(AID, NAME, AREA)], calls=[_call("closed", 0.0, ok.length)])["counts"]["G6_stale"] == 0
+
+
+def test_a_closed_call_and_an_open_line_in_one_area_are_both_judged():
+    """Round 3: the call loop once rebound the area's count record (`c`), and the next open piece crashed the gate."""
+    ok = LineString([(990, 100), (990, 300)])
+    g, geoms = _built(ok, [(0.0, ok.length)])
+    g.nodes["V:0"] = StreamNode(node_id="V:0", kind=NodeKind.stream, blk="V", down_m=0.0, up_m=500.0, length_m=500.0,
+                                in_areas=())
+    geoms["V:0"] = LineString([(500, 1000), (1003, 1000), (500, 1001)])
+    res = G.measure(g, geoms, [(AID, NAME, AREA)], calls=[_call("closed", 0.0, ok.length)])
+    assert set(res["counts"].values()) == {0} and res["areas"][AID]["near_outside"] == 1

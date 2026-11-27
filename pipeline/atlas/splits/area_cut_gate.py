@@ -170,16 +170,16 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
                 # the inside beside it), and a run it reaches is the owner's edge water, not a line made inside by error
                 called = [c for c in calls if c.call == "closed" and c.area == aid and c.blk == blk
                           and c.from_m < run[-1].up_m and c.to_m > run[0].down_m]
-                for c in called:
-                    if not (run[0].down_m - _ec.MATCH_M <= c.from_m and c.to_m <= run[-1].up_m + _ec.MATCH_M):
+                for call in called:
+                    if not (run[0].down_m - _ec.MATCH_M <= call.from_m and call.to_m <= run[-1].up_m + _ec.MATCH_M):
                         continue
                     # still edge water: a stretch that left the band (the line redrawn or re-measured under the
                     # call) is no longer what the owner called, so the call is stale, never applied blind
-                    off = _beyond(run, geoms, c.from_m, c.to_m, band)
+                    off = _beyond(run, geoms, call.from_m, call.to_m, band)
                     if off <= _ec.MATCH_M:
-                        used.add(c)
+                        used.add(call)
                     else:
-                        stale_why[c] = f"the called stretch lies {off:.1f} m beyond the {edge_m:g} m edge band"
+                        stale_why[call] = f"the called stretch lies {off:.1f} m beyond the {edge_m:g} m edge band"
                 if longest < DEEP_M - _RUN_NOISE_M and not wholly_inside and not called:
                     checks["G5"].append({"area": aid, "blk": blk, "from_m": round(run[0].down_m, 1),
                                          "to_m": round(run[-1].up_m, 1), "longest_inside_run_m": round(longest, 2)})
