@@ -88,7 +88,7 @@ jobs:
           tippecanoe --version; pmtiles version
 
       # FIRST, because it is the cheapest and its failure means the tree cannot be trusted
-      # rather than that a test broke: every curated path in config.yaml resolves to a file
+      # rather than that a test broke: every `FilePath` the schema declares resolves to a file
       # that exists. pydantic refuses to construct otherwise, naming the key.
       #
       # This is the `--splits` incident's tripwire. That flag had no default, silently

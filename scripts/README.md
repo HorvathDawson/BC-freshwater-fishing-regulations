@@ -41,13 +41,24 @@ fails when one is not).
 ## Machine and data
 | script | what |
 |---|---|
-| `heavy.sh` | run ONE memory-heavy job at a time per lane, with a free-memory guard; every build goes through it (AGENTS 18, A5). `--status` shows the lanes |
+| `heavy.sh` | run ONE memory-heavy job at a time per lane, with a free-memory guard; every build goes through it (AGENTS 18, A5). Waiters are served first come, first served (T1225). `--status` shows the lanes and marks a holder past an hour as a long holder: a server that never ends (`expo start`, a dev server) does not belong on a heavy lock |
 | `start-workflow.sh` | start a GitHub workflow and print its run id (never a schedule) |
 | `hydat-fetch.sh` | one HYDAT release, downloaded resumably and checked, then extracted |
 | `update-hydat.sh` | the owner's one command when the feed says a newer HYDAT is out |
 | `dev-build.sh` | the gauge roster and feed for the dev app, in dependency order |
 | `trout-refresh.sh` | the trout fixture refresh chain, one command |
 | `rename_handoff.py` | one-off (ran for T1081): the `handoff/PLAN/` to `docs/` and `tickets/` rename |
+
+What each `make` verb (the root `Makefile`) calls; `make help` prints the list:
+
+| verb | calls |
+|---|---|
+| `setup` / `fetch-data` | `bootstrap.sh --setup-only` / `bootstrap.sh` (the 16 GB of pins) |
+| `test` = `test-py` + `test-app` | `heavy.sh` + `pytest-chunked.sh -- -q` / `heavy.sh` + `pnpm -C app exec vitest run`; with `ARGS`, pytest / vitest on them |
+| `check` / `test-all` | `before_push.py $ARGS` / `heavy.sh` + `test-full.sh` |
+| `build` / `build-first` | `heavy.sh` + `python -m pipeline build` / the same with `--atlas --promote --jobs 2` |
+| `app` / `review` | `app-dev.sh` (`pnpm -C app tiles` beside `dev:web`; refuses a taken port, one stopping stops both) / `tools/curation-review/run.sh` |
+| `release` / `prod` | prints `docs/runbooks/release-by-hand.md`'s steps, then `python -m pipeline release --cut --dry-run` / prints only |
 
 Tests: `pipeline/tests/test_before_push.py`, `test_ci_paths.py`, `test_workflow_pins.py` and the other `test_*` named for a script.
 Naming: shell for process orchestration, Python for logic that needs tests; there is a second home for scripts in `deploy/`

@@ -19,16 +19,20 @@
  * Both labels stay visible rather than showing only the alternative: which questions this water answers is itself
  * information, and a reader who does not know Conditions exists will never go looking for it.
  */
-import { useContext } from "react";
-import { View } from "react-native";
+import { useContext, useState } from "react";
+import { useWindowDimensions, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, waterBackName, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
+import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, waterBackName, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, WATER_VIEW_SHORT, type WaterView } from "@app/core";
 import { WaterViewsContext } from "./ViewSwipe";
 import { useCoachRefs, useCoachTarget } from "./CoachMarks";
 import { Icon, IconText } from "./icons";
 import { hitProps } from "./regs/hit";
-import { TYPE } from "./type";
+import { LABEL_PROPS, LABEL_SCALE, TYPE, labelMinWidth } from "./type";
+import { useScaleUpTo } from "./textScale";
+
+/** the header's side gutters, px: the strip's room before its layout is measured (the window less both) */
+const VIEWS_GUTTER = 16;
 import { SPACE, type Palette } from "./theme";
 
 export type Face = "conditions" | "regulations";
@@ -105,7 +109,27 @@ export function ViewTabs({ palette, views, on, onView }: {
 }) {
   const shown = WATER_VIEWS.filter((v) => views.includes(v));
   const coach = useCoachRefs();   // (T293) the walkthrough points at Regulations and Conditions (`view:<view>`)
+  // (T1203) THE WORDS FIT THE ROW OR SHORTEN: the row's room and the full words' width are MEASURED (an invisible twin row of the
+  // full words, as the place label's), and when the words are wider than the room "Regulations" is "Rules" (core
+  // `WATER_VIEW_SHORT`; the full word stays the accessible name). Decided from widths, not from a text-size threshold, so it holds
+  // at any window width and any text size. The labels are a fixed row's: one line, capped at `LABEL_SCALE` (type.ts, the one rule).
+  // THE FIRST PAINT IS DECIDED FROM AN ESTIMATE (`labelMinWidth`: the words' width at this text size; the window less the header's
+  // gutters for the room), so the strip does not draw full words for a frame and then change; the measures replace the estimate as
+  // soon as the layout reports them. `need` is read from a twin that is NOT limited by the row (below), so it is the words' own
+  // width on the web and on a phone alike.
+  const scale = useScaleUpTo(LABEL_SCALE);
+  const win = useWindowDimensions().width;
+  const [room, setRoom] = useState<number | null>(null);
+  const [need, setNeed] = useState<number | null>(null);
+  const estNeed = shown.reduce((w, v) => w + labelMinWidth(WATER_VIEW_LABEL[v], { fontSize: 14, letterSpacing: TYPE.regsTab.letterSpacing }, scale, 0, 0.56), 22 * (shown.length - 1));
+  // THE RULE: full words unless a real size says they do not fit. A room that is unknown or zero (no layout yet, a window of no
+  // width as under jsdom, a row hidden or unmounted mid-measure) is "not measured", never "too narrow": the words stay whole.
+  const roomNow = room !== null && room > 0 ? room : win > 0 ? win - 2 * VIEWS_GUTTER : 0;
+  const needNow = need !== null && need > 0 ? need : estNeed;
+  const short = roomNow > 0 && needNow > roomNow;
+  const text = { ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6 };
   return (
+    <View testID="water-views-room" onLayout={(e) => setRoom(e.nativeEvent.layout.width)}>
     <View accessibilityRole="tablist" accessibilityLabel={WATER_VIEWS_LABEL}
           style={{ flexDirection: "row", gap: 22, borderBottomWidth: 1, borderBottomColor: palette.line }}>
       {shown.map((v) => {
@@ -118,11 +142,23 @@ export function ViewTabs({ palette, views, on, onView }: {
                      {...hitProps({ w: 28, h: 38 })}
                      style={{ minHeight: 38, justifyContent: "flex-end", paddingTop: 2, marginBottom: -1,
                               borderBottomWidth: 3, borderBottomColor: sel ? palette.ink : "transparent" }}>
-            <Text style={{ ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6,
-                           color: sel ? palette.ink : palette.sub }}>{WATER_VIEW_LABEL[v]}</Text>
+            <Text {...LABEL_PROPS} style={{ ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6,
+                           color: sel ? palette.ink : palette.sub }}>{short ? WATER_VIEW_SHORT[v] : WATER_VIEW_LABEL[v]}</Text>
           </Pressable>
         );
       })}
+    </View>
+    {/* the measuring twin: the full words, one row, invisible, at the same text size. Its box is far wider than any row and the words
+        are not clamped or shrunk, so the inner row's width is what the words need - whatever room the strip has (Yoga on a phone
+        measures a child at the parent's width at most; an unlimited box is how that limit is kept off the measure). Zero height and
+        hidden overflow: the wide box adds nothing to the page's scroll. */}
+    <View aria-hidden pointerEvents="none" importantForAccessibility="no-hide-descendants"
+          style={{ position: "absolute", left: 0, top: 0, width: 4000, height: 0, overflow: "hidden", opacity: 0 }}>
+      <View testID="water-views-twin" onLayout={(e) => setNeed(e.nativeEvent.layout.width)}
+            style={{ flexDirection: "row", gap: 22, alignSelf: "flex-start" }}>
+        {shown.map((v) => <Text key={v} style={{ ...text, flexShrink: 0 }} maxFontSizeMultiplier={LABEL_SCALE}>{WATER_VIEW_LABEL[v]}</Text>)}
+      </View>
+    </View>
     </View>
   );
 }

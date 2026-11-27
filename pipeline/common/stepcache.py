@@ -260,10 +260,10 @@ def config_path() -> Path:
 
 
 def config_now(keys) -> dict[str, str]:
-    """{config key: digest of its value in config.yaml NOW} for recorded keys (`*` = the whole file; "missing" for a
-    key that is gone)."""
-    from pipeline.common.curated import read_yaml     # (T1192) the loaders' rules: a duplicate key is refused
-    blob = read_yaml(config_path()) or {}
+    """{config key: digest of its value NOW} for recorded keys (`*` = the whole file; "missing" for a key that is gone),
+    resolved where the loaders resolve it: config.yaml with the schema's names (`curated.read_config`)."""
+    from pipeline.common.curated import read_config     # (T1192) the loaders' one source and rules
+    blob = read_config(config_path())
     out = {}
     for key in sorted(keys):
         v = blob

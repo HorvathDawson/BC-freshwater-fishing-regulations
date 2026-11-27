@@ -150,6 +150,17 @@ def test_l28_region_5s_spring_lifts_bind_only_the_printed_stretch():
         assert not [r["rule_id"] for r in _entries("5")[eid].get("rules") or [] if r.get("exempts")], eid
 
 
+def test_l28_the_lower_quesnels_quota_under_the_spring_closure_is_listed():
+    """The lower Quesnel keeps Region 5's spring closure (L28, owner 2026-11-26: "Yes, close it too (Recommended)"), so
+    its "Trout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek" is silenced Apr 1-Jun 30, and the
+    export refuses a silenced quota the owner's rulings do not list (`closures.quota_under_closure`). The row stays
+    listed, naming the ruling; taking it out makes every deliver fail at the export (the first side build of main
+    after #339 did)."""
+    from pipeline.deliver.export import closures as X
+    _release, quota = X.under_closure_calls(under_test.curated().regulations.under_closure_calls)
+    why = quota.get(("r5:quesnel_river@5-2", "quesnel_river.r4"))
+    assert why and "Yes, close it too (Recommended)" in why and "T1177" in why
+
 def test_d4_a_row_without_the_star_still_lifts_nothing_on_its_tributaries():
     """L7 unchanged: the West Road is not ✱ and its text sends its tributaries to the spring
     closure, so its lift stays on the mainstem."""
