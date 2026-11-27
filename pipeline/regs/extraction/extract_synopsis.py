@@ -26,7 +26,7 @@ from .models import (
     ExtractionResults,
 )
 from .visible import PageNotJudged, PageVerdict, page_verdict
-from project_config import get_config
+from pipeline.common.curated import SOURCE
 
 logger = logging.getLogger(__name__)
 
@@ -1222,9 +1222,7 @@ class SynopsisExtractor:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    # Load config for default paths
-    config = get_config()
-    default_pdf = str(config.synopsis_pdf_path)
+    default_pdf = str(SOURCE.synopsis_pdf)
     # `synopsis_raw_data_path` was retired with the `output:` tree and raises on access, so this
     # entry point could not start at all. The generated path comes from GENERATED (AGENTS 41).
     from pipeline.common.curated import GENERATED
@@ -1310,9 +1308,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     elif args.page:
         # Single page extraction (for testing)
         p = FishingSynopsisParser()
-        # (T1190) no local `from project_config import get_config` here: it made get_config local to main(), so
-        # main()'s first line raised UnboundLocalError and the CLI (--check-against included) could not start
-        PDF_PATH = get_config().synopsis_pdf_path      # (T1021) was os.path.join("data", "source", …): the cwd's
+        PDF_PATH = SOURCE.synopsis_pdf      # (T1021) was os.path.join("data", "source", …): the cwd's
 
         with pdfplumber.open(PDF_PATH) as pdf:
             page_result = p.extract_rows(

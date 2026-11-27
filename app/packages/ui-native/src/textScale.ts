@@ -10,6 +10,11 @@ import { PixelRatio, useWindowDimensions } from "react-native";
 import { CAPPED_SCALE } from "./type";
 
 export function useCappedScale(): number {
+  return useScaleUpTo(CAPPED_SCALE);
+}
+
+/** (T1201) the same, held to another cap: a fixed-size control's label reads `useScaleUpTo(LABEL_SCALE)` to size its control */
+export function useScaleUpTo(cap: number): number {
   useWindowDimensions();
-  return Math.min(Math.max(PixelRatio.getFontScale() || 1, 1), CAPPED_SCALE);
+  return Math.min(Math.max(PixelRatio.getFontScale() || 1, 1), cap);
 }

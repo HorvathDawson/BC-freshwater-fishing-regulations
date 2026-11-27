@@ -51,13 +51,13 @@ afterEach(cleanup);
 
 /**
  * (T1036, review of PR 126) The second group on a salmon day, read by pressing every press target of the screen: the salmon
- * card's rows open their species sheets (`sp:<code>`, `sp:<code>|src`), and core's list holds each sheet that opened (beyond
- * them only a section Source sheet no line draws); the second group is what those sheets cite, minus the first.
+ * card's rows open their species sheets (`sp:<code>`, `sp:<code>|src`), and core's list is exactly the sheets that opened
+ * (T1077: no section Source sheet no line draws); the second group is what those sheets cite, minus the first.
  */
 function expectOther(first: readonly string[], other: readonly string[]) {
   const pressed = pressedSheets({ act, fireEvent, screen }, () => document.body, handed.opened);
   const core: string[] = reachableSheets(handed.drawn as unknown[], handed.salmon as never);
-  expect([pressed.filter((k) => !core.includes(k)), core.filter((k) => !pressed.includes(k) && !k.startsWith("srcs:")),
+  expect([pressed.filter((k) => !core.includes(k)), core.filter((k) => !pressed.includes(k)),
           pressed.some((k) => k.startsWith("sp:"))]).toEqual([[], [], true]);
   expect(other).toEqual(expectedOtherKeys(pressed, handed.host, handed.rules as ProbeIndex, first));
 }

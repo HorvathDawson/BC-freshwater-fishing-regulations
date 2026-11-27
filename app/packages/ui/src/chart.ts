@@ -11,7 +11,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { bcHour, FORECAST_DASH, forecastDash, OTHER_MODEL_DASH, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2,
-         panDomain, timeAt, zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
+         panDomain, now as clockNow, readingCurrentNow, timeAt, zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import { draftSeriesOf, type GaugeFeed, type Parameter, type WaterSource, type Series, type StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { askOnce, cardParameters, chartParameter, peekAnswer, seriesKey } from "./answers";
@@ -283,9 +283,12 @@ export function useChartView(source: Pick<WaterSource, "gaugeSeries">, station: 
     if (!s) return { state: "ready", value: null, error: null };
     const n = s.values.length;
     const bands = s.band.length === n ? s.band : Array.from({ length: n }, () => s.band[0] ?? null);
+    const nowStale = s.step === "1h" && !!s.now && !readingCurrentNow(s.at[s.now.index], clockNow());
     const shape = buildHydrograph({
       values: s.values, bands, at: s.at, xLabels: [],
-      nowIndex: s.now?.index ?? -1, nowValue: s.now?.value ?? null, priorYears: s.priorYears,
+      // (T1205) the hourly series' last measured point is "Today" only while it is current by the clock: a kept copy a day old
+      // keeps its line (its dates are on the axis) but is not marked as now
+      nowIndex: nowStale ? -1 : s.now?.index ?? -1, nowValue: nowStale ? null : s.now?.value ?? null, priorYears: s.priorYears,
       forecast: s.forecast?.series
         ? { key: s.forecast.model, at: s.forecast.series.at, mid: s.forecast.series.mid, lo: s.forecast.series.lo,
             hi: s.forecast.series.hi }

@@ -7,8 +7,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.deliver.answers.common import AnswersError, when_words
 from pipeline.deliver.answers.display.rule import _num, cut_points, rule_facts
 from pipeline.deliver.answers.display.part import (
-    STEM_LICENSING, Water, own_end, part_km, part_label, part_labels, part_place, picker, runs_label, stem_licensing,
-    water_ends_km
+    SIDE_APART, SIDE_AREA, STEM_LICENSING, Water, own_end, part_km, part_label, part_labels, part_place, picker,
+    runs_label, side_only, stem_licensing, water_ends_km
 )
 
 
@@ -177,7 +177,11 @@ def _by_grp(item_id: str, w: dict, doc: dict):
         runs = [dict(r) for r in (grp_runs[g] if grp_runs is not None else qs[0].get("runs") or [])]
         merged.append({**qs[0], "runs": runs, "sections": sum(q["sections"] for q in qs),
                        # (T801 item 5(1)) each member's licensing set where it runs on the main stem (`part_place`)
-                       STEM_LICENSING: stem_licensing(qs)})
+                       STEM_LICENSING: stem_licensing(qs),
+                       # (T1172) a group of side-channel parts: apart if any member is; its area only if all share one
+                       SIDE_APART: any(q.get(SIDE_APART) for q in qs),
+                       SIDE_AREA: qs[0].get(SIDE_AREA) if all(q.get(SIDE_AREA) == qs[0].get(SIDE_AREA) for q in qs)
+                       else None})
     return Water(item_id, {**w, "parts": merged}, doc), members
 
 
@@ -194,19 +198,15 @@ def _crossings(path: str) -> Dict[tuple, list]:
         for iid, p, near in db.execute("SELECT i.item_id, n.part_ix, n.near FROM part_near n JOIN item i "
                                        "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
             out[(iid, "part", p)] = near
-        # (T1140) the area a part with no main stem lies inside (`bundle.side_channels.inside_rows`)
-        for iid, p, area, how in db.execute("SELECT i.item_id, n.part_ix, n.area, n.how FROM part_inside n JOIN item i "
-                                            "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
-            out[(iid, "inside", p)] = (area, how)
+        # (T1140) the area a part with no main stem lies inside (`bundle.side_channels.inside_rows`): (area, how, whether
+        # the atlas cuts at it)
+        for iid, p, area, how, cut in db.execute("SELECT i.item_id, n.part_ix, n.area, n.how, n.cut FROM part_inside n "
+                                                 "JOIN item i ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
+            out[(iid, "inside", p)] = (area, how, bool(cut))
         # (T1140 proposal) the own name of a part of added city lines (`bundle.side_channels.own_name_rows`)
         for iid, p, nm, lb in db.execute("SELECT i.item_id, n.part_ix, n.name, n.label FROM part_own_name n JOIN item i "
                                          "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
             out[(iid, "own", p)] = (nm, lb)
-        # (coordinator's proposal) the parts with a side channel said at its NEAREST point, not where it joins
-        for iid, p in db.execute("SELECT DISTINCT i.item_id, ps.part_ix FROM section_join j JOIN part_section ps "
-                                 "ON ps.sid = j.sid JOIN item i ON i.ord = ps.ord WHERE j.how = 'nearest' "
-                                 "ORDER BY i.item_id, ps.part_ix"):
-            out[(iid, "nearest", p)] = True
         out.update(_flows_into(db))
         return out
     finally:
@@ -267,7 +267,11 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     # lying at least 95 % inside one area, measured on its shapes (the bundle's `part_inside`), is said by it: "Squamish
     # River inside Baynes Island Ecological Reserve" (the token `part.INSIDE`, the same as both its ends)
     several = sum(1 for t in toks if t is None) > 1
+    # (T1172) the NAME says only a reviewed area (`part.REVIEWED_INSIDE`): an unreviewed one the atlas cuts at stops the
+    # build below; an unreviewed membership-only one is passed over here (the part's subtitle still says it,
+    # `runs_label`; `produce_parts` lists it)
     inside = [crossings.get((W.id, "inside", W.export_ix[i])) if t is None else None for i, t in enumerate(toks)]
+    inside = [a if a is None or (W.id, a[0], a[1]) in REVIEWED_INSIDE or a[2] else None for a in inside]
     toks = [t if t is not None or a is not None or run_n[(p["grp"], p["run"])] < 2 else branch_end_tokens(p)
             for p, t, a in zip(W.parts, toks, inside)]
     ends: List[Optional[list]] = [[t[0], t[1]] if t else [f"{AREA_HEAD[a[1]]}area:{a[0]}"] * 2 if a else None
@@ -280,10 +284,10 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
         if own:
             ends[i] = [OWN + _json.dumps(list(own), separators=(",", ":"), ensure_ascii=False)] * 2
     if not several:
-        # (T1140, owner 2026-11-25: "Named by its ends", "They should always have the cut names or distance") the ONE part
-        # of side channels only of a water, where a channel has a named end: said by them ("Side channel from the
-        # Exchamsiks River confluence up to the Skeena River Ecological Reserve boundary"; `part.SIDE`), a channel with
-        # none by where it joins; one whose run names only its own mouth takes the named water its flow reaches
+        # (T1140, owner 2026-11-25: "Named by its ends") the ONE part of side channels only of a water, where EVERY channel
+        # has a named end (T1172 round 4): said by them ("Side channel from the Exchamsiks River confluence up to the Skeena
+        # River Ecological Reserve boundary"; `part.SIDE`); one whose run names only its own mouth takes the named water its
+        # flow reaches. Else its label, the plain count
         for i, (p, t) in enumerate(zip(W.parts, toks)):
             if t is None and ends[i] is None:
                 chans = side_channels(p, crossings.get((W.id, "flows_into", W.export_ix[i])))
@@ -305,17 +309,11 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
                                        f"stem, and no named water or B.C. town near it to tell it apart")
                 ends[i] = [f"near:{near}", f"near:{near}"]
     for i, (p, t, a) in enumerate(zip(W.parts, toks, inside)):
-        if a is not None and (W.id, *a) not in REVIEWED_INSIDE:
+        if a is not None and (W.id, a[0], a[1]) not in REVIEWED_INSIDE:
             raise AnswersError(f"display: {W.id} part {W.export_ix[i]} would be said {a[1]} {a[0]!r}, a pair no reviewer has "
                                f"looked at: check its picture, then add it to `part.REVIEWED_INSIDE` (T1140)")
-        if t is None and ends[i] is None and len(W.parts) > 1:
-            # (T1140, owner 2026-11-25: "They should always have the cut names or distance it is impossible not to") a
-            # part said by its label ("Side channel, joining 3.7 km from the mouth") must have every channel's join
-            bare = [r for r in p.get("runs") or [] if r.get("branch") and r.get("km_from") is None]
-            if bare:
-                raise AnswersError(f"display: {W.id} part {W.export_ix[i]}: {len(bare)} side channel(s) with no named "
-                                   f"end and no join to say (runs {[(r.get('from'), r.get('to')) for r in bare]}) — T1140: "
-                                   f"never a part named without its distance")
+        # (T1172, owner 2026-11-26: "Distance only to tell parts apart") a part said by its label ("2 side channels") is the
+        # ONE such part of its water, so its label says no distance and needs none: no stop for a channel with no join
     water = W.w["name"]
 
     def name(i: int) -> str:
@@ -386,12 +384,59 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             for i in range(len(W.parts))]
 
 
-def said_nearest(label: str, part: dict, nearest: bool) -> str:
-    """(Coordinator's proposal 2026-11-25) a part of ONE side channel said at its main line's nearest point, not where it
-    joins: "Side channel, 5.7 km from the mouth", never "joining" (several channels: the range includes it, as is)."""
-    if nearest and all(r.get("branch") for r in part.get("runs") or []):
-        return label.replace("Side channel, joining ", "Side channel, ", 1)
-    return label
+def side_facts(item_id: str, w: dict, crossings: Dict[tuple, object]) -> dict:
+    """(T1172, owner 2026-11-26) the water with what its parts of side channels only say beside their channels, set on
+    each such part (`part.SIDE_APART`, `part.SIDE_AREA`, read by `runs_label`), ONE rule for every water: a distance
+    only where the water has more than one such part in B.C. ("Distance only to tell parts apart"); the area the bundle
+    measures it inside or at, every one, reviewed or not ("The area shows in the app SUBTITLE, universally")."""
+    ix = [i for i, p in enumerate(w.get("parts") or []) if p.get("ruleset") is not None and side_only(p)]
+    if not ix:
+        return w
+    parts = list(w["parts"])
+    for i in ix:
+        a = crossings.get((item_id, "inside", i))
+        parts[i] = {**parts[i], SIDE_APART: len(ix) > 1, SIDE_AREA: [a[0], a[1], a[2]] if a else None}
+    return {**w, "parts": parts}
+
+
+def unmeasured_side_parts(W: "Water", names: List[dict]) -> List[str]:
+    """(T1172 round 4, owner 2026-11-26: "make it LOUD") the parts said by their label, the one such part of their water,
+    with a channel no measure places: no stop (the label says no distance), but listed — such a part sorts last among its
+    water's parts (`part_km`)."""
+    out = []
+    for i, (p, n) in enumerate(zip(W.parts, names)):
+        if side_only(p) and n["lo"] is None and not p.get(SIDE_APART):
+            bare = [r for r in p.get("runs") or [] if r.get("branch") and r.get("km_from") is None]
+            if bare:
+                out.append(f"{W.id} part {W.export_ix[i]}: {len(bare)} of "
+                           f"{sum(1 for r in p.get('runs') or [] if r.get('branch'))} channel(s) with no measure")
+    return out
+
+
+def untold_side_parts(W: "Water") -> List[str]:
+    """(T1172, review of rounds 3-4) the parts whose label NEEDS its distance — a part of side channels only on a water
+    with more than one such part (`part.SIDE_APART`: the distance tells them apart) — with a channel no measure places:
+    the build stops on them, named (none today: no water has two such parts)."""
+    out = []
+    for i, p in enumerate(W.parts):
+        if side_only(p) and p.get(SIDE_APART):
+            bare = [r for r in p.get("runs") or [] if r.get("branch") and r.get("km_from") is None]
+            if bare:
+                out.append(f"display: {W.id} part {W.export_ix[i]}: one of its water's several parts of side channels "
+                           f"only, told apart by its distance, with {len(bare)} channel(s) no measure places (T1172)")
+    return out
+
+
+def inside_candidates(item_id: str, w: dict, crossings: Dict[tuple, object]) -> List[str]:
+    """(T1172) the parts the bundle measures inside a membership-only area no reviewer has looked at
+    (`part.REVIEWED_INSIDE`): their subtitles say the area, their names wait for the look — listed, never silent."""
+    from pipeline.deliver.answers.display.part import REVIEWED_INSIDE
+    out = []
+    for i, p in enumerate(w.get("parts") or []):
+        a = crossings.get((item_id, "inside", i))
+        if a and not a[2] and (item_id, a[0], a[1]) not in REVIEWED_INSIDE:
+            out.append(f"{item_id} part {i} {a[1]} {a[0]!r}")
+    return out
 
 
 def reviewed_still_said(out: Dict[str, dict]) -> None:
@@ -425,8 +470,11 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
             unresolved.setdefault(x["entry_id"], []).append(k)
     crossings = _crossings(B.path)
     stops: List[str] = []
+    candidates: List[str] = []
     for item_id in sorted(parts):
-        w = doc["waters"][item_id]
+        # (T1172) a part of side channels only carries its distance rule and its area (`side_facts`)
+        w = side_facts(item_id, doc["waters"][item_id], crossings)
+        candidates += inside_candidates(item_id, w, crossings)
         W = Water(item_id, w, doc)
         if not W.parts:
             continue
@@ -442,6 +490,9 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         except AnswersError as e:              # (T1140) every part the rules cannot name, together, then stop
             stops.append(str(e))
             continue
+        stops += untold_side_parts(W)
+        for u in unmeasured_side_parts(W, names):
+            log(f"  side part said by its label with no measure (no stop; it sorts last among its water's parts): {u}")
         closed = []
         facts: List[Optional[dict]] = [None] * len(w["parts"])
         for i, (ex, p) in enumerate(zip(W.export_ix, W.parts)):
@@ -450,10 +501,9 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                 closed_memo[rk] = closed_all_year(store, B.key_ix[rk])
             closed.append(closed_memo[rk])
             k = gi[p["grp"]]
-            near = crossings.get((item_id, "nearest", ex), False)     # (T1140 proposal) said at its nearest point
             facts[ex] = {
-                "order": i, "label": said_nearest(labels[i], p, near), **names[i],
-                "runs": said_nearest(runs_label(doc, p, water_ends_km(w)), p, near),
+                "order": i, "label": labels[i], **names[i],
+                "runs": runs_label(doc, p, water_ends_km(w)),
                 "place": part_place(Wg, k) or None,          # null: no entry heading
                 "km": part_km(p),
                 "closed_all_year": closed[-1],
@@ -468,6 +518,8 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
     if stops:
         raise AnswersError("display: parts the names cannot say —\n  " + "\n  ".join(stops))
     reviewed_still_said(out)
+    for c in candidates:
+        log(f"  INSIDE candidate (its subtitle says the area; its name waits for a reviewer, `part.REVIEWED_INSIDE`): {c}")
     log(f"  parts: {sum(1 for v in out.values() for f in v['parts'] if f)} parts of {len(out)} "
         f"waters; {sum(closed_memo.values())} of {len(closed_memo)} rule keys closed all year")
     return out

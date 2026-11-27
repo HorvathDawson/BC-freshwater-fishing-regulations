@@ -34,7 +34,14 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-ALLOWED = re.compile(r"^fishing_synopsis(\.\d{4}-\d{2,4})?\.pdf$")
+
+def allowed() -> "re.Pattern[str]":
+    """The allowed names: the book's own (`SOURCE.synopsis_pdf`) and its dated archive copies (`<stem>.<yyyy-yy>.pdf`)."""
+    from pipeline.common.curated import SOURCE
+    book = SOURCE.synopsis_pdf
+    return re.compile(rf"^{re.escape(book.stem)}(\.\d{{4}}-\d{{2,4}})?{re.escape(book.suffix)}$")
+
+
 NAMED = re.compile(r"synopsis|regulations", re.I)
 MIN_OPEN_BYTES = 1 << 20
 BIG_BYTES = 5 << 20
@@ -82,8 +89,9 @@ def second_books(source: Path, files: Iterable[Path] | None = None) -> list[str]
     if not source.is_dir():
         raise FileNotFoundError(f"{source}: the source folder is missing")
     out = []
+    ok = allowed()
     for pdf in (pdfs_under(source) if files is None else sorted(files)):
-        if pdf.parent == source and ALLOWED.match(pdf.name):
+        if pdf.parent == source and ok.match(pdf.name):
             continue
         rel = pdf.relative_to(source).as_posix()
         if NAMED.search(pdf.name):

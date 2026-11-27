@@ -6,7 +6,7 @@ import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBe
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart, rankedOnWords,
          panelCamera, ROUTE_MARK_PX, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
          throughLakeNote, interval,
-         backwaterNote, diversionNote, unplacedNote, type SectionKey } from "@app/core";
+         backwaterNote, diversionNote, unplacedNote, type DonorAsk, type SectionKey } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, routeLegend } from "@app/core";
 import { gaugeSides, groupGauges, isDonorSide, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
 import { useAsync } from "../async";
@@ -192,6 +192,8 @@ export interface DonorViewOptions {
    * while the switch beside it said reporting. Absent (a saved spot): the day.
    */
   ref?: number;
+  /** (T1205) the real instant a reading's age is judged at (`now()`), never the picked day; absent: `ref` stands in. */
+  now?: number;
   horizon: Horizon;
   /** Where the reader is, for "you are here". */
   from: { lat: number; lon: number } | null;
@@ -238,14 +240,15 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * rule `donorReads` words), against the CHOSEN day.
    */
   const ref = o.ref ?? o.day.getTime();
-  const silent = silentLine(rows, { ref, horizon: o.horizon, ...(o.zone ? { zone: o.zone } : {}) });
+  const nowOf = o.now !== undefined ? { now: o.now } : {};   // (T1205) the real instant, apart from the day asked
+  const silent = silentLine(rows, { ref, ...nowOf, horizon: o.horizon, ...(o.zone ? { zone: o.zone } : {}) });
   /*
    * A ROW'S TONE IS ITS INDEX IN THE PANEL'S WEIGHT ORDER, not its place among the rows shown. The gauge switch lists
    * every member by that index, so the switch's dot, the row and the pin are one colour; and silent members weigh 0
    * and sort last, so the speaking ones keep the first tones anyway — a hidden member never shifts a shown one's hue.
    */
   const tone = new Map(rows.map((r, i) => [r, i]));
-  const shown = rows.filter((r) => !donorSilent(r, { ref, horizon: o.horizon }));
+  const shown = rows.filter((r) => !donorSilent(r, { ref, ...nowOf, horizon: o.horizon }));
   const toneOf = (r: DonorRow) => tone.get(r)!;
 
   // (T252) here to the gauge ALONG THE RIVER, km — only where the path is drawn and the release has reach lengths
@@ -259,7 +262,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * at all (`quiet`, `not-realtime`), which speaks in neither quantity and would only widen the frame.
    */
   const framed = rows.filter((r) => {
-    const k = donorState(r, { ref, horizon: o.horizon }).kind;
+    const k = donorState(r, { ref, ...nowOf, horizon: o.horizon }).kind;
     return located(r) && k !== "quiet" && k !== "not-realtime";
   });
   // (T175) no tap: the water's own box stands for the place (both corners), so the water is in the frame
@@ -301,7 +304,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   // (T168) on this water first: the key reads own gauges first, and their labels win a crowded map (`rank`)
   const sides = o.sides ?? null;
   const sideOf = (r: DonorRow): GaugeSide => sides?.get(r.station) ?? "donor";
-  const ask = { ref, horizon: o.horizon };
+  const ask = { ref, ...nowOf, horizon: o.horizon };
   // every key stays in sight: each names a pin drawn on the map (a silent member has neither), so none folds
   const placedGroups = sides
     ? groupGauges(placed, sideOf, (r) => stateAt(r, ask), { horizon: o.horizon, keep: () => true }) : null;
@@ -370,7 +373,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
 
   function rowVM(r: DonorRow): DonorRowVM {
     const on = o.selected != null && r.station === o.selected;
-    const reads = donorReads(r, { ref, horizon: o.horizon });
+    const reads = donorReads(r, { ref, ...nowOf, horizon: o.horizon });
     const lastReport = !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null;
     const facts = donorFacts(r);
     return {
@@ -387,7 +390,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
         alongKm: alongKm(r), joinWater: r.route?.joinWater ?? null,
         apart: sizeApart(r.areaRatio) }),
       because: donorCounted(r) ? donorBecause(r) : null,
-      label: donorRowLabel(r, o.pickable, on, { ref, horizon: o.horizon }),
+      label: donorRowLabel(r, o.pickable, on, { ref, ...nowOf, horizon: o.horizon }),
     };
   }
 
@@ -458,7 +461,7 @@ export interface GaugeChoiceVM {
  * under a sheet saying they have a flow forecast.
  */
 export function gaugeChoices(rows: readonly DonorRow[], lead: StationId | null,
-                             ask: { ref?: number; horizon?: Horizon } = {}): GaugeChoiceVM[] {
+                             ask: DonorAsk = {}): GaugeChoiceVM[] {
   if (rows.length < 2) return [];
   return rows.map((r, i) => {
     const on = r.station === lead;
@@ -472,7 +475,7 @@ export function gaugeChoices(rows: readonly DonorRow[], lead: StationId | null,
  * the chart shows, which stays in sight. Null without sides or without a choice to make.
  */
 export function gaugeChoiceGroups(rows: readonly DonorRow[], lead: StationId | null,
-                                  ask: { ref?: number; horizon?: Horizon }, sides: GaugeSides):
+                                  ask: DonorAsk, sides: GaugeSides):
   GaugeGroupVM<GaugeChoiceVM>[] | null {
   const choices = gaugeChoices(rows, lead, ask);
   if (!sides || !choices.length) return null;
@@ -499,7 +502,7 @@ export function useGaugeSides(source: WaterSource, section: SectionId | null,
 
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, ref, horizon, from, size, selected, pickable, quantity, rankedIn, sides, place, own } = o;
+  const { day, ref, now, horizon, from, size, selected, pickable, quantity, rankedIn, sides, place, own } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
@@ -507,11 +510,11 @@ export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const placeKey = place ? place.join(",") : "";
   const ownKey = own ? [own.lat, own.lon, own.name, own.label, own.key, own.live].join("|") : "";
   return useMemo(
-    () => donorView(value, { day: new Date(t), ...(ref !== undefined ? { ref } : {}), horizon,
+    () => donorView(value, { day: new Date(t), ...(ref !== undefined ? { ref } : {}), ...(now !== undefined ? { now } : {}), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
                              size: { width, height }, selected, pickable,
                              ...(quantity ? { quantity } : {}), ...(rankedIn ? { rankedIn } : {}), sides: sides ?? null,
                              place: placeKey ? place ?? null : null, own: ownKey ? own ?? null : null }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the box and the lake's own gauge by value
-    [value, t, ref, horizon, lat, lon, width, height, selected, pickable, quantity, rankedIn, sides, placeKey, ownKey]);
+    [value, t, ref, now, horizon, lat, lon, width, height, selected, pickable, quantity, rankedIn, sides, placeKey, ownKey]);
 }

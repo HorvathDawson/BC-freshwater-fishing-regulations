@@ -85,8 +85,8 @@ describe("one history read (T170)", () => {
     const cap = FILES.find((f) => f.path === "packages/data/src/spots/capture.ts")!.text;
     // the one call of the live reader is the `readingFor` of the today branch (`earlier ? … : readingFor(…)`)
     expect(cap.match(/gaugeNow\(/g)?.length).toBe(1);
-    expect(/earlier \? Promise\.resolve\([^)]*\)\s*:\s*readingFor\(source, lead\)/.test(cap.replace(/\s+/g, " "))
-      || /earlier\s*\?[\s\S]{0,200}?:\s*readingFor\(source, lead\)/.test(cap)).toBe(true);
+    expect(/earlier \? Promise\.resolve\([^)]*\)\s*:\s*readingFor\(source, lead(?:, now)?\)/.test(cap.replace(/\s+/g, " "))
+      || /earlier\s*\?[\s\S]{0,200}?:\s*readingFor\(source, lead(?:, now)?\)/.test(cap)).toBe(true);
   });
 
   it("a spot's dayFlow is written by the fill and the refresh only", () => {

@@ -4,7 +4,6 @@ import argparse
 import time
 from pathlib import Path
 
-from project_config import get_config
 from pipeline.deliver.tiles import export, ladder, obstacles, tippe
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
@@ -25,11 +24,10 @@ def no_archive_refusals(out_dir: Path, no_release: bool, tiles_only: bool) -> li
 
 def parser() -> argparse.ArgumentParser:
     """The tile step's flags; every input defaults to the live one (`test_mini_deliver_inputs.py` pins that)."""
-    cfg = get_config()
     ap = argparse.ArgumentParser(prog="python -m pipeline.deliver.tiles")
     ap.add_argument("--build", default=str(GENERATED.build()),
                     help="a completed build dir (graph.pkl, geometries.pkl, registry.json)")
-    ap.add_argument("--gpkg", default=str(cfg.fwa_data_gpkg))
+    ap.add_argument("--gpkg", default=str(SOURCE.fwa_gpkg))
     ap.add_argument("--out", default=str(GENERATED.tiles))
     ap.add_argument("--minzoom", type=int, default=4)
     ap.add_argument("--maxzoom", type=int, default=ladder.MAX_ZOOM,
