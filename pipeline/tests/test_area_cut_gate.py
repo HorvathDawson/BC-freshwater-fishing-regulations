@@ -39,7 +39,7 @@ def test_a_clean_cut_passes_and_writes_its_numbers(tmp_path):
     """Out to 1000, in from there (the cut ON the edge): every check passes, and the file says so."""
     g, geoms = _graph(("X:0", 0, 1000, False, None, CUT), ("X:1000", 1000, 1600, True, CUT, None))
     res = _run(g, geoms, tmp_path)
-    assert res["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6": 0}
+    assert res["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6": 0, "G6_stale": 0}
     got = json.loads((tmp_path / G.FILENAME).read_text())
     assert got["worst"]["shortest_area_piece_m"] == 600.0 and got["allowed_beyond_band_m"] == 50.0
 
@@ -92,7 +92,7 @@ def test_g4_a_non_member_partly_inside_or_a_member_far_from_the_area():
 def test_g4_a_dip_under_5m_is_positional_error():
     """An open piece reaching 4 m in: under the dip, so neither G2 nor G4."""
     g, geoms = _graph(("X:0", 0, 1004, False, None, None))
-    assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6": 0}
+    assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6": 0, "G6_stale": 0}
 
 
 def test_g5_a_member_run_with_no_real_inside_water_stops_the_build():
@@ -161,7 +161,7 @@ def test_g6_a_boundary_river_drawn_wiggling_across_the_edge_stops_the_build():
     g, geoms = _one_piece("W:0", _wiggle(), member=False)
     res = G.measure(g, geoms, [(AID, NAME, TALL)])
     assert res["counts"]["G6"] == 1 and res["checks"]["G6"][0]["grazes"] > 100
-    assert {k: v for k, v in res["counts"].items() if k != "G6"} == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0}
+    assert {k: v for k, v in res["counts"].items() if k != "G6"} == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6_stale": 0}
 
 
 def test_g6_a_line_beside_the_edge_with_one_graze_or_none_is_never_inside_and_passes():
