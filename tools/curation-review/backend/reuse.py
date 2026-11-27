@@ -296,11 +296,23 @@ def _rowed_waters() -> dict[str, tuple[str, ...]]:
     return rowed_waters([e for _, e in _all_entries()])
 
 
+#: (T1177 review) `_lake_stops`' one cached answer: (key, stops)
+_LAKE_STOPS: list = [None, ()]
+
+
 def _lake_stops() -> tuple:
     """Every lake tributaries row's printed exception (T1177, `build.lake_row_stops`), read from the corpus as it is NOW
-    — the same derivation the reach CLI makes, so a walk through a lake stops where it ships."""
+    — the same derivation the reach CLI makes, so a walk through a lake stops where it ships. Resolving them walks the
+    carve-outs (the Columbia above Kinbasket, the Kootenay above Kootenay Lake), so the answer is kept for one key: the
+    graph and registry objects and the lake rows' carve-out records as they read now (an edited row re-resolves)."""
     from pipeline.atlas.reach.build import lake_row_stops
-    return lake_row_stops([e for _, e in _all_entries()], _registry(), _graph())
+    ents = [e for _, e in _all_entries()]
+    rows = [(e["entry_id"], [(r.get("rule_id"), r.get("tributaries_only"), r.get("extents"), r.get("tributary_excludes"))
+                             for r in e.get("rules") or [] if r.get("tributary_excludes")]) for e in ents]
+    key = (id(_graph()), id(_registry()), json.dumps(rows, sort_keys=True, default=str))
+    if _LAKE_STOPS[0] != key:
+        _LAKE_STOPS[:] = [key, lake_row_stops(ents, _registry(), _graph())]
+    return _LAKE_STOPS[1]
 
 
 def _tidal() -> dict[str, str]:
