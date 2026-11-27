@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import shlex
+import socket
 import subprocess
 from pathlib import Path
 
@@ -74,7 +76,8 @@ def test_the_verbs_wrap_today_s_commands():
     assert _commands("test-py", "ARGS=pipeline/tests/test_x.py -k foo")[-1] == (
         ".venv/bin/python -m pytest -q pipeline/tests/test_x.py -k foo")
     assert _commands("test-app", "ARGS=tools/x.test.ts")[-1] == "pnpm -C app exec vitest run tools/x.test.ts"
-    assert _commands("release")[-1] == ".venv/bin/python -m pipeline release --cut --dry-run"
+    assert ".venv/bin/python -m pipeline release --cut --dry-run 2>&1" in "\n".join(_commands("release"))
+    assert _commands("app")[-1] == "bash scripts/app-dev.sh"
 
 
 def test_production_has_no_verb_that_runs():
@@ -96,3 +99,36 @@ def test_a_missing_prerequisite_stops_naming_its_fix(tmp_path):
     assert "macOS-only" in out.stderr and ".venv/bin/python -m pipeline build" in out.stderr, out.stderr
     out = _make("test", "ARGS=x")
     assert out.returncode != 0 and "make test-py ARGS=" in out.stderr, out.stderr
+
+
+def _fake_python(tmp_path: Path, rc: int, says: str) -> str:
+    py = tmp_path / "python"
+    py.write_text(f"#!/bin/sh\necho {shlex.quote(says)} >&2\nexit {rc}\n")
+    py.chmod(0o755)
+    return str(py)
+
+
+def test_release_says_nothing_to_cut_plainly(tmp_path):
+    """The cut's dry run exits 1 when no commit bumps the app: `make release` says so in one line and exits 0; any
+    other failure keeps its exit code."""
+    py = _fake_python(tmp_path, 1, "release --cut: no app release: nothing since v0.9.0 bumps the app (docs, CI)")
+    out = _make("release", f"PY={py}")
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert out.stdout.splitlines()[-1] == "make release: nothing to release since v0.9.0", out.stdout
+    out = _make("release", f"PY={_fake_python(tmp_path, 1, 'release --cut: cannot read origin (offline)')}")
+    assert out.returncode != 0 and "nothing to release" not in out.stdout, out.stdout
+
+
+def test_make_app_refuses_a_taken_tile_port():
+    """`make app` never runs half-working: a listener on the tile port (the owner's own tile server, say) stops it up
+    front, naming the PID; nothing is started and nothing is stopped."""
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        s.listen()
+        port = s.getsockname()[1]
+        out = subprocess.run(["make", "--no-print-directory", "-C", str(ROOT), "app"], capture_output=True, text=True,
+                             timeout=60, env=os.environ | {"TILE_PORT": str(port)})
+    assert out.returncode != 0, out.stdout + out.stderr
+    assert f"port {port} is taken by PID {os.getpid()}" in out.stderr, out.stderr
+    assert "your own tile server is already up: run `pnpm -C app dev:web` alone, or stop it" in out.stderr
+    assert "pnpm -C app tiles" not in out.stdout

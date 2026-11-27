@@ -43,7 +43,7 @@ test: _no-args test-py test-app ## the whole no-data tier, as CI: the pipeline s
 _no-args:
 	@test -z "$(strip $(ARGS))" || { echo "make test takes no ARGS: make test-py ARGS=\"...\" or make test-app ARGS=\"...\"" >&2; exit 2; }
 
-test-py: ## the pipeline tests, CI's no-data tier: all in chunks via heavy.sh, or ARGS="<file> -k <expr>"
+test-py: ## the pipeline tests, CI's no-data tier: all in chunks via heavy.sh, or ARGS="<file> -k <expr>" (a folder in one process can pass 100 GB: make test)
 	@$(need_py)
 ifeq ($(strip $(ARGS)),)
 	@$(call need_mac,bash scripts/pytest-chunked.sh -- -q)
@@ -85,22 +85,24 @@ build-first: ## the first build on a fresh clone, after fetch-data: --atlas --pr
 	@$(call need_mac,$(PY) -m pipeline build --atlas --promote --jobs 2)
 	$(HEAVY) first-build 50 -- $(PY) -m pipeline build --atlas --promote --jobs 2
 
-# The tile server runs in the background and the web server in front; the trap stops the tile server (its own PID:
-# pnpm passes the TERM on to node) whichever way the recipe ends, Ctrl-C included.
-app: ## the app in a browser, http://localhost:39218: the tile server and Expo web together; Ctrl-C stops both
+app: ## the app in a browser, http://localhost:39218: tile server + Expo web (scripts/app-dev.sh); Ctrl-C stops both
 	@$(need_node)
-	pnpm -C app tiles & tiles=$$!; trap 'kill $$tiles 2>/dev/null' EXIT INT TERM; pnpm -C app dev:web
+	bash scripts/app-dev.sh
 
 review: ## the owner's review tool: backend :8787 + Vite :5173 (tools/curation-review/run.sh; Ctrl-C stops both)
 	@test -x .venv/bin/uvicorn || { echo "make review: no .venv/bin/uvicorn: run 'make setup'" >&2; exit 1; }
 	bash tools/curation-review/run.sh
 
-release: ## a release, by hand: prints the steps of docs/runbooks/release-by-hand.md, then the cut's dry run
+# The cut's dry run exits 1 when no commit since the last tag bumps the app: said here as one plain line, exit 0.
+release: ## a release, by hand: prints the steps of docs/runbooks/release-by-hand.md, then the cut's dry run (network)
 	@$(need_py)
 	@echo "A release, step by step: docs/runbooks/release-by-hand.md (the flags: docs/runbooks/release.md)"
 	@grep '^## Step' docs/runbooks/release-by-hand.md | sed 's/^## /  /'
 	@echo "The cut's dry run (fetches origin/main and the v* tags; makes no branch, commit, tag or push):"
-	$(PY) -m pipeline release --cut --dry-run
+	@out=$$($(PY) -m pipeline release --cut --dry-run 2>&1); rc=$$?; printf '%s\n' "$$out"; \
+	  since=$$(printf '%s\n' "$$out" | sed -n 's/.*no app release: nothing since \([^ ]*\) bumps.*/\1/p'); \
+	  if [ $$rc = 1 ] && [ -n "$$since" ]; then echo "make release: nothing to release since $$since"; exit 0; fi; \
+	  exit $$rc
 
 prod: ## production is the owner's: prints his command (AGENTS A7); runs nothing
 	@echo "Production is the owner's alone (AGENTS A7): he types CONFIRM_PROD. Nothing here runs it."
