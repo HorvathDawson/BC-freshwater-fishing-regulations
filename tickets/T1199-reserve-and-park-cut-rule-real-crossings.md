@@ -49,6 +49,19 @@ per rule; the owner has seen the opens list.
 Depends: the cut rule lands before T1240's folds can be checked. Severity: medium-high (answers change on named
 rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the data and release chat.
 
+## Build notes (lane E, 2026-11-26)
+- Built as `clean_cut.decide_area` (commits 93b42f7ea, fccc926d5, 04b1ef0ff, and the review fix after them). On the
+  side build: 1,151 closure cuts; no piece under 100 m an area cut made; the area-cut gate passes.
+- Review fix: a run inside under 5 m (a graze) is dropped BEFORE the band joins anything, so a line beside the edge
+  that grazes it stays outside. The gate's G5 now refuses a member run with no inside run of 5 m.
+- `strathcona_park_waters.r1` binds 9.7 m more (Megin River ER, blk 354092551). The stage move does not cause this;
+  the floor does. The reserve's 9.7 m mouth piece (inside the reserve, outside Strathcona Park) grew to 100 m, so it
+  merged with 90.3 m of park water. The park's overlap membership (more than 1 m inside) then holds the whole 100 m
+  piece, and the reserve's closure covers it too.
+- Moving the closure cuts after the coast cut changed no coast cut. The 170 coast cuts are identical, and so is the
+  tidal water: the section 354101341 0-290 was two sections, now one. `shore_cuts.json` drops four "not cut, the
+  mouth is the coast crossing" rows (Schmidt, Lost Shoe, Camper and Clanninick creeks); the cause was not traced.
+
 ## Owner
 
 - [ ] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him.
