@@ -20,7 +20,7 @@ import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type
 import { CornerStrip } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
-import { TYPE } from "./type";
+import { TYPE, LABEL_PROPS, LABEL_SCALE } from "./type";
 import { hitProps } from "./regs/hit";
 
 /** A thumb's target: every button here is at least this tall and wide. */
@@ -161,7 +161,7 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
       </View>
       <View testID="day-heads" style={{ flexDirection: "row" }} importantForAccessibility="no-hide-descendants" aria-hidden>
         {m.weekdays.map((w) => (
-          <Text key={w.long} style={{ ...TYPE.micro, ...CELL, textAlign: "center", color: palette.sub }}>{w.short}</Text>
+          <Text key={w.long} {...LABEL_PROPS} style={{ ...TYPE.micro, ...CELL, textAlign: "center", color: palette.sub }}>{w.short}</Text>
         ))}
       </View>
       <View testID="day-grid" role="group" accessibilityLabel={DAY_PICKER.gridLabel(m.title)} {...keys}>
@@ -182,7 +182,7 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
                              borderWidth: c.today ? 1.5 : 0, borderColor: c.chosen ? palette.ink : palette.accent,
                              opacity: c.disabled ? 0.35 : 1,
                            })}>
-                  <Text style={{ ...(c.today || c.chosen ? TYPE.bodyStrong : TYPE.body),
+                  <Text maxFontSizeMultiplier={LABEL_SCALE} style={{ ...(c.today || c.chosen ? TYPE.bodyStrong : TYPE.body),
                                  color: c.chosen ? palette.onAccent : c.today ? palette.accent : palette.ink }}>
                     {c.n}
                   </Text>
@@ -208,7 +208,8 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
           )}
         </View>
       )}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+      {/* (T1203) the row wraps at a large text size: a button drops to the next line, never off the edge */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
         <Btn palette={palette} text={DAY_PICKER.earlier} label={DAY_PICKER.earlierLabel} onPress={() => step(-1)} enabled={canEarlier} />
         <Btn palette={palette} text={DAY_PICKER.today} label={DAY_PICKER.todayLabel} onPress={() => onDay(null)} strong />
         <Btn palette={palette} text={DAY_PICKER.later} label={DAY_PICKER.laterLabel} onPress={() => step(1)} enabled={canLater} />

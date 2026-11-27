@@ -120,6 +120,7 @@ def inputs(tmp_path: Path, monkeypatch):
     clim.write_text('{"release": "2026-01"}')
     monkeypatch.setattr(B, "sources", lambda: src)
     monkeypatch.setattr(B, "CLIM_PATH", clim)
+    monkeypatch.setattr(B, "MANIFEST", tmp_path / "build-manifest.json")     # (T1220) its source-hash cache: here
     monkeypatch.setattr(B, "inseason_ends_digest", lambda: "ends")      # (T679 #11) pinned on its own below
     # (T777) the typed DFO feed is generated (absent on CI): a stand-in digest, never this machine's feed
     monkeypatch.setattr(B, "dfo_feed_digest", lambda: "dfo")
@@ -192,6 +193,7 @@ def test_the_envelope_is_made_first_from_hydat(tmp_path, monkeypatch):
     for name in ("hydat.sqlite3", "bc_hydrometric_stations.json"):
         (tmp_path / name).write_text("v1")
     monkeypatch.setattr(B, "SOURCE", tmp_path)
+    monkeypatch.setattr(B, "MANIFEST", tmp_path / "build-manifest.json")     # (T1220) its source-hash cache: here
     assert set(B.clim_key()) == {"hydat", "release", "stations", "year", "datum", "code"}
     # (T1047) the datum changes by their ACCEPTED rows only: a proposed row's edit reruns nothing
     from pipeline.gauges.feed import datum
@@ -323,16 +325,16 @@ def test_the_marks_are_in_no_stage_key(monkeypatch):
 def test_the_curated_tree_loads_without_the_marks_store(tmp_path, monkeypatch):
     """T266: a build runs with marks.jsonl absent — the curated model no longer requires it to exist. The config is
     loaded as a build loads it: on its own paths, no `CURATED_ROOT` (the suite's sandbox would rebase them, T777)."""
-    import yaml
+    import copy
     from pipeline.common import curated as C
     monkeypatch.delenv(C.ROOT_ENV, raising=False)
-    blob = yaml.safe_load(C.CONFIG.read_text(encoding="utf-8"))
-    gone = tmp_path / "no-marks.jsonl"
-    blob["curated"]["review"]["marks"] = str(gone)
+    names = copy.deepcopy(C.NAMES)
+    names["curated"]["review"]["marks"] = "review/no-marks.jsonl"    # (T1192) the schema's name, under the curated root
+    monkeypatch.setattr(C, "NAMES", names)
     cfg = tmp_path / "config.yaml"
-    cfg.write_text(yaml.safe_dump(blob))
+    cfg.write_bytes(C.CONFIG.read_bytes())
     got = C.load(cfg)
-    assert got.review.marks == gone and not gone.exists()
+    assert got.review.marks == got.base / "review" / "no-marks.jsonl" and not got.review.marks.exists()
 
 
 def test_a_live_build_keeps_latests_reach_run_before_reach_reruns(tmp_path, monkeypatch, capsys):

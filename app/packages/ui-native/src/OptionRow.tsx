@@ -8,7 +8,7 @@
 import { View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { TYPE } from "./type";
+import { LABEL_SCALE, TYPE } from "./type";
 import type { Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 
@@ -64,14 +64,14 @@ export function OptionRow({ palette, options, value, onChange, shape, label }: {
                 ))}
               </View>
             )}
-            <Text style={{ ...TYPE.micro, fontSize: 11.5, fontWeight: "600", opacity: off ? 0.55 : 1,
+            <Text maxFontSizeMultiplier={LABEL_SCALE} style={{ ...TYPE.micro, fontSize: 11.5, fontWeight: "600", opacity: off ? 0.55 : 1,
                            color: on ? palette.ink : palette.sub }}>{o.t}</Text>
             {o.note && (
-              <Text style={{ ...TYPE.small, fontSize: 10, lineHeight: 13, color: palette.sub, textAlign: "center",
+              <Text maxFontSizeMultiplier={LABEL_SCALE} style={{ ...TYPE.small, fontSize: 10, lineHeight: 13, color: palette.sub, textAlign: "center",
                              paddingHorizontal: 4, opacity: off ? 0.55 : 1 }}>{o.note}</Text>
             )}
             {o.tag && (
-              <Text style={{ ...TYPE.section, fontSize: 9, letterSpacing: 1, color: on ? palette.accent : palette.ink,
+              <Text maxFontSizeMultiplier={LABEL_SCALE} style={{ ...TYPE.section, fontSize: 9, letterSpacing: 1, color: on ? palette.accent : palette.ink,
                              textAlign: "center" }}>{o.tag.toUpperCase()}</Text>
             )}
           </Pressable>

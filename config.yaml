@@ -1,97 +1,12 @@
-# Where the data lives: paths only.
-# What each file is, its kind and who owns it: pipeline/common/curated.py (the `#:` field notes);
-# the data / data_accessor / cache paths: project_config.py.
+# Where the data lives: paths only, relative to the repo. An unknown or missing key stops the load, naming it.
+# Every other file's name, what it is and who owns it: pipeline/common/curated.py (each field's `At` and note).
 
-generated:
-  base: "data/generated"
-  atlas:
-    builds: "data/generated/atlas"
-    default_build: "full"
-  reaches: "data/generated/reaches"
-  bundle: "data/generated/bundle"
-  tiles: "data/generated/tiles"
-  added_streams: "data/generated/added_streams"
-  scratch: "data/generated/scratch"
-  regs:
-    extraction: "data/generated/regs/extraction"
-    parse: "data/generated/regs/parse"
-    dfo_salmon: "data/generated/regs/dfo_salmon"
-    entries_backup: "data/generated/regs/entries_backup"
-  gauges:
-    feeds: "data/generated/gauges/feeds"
-    match: "data/generated/gauges/match.json"
-    candidates: "data/generated/gauges/candidates.json"
-    datum_proposals: "data/generated/gauges/datum_proposals.json"
-  runtiming: "data/generated/runtiming"
-  inseason: "data/generated/inseason"
-  review: "data/generated/review"
-  sloughs: "data/generated/sloughs"
-  side: "data/generated/side"
-  release: "data/release"
-
-data:
-  fetch:
-    output_gpkg: "data/source/bc_fisheries_data.gpkg"
-    temp_dir: "data/source/temp_bc_data"
-
-data_accessor:
-  gpkg_path: "data/source/bc_fisheries_data.gpkg"
-  coast_gpkg_path: "data/source/fwa_coast.gpkg"
-
-data_tree:
+roots:
   source: "data/source"
+  curated: "data/curated"
   generated: "data/generated"
-
-cache:
-  dfo_salmon: "cache/dfo_salmon"
-
-curated:
-  base: "data/curated"
-  waters:
-    cuts: "data/curated/waters/cuts.json"
-    name_variants: "data/curated/waters/name_variants.json"
-    found_names: "data/curated/waters/found_names.json"
-    found_name_calls: "data/curated/waters/found_name_calls.json"
-    areas: "data/curated/waters/area_closures.json"
-    continuations: "data/curated/waters/continuations.json"
-    tidal: "data/curated/waters/tidal_limits.json"
-    tidal_split_authority: "data/curated/waters/tidal_split_authority.json"
-    shore_held: "data/curated/waters/shore_held.json"
-    slough_calls: "data/curated/waters/slough_calls.json"
-    pond_calls: "data/curated/waters/pond_calls.json"
-    slough_page_calls: "data/curated/waters/slough_page_calls.json"
-    steelhead_waters: "data/curated/waters/steelhead_waters.json"
-    added_areas: "data/curated/waters/added_areas.geojson"
-    added_lakes: "data/curated/waters/added_lakes.geojson"
-    added_streams: "data/curated/waters/added_streams.json"
-    added_stream_calls: "data/curated/waters/added_stream_calls.json"
-    unmapped_waters: "data/curated/waters/unmapped_waters.json"
-    unplaced_piece_calls: "data/curated/waters/unplaced_piece_calls.json"
-    area_edge_calls: "data/curated/waters/area_edge_calls.json"
-  dfo_salmon:
-    places: "data/curated/dfo_salmon/places"
-    wording: "data/curated/dfo_salmon/wording.json"
-    tidal_calls: "data/curated/dfo_salmon/tidal_calls.json"
-    scope_places: "data/curated/dfo_salmon/scope_places.json"
-  regulations:
-    synopsis: "data/curated/regulations/synopsis"
-    book_name_links: "data/curated/regulations/book_name_links.json"
-    reference: "data/curated/regulations/reference"
-    word_reads: "data/curated/regulations/word_reads.json"
-    under_closure_calls: "data/curated/regulations/under_closure_calls.json"
-    local_closures: "data/curated/regulations/local_closures"
-  review:
-    marks: "data/curated/review/marks.jsonl"
-    proposal_overrides: "data/curated/review/proposal_overrides.json"
-    closed: "data/curated/review/closed.json"
-  runtiming:
-    run_calls: "data/curated/runtiming/run_calls.json"
-  inseason:
-    notice_waters: "data/curated/inseason/notice_waters.json"
-  gauges:
-    matches: "data/curated/gauges/matches.json"
-    match_calls: "data/curated/gauges/match_calls.json"
-    tidal_stations: "data/curated/gauges/tidal_stations.json"
-    backwater_stations: "data/curated/gauges/backwater_stations.json"
-    diversion_stations: "data/curated/gauges/diversion_stations.json"
-    datum_change_stations: "data/curated/gauges/datum_change_stations.json"
+  release: "data/release"
+  cache: "cache"
+source:
+  fwa_gpkg: "bc_fisheries_data.gpkg"   # the FWA GeoPackage, under roots.source
+atlas_build: "full"                     # the atlas build the review app serves, and every reader's default

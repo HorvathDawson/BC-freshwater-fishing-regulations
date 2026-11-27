@@ -17,6 +17,8 @@ import { KEPT_ASSETS, KEPT_READERS, TICKETS_DIR, assetIds, readWorkTree } from "
 
 /** The docs folder (the planning pages, runbooks, restart pages). The tickets folder (ledger.mjs) sits inside it today. */
 export const DOCS_DIR = "docs";
+/** (T1193) The pages written for agent chats: START-HERE, STATUS, the restart pages, the roadmap, the inbox. */
+export const AGENTS_DIR = `${DOCS_DIR}/agents`;
 /** The trees the totals count: every tracked path under one of these (a file under both counts once). */
 export const TREE = [DOCS_DIR, TICKETS_DIR];
 
@@ -38,9 +40,9 @@ export const BUDGETS = {
   // (T1144, 2026-11-26; the owner confirms) the restart pages are NOT in this total: each live chat adds one, so with about
   // 112 lines of room the third chat to save its state failed docs-ci and its push the night credits ran short. They keep
   // their own cap (`restart`, 60 lines each) and are deleted when their chat ends.
-  readingLines: [11375, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],   // +15 (T1189: the Province list read from the PDF); +9 (T1200: eight feedback-log rows and their count line, a closed tester's email); +77 (T1195: the Province list's 17 new entries, the batch 3 rulings, four feedback-log rows); +11 (T1195: the late rulings, the Snehumption entry); +1 (T1167: the in-season banner window, one decision line); +2 (T1199: ruling E30 and its superseded row)
+  readingLines: [11578, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],   // +15 (T1189: the Province list read from the PDF); +9 (T1200: eight feedback-log rows and their count line, a closed tester's email); +77 (T1195: the Province list's 17 new entries, the batch 3 rulings, four feedback-log rows); +11 (T1195: the late rulings, the Snehumption entry); +1 (T1167: the in-season banner window, one decision line); +1 (T1177: RULINGS E29); +2 (T1177: his release of PR #330 and the away rule); +6 (T1177: RULINGS L27-L29 and Q31, the owner's P7 / O1 rulings); +3 (T1177: his Blue Lead, T1243 and Strathcona-Westmin answers); +3 (T1193: the default-tier line in AGENTS 18 +2, the README's test line +1); +6 (T1222: secrets.md says where run-time settings come from now that no .env is read); +177 (T1193: docs/README and every tool named in the three tool READMEs); +1 (T1193: the moved-page pointer at docs/START-HERE.md); +1 (T1243: RULINGS Q32, the annual quota under its row's release); +3 (T1193: the README's five everyday things with the make verbs and the test tier line, the scripts/README verb table); +2 (T1199: ruling E30 and its superseded row E8)
   // the docs tree (docs/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
-  treeLines:    [23000, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],
+  treeLines:    [23062, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],   // +39 (T1222: main stood at 22962; its ticket and the secrets.md section took the rest of the room); +23 (T1192 PR 4: the ticket's PR 4 notes, its found-not-moved list and the review's gaps)
   treeFiles:    [1600, "tracked files in the docs tree"],
   treePictureBytes: [157660235, "bytes of tracked png/jpg/webp/gif in the docs tree (pictures live in git forever)"],
 };
@@ -48,6 +50,7 @@ export const BUDGETS = {
 /** README.md files under app/ or pipeline/ allowed to pass BUDGETS.subReadme: path -> its own budget (today's size + 10%). */
 export const README_LONG = {
   "app/README.md": 84,
+  "app/tools/README.md": 96,   // 87 (T1193: every top-level runnable named, grouped, one line each)
   "app/tools/maplibre-android/README.md": 54,
   "app/tools/testbed/README.md": 92,
   "pipeline/README.md": 83,
@@ -74,12 +77,12 @@ export const MARKDOWN_LONG = {
 /** Markdown outside the tickets folder allowed over BUDGETS.page: path -> its own budget (its size when listed). A page
  *  leaves the list when it is cut; a NEW long page needs an entry here, in its PR, with the reason beside it. */
 export const PAGE_LONG = {
-  "pipeline/docs/RULINGS.md": 454,                                         // the owner's rulings on how the book is read: his words, never shortened (+2 T1199: E30, E8 superseded)
-  "docs/OWNER-RULINGS.md": 283,                                    // his standing rulings, in his words, never shortened (T1177: audit batch 2); like RULINGS.md; +50 (T1195: audit batch 3, the evening's rulings); +9 (T1195: the rulings made after the first draft)
+  "pipeline/docs/RULINGS.md": 462,                                         // the owner's rulings on how the book is read: his words, never shortened (+1, T1177: E29, the audit's per-water extent rulings; +6, T1177: L27-L29 and Q31; +1, T1243: Q32; +2, T1199: E30, E8 superseded)
+  "docs/OWNER-RULINGS.md": 288,                                    // his standing rulings, in his words, never shortened (T1177: audit batch 2); like RULINGS.md; +50 (T1195: audit batch 3, the evening's rulings); +9 (T1195: the rulings made after the first draft); +2 (T1177: his release of PR #330 and the away rule); +3 (T1177: Blue Lead, T1243, Strathcona-Westmin)
   "pipeline/docs/GOTCHAS.md": 210,                                 // the gotchas (T1177: the audit rulings' entries); the Province's list is its own page
-  "docs/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
+  "docs/agents/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
   "docs/play-production-access/questionnaire-draft.md": 173,       // the Play production access record
-  "docs/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends
+  "docs/repo-move/OUTSIDE-GIT.md": 241,                            // the repo-move chat's record, until that chat ends
   "docs/repo-move/PREP.md": 262,                                   // the same
   // held as they are while 0.10.0 ships from them (planning chat 2026-11-25): one release.md + a short by-hand page after its merge back
   "docs/runbooks/release-by-hand.md": 495,   // +2 (T1161): "lid open, on power", the line that would have saved 0.10.0 its 8.3 h asleep
@@ -91,7 +94,7 @@ export const PAGE_LONG = {
 };
 
 /** PAGE_LONG entries that are a cap with room under it, not the page's size (a live page another chat keeps). */
-export const PAGE_ROOM = new Set(["docs/ROADMAP-after-0.9.0.md"]);
+export const PAGE_ROOM = new Set(["docs/agents/ROADMAP-after-0.9.0.md"]);
 
 /** Look-up files: text a program reads or writes, or the book's own words. Not counted in BUDGETS.readingLines and not
  *  held to BUDGETS.page (anyMarkdown still holds them). A prefix ending in "/" is a folder. */
@@ -105,7 +108,7 @@ export const LOOKUP = [
 ];
 const isLookup = (p) => LOOKUP.some((l) => (l.endsWith("/") ? p.startsWith(l) : p === l));
 /** A live chat's restart page: held by BUDGETS.restart each, left out of BUDGETS.readingLines (see there). */
-const isRestartPage = (p) => p.startsWith(`${DOCS_DIR}/restart/`) && /\.md$/i.test(p);
+const isRestartPage = (p) => p.startsWith(`${AGENTS_DIR}/restart/`) && /\.md$/i.test(p);
 
 /** A page named for a day (…-2026-11-15.md) is a record of that day: history, which git keeps. */
 const DATED_NAME = /(^|[-_./])20\d\d-\d\d-\d\d[^/]*(\/|\.md$)/;
@@ -155,14 +158,14 @@ export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = R
   const [B, why] = [(k) => BUDGETS[k][0], (k) => BUDGETS[k][1]];
 
   // required reading
-  const reading = [["README.md", "readme"], [`${DOCS_DIR}/START-HERE.md`, "startHere"], ["AGENTS.md", "agents"],
-                   [`${DOCS_DIR}/STATUS.md`, "status"], [`${DOCS_DIR}/app-integration/decisions.md`, "decisions"]];
+  const reading = [["README.md", "readme"], [`${AGENTS_DIR}/START-HERE.md`, "startHere"], ["AGENTS.md", "agents"],
+                   [`${AGENTS_DIR}/STATUS.md`, "status"], [`${DOCS_DIR}/app-integration/decisions.md`, "decisions"]];
   for (const [p, k] of reading) {
     if (!byPath.has(p)) problems.push(`${p}: not tracked, but its budget (${k}) names it: fix the path in BUDGETS' reading list`);
     else if (lines(p) > B(k)) problems.push(over(p, lines(p), "lines", B(k), why(k)));
   }
   for (const f of files)
-    if (under(f.path, `${DOCS_DIR}/restart`) && MARKDOWN.test(f.path) && f.lines > B("restart"))
+    if (under(f.path, `${AGENTS_DIR}/restart`) && MARKDOWN.test(f.path) && f.lines > B("restart"))
       problems.push(over(f.path, f.lines, "lines", B("restart"), why("restart")));
 
   // a README under app/ or pipeline/ is short unless it is listed; a package has one
@@ -312,7 +315,7 @@ export function measure(repoRoot) {
   const plus = (n) => Math.ceil(n * 1.1);
   const pages = files.filter((f) => MARKDOWN.test(f.path) && !under(f.path, TICKETS_DIR) && !isLookup(f.path));
   const reading = pages.reduce((n, f) => n + (isRestartPage(f.path) ? 0 : f.lines), 0);
-  const own = new Set(["README.md", "AGENTS.md", `${DOCS_DIR}/START-HERE.md`, `${DOCS_DIR}/STATUS.md`, `${DOCS_DIR}/app-integration/decisions.md`]);
+  const own = new Set(["README.md", "AGENTS.md", `${AGENTS_DIR}/START-HERE.md`, `${AGENTS_DIR}/STATUS.md`, `${DOCS_DIR}/app-integration/decisions.md`]);
   const long = pages.filter((f) => f.lines > BUDGETS.page[0] && !own.has(f.path) && !(f.path in MARKDOWN_LONG) && !(base(f.path) === "README.md" && /^(app|pipeline)\//.test(f.path)));
   const out = [`readingLines: [${Math.ceil(reading * 1.05)}, …]   // today ${reading}`, "PAGE_LONG = {", ...long.map((f) => `  "${f.path}": ${PAGE_ROOM.has(f.path) ? PAGE_LONG[f.path] ?? f.lines : f.lines},   // + the reason it stays long`), "}", `treeLines: [${plus(mdLines)}, …]   // today ${mdLines}`, `treeFiles: [${plus(tree.length)}, …]   // today ${tree.length}`,
                `treePictureBytes: [${plus(pics)}, …]   // today ${pics}`, "README_LONG = {"];

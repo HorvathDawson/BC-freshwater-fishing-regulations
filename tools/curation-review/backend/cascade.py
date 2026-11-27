@@ -171,7 +171,7 @@ def _lake_polys(wbks: set) -> dict:
     import sqlite3
     from shapely import wkb as _wkb
     from shapely.ops import unary_union
-    src = reuse.SOURCE / "bc_fisheries_data.gpkg"
+    src = reuse.SOURCE.fwa_gpkg
     out: dict = defaultdict(list)
     if not src.exists():
         return {}

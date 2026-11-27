@@ -1489,6 +1489,80 @@ def test_the_reverse_shape_and_a_size_clause_are_left_as_printed(tmp_path):
     assert _rules_of(path, MAY_15, "DV") == {"w.r1", "w.r2"}
 
 
+#: Shuswap Lake's dates (p.32): "Rainbow trout and char — release all, May 15-Mar 14"
+MAY15_MAR14 = {"dates": [{"from_month": 5, "from_day": 15, "to_month": 3, "to_day": 14}]}
+ANNUAL = {"dimension": "annual", "period": "annual"}
+
+
+def _annual_case(tmp_path, release: dict, via: dict | None = None, other_row: bool = False) -> str:
+    """The Shuswap row's shape: a daily 1, an annual 5 and a dated take-0 rule, one row (or the
+    take-0 rule on ANOTHER row when `other_row`)."""
+    return _tiny(tmp_path, [
+        {"entry": "r9:w", "rule": "w.r7", "species": ["RB"], "take": 1, "_rank": 0},
+        dict({"entry": "r9:w", "rule": "w.r8", "species": ["RB"], "take": 5, "_rank": 0}, **ANNUAL),
+        dict({"entry": "r9:v" if other_row else "r9:w", "rule": "w.r2", "species": ["RB", "CHAR"],
+              "take": 0, "when": MAY15_MAR14, "_rank": 0}, **release)], via=via)
+
+
+def _traced(path, on, fish="RB") -> dict:
+    return {x["rule"]: (x["state"], x.get("reason"), (x.get("by") or "")) for x in
+            R.effective_rules(1, on, fish, path, trace=True)}
+
+
+def test_a_same_row_dated_release_silences_the_rows_annual_quota_on_its_dates(tmp_path):
+    """RULINGS Q32 (T1243, the owner's pick "Hide the annual quota while release applies"): the
+    Shuswap row's "release all, May 15-Mar 14" silences its own "5 per licence year" on those dates,
+    as RU-3 silences its daily 1 — through `lose`, so the trace names the release. On Apr 1 (outside
+    the release) the 1 and the 5 speak. MUTATION: `ladder.SAME_ROW_RELEASE_SILENCES_ANNUAL` off ->
+    the 5 speaks beside "release all" on Jul 15 (the daily 1 stays silenced: the pin is the annual
+    step alone)."""
+    path = _annual_case(tmp_path, {"may_target": 1})
+    got = _traced(path, (7, 15))
+    assert got["w.r2"][0] == "speaks"
+    assert got["w.r7"][:2] == got["w.r8"][:2] == ("displaced", "same_row_release")
+    assert "w.r2" in str(got["w.r8"][2])
+    assert _rules_of(path, (4, 1), "RB") == {"w.r7", "w.r8"}
+    old = R.ladder.SAME_ROW_RELEASE_SILENCES_ANNUAL
+    try:
+        R.ladder.SAME_ROW_RELEASE_SILENCES_ANNUAL = False
+        assert _rules_of(path, (7, 15), "RB") == {"w.r2", "w.r8"}
+    finally:
+        R.ladder.SAME_ROW_RELEASE_SILENCES_ANNUAL = old
+
+
+def test_another_rows_dated_release_leaves_the_annual_quota_speaking(tmp_path):
+    """RU-3's scope, unchanged by Q32: the SAME row only (`_same_row_releaser`: `o[0] == k[0]`, as
+    for the daily quota). A dated release on another water's row bound here silences neither the
+    row's daily 1 nor its annual 5 by this step."""
+    path = _annual_case(tmp_path, {"may_target": 1}, other_row=True)
+    got = _traced(path, (7, 15))
+    assert got["w.r8"][0] == "speaks"
+    assert got["w.r7"][1] != "same_row_release"
+
+
+def test_a_same_row_dated_closure_silences_the_annual_quota_as_it_does_the_daily(tmp_path):
+    """A row's dated CLOSURE is a release to RU-3 (review F4), so it silences the annual 5 on its
+    dates as it does the daily 1. Bound by the row's own place, the closure is the water's own
+    (step 4c, `water_closure`) and takes both before RU-3; reached by the tributary walk (no own
+    closure), RU-3 is what silences them — the mutation pin on that path: with
+    `SAME_ROW_RELEASE_SILENCES_ANNUAL` off the 5 speaks beside the closure on Jul 15. Outside the
+    closure's dates (Apr 1) both speak."""
+    path = _annual_case(tmp_path, {"may_target": 0})
+    got = _traced(path, (7, 15))
+    assert got["w.r2"][0] == "speaks" and got["w.r7"][0] == got["w.r8"][0] == "displaced"
+    path = _annual_case(_sub(tmp_path), {"may_target": 0},
+                        via={"w.r7": "trib", "w.r8": "trib", "w.r2": "trib"})
+    got = _traced(path, (7, 15))
+    assert got["w.r7"][:2] == got["w.r8"][:2] == ("displaced", "same_row_release")
+    assert _rules_of(path, (4, 1), "RB") == {"w.r7", "w.r8"}
+    old = R.ladder.SAME_ROW_RELEASE_SILENCES_ANNUAL
+    try:
+        R.ladder.SAME_ROW_RELEASE_SILENCES_ANNUAL = False
+        assert _rules_of(path, (7, 15), "RB") == {"w.r2", "w.r8"}
+    finally:
+        R.ladder.SAME_ROW_RELEASE_SILENCES_ANNUAL = old
+
+
 def test_a_zone_release_naming_the_fish_empties_its_tables_from_streams_clause(tmp_path):
     """RU-4 (the review's S7): Region 5 releases ALL STEELHEAD; its "2 per day … from streams"
     is a clause of the quota the release empties for a steelhead, and no longer speaks beside

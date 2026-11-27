@@ -72,11 +72,11 @@ def main() -> None:
                     help="default: gauges/hydat_daily under the config's generated tree (its *.json are pruned)")
     a = ap.parse_args()
     # (T994 7) never a cwd-relative literal: the --out directory is pruned below, so a wrong cwd would prune another tree
-    from pipeline.common.curated import SOURCE, generated
+    from pipeline.common.curated import GENERATED, SOURCE
     if a.hydat is None:
-        a.hydat = SOURCE.source / "hydat.sqlite3"
+        a.hydat = SOURCE / "hydat.sqlite3"
     if a.out is None:
-        a.out = generated("gauges", "hydat_daily")
+        a.out = GENERATED.gauges.hydat_daily
     release = (a.hydat.parent / "hydat.release").read_text().strip()
     files = build(a.hydat, index_stations(a.index), release)
     a.out.mkdir(parents=True, exist_ok=True)

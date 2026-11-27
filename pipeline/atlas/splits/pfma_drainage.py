@@ -48,12 +48,12 @@ import collections
 import logging
 from typing import Dict, Iterable, Optional
 
-from project_config import get_config
+from pipeline.common.curated import SOURCE
 from pipeline.common.utils import wsc as _wsc
 
 logger = logging.getLogger(__name__)
 
-_GPKG = str(get_config().fwa_data_gpkg)
+_GPKG = str(SOURCE.fwa_gpkg)
 
 LAYER = "pfma_areas"
 AREA_FIELD = "MANAGEMENT_AREA"

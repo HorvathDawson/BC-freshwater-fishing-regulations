@@ -38,7 +38,7 @@ from pipeline.common.utils import wsc as _wsc
 from pipeline.common.models import BlkChain
 from pipeline.common.names import compact_key
 from pipeline.common import fwa_edge_types
-from pipeline.common.curated import CURATED, GENERATED
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 _CONNECT_TOL = 80.0        # a novel mouth must be within this of its receiver / the tidal boundary
@@ -1736,8 +1736,7 @@ def main() -> None:
                     help="municipal sources (default: burnaby)")
     ap.add_argument("--gpkg", default=None)
     args = ap.parse_args()
-    from project_config import get_config
-    build(args.sources or ["burnaby"], args.gpkg or get_config().fwa_data_gpkg)
+    build(args.sources or ["burnaby"], args.gpkg or SOURCE.fwa_gpkg)
 
 
 if __name__ == "__main__":

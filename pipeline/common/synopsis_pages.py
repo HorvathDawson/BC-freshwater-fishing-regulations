@@ -9,7 +9,7 @@ takes the PDF index, so a link built from a printed page lands two to six pages 
 
 `printed_to_pdf()` reads the map off the repo copy's own footers with `printed_page_number`, the
 extractor's reader (it lives here so the export and the curation app can use it without loading the
-extractor's numpy/sklearn stack; `extract_synopsis` imports it from here). Nothing is hand-typed.
+extractor's PDF stack (PyMuPDF since T1190); `extract_synopsis` imports it from here). Nothing is hand-typed.
 It ships once, in the UI export's guide file (`guide.pdf_pages`), and the curation app serves it
 (`GET /api/synopsis/pages`). Every link into the PDF goes through it.
 """
@@ -22,13 +22,9 @@ from typing import NamedTuple, Optional
 
 from pipeline.common.curated import SOURCE
 
-#: The repo copy of the synopsis (`SOURCE / "fishing_synopsis.pdf"`) — the edition the entries
-#: were read from (gov.bc.ca's file is the same edition, but its bytes move day to day).
-PDF_NAME = "fishing_synopsis.pdf"
-
-
 def default_pdf() -> Path:
-    return Path(SOURCE / PDF_NAME)
+    """The repo copy of the synopsis (`SOURCE.synopsis_pdf`)."""
+    return SOURCE.synopsis_pdf
 
 
 #: The running footer every numbered page carries: "40 2025-2027 BC Freshwater Fishing Regulations

@@ -6,7 +6,7 @@
 #   scripts/heavy.sh test-full 40 -- ./scripts/test-full.sh
 #
 #   1. REGS_STORE_REQUIRED=1 pnpm -C app check              every app gate + vitest, the parity strict (3 to 4 min, audit 2026-11-16)
-#   2. pytest (the fast suite, `-m "not slow"`)             in chunks, one process each (scripts/pytest-chunked.sh, T638:
+#   2. pytest (the fast suite, `--with-data`: -m "not slow") in chunks, one process each (scripts/pytest-chunked.sh, T638:
 #                                                           one process grows to ~111 GB and the kernel kills it)
 #   3. pytest -m slow                                       the same, chunked: determinism and full-build guards (AGENTS 18)
 #   4. card gate on the shipped answers                     problems: 0 (rule 9)
@@ -29,7 +29,8 @@ step() { local name=$1 s=$SECONDS; shift; echo "── $name"; if "$@"; then ech
 # passes green on zero cases whenever the release on disk is not the one taps.json was cut from (after every release,
 # until sync.mjs re-cuts the goldens); the failure names `node app/tools/regs-recut/sync.mjs`.
 step "app check (strict parity)" env REGS_STORE_REQUIRED=1 pnpm -C app check
-step "pytest fast (chunked)" bash scripts/pytest-chunked.sh
+# (T1193) --with-data, said: a plain pytest is the no-data tier now, and this step is the data tier (every needs_* test)
+step "pytest fast (chunked)" bash scripts/pytest-chunked.sh -- --with-data
 step "pytest slow (chunked)" bash scripts/pytest-chunked.sh -- -m slow
 step "card gate" "$PY" -m pipeline.deliver.answers.card_check
 # the release (P08): parity of every single-file read against the bundle, the query plans and the perf budgets

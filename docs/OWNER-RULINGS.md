@@ -158,7 +158,7 @@ park-rule fix (Recommended)" (T1149).
 - **O2 Upper Chehalis River:** "close it and check pattern. we need to think about this because tributaries have a
   closure so in this case it needs to override." Build: closed; a lake-tributary closure overrides.
 - **O3 Lost Lake near Whistler:** "Move it to the Whistler lake (Recommended)". Build: the electric-motor rule moves.
-- **O4 Hatton Creek:** "Add fly-only to Hatton Creek (Recommended)". Build: fly only Sep 1-Jul 14.
+- **O4 Hatton Creek:** "Add fly-only to Hatton Creek (Recommended)". Build: fly only ALL YEAR, as the book prints it (no dates); his batch-1 answer: "it is all year".
 - **O5 Gwillim, Muncho:** "Keep the zone limit (Recommended)". Build: none.
 - **O6 McRae Creek:** "that is the real falls location". Build: none; the cut stays at 2.05 km; the book's "about 4 km" is on the Province list.
 - **O7 Connor Lake's tributaries:** "it needs to apply to all tributaries of the lake need to make sure this is true for
@@ -256,11 +256,16 @@ His words, verbatim. Answers given in the planning chat and relayed verbatim to 
 - **Snehumption Creek:** "The whole creek is a Similkameen tributary". The fold opens the 17 km main line in spring (the channel carries the Similkameen tributary rows). Built as a rule: a stream that leaves B.C. and joins a B.C. river downstream of the border is that river's tributary; the other waters the rule touches are shown to him first (T1240). The confluence with the Similkameen is in the U.S. (Province list entry 42).
 - **Stellako:** "Yes, open May 15 as built (Recommended)" (P7a stands as built).
 - **Little River:** "yes we want the strictest here." (O1 stands as built).
-- **The lower Quesnel River, below the Cariboo:** "Yes, close it too (Recommended)": about 100 km more spring closure; Region 5 total about 431 km (T1177 item 8, Province list entry 19).
+- **The lower Quesnel River, below the Cariboo:** "Yes, close it too (Recommended)": about 100 km more spring closure (99.9 km measured); Region 5 total about 431 km (430.8 km) (T1177 item 8, Province list entry 19).
 - **Lake zone cuts (T1180):** "Every line or bay mouth, both pieces at least 0.5 km²: 11 cuts (Recommended)"; approximate edges: "Keep them as approximate marks until located". The card map and search: NOT approved: "more design please just this changes a lot so i want to make it more clear because it effects streams too..." (round 3 designs the card's map for lakes and streams as whole options).
 - **Lake zones, his latest words (T1180):** "in terms of the lake zones and cuts etc that is a big change and i dont think we should implement it yet we want to really prepare how it is going to happen first so weshould go through the rest of the prep I mention and we really want to nail down a few proposal of how it qworks with the current workflow and menus. with the card reg condition map items and the actual map." Plain reading: no build of lake zone cuts until he picks a whole proposal; the design lane prepares 2-4 whole proposals covering the card, the regulations view, the conditions map items and the map.
 - **The water option D:** "Run the loop-removal trial first, then I decide" (T1242); the parts C and D share are built now.
 - **While he is away:** "Collect everything; nothing that opens water or changes a look merges without me (Recommended)".
+- **The one-offs branch (T1177, PR #330):** "Yes, merge both (Recommended)".
+- **Away rule from now on** (replaces the line above): "Yes, approved items merge (Recommended)": anything he already picked or answered merges after its full check and a second agent's review; only NEW openings, new looks and open questions wait for him.
+- **Blue Lead Creek below the falls** (0.9 km, kept lifted by its Aug 15-Oct 31 closure): "Keep it open in spring (Recommended)" (as built).
+- **An annual quota under its own row's release (T1243)**: "Hide the annual quota while release applies (Recommended)".
+- **Strathcona-Westmin Park** (part of "Strathcona Park" for the rules that name it?): "Yes, treat it as Strathcona Park (Recommended)" (T1240).
 
 ### Out-of-unit audit (T1118)
 - The 14 newly examined rows whose printed unit is off: "Keep all 14 and add each to the Province list with its evidence (Recommended)" (entries 25-38 of the Province list).

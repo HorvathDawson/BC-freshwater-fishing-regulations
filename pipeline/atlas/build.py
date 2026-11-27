@@ -11,7 +11,7 @@ summary.txt. The blue-line chains are built and used in memory only (P21: their 
 from __future__ import annotations
 
 # (T1171) THE RECORDER FIRST, before any import below reads a file (importing `pipeline.common.curated` reads
-# config.yaml, `project_config` the .env): the atlas's code record (`graph.pkl.meta.json` `code`, `atlas.inputs.
+# config.yaml): the atlas's code record (`graph.pkl.meta.json` `code`, `atlas.inputs.
 # record_code`) is what this process imported, read and took from config.yaml. `_trace` is the standard library only.
 if __name__ == "__main__":
     from pipeline import _trace as _rec
@@ -29,7 +29,6 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from project_config import get_config
 from pipeline.atlas.fwa import FWADataAccessor, get_area_polys, get_lake_wbk_kind
 
 from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
@@ -40,7 +39,7 @@ from pipeline.common.io.serialize import write_artifact
 from pipeline.atlas.splits.splits import load_split_defs
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
-_DEFAULT_GPKG = str(get_config().fwa_data_gpkg)
+_DEFAULT_GPKG = str(SOURCE.fwa_gpkg)
 
 
 def get_wetland_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
@@ -1483,9 +1482,8 @@ def cut_shores(b: _Build) -> None:
 
 
 def CURATED_COAST_GPKG():
-    """the FWA coast layers (`fetch_data.py` fwa_rivers / fwa_land; config `data_accessor.coast_gpkg_path`)"""
-    from project_config import get_config
-    return get_config().fwa_coast_gpkg
+    """the FWA coast layers (`fetch_data.py` fwa_rivers / fwa_land; config `source.coast_gpkg`)"""
+    return SOURCE.coast_gpkg
 
 
 def mark_membership(b: _Build) -> None:

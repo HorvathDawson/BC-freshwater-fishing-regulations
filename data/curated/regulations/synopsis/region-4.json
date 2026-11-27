@@ -542,7 +542,7 @@
     35
    ],
    "matched": [
-    "gnis:14970"
+    "gnis:7335"
    ],
    "rules": [
     {
@@ -5269,7 +5269,7 @@
     {
      "rule_id": "goat_river.r1",
      "type": "retention_limit",
-     "verbatim": "Trout/char catch and release (mainstem only)",
+     "verbatim": "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek",
      "species": [
       "TROUT_CHAR"
      ],
@@ -5278,7 +5278,11 @@
      "includes_tributaries": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "splits": [
+        "goat_river__leadville_creek_into_goat_river",
+        "goat_river__cameron_creek_into_goat_river"
+       ]
       }
      ]
     },
@@ -5570,7 +5574,8 @@
     37
    ],
    "matched": [
-    "wbk:329523986"
+    "wbk:329094665",
+    "wbk:329094669"
    ],
    "extents": [
     {
@@ -13502,8 +13507,8 @@
     "Stocked"
    ],
    "matched": [
-    "wbk:329524100",
-    "wbk:328989162"
+    "wbk:329094185",
+    "wbk:329094397"
    ],
    "rules": [
     {

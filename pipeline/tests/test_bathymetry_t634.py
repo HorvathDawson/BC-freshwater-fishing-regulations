@@ -328,3 +328,42 @@ def test_stocking_code_picks_name_confirms_never_name_alone():
     assert got["2"]["rule"] == "name_disagrees"
     assert got["3"]["rule"] == "no_lake" and got["4"]["rule"] == "no_code"
     assert all(r["licence"].startswith("owner says OGL") for r in out["proposals"])
+
+
+def test_the_accept_reads_and_writes_the_declared_files():
+    """(T1192) the frozen files the accept writes and the proposals it reads are config.yaml keys (`CURATED.bathymetry`,
+    `CURATED.stocking`, `GENERATED.bathymetry`, `GENERATED.stocking`), never a root joined with a literal; and the
+    freshness gate (`check_curated`) watches the chart one, not "not declared"."""
+    from pipeline.tests import under_test
+    from pipeline.tools.audit import check_curated as CC
+    cur, gen = under_test.curated(), under_test.generated()
+    assert {w: (acc.proposals_path(w), acc.frozen_path(w)) for w in acc.SETS} == {
+        "charts": (gen.bathymetry / "proposals.json", cur.bathymetry.matches),
+        "contours": (gen.bathymetry / "contour_proposals.json", cur.bathymetry.contour_matches),
+        "stocking": (gen.stocking / "proposals.json", cur.stocking.matches)}
+    frozen = {a.name: a.frozen for a in CC.ARTIFACTS}
+    assert frozen["bathymetry sheet match"] == acc.frozen_path("charts")
+    # (T1192 review) not wired: its roster has no writer, so its id is not shown to be the accept's `chart_id`
+    assert frozen["stocking waterbody match"] is None
+
+
+def test_the_freshness_gate_reads_the_file_the_accept_writes(tmp_path):
+    """(T1192 review) `check_curated`'s bathymetry entry reads the accept's true shape (`{"matches": [{chart_id…}]}`,
+    a refusal a row too) against the sheet roster's `waterbody_identifier` (`fetch_bathymetry_sheets`' rows)."""
+    import dataclasses
+    import json
+    from pipeline.tools.audit import check_curated as CC
+    props = [{"chart_id": c, "wbks": ["wbk:1"], "titles": [c], "rule": "clean", "evidence": {}} for c in ("A", "B")]
+    frozen = acc.load_frozen(tmp_path / "absent.json")
+    acc.accept(frozen, props, ["A"], by="owner", today="2026-11-27")
+    acc.accept(frozen, props, ["B"], by="owner", today="2026-11-27", refuse="not a lake")
+    (tmp_path / "matches.json").write_text(json.dumps(frozen, indent=1) + "\n")
+    roster = tmp_path / "sheets.json"
+    gate = dataclasses.replace(next(a for a in CC.ARTIFACTS if a.name == "bathymetry sheet match"),
+                               roster=roster, frozen=tmp_path / "matches.json")
+    rows = lambda *ids: [{"waterbody_identifier": i, "map_title": i, "sheet_no": 1} for i in ids]
+    roster.write_text(json.dumps(rows("A", "B")))
+    assert gate.ids(gate.frozen, gate.frozen_ids) == {"A", "B"}
+    assert CC.check(gate)[0] == "fresh"
+    roster.write_text(json.dumps(rows("A", "B", "C")))
+    assert CC.check(gate) == ("STALE", "1 in the roster with no decision: C")

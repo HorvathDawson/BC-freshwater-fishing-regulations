@@ -18,7 +18,7 @@ from pipeline.atlas.splits.anchors import _area_transition_measures
 from pipeline.common.curated import CURATED, SOURCE
 
 ROOT = get_config().project_root
-_GPKG = str(get_config().fwa_data_gpkg)
+_GPKG = str(SOURCE.fwa_gpkg)
 
 
 #: The cut modes an area may declare (`areas.json` `cut`; see its `_cut_policy`).
@@ -50,7 +50,7 @@ def cut_mode(area_def: dict) -> str | None:
 
 
 def load_area_split_defs(path: str | None = None) -> list[dict]:
-    p = Path(path) if path else CURATED.waters.areas   # curated: a missing file raises (P2)
+    p = Path(path) if path else CURATED.waters.area_closures   # curated: a missing file raises (P2)
     return json.loads(p.read_text()).get("areas", [])
 
 

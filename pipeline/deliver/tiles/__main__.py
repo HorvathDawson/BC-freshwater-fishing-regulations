@@ -4,9 +4,8 @@ import argparse
 import time
 from pathlib import Path
 
-from project_config import get_config
 from pipeline.deliver.tiles import export, ladder, obstacles, tippe
-from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, ROOTS, SOURCE
 
 
 def no_archive_refusals(out_dir: Path, no_release: bool, tiles_only: bool) -> list[str]:
@@ -25,11 +24,10 @@ def no_archive_refusals(out_dir: Path, no_release: bool, tiles_only: bool) -> li
 
 def parser() -> argparse.ArgumentParser:
     """The tile step's flags; every input defaults to the live one (`test_mini_deliver_inputs.py` pins that)."""
-    cfg = get_config()
     ap = argparse.ArgumentParser(prog="python -m pipeline.deliver.tiles")
     ap.add_argument("--build", default=str(GENERATED.build()),
                     help="a completed build dir (graph.pkl, geometries.pkl, registry.json)")
-    ap.add_argument("--gpkg", default=str(cfg.fwa_data_gpkg))
+    ap.add_argument("--gpkg", default=str(SOURCE.fwa_gpkg))
     ap.add_argument("--out", default=str(GENERATED.tiles))
     ap.add_argument("--minzoom", type=int, default=4)
     ap.add_argument("--maxzoom", type=int, default=ladder.MAX_ZOOM,
@@ -47,7 +45,7 @@ def parser() -> argparse.ArgumentParser:
                     help="(T173) write ONLY layers/obstacle.geojsonl (the fish obstacles, from "
                          "data/source/fish_obstacles/) and stop; `--tiles-only` then builds it into the atlas")
     ap.add_argument("--verbose", action="store_true")
-    ap.add_argument("--release-root", type=Path, default=GENERATED.release,
+    ap.add_argument("--release-root", type=Path, default=ROOTS.release,
                     help="where the released tile folder goes: <root>/tiles/<version>/ (default: data/release)")
     ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite",
                     help="the bundle the finished tiles are checked against (default: the live one)")
@@ -103,6 +101,8 @@ def main() -> None:
                              "Run without it once to export them.")
         # (T299) derived from the stream layer file alone, so it is derived again here
         print(f"  stream_name    {export.export_stream_names(layer_dir)['stream_name']:>9,}")
+        # (T1210) and the lake names, from the lake layer file alone
+        print(f"  lake_name      {export.export_lake_names(layer_dir)['lake_name']:>9,}")
         out = tippe.build(layer_dir, out_dir / "atlas.pmtiles",
                           minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
         print(f"\n{out}  {out.stat().st_size / 1e6:,.1f} MB   "
@@ -135,6 +135,7 @@ def main() -> None:
         counts |= export.export_stream_names(layer_dir)
         counts |= export.export_waterbodies(build_dir, a.gpkg, layer_dir, route_zooms=route_zooms, tidal=pieces,
                                             tidal_geoms=tgeoms)
+        counts |= export.export_lake_names(layer_dir)             # (T1210) from the lake layer file just written
         # (T1024) every stream polygon's `lz` against the stream layer AS WRITTEN (no third case)
         from pipeline.deliver.tiles.stream_polygon_lines import check as _check_lz
         print(f"  stream polygons {_check_lz(layer_dir):>8,}  (each `lz` its line's first zoom, or no line, T1024)")
@@ -161,7 +162,7 @@ def main() -> None:
 
 
 def _version_and_release(build_dir: Path, out_dir: Path, archive: Path, no_release: bool,
-                         release_root: Path = GENERATED.release) -> None:
+                         release_root: Path = ROOTS.release) -> None:
     """P18: stamp the tile version into the archive, write the sidecar, and copy archive + mask into
     `data/release/tiles/<version>/` (the shipped set). The archive in `out_dir` stays where the dev server reads it."""
     from pipeline.deliver.tiles import version as V

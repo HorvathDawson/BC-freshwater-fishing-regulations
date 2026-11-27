@@ -9324,6 +9324,52 @@
   {
    "name": "GOAT RIVER",
    "applies_to": {
+    "gnis_id": "11220"
+   },
+   "splits": [
+    {
+     "id": "goat_river__leadville_creek_into_goat_river",
+     "label": "Leadville Creek → Goat River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "300-625474-197491-428350-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Leadville Creek"
+     },
+     "note": "",
+     "_note": "Confluence = mouth of Leadville Creek (blk 356569557, gnis 9264) on the Goat River 4-6 main line (blk 356569573) at about km 33.1. The lower end of the Goat River's catch and release (mainstem only), read as \"between Leadville Creek and Cameron Creek\" (owner 2026-11-26, T1177 O10: \"between the 2 only with a gotcha added\").",
+     "_coord": [
+      -116.3351,
+      49.2272
+     ],
+     "applies_to": {
+      "wsc": "300-625474-197491"
+     }
+    },
+    {
+     "id": "goat_river__cameron_creek_into_goat_river",
+     "label": "Cameron Creek → Goat River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "300-625474-197491-551267-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Cameron Creek"
+     },
+     "note": "",
+     "_note": "Confluence = mouth of Cameron Creek (blk 356564175, gnis 17744) on the Goat River 4-6 main line (blk 356569573) at about km 42.6. The upper end of the Goat River's catch and release (mainstem only), read as \"between Leadville Creek and Cameron Creek\" (owner 2026-11-26, T1177 O10).",
+     "_coord": [
+      -116.3584,
+      49.3006
+     ],
+     "applies_to": {
+      "wsc": "300-625474-197491"
+     }
+    }
+   ]
+  },
+  {
+   "name": "GOAT RIVER",
+   "applies_to": {
     "gnis_id": "11219"
    },
    "splits": [

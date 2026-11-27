@@ -29,7 +29,7 @@ import type { RegsPage, SheetCtx, SheetVM, SourceRowVM } from "../model";
 import { clean } from "../names";
 import type { SheetKey } from "../sheetKey";
 import { fmtDay } from "../strip";
-import { OPEN, parseSheetKey } from "../sheetKey";
+import { OPEN, foldedSource, parseSheetKey } from "../sheetKey";
 import { gearTabsFor, salmonTable, type GearTabsVM, type SalmonBookVM, type SalmonCardVM } from "../../salmon";
 import { withSalmonSheets } from "../../salmonSheets";
 import type { TabSourcesVM } from "../../tabSources";
@@ -64,7 +64,8 @@ const showsSource = (o: Record<string, unknown>): boolean =>
 /**
  * (T1036) THE ONE WALK OF WHAT THE DRAWN SCREEN CITES (`drawnRegsOf`), read by the Source row (a drawn DFO rule names DFO,
  * `regsSourcesOf`) and by the every-source sheet: the rules, once each, first seen first — a drawn section Source line's
- * `keys` (never a per-row gear line's, `srcs:gl|…`, not drawn since T900), a line naming its `rule` that shows that rule's
+ * `keys` (never one folded into its section's line, `foldedSource`: a per-row gear line's `srcs:gl|…` and, T1077, the bait
+ * list's `srcs:bait`, not drawn since T900; the Gear section's line carries their rules), a line naming its `rule` that shows that rule's
  * page or cited page, and the drawn trout table's `src`. `missing`: what a drawn line cites that the part's index does not
  * hold (a key, or `#<index>` for a trout table's), each once — never a row, and reported by the sheet (W46).
  */
@@ -82,7 +83,7 @@ export function drawnCitations(drawn: readonly unknown[], rules: Pick<RuleIndex,
     walked.add(v);
     if (Array.isArray(v)) { for (const x of v) walk(x, field); return; }
     const o = v as Record<string, unknown>;
-    if (typeof o.open === "string" && o.open.startsWith("srcs:") && !o.open.startsWith("srcs:gl|") && Array.isArray(o.keys))
+    if (typeof o.open === "string" && o.open.startsWith("srcs:") && !foldedSource(o.open) && Array.isArray(o.keys))
       for (const k of o.keys) if (typeof k === "string") add(byKey.call(rules, k), k);
     if (typeof o.rule === "string" && showsSource(o)) add(byKey.call(rules, o.rule), o.rule);
     for (const k in o) walk(o[k], k);
@@ -102,8 +103,8 @@ const rowsOf = (v: unknown): Record<string, unknown>[] =>
  * Identification tabs) and its hatchery link; a caveat or timed line naming its rule (`{what, rule}`); a closed banner's
  * closure (`{text, scope, rule, book}`, its "Who says so ›"); a boat chip (`{kind, text, rule}`); a term drawn from a field
  * (`term`, `terms`, `questionTerms`); a salmon table's rows (`species`: each code's Sources and Identification tabs). Never the
- * every-source sheet itself, never a per-row gear line's (`srcs:gl|…`: not drawn since T900, as `drawnCitations` reads
- * it). The probe presses every press target of the drawn screen and holds this list to what opened.
+ * every-source sheet itself, never a Source line folded into its section's (`foldedSource`: a per-row gear line's, the bait
+ * list's; not drawn since T900, as `drawnCitations` reads it). The probe presses every press target of the drawn screen and holds this list to what opened.
  */
 export function reachableSheets(drawn: readonly unknown[],
                                 /** the salmon card drawn beside the page (its species table built from it, as SalmonCard
@@ -112,7 +113,7 @@ export function reachableSheets(drawn: readonly unknown[],
   const out = new Set<SheetKey>(), walked = new Set<unknown>();
   const add = (k: string | null) => {
     const key = k === null ? null : parseSheetKey(k);
-    if (key && key !== ALL_SOURCES_KEY && !key.startsWith("srcs:gl|")) out.add(key);
+    if (key && key !== ALL_SOURCES_KEY && !foldedSource(key)) out.add(key);
   };
   const walk = (v: unknown): void => {
     if (!v || typeof v !== "object" || walked.has(v)) return;

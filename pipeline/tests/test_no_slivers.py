@@ -53,8 +53,8 @@ def _geoms():
 def _inner():
     """The exact B.C. outline, 1 m in."""
     from pipeline.atlas.splits.bc_boundary import load_outline
-    from project_config import get_config
-    return load_outline(need(None, "source", get_config().fwa_data_gpkg, GPKG_HINT)).buffer(-1.0)
+    from pipeline.common.curated import SOURCE
+    return load_outline(need(None, "source", SOURCE.fwa_gpkg, GPKG_HINT)).buffer(-1.0)
 
 
 def _pieces(blk: str):

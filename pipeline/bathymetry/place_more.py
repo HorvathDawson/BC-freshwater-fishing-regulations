@@ -113,7 +113,7 @@ def _one(job):
 def main(argv=None) -> int:
     from multiprocessing import Pool
     from pipeline.bathymetry.contours import fwa_lakes
-    from pipeline.common.curated import GENERATED
+    from pipeline.bathymetry import accept
     ap = argparse.ArgumentParser(description="place every vector depth file (T634 prototype)")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--only", nargs="*")
@@ -127,7 +127,7 @@ def main(argv=None) -> int:
     if a.only:
         zips = [z for z in zips if z in set(a.only)]
     props = {p["chart_id"]: p for p in
-             json.loads((GENERATED.base / "bathymetry" / "proposals.json").read_text())["proposals"]}
+             json.loads(accept.proposals_path("charts").read_text())["proposals"]}
     want = {z: candidates(z2c[z], props) for z in zips}
     allw = sorted({w for v in want.values() for w in v})
     geom = {}

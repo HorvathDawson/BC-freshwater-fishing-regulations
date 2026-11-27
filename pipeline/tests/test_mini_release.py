@@ -107,9 +107,9 @@ def test_the_mini_basin_drains_to_its_invented_area(inputs):
 
 def test_the_atlas_input_flags_default_to_the_configured_files():
     from pipeline.atlas import build
-    from project_config import get_config
+    from pipeline.common.curated import SOURCE
     a = build._parse_args(["--full"])
-    assert a.gpkg == str(get_config().fwa_data_gpkg) and a.coast_gpkg == str(get_config().fwa_coast_gpkg)
+    assert a.gpkg == str(SOURCE.fwa_gpkg) and a.coast_gpkg == str(SOURCE.coast_gpkg)
     b = build._parse_args(["--full", "--gpkg", "/x/fwa.gpkg", "--coast-gpkg", "/x/coast.gpkg"])
     assert (b.gpkg, b.coast_gpkg) == ("/x/fwa.gpkg", "/x/coast.gpkg")
     assert isinstance(b, argparse.Namespace)
@@ -123,6 +123,15 @@ def test_a_digest_ignores_the_clock_and_the_scratch_path(tmp_path):
     assert na == nb
     nc = M._normalised("atlas/graph.pkl.meta.json", json.dumps(dict(b, n=2)).encode(), tmp_path)
     assert nc != nb                                                    # a real difference still shows
+    # (T1223) the source files by content: the scratch gpkg's bytes move each run; a curated digest still shows
+    c = {"input_hashes": {"source:fwa_gpkg": "sha256:" + "1" * 64, "source:fwa_coast": "sha256:" + "2" * 64,
+                          "curated:waters.areas": "sha256:" + "3" * 64}}
+    d = {"input_hashes": {"source:fwa_gpkg": "sha256:" + "4" * 64, "source:fwa_coast": "sha256:" + "5" * 64,
+                          "curated:waters.areas": "sha256:" + "3" * 64}}
+    nd = M._normalised("atlas/graph.pkl.meta.json", json.dumps(d).encode(), tmp_path)
+    assert M._normalised("atlas/graph.pkl.meta.json", json.dumps(c).encode(), tmp_path) == nd
+    d["input_hashes"]["curated:waters.areas"] = "sha256:" + "6" * 64
+    assert M._normalised("atlas/graph.pkl.meta.json", json.dumps(d).encode(), tmp_path) != nd
 
 
 def test_the_build_refuses_a_directory_inside_the_fixture_or_the_data_tree():
@@ -149,7 +158,8 @@ def test_compare_names_the_file_that_differs(capsys):
 def test_the_fed_inputs_are_written_from_the_world_alone(tmp_path):
     """`write_source`: the roster, places, outline, synopsis, HYDAT and the feeds come from `world.json`; the one gauge
     stands where the mini tree's frozen match says it does, and the synopsis states its period."""
-    from pipeline.common.synopsis_pages import PDF_NAME, synopsis_period
+    from pipeline.common.curated import SOURCE
+    from pipeline.common.synopsis_pages import synopsis_period
     from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
     from pipeline.regs.dfo_salmon.typed import FORMAT
     w = M.load_world()
@@ -160,7 +170,7 @@ def test_the_fed_inputs_are_written_from_the_world_alone(tmp_path):
     assert [s["station"] for s in roster] == sorted(match) == ["99MA001"]
     assert (roster[0]["lon"], roster[0]["lat"]) == (match["99MA001"]["lon"], match["99MA001"]["lat"]) \
         == M.lonlat(w, *w["gauges"][0]["at"])
-    assert tuple(synopsis_period(got["source"] / PDF_NAME)) == ("2025-04-01", "2027-03-31")
+    assert tuple(synopsis_period(SOURCE.under(got["source"]).synopsis_pdf)) == ("2025-04-01", "2027-03-31")
     clim = json.loads(got["clim"].read_text())
     assert set(clim["stations"]) == set(clim["stats"]) == {"99MA001"}
     typed = sorted(p.name for p in got["dfo_typed"].glob("region-*.json"))

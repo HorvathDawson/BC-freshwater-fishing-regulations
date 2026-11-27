@@ -8,7 +8,7 @@ import { speaks, leadOver, smallWaterText, throughLakeStations, type DonorRow, t
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
          ownGaugeMap, readingAgeLine, readingHeading, readingIn, readingStanding, shownParameter, stageLine, stateAt,
-         type GaugeTrace, type SectionKey, type Standing, bcMidnight, shiftDay, wallIso, now } from "@app/core";
+         type GaugeTrace, type SectionKey, type Standing, bcMidnight, readingCurrentNow, shiftDay, wallIso, now } from "@app/core";
 import { READING_REUSE_MS, stationReading, useGaugeTrace, useStationReading, type Conditions } from "../hooks";
 import { askOnce, cardParameters } from "../answers";
 import { useAsync, type Async } from "../async";
@@ -74,14 +74,14 @@ export interface QuietVM { heading: string; title: string; reads: string; lastRe
  * 2026-10-22). `zone` is for tests.
  */
 export function quietHead(name: string, row: DonorRow, ref: number, horizon: Horizon, zone?: string): QuietVM {
-  return { heading: readingHeading(name), title: name, reads: donorReads(row, { ref, horizon }),
+  return { heading: readingHeading(name), title: name, reads: donorReads(row, { ref, now: now(), horizon }),
            lastReport: donorLastReport(row.observedAt, zone) };
 }
 
 /** A gauged lake's own station with no reading: whose it is, that it is quiet, when it last reported (core words). */
 export function lakeQuietHead(name: string, observedAt: string | null, ref: number, horizon: Horizon,
                               zone?: string): QuietVM {
-  return { heading: readingHeading(name), title: name, reads: donorReads({ percentile: null, observedAt }, { ref, horizon }),
+  return { heading: readingHeading(name), title: name, reads: donorReads({ percentile: null, observedAt }, { ref, now: now(), horizon }),
            lastReport: donorLastReport(observedAt, zone) };
 }
 
@@ -221,7 +221,7 @@ export function useConditionsView(
   // THE ROUTES OF THE MEMBERS THAT SPEAK — the route map's own chain (`donorView`): a silent member has no pin, so its
   // route is not coloured either.
   const chain = useMemo<readonly SectionKey[]>(
-    () => [...new Set(panel.rows.filter((r) => !donorSilent(r, { ref, horizon }))
+    () => [...new Set(panel.rows.filter((r) => !donorSilent(r, { ref, now: now(), horizon }))
                                 .flatMap((r) => r.route?.path ?? []))], [panel.rows, today, horizon]);
   const standings = usePanelStandings(source, feed, chain as readonly SectionId[], estimateQuantity,
                                       horizon);
@@ -250,7 +250,7 @@ export function useConditionsView(
     : speaker?.kind === "lake" ? speaker.station : "";
   const stations = useMemo(() => (stationKey ? stationKey.split(",") as StationId[] : []), [stationKey]);
   const sides = useGaugeSides(source, section, stations);
-  const ask = { ref, horizon };
+  const ask = { ref, now: now(), horizon };
   const count = !sides ? null
     : speaker?.kind === "lake"
       ? (got.state === "ready" ? gaugeCountLine([{ side: sides.get(speaker.station) ?? "donor",
@@ -275,7 +275,8 @@ export function useConditionsView(
   // and declares level; reading whichever value was present printed its discharge beside the level percentile.
   const rq = c ? readingQuantityOf(c) : null;
   const shown: Parameter | null = rq?.quantity ?? null, figure = rq?.figure ?? null;
-  if (c && shown && figure !== null) {
+  // (T1205) a figure not current by the clock (a kept copy, a feed that stopped) is never the present reading: the quiet head says when it last reported
+  if (c && shown && figure !== null && readingCurrentNow(c.observedAt, now())) {
     reading = {
       heading: readingHeading(name),
       title: name,
@@ -303,7 +304,7 @@ export function useConditionsView(
   // to say today is its own gauge gone quiet (the map's sentinel), never the no-gauge refusal (T105 review).
   const quiet: QuietVM | null = got.state === "loading" || reading ? null
     : row ? quietHead(name, row, ref, horizon)
-    : speaker?.kind === "lake" ? lakeQuietHead(name, c?.observedAt ?? null, ref, horizon)
+    : speaker?.kind === "lake" || (c && figure !== null) ? lakeQuietHead(name, c?.observedAt ?? null, ref, horizon)
     : null;
 
   return {
@@ -325,7 +326,7 @@ export function useConditionsView(
     // the day or quantity asked has its donor map, and this trace's own map stood above it, moving it down the page.
     trace: !panel.answer.ok && (panel.answer.why === "no-station" || panel.answer.why === "offline") && traced.state === "ready" && speaks(speaker, traced.value.station)
       ? traced.value : null,
-    gauges: gaugeChoices(panel.rows, lead, { ref, horizon }),
+    gauges: gaugeChoices(panel.rows, lead, { ref, now: now(), horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
     // (T1043) "No gauge here reports flow today" is false where the lead reports a live flow it has no record to rank
     // against (Gun Creek, 08ME030): the card's own line says that, so the note is not drawn

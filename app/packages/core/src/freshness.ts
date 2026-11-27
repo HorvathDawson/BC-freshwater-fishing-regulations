@@ -6,7 +6,7 @@
  * line, the menu's Data sources page, the Layers sheet's feed age (ui-native format.ts `ago`), "Like your visit?" and
  * the sync line all read it. There were two, with different wording ("3 h ago" under a reading, "3h ago" in the menu).
  */
-import { bcClockWords, bcDayWords, localStamp } from "./day";
+import { localStamp } from "./day";
 import { STALE_AFTER } from "./staleness";
 
 export type Freshness =
@@ -36,6 +36,25 @@ export function readingCurrent(observedAt: string | null | undefined, ref: numbe
   const t = Date.parse(observedAt);
   if (!Number.isFinite(t)) return true;
   return ref - t <= READING_MAX_AGE_MS;
+}
+
+/**
+ * (T1205) A reading is current BY THE CLOCK: `observedAt` no older than `READING_BY_CLOCK_MS` before `now` (`clock.ts`
+ * `now()`, the real instant — never the picked day). `readingCurrent` judges against the feed's own write time, which is
+ * the clock only where the feed is written; a held, kept or never-refreshed index keeps its old stamp and every reading
+ * in it looks current. The line is the publisher's own 6 h plus the 2 h our copy of the feed may run late before it is
+ * called stale: a reading the publisher called current is never turned old before the feed's own stale line speaks.
+ * Unjudgeable stamps stay unjudged, as in `readingCurrent`.
+ */
+export const READING_BY_CLOCK_MS = READING_MAX_AGE_MS + STALE_AFTER_MS;
+export function readingCurrentNow(observedAt: string | null | undefined, now: number): boolean {
+  return readingCurrent(observedAt, now - STALE_AFTER_MS);   // now - t <= 6 h + 2 h; the same stamp rules, said once
+}
+
+/** The last instant `readingCurrentNow` is true for this stamp (epoch ms), or null when it never judges it (no stamp, naive, not a time). */
+export function readingCurrentUntil(observedAt: string | null | undefined): number | null {
+  if (readingCurrent(observedAt, 1e18)) return null;           // judged at a far-off instant and still current: never judged
+  return Date.parse(observedAt as string) + READING_BY_CLOCK_MS;
 }
 
 /** Classify a cached value's age. `unknown` is NOT the same as "nothing to report". */
@@ -93,16 +112,6 @@ export function readingAgeParts(f: Freshness, observed: string | null): string[]
     : f.state === "live" ? `checked ${ageWords(f.ageMs)}`
     : `last checked ${ageWords(f.ageMs)}, ${MAY_BE_OLD}`);
   return parts;
-}
-
-/**
- * (T908, owner 2026-11-19: "read 9:20 PM") THE SHORT AGE, for a line that carries more: when the reading was taken (the B.C. clock; with
- * the day when it is not `now`'s) and, only when our copy is not live, how old it is. The unknown age says so, never live.
- */
-export function readingAgeBrief(f: Freshness, observedMs: number | null, now: number): string {
-  const read = observedMs === null ? null : `read ${bcDayWords(observedMs) === bcDayWords(now) ? bcClockWords(observedMs) : `${bcDayWords(observedMs)}, ${bcClockWords(observedMs)}`}`;
-  const copy = f.state === "unknown" ? "age unknown" : f.state === "live" ? (read === null ? `checked ${ageWords(f.ageMs)}` : null) : `last checked ${ageWords(f.ageMs)}, ${MAY_BE_OLD}`;
-  return [read, copy].filter((x): x is string => x !== null).join(" · ");
 }
 
 /** (T585 F14) The line's lead when the reading is the phone's KEPT copy (offline) — the chart's "Offline — … saved on this phone", for the figure. */
