@@ -365,6 +365,9 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   hardening release) is a new question for him; no data change until he answers.
 - **Steelhead water (2026-11-27, option E sheet):** "Pacific streams now, barriers in 0.11.0 (Recommended)". Every stream of
   Regions 1, 2, 3, 5, 6 draining to the Pacific is steelhead water in 0.10.0 (RULINGS S14, T1250); barriers are T1257.
+  Buckley Creek: "Release: the row's cap holds (Recommended)" (S15). The Columbia and the Skagit: "Hold both but make
+  sure it will be compatible with a larger barrier list" (the barrier list, S14). And: "Also if rainbows over 50cm are
+  ever referred to it always implies the rule is on steelhead too" (S12, measured before it is built: a follow-up).
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".

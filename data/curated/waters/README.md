@@ -22,6 +22,7 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `pond_calls.json` | authored (owner calls: unnamed ponds kept as lakes, owner 2026-11-13 Gagnon) | hand, from a recorded owner answer | atlas registry (`registry.flowing.load_pond_calls`: the D1 widening fold leaves them) |
 | `slough_page_calls.json` | frozen | the retired slough page (2026-10-28) | review app (old notes) |
 | `steelhead_waters.json` | accepted | `python -m pipeline.regs.steelhead.accept --write` | reach run |
+| `steelhead_barriers.json` | authored (the owner's rulings, T1250 S14; T1257 adds dams and falls): `basin` and `upstream_of` rows, each with its reason, source, who and when | hand, from a recorded owner answer | reach run (`steelhead.load_barriers`: held out of the Pacific-stream presence) |
 | `unmapped_waters.json` | authored | hand (worklist for added lakes) | `check_curated --waters` only |
 | `unplaced_piece_calls.json` | authored | the owner (`accepted`); Claude adds `proposed` rows, read by nothing | reach run (`build.unplaced_gate`, T632: any other unplaced piece stops it) |
 | `area_edge_calls.json` | authored | the owner (`accepted`: `closed` / `open`); Claude adds `proposed` rows, read by nothing | atlas (closure cutter; area-cut gate G6 stops on an uncalled stretch or a stale row, T1199) |
