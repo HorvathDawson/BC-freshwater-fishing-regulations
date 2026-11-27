@@ -368,6 +368,9 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   Buckley Creek: "Release: the row's cap holds (Recommended)" (S15). The Columbia and the Skagit: "Hold both but make
   sure it will be compatible with a larger barrier list" (the barrier list, S14). And: "Also if rainbows over 50cm are
   ever referred to it always implies the rule is on steelhead too" (S12, measured before it is built: a follow-up).
+  On the over-50 sheet (S12a): "the rows specific water rules always beat regional for specific quotas like that?"
+  (Kitimat's 2 hatchery steelhead stand); "it is 1 trout over 50cm 2 if one is a steelhead (rainbow)" (Regions 1-2,
+  Q16); Muchalat's "no wild rainbow trout over 50 cm" "is the same as regiuonal no wild steelhead". His full words: S12a.
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".

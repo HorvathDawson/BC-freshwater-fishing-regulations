@@ -52,3 +52,6 @@ Depends: none. Size: M. Owner: answered (below). Default: as built.
   sure it will be compatible with a larger barrier list" (the barrier list, its two kinds of row).
 - [ ] 2026-11-27 — His general words, "Also if rainbows over 50cm are ever referred to it always implies the rule is on
   steelhead too": measured as a follow-up (S12's amendment; S15 is its first case), built only on his word after the sheet.
+  The over-50 sheet, 2026-11-27 (RULINGS S12a, verbatim): Kitimat's own 2 hatchery steelhead stand, Muchalat as built,
+  Regions 1-2 is Q16. Found then, not T1250's (main the same): Kitimat's hatchery steelhead are released Nov 1-Jun 30
+  (the region's "Trout of any size from streams" release; its rainbow row lifts it, its steelhead row does not).
