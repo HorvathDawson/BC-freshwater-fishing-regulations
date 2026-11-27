@@ -4,10 +4,9 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1231 | The stale-output guard does not see production-only code paths | OPEN | — | after #359: the hand-run module scan as a data-tier test; the reviewer's gaps; the sha256 cost in _trace.py |
+| T1231 | The stale-output guard does not see production-only code paths | OPEN | — | the hand-run module scan as a data-tier test; the reviewer's gaps; the sha256 cost in _trace.py |
 
-Source: repo clean chat, 2026-11-27. Evidence: T1229 / PR #359 and its review (open when this was written, so the
-file is cited by its name, not yet on main). `pipeline/tests/test_stage_content_keys.py` checks every curated file a
+Source: repo clean chat, 2026-11-27. Evidence: T1229 / PR #359 and its review (merged). `pipeline/tests/test_stage_content_keys.py` checks every curated file a
 stage records reading in the sample-release chain, and a static scan of the modules those runs import. The scan that
 found the reach's own read of `cuts.json` was run BY HAND over the live build manifest's module lists
 (`stages[st].code_files` in `data/generated/build-manifest.json`).
@@ -23,4 +22,4 @@ found the reach's own read of `cuts.json` was run BY HAND over the live build ma
 ## Acceptance
 The test fails when a production module reads a curated file its stage key leaves out (a pin: remove one, see red).
 
-Depends: #359 (merge first). Size: S-M. Owner: no.
+Depends: none (#359 merged). Size: S-M. Owner: no.

@@ -12,7 +12,9 @@ missing generated input and renders an empty list, e.g. `tools/curation-review/b
 handler exists (`app.py:35`, T434) but only for a `FileNotFoundError` that reaches it. And
 `pipeline/regs/review/marks.py:1172-1182` (`health`) counts a mark as ORPHANED when its target cannot be read, even
 for a closed domain: deleting the closed Q154 domain's sample would have reported all 80 of the owner's Q154 marks as
-orphans.
+orphans. The notes also found three more silent sites: `pipeline/regs/review/tidal.py:409-412` (a missing pass-2
+file is read as "no pass 2"), `tools/curation-review/backend/preverify.py:41-46` (a missing pre-verify or split-suggestion
+file becomes `{}`, no badge) and `backend/dfo.py:1077` (`return None` when the closure file is missing).
 
 ## Work
 1. A missing input is a 503 naming the file and the command that re-makes it (T434's handler); remove the swallowing sites.
@@ -29,3 +31,7 @@ checked against stay committed; health reads "input missing" for the rest.
 
 - [ ] 2026-11-27 — What must a CLOSED review domain (Q154: 80 marks) keep on disk so its marks are never read as
   orphans? Default: the marks plus the one input file they were checked against, committed.
+- [x] 2026-11-27 — Which order: "C: Safe order (Recommended)" = the loud refusal first; then ONLY the DFO closure entries
+  (`dfo_closure_entries.json`) and the tidal pre-verify (`tidal/tidal-preverify.json`) leave git; the tidal pass-2
+  proposals stay for good (5 tidal marks point at rows that exist only there); the entry split suggestions and the DFO
+  pre-verify stay until their domains close or a re-make can run. Consequence: the refusal lands before any file leaves git.
