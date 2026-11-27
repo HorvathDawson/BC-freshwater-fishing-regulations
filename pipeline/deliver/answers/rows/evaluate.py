@@ -115,6 +115,27 @@ def own_rows(B, set_id: int) -> frozenset:
     return frozenset() if path is None else read._own_of(path).get(set_id, frozenset())
 
 
+def _lift_note_shared_or_refused(P, S: str, win, closed: list) -> None:
+    """(T1251) A LIFT NOTE ANOTHER CLOSURE ON THE SAME RUNG DOES NOT SHARE IS REFUSED, NOT SHOWN. The card names one
+    closure (own row first, then the most upstream) and shows that closure's qualified lift notes (`Part.lift_notes`); a
+    note there beside another closure of the same rung that closes the same fish without that lift would read as an
+    opening the other closure does not give. Refused by name: the rows, the fish, the day, the rule set."""
+    notes = P.lift_notes_of(win)
+    if not notes:
+        return
+    mine = sorted(json.dumps(n["q"], sort_keys=True) for n in notes)
+    for c in closed:
+        if c is win or c.rank != win.rank or c.entry_id == win.entry_id:
+            continue
+        theirs = sorted(json.dumps(n["q"], sort_keys=True) for n in P.lift_notes_of(c))
+        if theirs != mine:
+            name = lambda r: P.B.rules[tuple(r.key.split("::", 1))].get("entry_name", "")  # noqa: E731
+            raise AnswersError(
+                f"rows: {win.key} ({name(win)}) is named for {S} on {P.md} (rule set {getattr(P, 'set_id', '?')}) with "
+                f"the lift note(s) {mine}, beside {c.key} ({name(c)}), which closes {S} on the same rung without that "
+                "lift: the lift note would show beside a closure that still closes (T1251). Settle the two rows' lifts.")
+
+
 def _closure_cmp(a, b, upstream: frozenset = frozenset(), own: frozenset = frozenset()) -> int:
     """Which of two closures speaking for a fish governs (T206, owner 2026-10-26: never by entry key):
     the nearer rank; two rules of ONE entry keep the book's order (rule order), as before; between two
@@ -200,6 +221,8 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
         return 1e9 if r.f.get("unlimited") else r.f.get("take")
     by_take = _stable_sort(pools, key=lambda r: (tk(r), r.rank))
     win = (closed or rel or by_take or [None])[0]
+    if closed and win is closed[0]:
+        _lift_note_shared_or_refused(P, S, win, closed)
     if win is None:
         win = _size_release(P, S, A)                       # decision F13
     if win is None:

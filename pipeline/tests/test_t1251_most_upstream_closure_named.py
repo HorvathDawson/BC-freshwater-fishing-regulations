@@ -333,3 +333,30 @@ def test_what_the_card_shows_when_a_dated_own_closure_and_a_year_round_one_both_
     finally:
         read._OWN_BY_PATH.pop("mem:t1251-own")
         read._UPSTREAM_BY_PATH.pop("mem:t1251-own")
+
+
+def test_a_lift_note_the_other_closure_on_the_rung_does_not_share_is_refused():
+    """The named closure (the North Alouette's own) carries a qualified lift (a rule exempting it when targeting
+    kokanee); the Alouette's closure on the same rung closes the fish without it: the note would read as an opening the
+    other closure does not give. Refused by name; shared by both closures, it is shown as before."""
+    from pipeline.deliver.answers.common import AnswersError
+    from pipeline.deliver.answers.rows.part import Part
+    lift = {"entry_id": NORTH, "rule_id": "r1", "when_targeting": ["KO"]}
+    lifter = {**_gate("r2:lifter@2-8"), "family": "gear_and_method", "type": "tackle_restriction", "take": None,
+              "rule": "r9", "rule_id": "r9", "exempts": [lift]}
+    rules = {(NORTH, "r1"): _gate(NORTH), (ALOUETTE, "r1"): _gate(ALOUETTE), ("r2:lifter@2-8", "r9"): lifter}
+    B = SimpleNamespace(sets={7: [(NORTH, "r1", "reach"), (ALOUETTE, "r1", "reach"), ("r2:lifter@2-8", "r9", "reach")]},
+                        rules=rules, path="mem:t1251-lift")
+    read._OWN_BY_PATH["mem:t1251-lift"] = {7: frozenset({NORTH})}
+    read._UPSTREAM_BY_PATH["mem:t1251-lift"] = frozenset()
+    speak = {f"{NORTH}::r1": ("speaks", False, None, None), f"{ALOUETTE}::r1": ("speaks", False, None, None)}
+    try:
+        P = Part(B, 7, False, False, "stream", None, {"RB": {"hatchery": speak, "wild": speak}}, (6, 1))
+        with pytest.raises(AnswersError, match="would show beside a closure that still closes"):
+            EV.eval_sp(P, "RB", "wild")
+        lifter["exempts"] = [lift, {**lift, "entry_id": ALOUETTE}]          # both closures lifted alike: shown
+        P = Part(B, 7, False, False, "stream", None, {"RB": {"hatchery": speak, "wild": speak}}, (6, 1))
+        assert EV.eval_sp(P, "RB", "wild")["liftNotes"]
+    finally:
+        read._OWN_BY_PATH.pop("mem:t1251-lift")
+        read._UPSTREAM_BY_PATH.pop("mem:t1251-lift")
