@@ -6,8 +6,9 @@
  * The app-only parts are here: Back, the waters it serves (the release, so it opens offline), the plain line for a gauge that
  * serves no water, the tide's note on Level. It decides nothing: the words are core's `GAUGE_PAGE_WORDS`, the facts `useGaugePage`.
  */
+import { useState } from "react";
 import { ScrollView, View } from "react-native";
-import { GAUGE_PAGE_WORDS, conditionsSourcesOf, gaugeNotes } from "@app/core";
+import { GAUGE_PAGE_WORDS, GAUGE_SERVES_SHOWN, conditionsSourcesOf, gaugeNotes } from "@app/core";
 import type { StationId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { useGaugePage } from "@app/ui";
@@ -30,6 +31,7 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
   onOpenWater: (item: string) => void;
 }) {
   const page = useGaugePage(loader, station);
+  const [all, setAll] = useState(false);
   const facts = page.state === "ready" ? page.value : null;
   return (
     <View testID="gauge-screen" style={{ flex: 1, backgroundColor: palette.card }}>
@@ -59,7 +61,7 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
               <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{GAUGE_PAGE_WORDS.servesHeading}</Text>
               {facts.serves.length === 0
                 ? <Text testID="gauge-not-matched" style={{ ...TYPE.body, color: palette.sub }}>{GAUGE_PAGE_WORDS.notMatched}</Text>
-                : facts.serves.map((w) => (
+                : (all ? facts.serves : facts.serves.slice(0, GAUGE_SERVES_SHOWN)).map((w) => (
                   <Pressable key={w.item} testID="gauge-serves-row" onPress={() => onOpenWater(w.item)} accessibilityRole="button"
                              accessibilityLabel={GAUGE_PAGE_WORDS.open(w.name)} {...hitProps({ w: 120, h: 44 })}
                              style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line }}>
@@ -68,6 +70,13 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
                     <Icon name="next" colour={palette.accent} size={16} />
                   </Pressable>
                 ))}
+              {facts.serves.length > GAUGE_SERVES_SHOWN && (
+                <Pressable testID="gauge-serves-fold" onPress={() => setAll(!all)} accessibilityRole="button" aria-expanded={all}
+                           {...hitProps({ w: 120, h: 44 })} style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
+                  <Text style={{ ...TYPE.metaBold, color: palette.accent }}>
+                    {all ? GAUGE_PAGE_WORDS.fewer : GAUGE_PAGE_WORDS.more(facts.serves.length - GAUGE_SERVES_SHOWN)}</Text>
+                </Pressable>
+              )}
             </View>
             <SourceRow vm={conditionsSourcesOf()} palette={palette} testID="gauge-sources" />
           </>

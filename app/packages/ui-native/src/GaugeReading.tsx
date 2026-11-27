@@ -56,7 +56,7 @@ export function GaugeReading({ source, station, palette, theme, feed, notes }: {
       {r?.percentile != null && !noRecord && (
         <LegendRamp palette={palette} stops={flowRampStops(theme)} marks={[r.percentile]}
                     title={FLOW_LEGEND.title[r.quantity === "level" ? "level" : "discharge"]}
-                    low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high} />
+                    low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high} counted={false} />
       )}
       {r?.age && <Text testID="gauge-age" style={{ ...TYPE.meta, color: palette.sub }}>{r.age}</Text>}
       <StationChart vm={vm} palette={palette} colour={palette.live} />

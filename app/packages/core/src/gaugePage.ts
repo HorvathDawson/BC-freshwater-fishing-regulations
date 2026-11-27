@@ -94,10 +94,16 @@ export const GAUGE_PAGE_WORDS = {
   /** each served water's trust, in a word (`weak` is a rough guide) */
   trust: { own: "On this water", lake: "On this lake", good: "Good match", fair: "Fair match", weak: "Rough guide" } as Readonly<Record<ServesTrust, string>>,
   open: (water: string): string => `Open ${water}, conditions`,
+  /** the waters list folds past `GAUGE_SERVES_SHOWN` */
+  more: (n: number): string => `Show ${n} more`,
+  fewer: "Show fewer",
   tidal: "This gauge is tidal: its level rises and falls with the tide and with water backed up from downstream, not only with what this river carries.",
   backwater: "This gauge sits where a lake backs up into the river: its level rises and falls with the lake as well as with what this river carries.",
   diversion: "This gauge measures a diversion: it stands on a canal that takes water out of the river at an intake, so it reads what the canal takes, not everything the river carries.",
 } as const;
+
+/** How many served waters show before the list folds (the best trust first). */
+export const GAUGE_SERVES_SHOWN = 8;
 
 /**
  * THE NOTES a station's flags put on its page, as a water card says them about a gauge (`tidalNote`, `backwaterNote`,

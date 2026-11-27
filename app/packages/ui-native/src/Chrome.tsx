@@ -261,7 +261,7 @@ const LABEL_W = 44, LABEL_GAP = 6;
  *   - Words in `sub`, not `faint` (T40: a legend's words are read, so they meet the text contrast floor), at 11.5–12 px.
  *   - At most `LEGEND_RAMP_MAX` wide, centred: on a desktop the 1250 px stripe read as decoration.
  */
-export function LegendRamp({ palette, stops, title, low, high, marks, mid, band = NORMAL, markWords, describe }: {
+export function LegendRamp({ palette, stops, title, low, high, marks, mid, band = NORMAL, markWords, describe, counted = true }: {
   palette: Palette;
   /** the map's ramp: each colour at its percentile, 0–1, in order (`flowRampStops`) */
   stops: readonly { at: number; colour: string }[];
@@ -284,6 +284,8 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   markWords?: (at: number) => string;
   /** the bar's screen-reader name (default: the percentile scale's) */
   describe?: string;
+  /** (T1194) false: no "N reaches coloured" count (a gauge page marks ONE gauge, not reaches on a map) */
+  counted?: boolean;
 }) {
   /*
    * A DISTRIBUTION, NOT A KEY. The marks are binned so that where many gauges land the tick is TALLER rather than merely
@@ -299,7 +301,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   }
   const peak = Math.max(1, ...counts);
   const n = marks?.length ?? 0;
-  const count = legendCount(n);
+  const count = counted ? legendCount(n) : null;
   const pct = (x: number) => `${Math.round(x * 1000) / 10}%` as const;
   const word = { ...TYPE.caption, lineHeight: 15, color: palette.sub } as const;
 
