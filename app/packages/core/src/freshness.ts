@@ -51,6 +51,12 @@ export function readingCurrentNow(observedAt: string | null | undefined, now: nu
   return readingCurrent(observedAt, now - STALE_AFTER_MS);   // now - t <= 6 h + 2 h; the same stamp rules, said once
 }
 
+/** The last instant `readingCurrentNow` is true for this stamp (epoch ms), or null when it never judges it (no stamp, naive, not a time). */
+export function readingCurrentUntil(observedAt: string | null | undefined): number | null {
+  if (readingCurrent(observedAt, 1e18)) return null;           // judged at a far-off instant and still current: never judged
+  return Date.parse(observedAt as string) + READING_BY_CLOCK_MS;
+}
+
 /** Classify a cached value's age. `unknown` is NOT the same as "nothing to report". */
 export function freshness(
   fetchedAt: number | null,

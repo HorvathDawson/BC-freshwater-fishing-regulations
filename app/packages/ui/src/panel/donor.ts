@@ -502,7 +502,7 @@ export function useGaugeSides(source: WaterSource, section: SectionId | null,
 
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, ref, horizon, from, size, selected, pickable, quantity, rankedIn, sides, place, own } = o;
+  const { day, ref, now, horizon, from, size, selected, pickable, quantity, rankedIn, sides, place, own } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
@@ -510,11 +510,11 @@ export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const placeKey = place ? place.join(",") : "";
   const ownKey = own ? [own.lat, own.lon, own.name, own.label, own.key, own.live].join("|") : "";
   return useMemo(
-    () => donorView(value, { day: new Date(t), ...(ref !== undefined ? { ref } : {}), horizon,
+    () => donorView(value, { day: new Date(t), ...(ref !== undefined ? { ref } : {}), ...(now !== undefined ? { now } : {}), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
                              size: { width, height }, selected, pickable,
                              ...(quantity ? { quantity } : {}), ...(rankedIn ? { rankedIn } : {}), sides: sides ?? null,
                              place: placeKey ? place ?? null : null, own: ownKey ? own ?? null : null }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the box and the lake's own gauge by value
-    [value, t, ref, horizon, lat, lon, width, height, selected, pickable, quantity, rankedIn, sides, placeKey, ownKey]);
+    [value, t, ref, now, horizon, lat, lon, width, height, selected, pickable, quantity, rankedIn, sides, placeKey, ownKey]);
 }

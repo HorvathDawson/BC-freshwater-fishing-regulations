@@ -172,7 +172,7 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
   const top = useHeldHeight(holdKey ?? "");
   const topProps = { style: { gap: SPACE.s4, minHeight: top.min },
                      onLayout: (e: LayoutChangeEvent) => top.hold(e.nativeEvent.layout.height) } as const;
-  const vm = useDonorView(value, { day, ...(askedAt !== undefined ? { ref: askedAt, now: now() } : {}), horizon, from: from ?? null,
+  const vm = useDonorView(value, { day, ...(askedAt !== undefined ? { ref: askedAt, now: Math.floor(now() / 60_000) * 60_000 } : {}), horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
                                    selected: selected ?? null, pickable: false,   // (T920) the list is a legend; the gauge card's title picks the chart
                                    ...(quantity ? { quantity } : {}), ...(rankedIn ? { rankedIn } : {}), sides: sides ?? null, place: place ?? null,

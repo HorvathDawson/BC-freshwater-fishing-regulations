@@ -17,7 +17,7 @@ import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { monthAbbr, weekdayAbbr, type Standing } from "./flow";
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byWeekdays } from "./staleness";
-import { READING_BY_CLOCK_MS } from "./freshness";
+import { readingCurrentNow } from "./freshness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
          changeSentence } from "./change";
 import { now as clockNow } from "./clock";
@@ -515,7 +515,7 @@ export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
   // (T550) "a report that cannot be ranked" only while it is still today's reading (`readingCurrentNow`); older, the gauge is quiet and says when it last reported — the same line that keeps an old reading unranked
   // (T1205) by the clock (`o.now`), not the picked day: freshness is about the real now
   const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
-  if (o.ref !== undefined && Number.isFinite(t) && Math.abs((o.now ?? o.ref) - t) <= READING_BY_CLOCK_MS) return { kind: "unranked" };
+  if (o.ref !== undefined && Number.isFinite(t) && readingCurrentNow(r.observedAt, o.now ?? o.ref)) return { kind: "unranked" };
   return { kind: "quiet" };
 }
 

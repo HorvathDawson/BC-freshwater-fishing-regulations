@@ -4,10 +4,11 @@
  * beside its own old `fetchedAt`, so it used to draw as a live dot and speak as a ranked standing.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { donorReads, GAUGE_FEED_FORMAT, READING_BY_CLOCK_MS } from "@app/core";
+import { donorReads, GAUGE_FEED_FORMAT, readingCurrentNow, readingCurrentUntil } from "@app/core";
 import { answerFrom, httpFeed, type Panel, type StationId } from "@app/data";
 import { gaugeGeoJSON } from "./gaugePoints";
 import { quietHead } from "./panel/conditions";
+import { stationReading } from "./hooks";
 
 const H = 3_600_000;
 const FED = Date.parse("2026-10-27T18:00:00Z");           // the stale local feed's write time
@@ -48,7 +49,16 @@ describe("a feed written 29 days ago, every timestamp self-consistent", () => {
 });
 
 describe("the boundary is the publisher's 6 h plus the feed's own 2 h, by the clock", () => {
-  it("is 8 h", () => expect(READING_BY_CLOCK_MS).toBe(8 * H));
+  it("readingCurrentNow and readingCurrentUntil agree at the line, and unjudgeable stamps are never judged", () => {
+    const t = Date.parse("2026-11-26T10:00:00Z");
+    expect(readingCurrentNow(iso(t), t + 8 * H)).toBe(true);
+    expect(readingCurrentNow(iso(t), t + 8 * H + 1)).toBe(false);
+    expect(readingCurrentUntil(iso(t))).toBe(t + 8 * H);
+    for (const bad of [null, undefined, "", "2026-11-26T10:00:00", "not a time"]) {
+      expect(readingCurrentNow(bad, t + 999 * H)).toBe(true);
+      expect(readingCurrentUntil(bad)).toBeNull();
+    }
+  });
   it("a reading exactly 8 h old is current; a second older is not", async () => {
     vi.setSystemTime(FED + 3 * H);
     const at = async (observed: number) => await dots(httpFeed("http://x/g", serve(feedFile(FED, observed))));
@@ -82,5 +92,50 @@ describe("the picked day does not change freshness", () => {
   it("a day picked ahead does not make a fresh reading old", () => {
     const now = FED + H;
     expect(donorReads(unranked, { ref: now + 3 * 24 * H, now })).toBe("Reporting, but its reading cannot be ranked today.");
+  });
+});
+
+const stationFile = (fetchedAt: number, at: number) => ({
+  format: GAUGE_FEED_FORMAT, fetchedAt: iso(fetchedAt), station: "08MH001",
+  now: { discharge: 15.7, level: 1.4, at: iso(at), percentile: 0.3, parameter: "discharge" },
+});
+
+describe("feed.now() and the reading readers built on it (lead card, capture, visits, the gauge page)", () => {
+  it("a 29-day-old index row: the figure stays (with its age), the rank and standing do not", async () => {
+    vi.setSystemTime(FED + 29 * 24 * H);
+    const files = { "index.json": feedFile(FED, FED - 30 * 60_000), "08MH001.json": stationFile(FED, FED - 30 * 60_000) };
+    const feed = httpFeed("http://x/g", (async (u: string) => ({ ok: true, json: async () => files[u.split("/").pop() as keyof typeof files] })) as never);
+    const got = (await feed.now("08MH001" as StationId))!;
+    expect(got.value.discharge).toBe(15.7);
+    expect(got.value.percentile).toBeNull();
+    expect(got.value.standing).toBe("no-record");
+    const c = await stationReading({ gaugeNow: (s) => feed.now(s) }, "08MH001" as StationId);
+    expect(c.percentile).toBeNull();
+    expect(c.observedAt).toBe(iso(FED - 30 * 60_000));
+  });
+  it("no index at all: the station file's own rank counts only while its reading is current by the clock", async () => {
+    const mk = () => httpFeed("http://x/g", (async (u: string) => u.endsWith("index.json") ? { ok: false, status: 404, json: async () => ({}) }
+      : { ok: true, json: async () => stationFile(FED, FED - 30 * 60_000) }) as never);
+    vi.setSystemTime(FED + 3 * H);
+    expect((await mk().now("08MH001" as StationId))!.value.percentile).toBe(0.3);
+    vi.setSystemTime(FED + 29 * 24 * H);
+    expect((await mk().now("08MH001" as StationId))!.value.percentile).toBeNull();
+  });
+});
+
+describe("time passes with no new fetch", () => {
+  it("the same held index is judged again at each ask: live, then old, the network asked once", async () => {
+    vi.setSystemTime(FED + 20 * 60_000);
+    let asked = 0;
+    const feed = httpFeed("http://x/g", (async () => { asked += 1; return { ok: true, json: async () => feedFile(FED, FED - 30 * 60_000) }; }) as never,
+                          { indexHeld: true });
+    const first = await feed.index();
+    expect(gaugeGeoJSON(pts, first)).not.toBeNull();
+    expect(await feed.index()).toBe(first);                      // nothing crossed the line: the same object
+    vi.setSystemTime(FED + 9 * H);
+    const later = await feed.index();
+    expect(gaugeGeoJSON(pts, later)).toBeNull();
+    expect(await feed.index()).toBe(later);                      // and it holds, a poll does not copy every station
+    expect(asked).toBe(1);
   });
 });

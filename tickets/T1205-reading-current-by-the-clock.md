@@ -31,18 +31,42 @@ time (ECCC reports hourly, about an hour behind; a slow station can sit near 5 h
 how long our copy of the feed may itself be late before it is called stale. A healthy gauge is therefore never turned old
 between publishes (the feed's own staleness line takes over first); 8 h is the longest a reading the publisher called current
 can sit un-refreshed. An unjudgeable stamp (missing, naive, not a time) stays unjudged, as in `readingCurrent`.
-The gate sits once, at the index read (`httpFeed().index()`): a station past the line loses its now-reading fields (percentiles,
+The gate sits at the feed's two reads (`httpFeed().index()` and `.now()`, one `ageIndex`): a station past the line loses its now-reading fields (percentiles,
 `reports`, temperature) and keeps `observedAt`, so every reader says what it already says for a silent gauge ("Not reporting today",
 "last reported …") and no reader can disagree. Forecast days (`ahead`, `change`) have their own run times and are untouched.
 The worker keeps `readingCurrent(…, fetchedAt)` (it IS the clock there). Alerts' 6 h gate (`ALERT_STALE_MS`) is unchanged.
 
-## Built (0188dd1)
+## Built (0188dd1, review fixes after)
 
-`ageIndex` in `data/src/feed/http.ts` (applied in `httpFeed().index()`, so every reader of the index agrees: the map dots, panel rows,
-standings, likeVisit/visits/capture, the offline kept copy); `READING_BY_CLOCK_MS` / `readingCurrentNow` in `core/src/freshness.ts`;
-`donorState`'s `unranked` test now judges against `DonorAsk.now` (the real instant; `ref`, the picked day, only stands in when no
-`now` is given), with `now()` passed by `ui/src/panel/conditions.ts` and `DonorPanel.tsx`. The words for a gauge past the line are
-the existing ones ("Not reporting today." and "Last reported …").
+Two gates, one rule (`READING_BY_CLOCK_MS`, `readingCurrentNow(observedAt, now)`, `readingCurrentUntil`, all exported from `@app/core`,
+`core/src/freshness.ts`). `ageIndex` (`data/src/feed/http.ts`) strips the now-reading from a station past the line, keeps `observedAt`;
+it is cached per raw index for the span in which no station crosses the line, so a poll gets the same object. The words are the
+existing ones ("Not reporting today.", "Last reported …").
+
+Every reader of a gauge reading or percentile, and its gate (the first version of this ticket wrongly said capture and visits were covered by the index gate; they read `feed.now()`):
+
+| reader | gate |
+|---|---|
+| `feed.index()`: map dots, panel rows and standings, conditionsColour, basinDays, likeVisit, visits and capture panels, dayFlow, leadup, facts | `ageIndex` in `index()` |
+| the phone's kept index (offline) | same: it comes out of `index()` |
+| `feed.now()`: `gaugeNow`, `stationReading`, lead card, lake count, capture and visits reading, `fillLive`, the public page's `stationChartSource` | `ageIndex` on its index row; with no row, `readingCurrentNow(f.now.at)` on the file's own rank |
+| `donorState` `unranked` | `readingCurrentNow` at `DonorAsk.now` (the real instant; `ref`, the picked day, stands in only when no `now`); no lower bound, as `readingCurrent` |
+| `useDonorView` / `DonorPanel` | pass `now` (minute-rounded) through to `donorView` |
+| `observations()`, `lastReport()` | raw series and last-report words, no rank: not gated (their own age line says how old) |
+| worker `ageGate`, share cards, the SEO pages' build-time index | judged at write time against `fetchedAt`, which is the clock there |
+| alerts (`ALERT_STALE_MS`) | own 6 h gate by the clock |
+
+As time passes with no fetch: `useFeedVersion("gauges")` (the key every gauge reader already carries) also moves on one beat per
+feed lifetime (`FEED_TTL_MS`) and on `appBecameActive` (`ui/src/feedVersion.ts`, `today.ts`), only while something watches it; the
+answer store is not cleared (not a feed change). Readers re-ask `index()`, which judges at the clock; no fetch is made.
+
+What the reader sees, and why it is fine:
+- A device clock set AHEAD makes readings look old: every gauge says "Not reporting today" with "Last reported <a recent time>", no hint
+  of the clock. Same for the river colours already (they key off the same stamps). Accepted: a wrong clock is the device's fault, and
+  the line says when the gauge last reported, which is true.
+- A future-dated reading (clock behind) is current: one rule, no lower bound, in `donorState` too (it had an absolute value).
+- Share cards and alerts cut at 6 h by the worker's clock at write time; the app uses 8 h because it judges later: the 2 h is the
+  feed's own lateness allowance. A card is a snapshot of that run, so the difference is by design.
 
 ## Acceptance
 

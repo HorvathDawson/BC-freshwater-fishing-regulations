@@ -12,6 +12,12 @@ const onActive = new Set<() => void>();
  * use `document` / AppState). Every `useBcToday` re-reads the clock at once, so a phone opened the morning after shows
  * the new day in its first frame back, not up to a minute later.
  */
+/** (T1205) Hear the same signal without a clock of one's own: the gauge judgement re-runs when the app is back at the front. */
+export function onAppActive(f: () => void): () => void {
+  onActive.add(f);
+  return () => { onActive.delete(f); };
+}
+
 export function appBecameActive(): void {
   for (const f of [...onActive]) f();
 }
