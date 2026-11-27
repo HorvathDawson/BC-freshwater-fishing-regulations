@@ -30,8 +30,8 @@ from Lake Revelstoke's and Lower Arrow Lake's rows, whose walks climb through Ki
   lake rows' exceptions; the 235 km figure is the sweep's (T1177 lane A `out-sweep/sweep.md`).
 
 ## Finding (T1177 lane A3, 2026-11-27)
-Probably not a real gap: Lansdowne and Marion creeks drain to Columbia Lake, above Kinbasket's printed exception, which
-the owner ruled stops the rows below too (RULINGS T19). Upper Arrow's new climb (T1177) was checked against the same set:
+Probably not a real gap: Lansdowne and Marion creeks (21 of the 235 km) drain to Columbia Lake, above Kinbasket's printed
+exception, which the owner ruled stops the rows below too (RULINGS T19); the 195.6 km unnamed are not traced. Upper Arrow's new climb (T1177) was checked against the same set:
 none of its 24,104.7 km lies in the Columbia above Kinbasket or what drains to it (20,205 km). Sun and Warspite not traced.
 
 ## Work

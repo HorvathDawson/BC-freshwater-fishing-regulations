@@ -50,9 +50,10 @@ diff where a binding moves), listed for his look before the build ships. Related
     tributary, through every lake above; O2 closed all year, O7 Connor / Whitetail / Whiteswan by the walk; a lake row's
     printed exception stops the rows below it (Kinbasket, Buttle). His 11-27 answers, all built: Kootenay (no change),
     Whiteswan's 14.0 km feeders above the lake (the own-stream rule, which also closes 87.7 km of Hatzic Slough's creeks to
-    white sturgeon: his look), Upper Arrow climbs from the Hwy 1 bridge to Kinbasket's exception (+24,104.7 km, all already
-    under Lower Arrow's same words). DFO one logic ("Yes, in 0.10.0"): branch `fix/T1177-dfo-one-logic`. T1248: probably
-    not a real gap (Lansdowne and Marion drain to Columbia Lake, above Kinbasket's exception; Sun and Warspite not traced).
+    white sturgeon: his yes, see ## Owner), Upper Arrow climbs from the Hwy 1 bridge to Kinbasket's exception (+24,104.7 km, all already
+    under Lower Arrow's same words). DFO one logic ("Yes, in 0.10.0"): branch `fix/T1177-dfo-one-logic`. T1248 (OPEN):
+    probably not a real gap (Lansdowne and Marion, 21 of 235 km, drain to Columbia Lake above Kinbasket's exception; Sun,
+    Warspite and 195.6 km unnamed not traced).
 11. The year-bar fix (partial-closure line type) is wanted in the re-cut but waits on the design chat's look (T1180).
 12. Not in this build: O11 (ruled, no change), the Oxbows label, lake zones (T1180; nothing is built), the August 2026 book (T1179), the Nation Arm reach (T1178).
 13. Not in this build, cross-link only: the owner's ~17:35 rulings on #312's final side-channel table (Snehumption: "Plain \"2 side
@@ -90,4 +91,5 @@ the lists before the re-cut ships. Severity: medium (several are "A": an angler 
 
 ## Owner
 
+- [x] 2026-11-27 — Hatzic Lake and Slough: should the creeks that reach Hatzic Lake through the slough above it take the lake row's "No Fishing for Sturgeon" (87.7 km), and should the slough's own 5.2 km above the lake take it too? Answered 2026-11-27: "(a) Yes, close the 87.7 km (Recommended)" (as built; the slough's own piece stays as today; RULINGS T19).
 - [ ] 2026-11-26 — The Oxbows label follows the general label rule: look at it in the final label table before #312 merges ("Follow the rule, show me in the final table (Recommended)"). Default: the rule's words.
