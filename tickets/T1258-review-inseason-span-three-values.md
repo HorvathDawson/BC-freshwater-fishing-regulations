@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane wt-T1258 (branch fix/T1258-review-inseason-span).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1258 | The review tool's In-season tab unpacks two values from `span`, which gives three since T1167 | IN PROGRESS | — | rerun screen + closed_areas after review; closed_areas git SIGSEGV (PROJ atfork) and per-file memory probe unfinished |
+| T1258 | The review tool's In-season tab unpacks two values from `span`, which gives three since T1167 | IN PROGRESS | — | independent review, before_pr, PR; the memory and fork-crash lines under Not done here |
 
 Source: the planning chat, 2026-11-27: a data-tier run of the review tests on PR #367's branch failed four In-season
 tests and two screen tests with `ValueError: too many values to unpack (expected 2)` at
@@ -29,19 +29,34 @@ files together and `scripts/heavy.sh` stopped it twice.
 
 Depends: —. Size: S. Owner: no.
 
-## Results (2026-11-27, lane wt-T1258, data cloned from the main checkout)
+## Results (2026-11-27, lane wt-T1258, data APFS-cloned from the main checkout, one file at a time, lane 3)
 
-- inseason 13 passed (peak rss 11.3 GB, probe); tidal 2 passed; tidal_unregistered 2 passed.
-- screen 19 passed, 2 failed BEFORE the two lane fixes: `cache/dfo_salmon` not in the worktree (environment), and the
-  Re-resolve backup count (writes' burst rule; the machine's resolution names r-71d09ad82e81, LATEST is
-  r-0aec88ed3edb) — the test now sets `writes.BURST_S = 0`. Rerun after the fixes: owed.
-- closed_areas 8 passed, 2 errors: `git init` in the `wt` fixture died with SIGSEGV — macOS crash report: "crashed on
-  child side of fork pre-exec", PROJ 9.5.1's atfork child handler (`SQLiteHandleCache`) closing sqlite, sqlite3_log ->
-  os_log in the child. Native fork-safety, not this change; needs its own line.
-- Memory: footprint beats 10 GB (inseason), 11 GB (screen), 9 GB (closed_areas); the `wt` fixture is FUNCTION scoped
-  and re-imports app/reuse (graph + geometry reload) per needs_atlas test. Per-file probe beyond inseason: owed.
+- inseason 13 passed; tidal 2 passed; tidal_unregistered 2 passed (before the rebase).
+- screen 21 passed (after: `cache/dfo_salmon` cloned; the Re-resolve test asserts writes' burst rule). This machine's
+  resolution names r-71d09ad82e81 while LATEST is r-0aec88ed3edb, so the first Re-resolve rewrites the copy and the
+  stale write reuses that snapshot (BURST_S, product behaviour): the test now asserts that snapshot holds the file
+  from before the burst; when the resolution is current it asserts a new backup as before.
+- closed_areas 10 passed on origin/main 2d4b8cb2f and on this branch rebased onto b7e56036c; 8 passed + 2 errors
+  in two earlier branch runs (the fork crash below).
+- Memory (probe: resident size per test, gc at each teardown): inseason peak 11.3 GB; screen 7.1 GB after its first
+  test, 12.6 GB peak, 12.4 GB at the end after gc; closed_areas: footprint 12 -> 20 -> 27 GB over its three
+  needs_atlas tests. LEADING CAUSE: every fixture that imports the backend pops `app`/`reuse`/... and re-imports them,
+  so the atlas caches (registry, graph ~0.7 GB, geometry ~2.9 GB, the rest of reuse's lru caches) load again — once
+  per FILE in four files, once per TEST in `test_review_write_through.wt` (function scoped) — and the old copies are
+  not given back (rss after module teardown + gc stays at the file's peak). Five files in one process: ~11 + 12.6 +
+  27 + tidal's ≈ 50 GB, the 49-53 GB heavy.sh stopped. No fixture scope changed (wt's writes are per-test sandboxes).
 
 ## Not done here
 
 - Show "upcoming" in the In-season tab's effect chip (`InSeasonReview.tsx` `EffectChip`) from the row's `banner`: a new
   look in the owner's review tool, so a shot for the owner first. The backend field and its type are in.
+- MEMORY: one backend import per pytest process for the review data tier (a session fixture that loads app/reuse
+  once and points each test's sandbox at it), or `cache_clear()` on reuse's caches + gc before the modules are
+  popped, then measure that rss comes back. Numbers above.
+- FORK CRASH (intermittent, 2 of 4 closed_areas runs): `git init` in `test_review_write_through.wt` died with SIGSEGV.
+  ~/Library/Logs/DiagnosticReports/python3.13-2026-11-27-155239.ips: "crashed on child side of fork pre-exec";
+  fork -> _pthread_atfork_child_handlers -> libproj 9.5.1 `SQLiteHandleCache::getHandle` atfork lambda -> lru cache
+  clear -> sqlite3Close -> unixClose -> verifyDbFile -> sqlite3_log -> os_log_type_enabled -> EXC_BAD_ACCESS.
+  Smallest candidate fixes: run git through posix_spawn, which runs no atfork handlers (absolute `/usr/bin/git`,
+  `-C <repo>` instead of cwd=, close_fds=False: `subprocess` then uses posix_spawn here, `_USE_POSIX_SPAWN` True);
+  or make the temp repo once per module before the app (and PROJ) is imported.
