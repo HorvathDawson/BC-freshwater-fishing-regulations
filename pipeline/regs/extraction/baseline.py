@@ -264,9 +264,29 @@ def check(manifest_path: Path, accepted_path: Path, pdf_path: Path, *, pages: Op
               f"{a.get('now')}) — remove it from {Path(accepted_path).name}")
     for d in res["unexplained"]:
         print("  UNEXPLAINED " + _line(d))
+    res["strikes"] = strikes = check_strikes(got, sha, pages)
+    if strikes["line"]:
+        print("  " + strikes["line"])
+    for k in strikes["unseen"]:
+        print(f"  STRIKE GONE  {k['water']} PDF p.{k.get('pdf_page')} {k['text']!r}: recorded for this book in "
+              f"known_strikes.json, not read now")
     if report:
         write_json(res, report, one_line_key=None)
-    return 1 if res["unexplained"] or res["stale"] else 0
+    return 1 if res["unexplained"] or res["stale"] or strikes["new"] or strikes["unseen"] else 0
+
+
+def check_strikes(got: List[Dict[str, Any]], pdf_sha: str, pages: Optional[Iterable[int]] = None) -> Dict[str, Any]:
+    """(T1190) The struck-through items read now against `known_strikes.json`: the one warning line, the NEW ones (not
+    recorded: a change the gate stops on) and the ones recorded for THIS book (by sha) in scope but not read now."""
+    from pipeline.regs.extraction.extract_synopsis import load_known_strikes, strike_items, strike_report
+    rows = [g["row"] for g in got]
+    known = load_known_strikes()
+    line, new = strike_report(rows, known)
+    now = {(i["water"], i["text"]) for i in strike_items(rows)}
+    keep = None if pages is None else {int(p) for p in pages}
+    unseen = [k for k in known if k.get("pdf_sha256") == pdf_sha and (keep is None or k.get("pdf_page") in keep)
+              and (k["water"], k["text"]) not in now]
+    return {"line": line, "new": new, "unseen": unseen}
 
 
 # ---------------------------------------------------------------- the fast tier's character fixtures

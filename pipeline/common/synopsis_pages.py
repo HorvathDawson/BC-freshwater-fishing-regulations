@@ -9,7 +9,7 @@ takes the PDF index, so a link built from a printed page lands two to six pages 
 
 `printed_to_pdf()` reads the map off the repo copy's own footers with `printed_page_number`, the
 extractor's reader (it lives here so the export and the curation app can use it without loading the
-extractor's numpy/sklearn stack; `extract_synopsis` imports it from here). Nothing is hand-typed.
+extractor's PDF stack (PyMuPDF since T1190); `extract_synopsis` imports it from here). Nothing is hand-typed.
 It ships once, in the UI export's guide file (`guide.pdf_pages`), and the curation app serves it
 (`GET /api/synopsis/pages`). Every link into the PDF goes through it.
 """
