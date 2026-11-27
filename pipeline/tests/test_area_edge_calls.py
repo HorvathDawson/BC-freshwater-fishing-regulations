@@ -113,12 +113,13 @@ def test_the_file_is_checked():
 
 
 def test_the_curated_file_is_well_formed_and_holds_the_owners_two_closed_calls():
-    """Owner 2026-11-27 (T1199): "Merge with the list; close both edge stretches" — both G6 stretches closed."""
+    """Owner 2026-11-27 (T1199): "Merge with the list; close both edge stretches"; then, for the Klanawa creek, shown
+    the picture: "Stop at 370 m"."""
     from pipeline.tests import under_test
     p = under_test.curated().waters.area_edge_calls
     assert E.problems(json.loads(p.read_text())) == []
     got = {(c.blk, c.from_m, c.to_m, c.call) for c in E.load(p)}
-    assert got >= {("356566041", 11976.2, 12099.2, "closed"), ("354154906", 318.3, 421.6, "closed")}
+    assert got >= {("356566041", 11976.2, 12099.2, "closed"), ("354154906", 318.3, 370.0, "closed")}
 
 
 def _hug_two_grazes():
