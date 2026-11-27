@@ -107,3 +107,7 @@ Model: Opus for the style work, Sonnet for the research page. Owner: yes (the pi
 - [x] 2026-11-26 — the legend's words for the two rule statuses (round-2 pictures 20, 21)? → "Its own rules / Region rules only" (picture 21) (2026-11-26)
   So: every proposal and legend picture uses them; the build changes them everywhere they appear (legend, help,
   glossary, walkthrough).
+- [x] 2026-11-26 — which proposal to build (round 3, A-D)? → "build A we still will send stuff to reviewwrr after we can send the one proposal to see what they think." (2026-11-26)
+  So: A is built (T1208-T1211); nothing goes to the tester until it is, then the one proposal does.
+- [x] 2026-11-26 — where the key sits (round 3, sheet 6)? → "Floating \"Map key\" over the map, near the bottom (Recommended)" (2026-11-26)
+  So: T1211. The day selector and dropping the + / - buttons stay open with him: not built.
