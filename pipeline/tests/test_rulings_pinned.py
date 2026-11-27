@@ -562,8 +562,11 @@ def test_e29_goat_river_catch_and_release_between_leadville_and_cameron_creeks(d
     """E13's Goat bullet, SUPERSEDED by E29 (owner 2026-11-26, T1177 O10): "Trout/char catch and release (mainstem
     only) Leadville Creek Cameron Creek" is the main stem BETWEEN the two confluences, no side channel, no tributary;
     the rest of the Goat takes the region's quota. MUTATION: the whole main stem (today's reading until O10) fails."""
-    (blk, lo), (blk2, hi) = (db.execute("SELECT blk, m FROM cut_place WHERE split_id = ?", (c,)).fetchone()
-                             for c in GOAT_CUTS)
+    placed = {c: db.execute("SELECT blk, m FROM cut_place WHERE split_id = ?", (c,)).fetchone() for c in GOAT_CUTS}
+    missing = sorted(c for c, at in placed.items() if at is None)
+    assert not missing, (f"the Goat cuts {missing} are not in this atlas: run the atlas build "
+                         f"(python -m pipeline build --atlas), never a reach-only rerun (T1177 O10)")
+    (blk, lo), (blk2, hi) = (placed[c] for c in GOAT_CUTS)
     assert blk == blk2 and lo < hi
 
     def goat(reach, trib):
