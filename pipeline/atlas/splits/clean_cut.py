@@ -348,10 +348,27 @@ def decide_area(g, poly, boundary, band=None, others=(), edge_m: float = EDGE_M,
         mid = g.interpolate(0.5, normalized=True)
         return [], ([(0.0, L)] if poly.contains(mid) else []), []
     if not ms:
-        ms_inside = [(0.0, L)] if poly.contains(g.interpolate(0.5, normalized=True)) else []
-        inside = floor_pieces(_merge(ms_inside + forced), L, min_piece_m, stats)
-        cuts = sorted([lo for lo, _ in inside if lo > 0.0] + [hi for _, hi in inside if hi < L])
-        return cuts, inside, []
+        # a called stretch on a line that never crosses: the floor and the move apply to it as below (one path)
+        inside, dips = ([(0.0, L)] if poly.contains(g.interpolate(0.5, normalized=True)) else []), []
+    else:
+        inside, dips = _by_crossings(g, poly, boundary, band, edge_m, dip_m, stats, ms)
+    if forced:
+        inside = _merge(inside + forced)
+        _count(stats, "stretches_called_edge_water")
+    if NO_PIECE_UNDER_THE_FLOOR:
+        inside = floor_pieces(inside, L, min_piece_m, stats)
+    if A_CUT_NEAR_A_BOUNDARY_MOVES_ONTO_IT:
+        near = [o for o in others if _AT_END_M < o < L - _AT_END_M]
+        inside = onto_others(inside, L, near, min_piece_m, stats)
+    cuts = sorted([lo for lo, _ in inside if lo > 0.0] + [hi for _, hi in inside if hi < L])
+    return cuts, inside, dips
+
+
+def _by_crossings(g, poly, boundary, band, edge_m: float, dip_m: float, stats: dict | None, ms: list[float]
+                  ) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
+    """`decide_area`'s inside from the real crossings `ms` (the band joins, the dips dropped), before the owner's
+    called stretches, the floor and the move: (inside, dips), relative."""
+    L = g.length
     band = edge_band(poly, edge_m) if band is None else band
     sides = _sides(g, poly, boundary, ms)
     edges = [0.0] + ms + [L]
@@ -381,17 +398,7 @@ def decide_area(g, poly, boundary, band=None, others=(), edge_m: float = EDGE_M,
         ins[-1][1] = L
         _count(stats, "tails_joined_by_the_band")
     dips += [(lo, hi) for lo, hi in ins if hi - lo < dip_m]
-    inside = [(lo, hi) for lo, hi in ins if hi - lo >= dip_m]
-    if forced:
-        inside = _merge(inside + forced)
-        _count(stats, "stretches_called_edge_water")
-    if NO_PIECE_UNDER_THE_FLOOR:
-        inside = floor_pieces(inside, L, min_piece_m, stats)
-    if A_CUT_NEAR_A_BOUNDARY_MOVES_ONTO_IT:
-        near = [o for o in others if _AT_END_M < o < L - _AT_END_M]
-        inside = onto_others(inside, L, near, min_piece_m, stats)
-    cuts = sorted([lo for lo, _ in inside if lo > 0.0] + [hi for _, hi in inside if hi < L])
-    return cuts, inside, dips
+    return [(lo, hi) for lo, hi in ins if hi - lo >= dip_m], dips
 
 
 def stretches(chain, gaps=()) -> list[tuple[float, float, float | None, float | None]]:

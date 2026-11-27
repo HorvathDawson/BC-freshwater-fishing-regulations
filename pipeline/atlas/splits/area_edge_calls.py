@@ -12,7 +12,9 @@ Each row names a stretch by AREA (its area id) and WATER + MEASURE RANGE (blue l
 
 Only `accepted` rows are read, each with accepted_by / accepted_on and a note; `proposed` rows are Claude's proposals for
 the owner and are read by nothing (a proposal is no acceptance, as in `unplaced_piece_calls.json`). An accepted row that
-matches no stretch any more is STALE and stops the build too (the gate reports it), never silently kept.
+matches no stretch any more is STALE and stops the build too (the gate reports it), never silently kept; so is a
+`closed` row whose stretch no longer lies within the edge band (a `closed` call is applied by measure, so a line FWA
+redrew or re-measured under it would otherwise close whatever lies there now).
 """
 
 from __future__ import annotations

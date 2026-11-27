@@ -22,7 +22,8 @@ stops the build on any of:
       wiggling across the edge, every crossing under the dip, so the cutter leaves it open although the owner's rule is
       "edge water stays closed". The builder does not decide it (AGENTS rule 12); the build stops and names it,
       unless an accepted row of `waters/area_edge_calls.json` covers it (`open`; a `closed` call makes the cutter close
-      it). An accepted row matching nothing is STALE and stops the build too (`G6_stale`).
+      it). An accepted row matching nothing is STALE and stops the build too (`G6_stale`), as is a `closed` row whose
+      stretch lies more than `area_edge_calls.MATCH_M` beyond the edge band (no longer edge water: the line moved).
 
 Lakes and wetlands are never cut and keep the outline test (`border.mark_inside_areas`); they are not checked here.
 Every number is written to `area_cut_gate.json` (pass or fail), so a build's log says what the rule did.
@@ -87,6 +88,18 @@ def _line(run, geoms):
     return shapely.line_merge(shapely.union_all([geoms[n.node_id] for n in run]))
 
 
+def _beyond(run, geoms, lo: float, hi: float, band) -> float:
+    """How much of the run's line between route measures lo..hi lies beyond `band` (each piece read on its own
+    geometry, from its own lower end)."""
+    from shapely.ops import substring
+    out = 0.0
+    for n in run:
+        a, b = max(lo, n.down_m), min(hi, n.up_m)
+        if b > a:
+            out += substring(geoms[n.node_id], a - n.down_m, b - n.down_m).difference(band).length
+    return out
+
+
 def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]],
             edge_m: float = _cc.EDGE_M, min_piece_m: float = _cc.MIN_PIECE_M, calls=()) -> dict:
     """The checks over every closure area: `areas` is [(area id, the name its cuts carry, polygon)]. Returns
@@ -112,6 +125,7 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
     by_area_cut: dict[str, str] = {f"split:area:{name}": aid for aid, name, _ in areas}
     checks: dict[str, list] = {"G1": [], "G2": [], "G3": [], "G4": [], "G5": [], "G6": [], "G6_stale": []}
     used: set = set()                          # the accepted calls that matched a stretch
+    stale_why: dict = {}                       # a call that matched but no longer holds: why
     per: dict[str, dict] = {}
     worst = {"G1_beyond_band_m": 0.0, "G2_deep_m": 0.0, "shortest_area_piece_m": None}
     for aid, name, poly in sorted(areas, key=lambda x: x[0]):
@@ -156,8 +170,16 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
                 # the inside beside it), and a run it reaches is the owner's edge water, not a line made inside by error
                 called = [c for c in calls if c.call == "closed" and c.area == aid and c.blk == blk
                           and c.from_m < run[-1].up_m and c.to_m > run[0].down_m]
-                used.update(c for c in called if run[0].down_m - _ec.MATCH_M <= c.from_m
-                            and c.to_m <= run[-1].up_m + _ec.MATCH_M)
+                for c in called:
+                    if not (run[0].down_m - _ec.MATCH_M <= c.from_m and c.to_m <= run[-1].up_m + _ec.MATCH_M):
+                        continue
+                    # still edge water: a stretch that left the band (the line redrawn or re-measured under the
+                    # call) is no longer what the owner called, so the call is stale, never applied blind
+                    off = _beyond(run, geoms, c.from_m, c.to_m, band)
+                    if off <= _ec.MATCH_M:
+                        used.add(c)
+                    else:
+                        stale_why[c] = f"the called stretch lies {off:.1f} m beyond the {edge_m:g} m edge band"
                 if longest < DEEP_M - _RUN_NOISE_M and not wholly_inside and not called:
                     checks["G5"].append({"area": aid, "blk": blk, "from_m": round(run[0].down_m, 1),
                                          "to_m": round(run[-1].up_m, 1), "longest_inside_run_m": round(longest, 2)})
@@ -226,7 +248,8 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
     # an accepted call that matched no stretch is stale: reported, and it stops the build (never silently kept)
     for c in calls:
         if c not in used:
-            checks["G6_stale"].append({**c.key(), "why": "no stretch of the build matches this accepted call"})
+            checks["G6_stale"].append({**c.key(), "why": stale_why.get(
+                c, "no stretch of the build matches this accepted call")})
     for aid, c in per.items():
         c["member_m"] = round(c["member_m"], 1)
         c["member_beyond_band_m"] = round(c["member_beyond_band_m"], 1)
