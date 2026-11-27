@@ -93,8 +93,13 @@ Model: Opus for the style work, Sonnet for the research page. Owner: yes (the pi
   So: no change to the tapped look (e dropped). The reply asks the tester what "the system i have highlighted" was.
 - [x] 2026-11-26 — hillshade: now, later or never? → "Later, own ticket (Recommended)" (2026-11-26). It is T1204.
 - [x] 2026-11-26 — what goes to the tester as proposals? → "let me pick the options i want to send give me a bunch of options then i will pick the ones i think have a chance of being good. then we can send them to the reviewer and see what they think while we choose our favourite in the mean time. also the legend rework i think is one of the bigger wins maybe?" (2026-11-26)
-- [ ] 2026-11-26 — pick which numbered option pictures go to the tester (the second round: single, sendable pictures,
-  more legend designs). Default until then: nothing is sent and the recommended package is what gets built.
+- [x] 2026-11-26 — pick which numbered option pictures go to the tester (the second round: single, sendable pictures,
+  more legend designs)? → "i think there are a lot of good ideas here the whole pronvince look and zoomed in look are a good starting point. could we have a couple full proposals of those 2 looks basically option A-D with different whole pronvince and mid zoom and zoomed in looks. we can think about other things that would improve it to. i like my search terms we should leaves those they are fun. im sure a lot of other fun improvements could be done tho to make it work better on a phone size. including the date selectors too? those still seem clunky..." (2026-11-26)
+  So: nothing goes to the tester yet; four whole proposals A-D at three zooms, the rotating search hints stay, and the
+  date selector and other phone-size ideas are shown as their own proposals.
+- [x] 2026-11-26 — which legend design (pictures 14-19)? → "either 14 or 15 but maybe the legend should be at bottom? would that be better? or could be a map key at bottom that has map behind it and when clicked opens up the reference or somethign?" (2026-11-26)
+  So: only the one-line key with More (14) and the Map key chip (15) stay, shown in three placements (in the bar over
+  the map's foot, under the tab bar, and floating over the map).
 - [ ] 2026-11-26 — the second tier of towns (from zoom 6) is a list we choose, since the basemap cannot rank them
   (Vanderhoof, Fort St. James, Mackenzie, Houston and about 30 more in the prototype). Default: the prototype's list,
   shown to you as a picture before it merges.
