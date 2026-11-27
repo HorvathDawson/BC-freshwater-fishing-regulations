@@ -69,14 +69,18 @@ async function open(item: string, part: number, facts: SalmonFacts | null, glanc
   render(<WaterScreen source={makeReleaseSource(loader)} item={item as ItemId} palette={LIGHT} part={part} glance={glance}
                       loader={loader} day={NOV_24} />);
   await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), LOADED);
-  if (facts) await waitFor(() => expect(screen.getByTestId("salmon-block")).toBeTruthy(), LOADED);
+  // the card is in: a Salmon block, or (T1207) the one block for both fish where the card makes it one closure
+  if (facts) await waitFor(() => expect(screen.queryByTestId("salmon-block") ?? screen.queryByTestId("keep-banner")?.textContent?.includes("salmon included") ?? null).toBeTruthy(), LOADED);
 }
 /** what the page says: the closed banner's words (null: none), whether a Salmon row is in the species list, the strips */
 const said = () => ({
   banner: screen.queryByTestId("keep-banner")?.textContent ?? null,
   salmonRow: !!screen.queryByTestId("glance:salmon"),
   calendars: [!!screen.queryByTestId("salmon-block"), !!screen.queryByTestId("keep-strip")],
+  // (T1207) the game-fish / one-for-both status block's name and tag
+  block: [screen.queryByTestId("keep-strip-title")?.textContent ?? null, screen.queryByTestId("keep-strip-title:tag")?.textContent ?? null],
 });
+const ONE_SCHEDULE = ["Salmon and game fish", "B.C. Synopsis"];
 
 /** a part by its ends (T667), never by its number */
 const partOf = (item: string, lo: string, hi: string) => sectionNames(openRegsFixture()).part(item, lo, hi);
@@ -86,9 +90,9 @@ const WILKIE = "r4:wilkie_creek@4-30::wilkie_creek.r1";
 const ONE_BLOCK = (line: string, scope: string, page: number) => `Closed to all fishing all year, salmon included${line} ${scope}SourceB.C. Synopsis p.${page} ↗Who says so ›`;
 
 describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () => {
-  it("one closure, all year, salmon included (Wilkie Creek, its own row \"No Fishing\"): one block, no Salmon row, both calendars", async () => {
+  it("one closure, all year, salmon included (Wilkie Creek, its own row \"No Fishing\"): one block, no Salmon row, ONE schedule (one status block, one bar)", async () => {
     await open("gnis:27735", 0, bookFacts(WILKIE, "Wilkie Creek", 40));
-    expect(said()).toEqual({ banner: ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", "This water", 40), salmonRow: false, calendars: [true, true] });
+    expect(said()).toEqual({ banner: ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", "This water", 40), salmonRow: false, calendars: [false, true], block: ONE_SCHEDULE });
     // (#131 review LOW 6) the Source links name the row for a screen reader, not the whole line
     const links = [...screen.getByTestId("keep-banner").querySelectorAll("[role=link], [data-testid='chip:source']")].map((e) => e.getAttribute("aria-label"));
     expect(links).toEqual(["B.C. Synopsis page 40, the passages behind the Wilkie Creek row marked, opens the PDF",
@@ -107,7 +111,7 @@ describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () 
   it("a several-part water: its closed part (a walked tributary of Wahleach Lake) gets the block naming the row it inherits; its open part keeps its Salmon row", async () => {
     const facts = bookFacts("r2:wahleach_jones_lake_s_tributaries@2-3::wahleach_jones_lake_s_tributaries.r1", "Wahleach Lake", 26);
     await open("gnis:22472", await partOf("gnis:22472", "lake_inlet:wbk:329177886", "source"), facts);
-    expect(said()).toEqual({ banner: ONE_BLOCK("Wahleach Lake’s row covers its tributaries: “No Fishing”.", "From downstream", 26), salmonRow: false, calendars: [true, true] });
+    expect(said()).toEqual({ banner: ONE_BLOCK("Wahleach Lake’s row covers its tributaries: “No Fishing”.", "From downstream", 26), salmonRow: false, calendars: [false, true], block: ONE_SCHEDULE });
     cleanup();
     await open("gnis:22472", await partOf("gnis:22472", "mouth", "lake_outlet:wbk:329177886"), facts);
     expect([said().banner, said().salmonRow]).toEqual([null, true]);
@@ -117,25 +121,28 @@ describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () 
     await open("gnis:27735", 0, DFO_ONLY);
     const s = said();
     expect([s.banner?.startsWith("Closed all yearNo fishing for any game fish. This waterSource"), s.salmonRow, s.calendars]).toEqual([true, true, [true, true]]);
+    expect(s.block[0]).toBe("Game fish");   // (T1207) two status blocks: the Salmon block, and Game fish, not the one-for-both
     expect(screen.getByTestId("glance:salmon").textContent).toContain("closed");
   }, 40_000);
 
   it("salmon closed by ANOTHER book rule than the banner's: both statements stay", async () => {
     await open("gnis:27735", 0, bookFacts("r2:brunette_river@2-8::brunette_river.r1b", "Brunette River", 22));
     expect([said().banner?.startsWith("Closed all yearNo fishing for any game fish."), said().salmonRow]).toEqual([true, true]);
+    expect([said().calendars, said().block[0]]).toEqual([[true, true], "Game fish"]);   // (T1207) a different rule: two blocks
   }, 40_000);
 
   it("closed to all fishing for part of the year only (the Cowichan, Nov 15–Apr 15, the same rule): today's two statements", async () => {
     // the book place's year: closed Jan 1–Apr 15 and Nov 15–Dec 31 (file days), the rule's own dates
     await open("gnis:12227", await partOf("gnis:12227", "cowichan_river__greendale_trestle", "lake_outlet:wbk:329101302"), bookFacts("r1:cowichan_river_see_map_below@1-4::cowichan_river.r3", "Cowichan River", 15, [0, 1, 106, -1, 319, 1]));
     expect([said().banner?.includes("salmon included"), said().salmonRow]).toEqual([false, true]);
+    expect([said().calendars, said().block[0]]).toEqual([[true, true], "Game fish"]);   // (T1207) part-year: two blocks
   }, 40_000);
 
   it("a live in-season notice on top: drawn first, as always; the one block under the calendars as without it", async () => {
     notice.on = true;
     await open("gnis:27735", 0, bookFacts(WILKIE, "Wilkie Creek", 40));
     expect([!!screen.queryByTestId("inseason-banners"), said()])
-      .toEqual([true, { banner: ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", "This water", 40), salmonRow: false, calendars: [true, true] }]);
+      .toEqual([true, { banner: ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", "This water", 40), salmonRow: false, calendars: [false, true], block: ONE_SCHEDULE }]);
   }, 40_000);
 
   it("a release with no salmon: the game-fish banner as it was, no \"salmon included\"", async () => {

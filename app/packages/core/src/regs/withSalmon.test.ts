@@ -53,6 +53,8 @@ describe("(T1052) closedWithSalmon: one statement where one closure shuts every 
     });
     // the closure's book line (its page and highlight) is the banner's own: the source line is unchanged
     expect(out.keep.banner!.chain[0]!.book).toBe(BOOK_LINE);
+    // (T1207, owner 2026-11-26) ONE status block for both fish, tagged with the rule book that closes them (never "DFO")
+    expect(out.keep.banner!.schedule).toEqual({ title: "Salmon and game fish", tag: "B.C. Synopsis" });
   });
 
   it("a walked tributary names the row it inherits; a book line ending its own sentence takes no second full stop", () => {
@@ -87,7 +89,10 @@ describe("(T1052) closedWithSalmon: one statement where one closure shuts every 
     ["a merged \"closed all year on N stretches\" banner", (p) => closedWithSalmon(p, card(), RULES), page(banner({ merged: { label: "Closed all year on 2 stretches (3 sections)", items: [] } }))],
     ["a card built by hand (no todayBy)", (p) => closedWithSalmon(p, card({ todayBy: undefined }), RULES), page()],
   ];
-  for (const [what, run, p = page()] of kept) it(`kept as two statements: ${what}`, () => { expect(run(p)).toBe(p); });
+  for (const [what, run, p = page()] of kept) it(`kept as two statements: ${what}`, () => {
+    expect(run(p)).toBe(p);
+    expect(run(p).keep.banner?.schedule).toBeUndefined();   // (T1207) and as two status blocks: no one-block schedule
+  });
   it("kept as it is, the banner says game fish and the Salmon row stays", () => { expect(said(page())).toEqual(UNMERGED); });
 
   it("no salmon card (a water with no salmon, a release without them): no \"salmon included\" words", () => {

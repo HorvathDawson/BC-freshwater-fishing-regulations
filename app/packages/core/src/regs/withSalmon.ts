@@ -2,7 +2,7 @@
  * (T1052, owner 2026-11-24 ~12:33: "One block, both calendars (Recommended)") A WATER CLOSED TO ALL FISHING, SALMON
  * INCLUDED, SAYS IT ONCE. Nelson Creek (book p.25, "No Fishing") drew the same closure twice: the Salmon row of the
  * species list ("Closed to all fishing by the B.C. Synopsis (p.25): No Fishing (all year)", the salmon card's `book`) and
- * the game-fish "Closed all year" banner ("No fishing for any game fish. This water"). The two calendars stay; the two
+ * the game-fish "Closed all year" banner ("No fishing for any game fish. This water"). (T1207: the two calendars become one block too, below.) The two
  * statements become the banner alone: "Closed to all fishing all year, salmon included", the book row's line and its
  * source. The Salmon row is not drawn (`BannerVM.salmon`).
  *
@@ -16,10 +16,15 @@
  * keeps today's two statements: a closure for part of the year, salmon closed by DFO (or by another rule), a DFO notice,
  * a DFO finfish closure or an undrawn DFO place on the card, a merged "closed all year on N stretches" banner, a page
  * with no salmon card.
+ *
+ * (T1207, owner 2026-11-26) The same gate decides the ONE schedule: `banner.schedule` names the single status block
+ * ("Salmon and game fish", tagged with the rule book) the Keep tab draws in place of the two; the screen only draws it. A page
+ * that fails the gate has no `schedule`, so it draws its two blocks as before: it splits again by itself.
  */
 import type { SalmonCardVM } from "../salmon";
 import type { RuleIndex, RuleView } from "./inputs";
 import type { RegsPage } from "./model";
+import { SOURCE_WORDS } from "../glance";
 import { clean } from "./names";
 import { WORDS } from "./words";
 
@@ -58,5 +63,7 @@ export function closedWithSalmon(page: RegsPage, card: SalmonCardVM | null, rule
     if (!row || !line) throw new OneClosureError(`closedWithSalmon: closure ${c.rule} has no book row name or line`);
     return { ...c, text: r.via === "trib" ? WORDS.BOOK_ROW_TRIBS(row, line) : WORDS.BOOK_ROW_READS(row, line), about: WORDS.BOOK_ROW_OF(row) };
   });
-  return { ...page, keep: { ...page.keep, banner: { ...b, big: [WORDS.CLOSED_ALL_FISHING_YEAR], paras: [], chain, salmon: true } } };
+  return { ...page, keep: { ...page.keep, banner: { ...b, big: [WORDS.CLOSED_ALL_FISHING_YEAR], paras: [], chain, salmon: true,
+    // (T1207) the one status block for both fish: the closures are the rule book's (`card.todayBy` "book", checked above)
+    schedule: { title: SOURCE_WORDS.both, tag: SOURCE_WORDS.salmonTag.book } } } };
 }

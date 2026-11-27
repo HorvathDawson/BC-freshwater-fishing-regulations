@@ -6,14 +6,14 @@
  */
 import { View } from "react-native";
 import { Text } from "../Text";
-import { TYPE } from "../type";
+import { LABEL_PROPS, TYPE } from "../type";
 import type { Palette } from "../theme";
 
 export function SourceTag({ text, palette, testID }: { text: string; palette: Palette; testID?: string }) {
   return (
     <View testID={testID ?? "source-tag"} style={{ borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.chip,
                                                  paddingHorizontal: 5, paddingVertical: 1, alignSelf: "center" }}>
-      <Text style={[TYPE.kicker, { fontSize: 10.5, lineHeight: 14, color: palette.sub }]}>{text}</Text>
+      <Text {...LABEL_PROPS} style={[TYPE.kicker, { fontSize: 10.5, lineHeight: 14, color: palette.sub }]}>{text}</Text>
     </View>
   );
 }
@@ -21,8 +21,9 @@ export function SourceTag({ text, palette, testID }: { text: string; palette: Pa
 /** A block's name with its tag after it ("SALMON  [DFO]"), the block's header. */
 export function TaggedTitle({ text, tag, palette, testID }: { text: string; tag: string; palette: Palette; testID: string }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", columnGap: 8, marginBottom: 2 }}>
-      <Text testID={testID} accessibilityRole="header" style={[TYPE.kicker, { color: palette.ink }]}>{text}</Text>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 2, marginBottom: 2 }}>
+      {/* (T1207) the one block's name, "Salmon and game fish", wraps whole and the tag drops under it at a large text size */}
+      <Text testID={testID} accessibilityRole="header" style={[TYPE.kicker, { color: palette.ink, flexShrink: 1 }]}>{text}</Text>
       <SourceTag text={tag} palette={palette} testID={`${testID}:tag`} />
     </View>
   );
