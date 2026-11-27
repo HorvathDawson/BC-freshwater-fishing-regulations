@@ -4,7 +4,7 @@ Status: OPEN — ruled by the owner; HELD for the loop-removal trial (T1242), hi
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — held for the loop-removal trial (T1242, owner 2026-11-27); owner: see ## Owner | — | build the rule in the cutter (`clean_cut.py`), then the opens list to the owner before the re-cut closes |
+| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — held for the loop-removal trial (T1242, owner 2026-11-27); owner: see ## Owner | — | held: the T1242 trial report, then the rule's list and the trial in one look; the rule is built on fix/T1199-area-cut-rule (not merged) |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim. On the cut rule: "we need to figure out a way that everything
 get simplified a lot.... like the skeena river er example is crazy... we want to maybe do braid simplification here

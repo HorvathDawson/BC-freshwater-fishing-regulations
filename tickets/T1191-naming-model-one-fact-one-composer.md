@@ -50,7 +50,7 @@ T1181, T1196, T1176 (superseded), T1180, T1240, T1199.
 - **Lakes partly in a cut area:** "this similar to the naming etc it could be a tag saying partly in eco reserve? then
   later can also be in the cut rule options in the later releases?" (one chip, "Closed all year · partly in <Area>", 84
   lakes; cutting lakes is a later option).
-- **Return batches 5a and 5b, 2026-11-27 (about 00:40 and 00:55 MST; verbatim; the answers are also on `docs/OWNER-RULINGS.md`; "Reading:" is the planning chat's plain reading):**
+- **Return batches 5a and 5b, 2026-11-27 (verbatim; the answers are also on `docs/OWNER-RULINGS.md`; "Reading:" is the planning chat's plain reading):**
   - No access on the card (Q4): "i dont understand the cottoinwood river example but i like the layout in p3-5 access. i
     dont understand the salmon stretch tag either. also the tag for noons creek is weird too. i think for noon creek as
     a side note since fwa and city have 2 different streams in same area same name they should both get noons creek regs
@@ -61,7 +61,7 @@ T1181, T1196, T1176 (superseded), T1180, T1240, T1199.
     \"crosses private land\" as another tag". Reading: ALL closed land in the layer counts as "No public access" (no
     filtering); a NEW, separate tag "Crosses private land", like the Indigenous one.
   - Indigenous chips (Q6): "chip replaces the banner and no when wholyl yes and make it if the water goes through
-    indegenous at all it will get part tag"; confirmed with "Yes, that is right". Reading: the chip replaces the banner;
+    indigenous at all it will get part tag"; confirmed with "Yes, that is right". Reading: the chip replaces the banner;
     a chip when wholly on reserve land; a "crosses" chip on ANY touch (no 5% floor).
   - The 14 side parts (Q-R2): "Fold by the rule, in the re-cut (Recommended)".
   - Klinaklini / MacMillan DFO salmon side channels (Q-R1): "why do tey not get reached? that seems like an issue not
@@ -85,16 +85,18 @@ card place, search cut rows, no-access kinds, Indigenous land words, lake pieces
 If the re-cut cannot take it all, the smallest safe slice is 1 + 2 + 5.
 
 ### What the first stage builds, after his rulings of 2026-11-27
-- **No access:** the chip layout as on P3-5 (the "No public access" chip ranks first). ALL closed land in the layer counts
-  as "No public access" (no filtering to military and watersheds). Slice (7) is this layout, not the status-pill version.
-- **NEW scope, a separate tag "Crosses private land"**, like the Indigenous one. Its data source is NOT chosen yet (the
-  planning chat numbers the build ticket once it is).
-- **Indigenous land:** the chip replaces the banner; a chip when wholly on reserve land; a "crosses" chip on any touch (no 5% floor).
+- **No access:** ALL closed land in the layer counts as "No public access" (no filtering to military and watersheds). The
+  card layout waits on Q4 (he likes P3-5; confirm after the explanation).
+- **Indigenous land** (placed in the first stage by the planning chat; the Work plan lists "Indigenous land words" under
+  0.11.0): the chip replaces the banner; a chip when wholly on reserve land; a "crosses" chip on any touch (no 5% floor).
 - **Words:** "Cowichan 1 reserve"; "Main channel" for a mouth-to-source main line beside side-channel parts; a water with
   only one section or part gets no locator line at all.
 - **Side parts:** the 14 with no nameable reason fold by the rule in the re-cut (T1240). The DFO salmon side channels
   (Klinaklini, MacMillan) are a defect to fix in T1240, with no chip.
-- **Noons Creek:** the FWA stream and the city stream of the same name in the same area both get the Noons Creek regs.
+- Ruled, timing not given (the planning chat places them):
+  - NEW scope, a separate tag "Crosses private land", like the Indigenous one. Its data source is NOT chosen yet (the
+    planning chat numbers the build ticket once it is).
+  - Noons Creek: the FWA stream and the city stream of the same name in the same area both get the Noons Creek regs.
 
 ## Acceptance
 Every part with an area that binds it says so in its name or chip on every surface; no surface throws on a missing

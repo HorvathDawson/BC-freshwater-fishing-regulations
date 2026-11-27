@@ -412,6 +412,10 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         # NICOLA below its lake: the row's catch and release (Jan 1-Feb 28) lifts Region 3's
         # spring closure on those days only (user ruling 2026-10-03, RU-2).
         ("r3:nicola_river@3-13", "nicola_river.r3x", "spring_stream_closure.r1"),
+        # LITTLE RIVER (RULINGS L29, owner O1, T1177): map A's dated rainbow trout and char catch and release
+        # (May 15-Mar 14) lifts Region 3's spring closure on those days, for those fish only, as the Nicola's does
+        ("r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26", "shuswap_lake.r2x",
+         "spring_stream_closure.r1"),
         ("r4:beaver_creek@4-8", "beaver_creek.r1", "trout_char_quota.r3"),
         # DUCK LAKE: two dated rules (Jun 16-May 14, May 15-Jun 15) each lift the bass closure
         # only on their own days — together, the year.

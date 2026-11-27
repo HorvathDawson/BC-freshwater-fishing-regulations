@@ -4,7 +4,7 @@ Status: OPEN — words only; none of them shows on today's data
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1245 | "Eco Reserve" follow-ups from the #312 round 5 review | OPEN — words only, none on today's data | — | picker tails and cut_words through eco_reserve; the case rule; the stop's remedy; the app fixtures at the next re-cut; owner answered 2026-11-27 (names only) |
+| T1245 | "Eco Reserve" follow-ups from the #312 round 5 review | OPEN — words only, none on today's data | — | picker tails and cut_words through eco_reserve; the case rule; the stop's remedy; the app fixtures at the next re-cut; owner answered 2026-11-26 (names only) |
 
 Source: the independent re-review of PR #312 round 5 (T1172, head a91dc18c6), and the owner's ruling of 2026-11-26:
 "it should be \"[name] eco reserve\" everywhere".
@@ -33,4 +33,4 @@ Depends: none. Size: S. Owner: yes (below).
 
 ## Owner
 
-- [x] 2026-11-26 — Where "Ecological Reserve" still shows on screen. ANSWERED 2026-11-27: "Merge; names only (Recommended)". Reading: #312 merged as built (the short "Eco Reserve" in names only); the full official name stays on the map's area labels and area tap, the water page's notes, the rules' own sentences and the salmon card's book lines.
+- [x] 2026-11-26 — Where "Ecological Reserve" still shows on screen. ANSWERED 2026-11-26 (about 23:50 MST): "Merge; names only (Recommended)". Reading: #312 merged as built (the short "Eco Reserve" in names only); the full official name stays on the map's area labels and area tap, the water page's notes, the rules' own sentences and the salmon card's book lines.

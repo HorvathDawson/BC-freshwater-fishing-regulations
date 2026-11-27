@@ -52,7 +52,7 @@ this and plan it out and figure out the best way so it isnt janky." The inputs: 
   expand or click on it which then opens the map in the card instead where the user can select the specific section if
   that makes sense? like in A? this needs more work but something like that. also lakes arent the sam eupstream/downstream
   it should have different text when navigating. or even better only a parts selector / user able to click and hide the up/downstream on lakes?"
-  Reading: B is the direction; the search must not list every part; lakes get no upstream/downstream.
+  Reading: B is the direction; the search must not list every part; lakes get different words for up/downstream, or only a parts selector (up/down hidden).
 - **Round 4 (sheets R4-0-compare, R4-B1-count-chip, R4-B2-expand-in-place, R4-B3-one-selector):** the Fraser has 23 listed
   parts (22 after joins). B1 a count chip, B2 expand in place, B3 one selector. The lane recommended B1.
 - **His answer to round 4 (verbatim):** "B1 is good except it needs care for making sure buttons dont move around
