@@ -45,11 +45,14 @@ widening (`Presence.anadromous`): an unnamed pond a steelhead row's OWN river ta
 in WATERS where anadromous rainbow trout are found", and the row's own size split ("Hatchery rainbow
 trout (adipose clipped, <50 cm)" / "Hatchery steelhead (adipose clipped, >50 cm)", p.51) reads only so.
 
-  known     book-known (above) or listed; each row says which (`regulations`, `listed`), whether
+  known     book-known (above), listed, or a PACIFIC STREAM of the steelhead regions (S14,
+            `PACIFIC_STREAMS_ARE_STEELHEAD_WATER`: every stream the base rules bind whose FWA basin
+            reaches the Pacific); each row says which (`regulations`, `listed`, `pacific`), whether
             steelhead rules apply (`rules`), and `anadromous`.
   possible  any other stream section a provincial steelhead base rule binds (`zp:steelhead`, the
-            streams of the steelhead regions): "steelhead rules apply; steelhead may not be present
-            in this water".
+            streams of the steelhead regions): since S14 the Arctic and Yukon drainage of Region 6
+            and a stream with no watershed code — "steelhead rules apply; steelhead may not be
+            present in this water".
   absent    everywhere else.
 
 THE PROVINCIAL SET ON A BOOK-KNOWN WATER. The base rules bind streams of the steelhead regions only;
@@ -127,6 +130,45 @@ LAKES_ONLY_BY_OWN_ROW = True
 #: by `Presence.anadromous`. False: the pond is a lake, its wild 60 cm rainbow keepable under the zone's lake
 #: quota while the river's own row splits rainbow from steelhead at 50 cm.
 A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS = True
+
+#: A PACIFIC STREAM OF THE STEELHEAD REGIONS IS STEELHEAD WATER (T1250, owner 2026-11-27: "Pacific streams now,
+#: barriers in 0.11.0 (Recommended)"; RULINGS S14). p.80: "steelhead: a rainbow trout longer than 50 cm in waters
+#: where anadromous rainbow trout are found"; "anadromous: swimming up rivers from the ocean to spawn". Every STREAM
+#: section the provincial steelhead base rules bind (the streams of Regions 1, 2, 3, 5 and 6) whose water reaches the
+#: Pacific (`pacific_basin`) is KNOWN (`PACIFIC_STREAM` its source), so a rainbow over 50 cm there is a steelhead
+#: where steelhead rules apply (S6, `Presence.anadromous`). Decided by the water's FWA basin, never by a list of
+#: waters. Stays "possible": a stream of the Arctic or Yukon drainage (`NOT_PACIFIC_BASINS`), and a section with no
+#: watershed code (counted in the report, `possible_no_basin_code`). Lakes stay out (S3). Barriers (dams, falls) are
+#: T1257, 0.11.0. False: only the book's rows and the curated list make water known (the S4 model).
+PACIFIC_STREAMS_ARE_STEELHEAD_WATER = True
+
+#: The source a stream known by `PACIFIC_STREAMS_ARE_STEELHEAD_WATER` carries (`steelhead_source`), beside the
+#: steelhead rows' entry ids and `CURATED_LIST`.
+PACIFIC_STREAM = "Pacific stream"
+
+#: THE FWA BASINS: the FIRST group of a section's FWA watershed code names the drainage it belongs to. These reach
+#: the Pacific: 100 the Fraser, 300 the Columbia, 400 the Skeena, 500 the Nass, 600 the Stikine, 700 the Taku, and
+#: every 9xx group (the coast and its islands: Vancouver Island, Haida Gwaii, the mainland inlets, the Unuk, Whiting,
+#: Alsek ...).
+PACIFIC_BASINS = frozenset({"100", "300", "400", "500", "600", "700"})
+#: These do not: 200 the Mackenzie (the Peace and the Liard, to the Arctic) and 800 the Yukon (Teslin, Atlin; by the
+#: owner's ruling it stays as today with the Arctic).
+NOT_PACIFIC_BASINS = frozenset({"200", "800"})
+
+
+def pacific_basin(wsc: str) -> bool | None:
+    """Does a water with this FWA watershed code reach the Pacific? True / False by the code's first group
+    (`PACIFIC_BASINS`, the 9xx coast, `NOT_PACIFIC_BASINS`); None when there is no code. A first group in none of
+    them is REFUSED: a new basin is decided here, never guessed."""
+    head = str(wsc or "").strip().split("-")[0]
+    if not head:
+        return None
+    if head in PACIFIC_BASINS or (len(head) == 3 and head.startswith("9") and head.isdigit()):
+        return True
+    if head in NOT_PACIFIC_BASINS:
+        return False
+    raise ValueError(f"FWA watershed code {wsc!r}: basin {head!r} is in neither PACIFIC_BASINS nor "
+                     f"NOT_PACIFIC_BASINS — decide it in pipeline/atlas/reach/steelhead.py")
 
 
 #: A STEELHEAD ROW'S OWN WATER: its matched waters within its own scope, as its rules are held (its
@@ -413,6 +455,11 @@ class Presence:
             self._book = book
         return frozenset(self._book)
 
+    def wsc(self, s: str) -> str:
+        """The section's FWA watershed code (`StreamNode.wsc`), "" when the graph holds none."""
+        node = getattr(self.graph, "nodes", {}).get(s)
+        return str(getattr(node, "wsc", "") or "")
+
     def kind(self, s: str) -> str:
         """The section's water kind (`water_kind.kind_of`: a slough or canal is a stream)."""
         return _resolve._kind_of(self.graph, s, self.registry)
@@ -455,20 +502,33 @@ class Presence:
         base = {s for b in bindings if b.entry_id == PROVINCE_STEELHEAD
                 and (b.entry_id, b.rule_id) not in twins for s in b.sections}
         possible = {s for s in base if s not in known and self.kind(s) == "stream"}
+        # PACIFIC_STREAMS_ARE_STEELHEAD_WATER (S14): a "possible" stream whose water reaches the Pacific is known
+        pacific: set[str] = set()
+        no_code = 0
+        if PACIFIC_STREAMS_ARE_STEELHEAD_WATER:
+            for s in possible:
+                got = pacific_basin(self.wsc(s))
+                if got is None:
+                    no_code += 1
+                elif got:
+                    pacific.add(s)
+            possible -= pacific
+            known |= pacific
         apply = self.rules_apply(bindings)
         rows = []
         for s in known:
             kind = self.kind(s)
             rows.append({"section_id": s, "steelhead": KNOWN,
-                         "entry_id": book.get(s, CURATED_LIST),
+                         "entry_id": book.get(s, CURATED_LIST if s in self.listed else PACIFIC_STREAM),
                          "regulations": s in book, "listed": s in self.listed,
+                         "pacific": s in pacific,
                          "rules": s in apply,
                          # p.80 where steelhead rules apply, on a stream (user ruling 2026-10-03) or
                          # a steelhead river's widening (T153)
                          "anadromous": self.anadromous(s, kind, apply),
                          "kind": kind})
         rows += [{"section_id": s, "steelhead": POSSIBLE, "entry_id": PROVINCE_STEELHEAD,
-                  "regulations": False, "listed": False, "rules": s in apply,
+                  "regulations": False, "listed": False, "pacific": False, "rules": s in apply,
                   "anadromous": False, "kind": "stream"}
                  for s in possible]
         rows.sort(key=lambda r: r["section_id"])
@@ -489,7 +549,13 @@ class Presence:
             "anadromous": sum(1 for r in rows if r["anadromous"]),
             #: ... of it, known by the curated list alone (user ruling 2026-10-03)
             "anadromous_list_only": sum(1 for r in rows if r["anadromous"]
-                                        and not r["regulations"]),
+                                        and not r["regulations"] and r["listed"]),
+            #: known as a Pacific stream of the steelhead regions alone (S14, `PACIFIC_STREAMS_ARE_STEELHEAD_WATER`)
+            "known_pacific": len(pacific),
+            #: ... of it, where a rainbow over 50 cm is a steelhead
+            "anadromous_pacific": sum(1 for r in rows if r["anadromous"] and r["pacific"]),
+            #: streams of the steelhead regions left "possible" with no FWA watershed code: never guessed (S14)
+            "possible_no_basin_code": no_code,
             #: known, and no steelhead rule applies (the Okanagan River, the Fraser in 7A)
             "known_no_rules": sum(1 for r in rows if r["steelhead"] == KNOWN and not r["rules"]),
             #: book-known sections the stream-only base rules do not bind — the twins' water

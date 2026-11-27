@@ -560,17 +560,49 @@ def test_a_tributary_of_the_thompson_is_known_only_by_the_list(db, item_id, name
         assert _steelhead_water(db, sid), name
 
 
+def _sources(db, item_id: str) -> set:
+    return {e for (e,) in db.execute("SELECT h.entry_id FROM steelhead_source h JOIN item i "
+                                     "ON i.ord = h.ord WHERE i.item_id = ?", (item_id,))}
+
+
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id,name", [("gnis:27764", "Williams Lake River"),  # Region 5
                                           ("gnis:21205", "San Jose River")])      # Region 5
-def test_an_interior_cariboo_stream_is_possible(db, item_id, name):
-    """A Cariboo stream no row names steelhead on, and no tributary of one: the steelhead rules
-    apply, steelhead may not be present — and a big rainbow is a rainbow."""
+def test_an_interior_cariboo_stream_is_a_pacific_stream(db, item_id, name):
+    """RULINGS S14 (T1250, owner 2026-11-27): a Cariboo stream no row names steelhead on is a stream
+    of the Fraser basin, which reaches the Pacific: KNOWN as a Pacific stream (no rule comes from
+    it), the steelhead rules apply, and a big rainbow is a steelhead. Was "possible" (a big rainbow a
+    rainbow) before S14."""
+    got = _presence(db, item_id)
+    assert set(got) == {"known"}, (name, {k: len(v) for k, v in got.items()})
+    assert _sources(db, item_id) == {"Pacific stream"}, name
+    for sid in got["known"]:
+        assert PROVINCE <= _rules_on(db, sid), name
+        assert _steelhead_water(db, sid), name
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("item_id,name", [("gnis:16080", "Dease River"),    # Region 6, Liard: Arctic
+                                          ("gnis:2295", "French River"),    # Region 6, Liard: Arctic
+                                          ("gnis:2187", "Gladys River")])   # Region 6, the Yukon
+def test_an_arctic_or_yukon_stream_of_region_6_stays_possible(db, item_id, name):
+    """RULINGS S14: a Region 6 stream whose water reaches the Arctic (the Mackenzie, basin 200) or the
+    Yukon (basin 800) stays "possible": the steelhead rules apply, steelhead may not be present, and a
+    big rainbow is a rainbow."""
     got = _presence(db, item_id)
     assert set(got) == {"possible"}, (name, {k: len(v) for k, v in got.items()})
+    assert _sources(db, item_id) == set(), name
     for sid in got["possible"]:
         assert PROVINCE <= _rules_on(db, sid), name
-        assert not db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (sid,)).fetchone()
+        assert not _steelhead_water(db, sid), name
+
+
+@pytest.mark.needs_bundle
+def test_s14_leaves_lakes_and_the_other_regions_alone(db):
+    """RULINGS S14 reaches only STREAMS of Regions 1, 2, 3, 5 and 6: Kamloops Lake (a lake of the
+    Fraser basin) carries no steelhead attribute, nor does the Kechika River (Zone 7B, the Liard)."""
+    assert set(_presence(db, "wbk:329563838")) == {None}
+    assert set(_presence(db, "gnis:11401")) == {None}
 
 
 #: the OUTRIGHT stamp-waiver rows ("(Steelhead Stamp not required)"): steelhead rows by that
@@ -586,7 +618,8 @@ def test_the_stamp_waiver_rows_are_steelhead_rows(raw, db):
     """"(Steelhead Stamp not required)" prints steelhead (user ruling 2026-10-02): the Chilko,
     Horsefly, West Road and both Stellako rows are steelhead rows. Every section their rules bind is
     known, carries the provincial set, and — a stream — is steelhead water. The Horsefly row binds
-    the river below the falls; above them the river stays "possible"."""
+    the river below the falls; above them the river is a Pacific stream of the Fraser basin, known
+    since RULINGS S14 (was "possible"; the falls as a barrier are T1257, 0.11.0)."""
     from pipeline.atlas.reach import steelhead as SH
     for eid in WAIVER_ROWS:
         e = raw[eid]
@@ -602,8 +635,10 @@ def test_the_stamp_waiver_rows_are_steelhead_rows(raw, db):
             have = {i.split("::")[1] for i in _rules_on(db, sid) if i.startswith("zp:")}
             assert {"steelhead.r1", "steelhead.r2", "steelhead.r4"} <= {h.rstrip("b") for h in have}
     got = _presence(db, "gnis:24531")
-    assert set(got) == {"known", "possible"}
+    assert set(got) == {"known"}
     assert all(_steelhead_water(db, s) for s in got["known"])
+    assert _sources(db, "gnis:24531") == {"r5:horsefly_river_from_quesnel_lake_to_horsefly_river_falls@5-2",
+                                          "Pacific stream"}
 
 
 @pytest.mark.needs_bundle
@@ -858,6 +893,79 @@ def test_the_presence_pass_knows_what_steelhead_rows_bind_and_the_list_names():
            else b for b in binds]
     assert "l1" not in SH.Presence.rules_apply(cut)
     assert "l1" in SH.Presence.rules_apply(binds)
+
+
+def _pacific_fixture(SH, NS):
+    """`_presence_fixture` with FWA basin codes: a (the Fraser, 100) and c (the Liard, 200: the
+    Arctic) are base-bound streams; e a base-bound stream with no code; lk (Tenas Lake) a lake of the
+    Pacific; r4 a Region 4 stream of the Columbia the base rules do not bind."""
+    pr, binds, twins = _presence_fixture(SH, NS)
+    pr.graph.nodes["e"] = NS(kind=NS(value="stream"))
+    pr.graph.nodes["r4"] = NS(kind=NS(value="stream"))
+    for s, w in {"a": "100-190442-244975", "c": "200-948755-999851", "e": "",
+                 "lk": "900-105422-000000", "r4": "300-625474-000000"}.items():
+        pr.graph.nodes[s].wsc = w
+    binds = [NS(entry_id=b.entry_id, rule_id=b.rule_id, sections=b.sections + ("e",))
+             if b.entry_id == SH.PROVINCE_STEELHEAD and not b.rule_id.endswith("b") else b
+             for b in binds]
+    return pr, binds, twins
+
+
+def test_a_pacific_stream_of_the_steelhead_regions_is_steelhead_water():
+    """RULINGS S14 (T1250, owner 2026-11-27 "Pacific streams now, barriers in 0.11.0"): a stream the
+    provincial base rules bind whose FWA basin reaches the Pacific is KNOWN ("Pacific stream"), so a
+    rainbow over 50 cm there is a steelhead. The Arctic stays "possible"; a stream with no code
+    stays "possible" and is counted, never guessed; a lake stays out; a stream the base rules do not
+    bind (Region 4) gets nothing; the book's and the list's rows keep their own source."""
+    from types import SimpleNamespace as NS
+    from pipeline.atlas.reach import steelhead as SH
+    pr, binds, twins = _pacific_fixture(SH, NS)
+    rows, rep = pr.finish(binds, twins=twins)
+    got = {r["section_id"]: r for r in rows}
+    a = got["a"]
+    assert (a["steelhead"], a["entry_id"], a["pacific"], a["regulations"], a["listed"], a["rules"],
+            a["anadromous"]) == ("known", SH.PACIFIC_STREAM, True, False, False, True, True)
+    assert (got["c"]["steelhead"], got["c"]["pacific"], got["c"]["anadromous"]) == ("possible", False, False)
+    assert got["e"]["steelhead"] == "possible" and rep["possible_no_basin_code"] == 1
+    assert "lk" not in got and "r4" not in got
+    assert (got["b"]["entry_id"], got["b"]["pacific"]) == ("r5:atnarko", False)
+    assert (got["l1"]["entry_id"], got["l1"]["pacific"]) == (SH.CURATED_LIST, False)
+    assert (got["l8"]["steelhead"], got["l8"]["rules"], got["l8"]["anadromous"]) == ("known", False, False)
+    assert rep["known_pacific"] == 1 and rep["anadromous_pacific"] == 1
+    assert rep["anadromous_list_only"] == 1 and rep["possible"] == 2
+
+
+def test_mutation_without_s14_a_pacific_stream_is_possible(monkeypatch):
+    """MUTATION: with `PACIFIC_STREAMS_ARE_STEELHEAD_WATER` off, the Fraser-basin stream is
+    "possible" again and a big rainbow there is a rainbow (the S4 model)."""
+    from types import SimpleNamespace as NS
+    from pipeline.atlas.reach import steelhead as SH
+    monkeypatch.setattr(SH, "PACIFIC_STREAMS_ARE_STEELHEAD_WATER", False)
+    pr, binds, twins = _pacific_fixture(SH, NS)
+    rows, rep = pr.finish(binds, twins=twins)
+    got = {r["section_id"]: r for r in rows}
+    assert (got["a"]["steelhead"], got["a"]["anadromous"]) == ("possible", False)
+    assert rep["known_pacific"] == 0 and rep["possible"] == 3
+
+
+@pytest.mark.parametrize("wsc,want", [("100-190442-244975", True), ("300-625474", True),
+                                      ("400-431358", True), ("500", True), ("600-1", True),
+                                      ("700-2", True), ("900-105422", True), ("915-765475", True),
+                                      ("990-1", True), ("200-948755", False), ("800-1", False),
+                                      ("", None), (None, None)])
+def test_the_pacific_basins_are_the_first_group_of_the_fwa_code(wsc, want):
+    """RULINGS S14: the basin is the FWA watershed code's first group. 100 the Fraser, 300 the
+    Columbia, 400 the Skeena, 500 the Nass, 600 the Stikine, 700 the Taku and every 9xx coast group
+    reach the Pacific; 200 (the Mackenzie: Peace, Liard) and 800 (the Yukon) do not; no code is None."""
+    from pipeline.atlas.reach import steelhead as SH
+    assert SH.pacific_basin(wsc) is want
+
+
+def test_an_unknown_basin_is_refused():
+    """A first group in no list is refused with where to decide it, never guessed (S14)."""
+    from pipeline.atlas.reach import steelhead as SH
+    with pytest.raises(ValueError, match="neither PACIFIC_BASINS nor NOT_PACIFIC_BASINS"):
+        SH.pacific_basin("450-123456")
 
 
 @pytest.mark.parametrize("gone", ["steelhead.r1", "steelhead.r2", "steelhead.r4"])

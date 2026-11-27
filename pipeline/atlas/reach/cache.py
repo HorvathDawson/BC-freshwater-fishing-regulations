@@ -210,5 +210,12 @@ from __future__ import annotations
 #:     pieces (not a barrier, not carved out, not own water) that touch only collected pieces of that item, and climbs
 #:     on from them — the distributaries and bigger-order channels the upward walk never met (Forsyth, Koksilah,
 #:     Halfway, MacMillan, Manson, Omineca, Shelagyote). No classify.py outcome changed; the bump marks the binding diff.
-POLICY_VERSION = "51"
+#: 55: (T1250, owner 2026-11-27 "Pacific streams now, barriers in 0.11.0 (Recommended)"; RULINGS S14) A PACIFIC
+#:     STREAM OF THE STEELHEAD REGIONS IS STEELHEAD WATER (`steelhead.PACIFIC_STREAMS_ARE_STEELHEAD_WATER`): every
+#:     "possible" stream of Regions 1, 2, 3, 5, 6 whose FWA basin reaches the Pacific (`steelhead.pacific_basin`) is
+#:     known (source "Pacific stream"), so a rainbow over 50 cm there is a steelhead where steelhead rules apply. The
+#:     Arctic and Yukon drainage (basins 200, 800) stays "possible"; lakes stay out. Only the steelhead presence
+#:     table and its digest change; no rule binding, licensing placement or classify.py outcome changed. 52-54 are
+#:     taken by open branches (the walk, 53; the DFO walk, 54).
+POLICY_VERSION = "55"
 

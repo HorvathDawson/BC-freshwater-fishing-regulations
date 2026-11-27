@@ -15,8 +15,8 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None, *,
     exactly the run's `rules` sections (where the provincial steelhead set applies)."""
     import json as _json
     from pipeline.atlas.reach.io import STEELHEAD_TABLE
-    from pipeline.atlas.reach.steelhead import (CURATED_LIST, KNOWN, POSSIBLE, fingerprint,
-                                                load_list, steelhead_row)
+    from pipeline.atlas.reach.steelhead import (CURATED_LIST, KNOWN, PACIFIC_STREAM, POSSIBLE,
+                                                fingerprint, load_list, steelhead_row)
     CODE = {KNOWN: 1, POSSIBLE: 2}
     path = Path(reaches) / f"{STEELHEAD_TABLE}.jsonl"
     report = Path(reaches) / "report.json"
@@ -68,8 +68,9 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None, *,
                 if s not in applies:
                     raise SystemExit(f"steelhead_presence: anadromous on {r['section_id']}, "
                                      f"where no steelhead rule applies")
-                # known by the book or by the curated list (RULINGS S5, S6)
-                if r["steelhead"] != KNOWN or not (r.get("regulations") or r.get("listed")):
+                # known by the book, the curated list or as a Pacific stream (RULINGS S5, S6, S14)
+                if r["steelhead"] != KNOWN or not (r.get("regulations") or r.get("listed")
+                                                   or r.get("pacific")):
                     raise SystemExit(f"steelhead_presence: anadromous on {r['section_id']}, "
                                      f"which is not known steelhead water")
                 anadromous.add(s)
@@ -79,6 +80,8 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None, *,
                     got.add(r["entry_id"])
                 if r.get("listed"):
                     got.add(CURATED_LIST)
+                if r.get("pacific"):
+                    got.add(PACIFIC_STREAM)
     if unknown:
         raise SystemExit(f"steelhead_presence: {len(unknown):,} sections are not in the handle "
                          f"table (e.g. {unknown[:3]}) — the reach run and the atlas disagree")

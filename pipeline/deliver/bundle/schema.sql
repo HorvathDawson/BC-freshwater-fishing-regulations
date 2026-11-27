@@ -629,7 +629,8 @@ CREATE TABLE steelhead_set (set_id INTEGER PRIMARY KEY,
                             code INTEGER NOT NULL CHECK (code IN (1, 2)),
                             rules INTEGER NOT NULL CHECK (rules IN (0, 1))) WITHOUT ROWID;
 -- WHY A WATER'S STEELHEAD IS KNOWN, per named water (`item.ord`): each steelhead row whose rules
--- bind its known sections, and `curated list` where the list names it. Per water, not per section.
+-- bind its known sections, `curated list` where the list names it, and `Pacific stream` where a stream of
+-- the steelhead regions reaches the Pacific (RULINGS S14). Per water, not per section.
 CREATE TABLE steelhead_source (ord INTEGER NOT NULL, entry_id TEXT NOT NULL,
                                PRIMARY KEY (ord, entry_id)) WITHOUT ROWID;
 CREATE VIEW section_steelhead (sid, code) AS
@@ -641,7 +642,8 @@ CREATE VIEW section_steelhead (sid, code) AS
 -- WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book's definition (p.80: "steelhead: a rainbow
 -- trout longer than 50 cm in waters where anadromous rainbow trout are found") holds on every KNOWN
 -- STREAM section WHERE STEELHEAD RULES APPLY (it carries the provincial steelhead set): known by a
--- steelhead row or by the curated list (the Cowichan River); a stream by `water_kind` (a slough or
+-- steelhead row, by the curated list (the Cowichan River) or as a Pacific stream of the steelhead
+-- regions (S14); a stream by `water_kind` (a slough or
 -- canal is one — the Vedder Canal). Never a lake (Khartoum, Lois, Tenas are known and not
 -- steelhead water), never a possible stream, never a known water no steelhead rule binds (the
 -- Okanagan River: "if no steelhead rules exist, rainbow rules still apply to a steelhead", user

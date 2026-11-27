@@ -104,7 +104,16 @@ def test_the_flag_off_leaves_the_pond_a_lake(monkeypatch):
 
 
 def test_a_pond_on_a_river_with_no_steelhead_row_is_absent():
-    """No steelhead row: the river's pieces are only "possible" (the base binds streams) and the pond nothing."""
+    """No steelhead row: the pond carries nothing. The river's pieces (the Fraser's basin, 100) are known as a Pacific
+    stream since RULINGS S14 (T1250) — no row of theirs makes it so, so the pond is no row's widening."""
+    assert _steelhead(steelhead=False) == {"M:0": ("known", "stream", True, True),
+                                           "M:1200": ("known", "stream", True, True)}
+
+
+def test_without_s14_a_pond_on_a_river_with_no_steelhead_row_is_absent(monkeypatch):
+    """The same with `PACIFIC_STREAMS_ARE_STEELHEAD_WATER` off: the river's pieces are only "possible" (the base binds
+    streams) and the pond nothing."""
+    monkeypatch.setattr(SH, "PACIFIC_STREAMS_ARE_STEELHEAD_WATER", False)
     assert _steelhead(steelhead=False) == {"M:0": ("possible", "stream", True, False),
                                            "M:1200": ("possible", "stream", True, False)}
 
