@@ -69,6 +69,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -253,10 +254,14 @@ def not_build_inputs(dotted_keys: tuple[str, ...] | None = None) -> set[Path]:
 
 
 #: (T1220) THE SOURCE HASHES CACHE, beside the manifest (so a `--side` run and a test keep their own): {"format": 1,
-#: "files": {file: {"size", "mtime_ns", "sha256"}}}, `file` repo-relative (absolute only for a file outside the repo).
-#: A cache, never a key input: the key holds only the sha256.
+#: "files": {file: {"size", "mtime_ns", "ctime_ns", "ino", "sha256"}}}, `file` repo-relative (absolute only for a file
+#: outside the repo). A cache, never a key input: the key holds only the sha256.
 HASHES_NAME = "source-hashes.json"
 HASHES_FORMAT = 1
+#: the stat fields a cache entry must match to be a hit (`stamp`)
+HIT_FIELDS = ("size", "mtime_ns", "ctime_ns", "ino")
+#: (T1220 review) `--dry-run` writes nothing: the plan hashes what the cache does not hold and keeps it in memory only
+PERSIST_HASHES = True
 
 
 def hashes_path() -> Path:
@@ -266,35 +271,53 @@ def hashes_path() -> Path:
 def stamp(path: Path) -> str:
     """(T1220) A big source file's identity: `sha256:<hex>` of its BYTES — no path and no time, so a moved checkout, a
     fresh clone, a copy or a re-download of the same bytes keys the same, and a one-byte change moves the key. (Before
-    T1220 it was [absolute path, size, mtime]: moving the checkout reran clim, tiles and deliver.) Hashed once per
-    (file, size, mtime_ns), cached in `hashes_path()`: a touch costs one rehash, then matches. A missing file raises
-    (FileNotFoundError, naming it); an unreadable cache raises, naming it."""
+    T1220 it was [absolute path, size, mtime]: moving the checkout reran clim, tiles and deliver.)
+
+    THE HIT RULE: the cache in `hashes_path()` answers only when the file's size, mtime_ns, ctime_ns AND inode all equal
+    the entry's (`HIT_FIELDS`); anything else rehashes and stores the new entry. ctime cannot be set back by a program
+    (`os.utime` moves it), so an in-place edit that keeps the size and restores the mtime still rehashes. The cost: a
+    touch, a copy, a move to another volume or a re-download each rehash once (the gpkg: 10.2 GB, about 5 s warm), and
+    every new `--side` directory pays the first hash again (about 11.5 GB read). A missing file raises
+    (FileNotFoundError, naming it); a damaged cache raises, naming it (`_read_hashes`). On a `--dry-run`
+    (`PERSIST_HASHES` off) nothing is written."""
     path = Path(path)
     st = path.stat()
     try:
         name = str(path.resolve().relative_to(REPO_ROOT.resolve()))
     except ValueError:
         name = str(path.resolve())
-    known = _read_hashes()
-    have = known.get(name)
-    if have and have.get("size") == st.st_size and have.get("mtime_ns") == st.st_mtime_ns:
+    now = {"size": st.st_size, "mtime_ns": st.st_mtime_ns, "ctime_ns": st.st_ctime_ns, "ino": st.st_ino}
+    have = _read_hashes().get(name)
+    if have is not None and all(have[k] == now[k] for k in HIT_FIELDS):
         return "sha256:" + have["sha256"]
     with path.open("rb") as f:
         digest = hashlib.file_digest(f, "sha256").hexdigest()
-    known = _read_hashes()                # another process may have added one meanwhile: keep it
-    known[name] = {"size": st.st_size, "mtime_ns": st.st_mtime_ns, "sha256": digest}
-    _write_hashes(known)
+    if PERSIST_HASHES:
+        known = _read_hashes()                # another process may have added one meanwhile: keep it
+        known[name] = {**now, "sha256": digest}
+        _write_hashes(known)
     return "sha256:" + digest
 
 
 def _read_hashes() -> dict:
+    """The cache's entries; {} when there is none. A file that is not JSON, not this format, or holds an entry without
+    integer stat fields and a 64-hex sha256 raises, naming the file (it is only a cache: removing it costs a rehash)."""
     p = hashes_path()
     if not p.exists():
         return {}
-    doc = json.loads(p.read_text(encoding="utf-8"))
+    fix = "it is only a cache of the source files' sha256 — remove it and the next key rehashes them"
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise SystemExit(f"build: {p} is not JSON ({e}): {fix}") from None
     if not isinstance(doc, dict) or doc.get("format") != HASHES_FORMAT or not isinstance(doc.get("files"), dict):
-        raise SystemExit(f"build: {p} is not a source-hash cache of format {HASHES_FORMAT}: it is only a cache of the "
-                         "source files' sha256 — remove it and the next key rehashes them")
+        raise SystemExit(f"build: {p} is not a source-hash cache of format {HASHES_FORMAT}: {fix}")
+    for name, e in doc["files"].items():
+        ok = (isinstance(e, dict) and all(type(e.get(k)) is int for k in HIT_FIELDS)
+              and isinstance(e.get("sha256"), str) and re.fullmatch(r"[0-9a-f]{64}", e["sha256"]) is not None)
+        if not ok:
+            raise SystemExit(f"build: {p}: the entry for {name} is not {{{', '.join(HIT_FIELDS)}: int, "
+                             f"sha256: 64 hex}}: {fix}")
     return doc["files"]
 
 
@@ -1029,8 +1052,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--status", action="store_true",
                     help="the last run: each stage's time, memory and status, and its logs (with --side: that run's)")
     a = ap.parse_args(argv)
-    global SIDE, MANIFEST, HOLD_LATEST, FRESH_STEPS
+    global SIDE, MANIFEST, HOLD_LATEST, FRESH_STEPS, PERSIST_HASHES
     HOLD_LATEST = a.hold_latest
+    PERSIST_HASHES = not a.dry_run              # (T1220 review) a dry run writes nothing, the hash cache included
     FRESH_STEPS = "deliver" in a.force
     if a.graph:
         print(graph_text())

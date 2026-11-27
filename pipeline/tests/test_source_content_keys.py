@@ -127,19 +127,64 @@ def test_a_missing_source_file_raises_naming_it(tmp_path, keys_in):
         keys_in(a)
 
 
-def test_a_broken_hash_cache_is_refused_by_name(tmp_path, keys_in):
+@pytest.mark.parametrize("broken", [
+    "",                                                                         # empty
+    '{"format": 1, "files": {"source/fwa.gp',                                   # truncated
+    '{"files": []}',                                                            # no format, files not a map
+    '{"format": 1, "files": {"source/fwa.gpkg": {"size": 1, "mtime_ns": 1, "ctime_ns": 1, "ino": 1}}}',  # no sha256
+    '{"format": 1, "files": {"source/fwa.gpkg": {"size": "1", "mtime_ns": 1, "ctime_ns": 1, "ino": 1, '
+    '"sha256": "' + "a" * 64 + '"}}}',                                          # a size that is no int
+    '{"format": 1, "files": {"source/fwa.gpkg": {"size": 1, "mtime_ns": 1, "ctime_ns": 1, "ino": 1, '
+    '"sha256": "abc"}}}',                                                       # not 64 hex
+])
+def test_a_broken_hash_cache_is_refused_by_name(tmp_path, keys_in, broken):
     a, _b = _two(tmp_path)
     keys_in(a)
     cache = a / "generated" / B.HASHES_NAME
     assert json.loads(cache.read_text())["format"] == B.HASHES_FORMAT
-    cache.write_text('{"files": []}')
-    with pytest.raises(SystemExit, match=B.HASHES_NAME):
+    cache.write_text(broken)
+    with pytest.raises(SystemExit, match=str(cache)):
         keys_in(a)
+
+
+def test_an_in_place_edit_at_the_same_size_with_the_mtime_put_back_is_seen(tmp_path, keys_in):
+    """(T1220 review) the reviewer's case: one byte edited in place, same size, the mtime restored to the very
+    nanosecond. The hit rule also holds ctime (which `os.utime` cannot put back) and the inode: a new sha."""
+    a, _b = _two(tmp_path)
+    before = keys_in(a)
+    p = a / "source" / FILES["gpkg"]
+    st = p.stat()
+    with p.open("r+b") as f:                                        # in place: same inode
+        f.seek(5)
+        b = f.read(1)
+        f.seek(5)
+        f.write(bytes([b[0] ^ 1]))
+    os.utime(p, ns=(st.st_atime_ns, st.st_mtime_ns))
+    assert (p.stat().st_size, p.stat().st_mtime_ns, p.stat().st_ino) == (st.st_size, st.st_mtime_ns, st.st_ino)
+    after = keys_in(a)
+    assert after["tiles"] != before["tiles"] and after["deliver"] != before["deliver"]
+
+
+def test_a_dry_run_writes_no_hash_cache(tmp_path, keys_in, monkeypatch):
+    """(T1220 review) `--dry-run` writes nothing: the keys are the same, the cache file is never made."""
+    a, b = _two(tmp_path)
+    want = keys_in(b)
+    monkeypatch.setattr(B, "PERSIST_HASHES", False)
+    assert keys_in(a) == want
+    assert not (a / "generated" / B.HASHES_NAME).exists()
+
+
+def test_the_dry_run_flag_turns_persisting_off(monkeypatch):
+    monkeypatch.setattr(B, "PERSIST_HASHES", True)
+    assert B.main(["--dry-run", "--graph"]) == 0                    # --graph stops before any key is taken
+    assert B.PERSIST_HASHES is False
+    B.main(["--graph"])
+    assert B.PERSIST_HASHES is True
 
 
 def test_a_moved_checkout_keeps_its_keys_and_its_cache(tmp_path, keys_in, monkeypatch):
     """The cache is the only place a file is named, and it names it by its place in the checkout: a checkout moved with
-    its generated tree keys alike and hashes nothing again."""
+    its generated tree keys alike (a move may cost one rehash per file: the hit rule holds ctime and inode)."""
     a, _b = _two(tmp_path)
     before = keys_in(a)
     moved = tmp_path / "moved"
@@ -148,5 +193,8 @@ def test_a_moved_checkout_keeps_its_keys_and_its_cache(tmp_path, keys_in, monkey
     assert names == {f"source/{n}" for n in FILES.values()}
     hashed = []
     real = B.hashlib.file_digest
-    monkeypatch.setattr(B.hashlib, "file_digest", lambda f, alg: hashed.append(f.name) or real(f, alg))
+    monkeypatch.setattr(B.hashlib, "file_digest", lambda f, alg: hashed.append(Path(f.name).name) or real(f, alg))
+    assert keys_in(moved) == before                                 # equal keys; at most one rehash per file (a
+    assert len(hashed) == len(set(hashed)) <= len(FILES)            # move may change ctime), then none
+    hashed.clear()
     assert keys_in(moved) == before and hashed == []
