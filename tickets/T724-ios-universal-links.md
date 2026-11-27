@@ -8,7 +8,7 @@ Status: PARTIAL (built: 9af44b246, ffd44b943, f9d47f0d9; the Team ID is in place
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-7 in
-`docs/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
+`docs/agents/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
 
 ## What
 **IOS-7.** A shared `canifishthis.ca/water/...` link opens the app on that water (mirrors T625 items 2-4).

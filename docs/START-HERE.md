@@ -1,30 +1,3 @@
-# Start here
+# Start here: moved
 
-A new chat reads, in order:
-
-0. **Reports first, every chat.** `.venv/bin/python -m pipeline reports` (`--since YYYY-MM-DD`, `--only
-   worker-prod,worker-staging,testflight,play`, `--no-save`, `--json`; read-only) reads both feeds workers' reports and
-   crashes, TestFlight feedback and review state, and Play reviews; each item names the ticket that cites it, or NEW.
-   Play closed-testing feedback has no API: ask the owner. **Every new piece of feedback (a report, a crash kind, a
-   tester's word, Play feedback) becomes a ticket AND a row in `docs/play-production-access/feedback-log.md`**
-   (anonymous tag, no names; T1046). Keep `questionnaire-draft.md` in step with it.
-1. `AGENTS.md` (every rule), then `CLAUDE.md`.
-2. Your chat's restart page: one short page per live chat (60 lines at most, deleted when its chat ends):
-   - `docs/restart/cleanup.md`: the clean-up chat (T1081).
-   - `docs/restart/speed.md`: the speed build chat (T1144, T1161, T1135; then T1165, T1159, T1133).
-   - `docs/restart/hardening.md`: the hardening build chat (T1164, T1167, T1073, T1163, T1168, T1156, T1166).
-   - `docs/restart/map-engine.md`: the map engine build chat (T1154, the engine seam).
-   - Not yet moved into `restart/` (their chats edit them where they are): `docs/RESTART-091-chat.md`,
-     `docs/RESTART-repo-move-chat.md`, `docs/RESTART-store-content-chat.md`;
-     the iOS release chat is retired (2026-11-25), its hand-over is `docs/ios/RESTART-ios-release-chat.md`.
-3. What changed last: the top entry of `docs/STATUS.md`.
-4. The work: `docs/views/LEDGER.md` (rows in work; closed rows `views/DONE.md`) and `docs/views/OWNER.md`
-   (what only the owner can do), both built by `node app/tools/ledger.mjs` (`--check` says if stale; `--next` / `--claim`
-   take a new ticket's number). Tickets are the sole source of work; how they work and the `## Owner` block format:
-   `tickets/README.md`.
-5. Branches (`AGENTS.md` W47): `main` is the protected trunk; work on a short-lived `type/Tnnn-slug` branch from a fresh
-   `origin/main`, open a PR with auto-merge, never push to `main`. A release ships from `release/<version>`.
-6. The chats, their order and prompts: `docs/ROADMAP-after-0.9.0.md`; iOS: `docs/ios/START-HERE-ios.md`.
-
-Recommend a new chat at natural breaks (a release shipped, a batch done) and /compact before a heavy step; update the
-restart page first. Not restart pages: `docs/INBOX.md` (the owner's notes), `docs/OWNER-PHONE.md`.
+This page moved to `docs/agents/START-HERE.md` (T1193). Read that one.
