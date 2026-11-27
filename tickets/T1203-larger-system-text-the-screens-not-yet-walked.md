@@ -4,7 +4,7 @@ Status: IN PROGRESS — 0.10.0 re-cut (owner 2026-11-26: every change from this 
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1203 | Larger system text: the screens the T1201 walk could not reach | IN PROGRESS — 0.10.0 re-cut | — | walk the Map tab's legend, day bar and switch in place, Offline maps, Spots and a spot page, fish and source sheets, the walkthrough at 1.15–2.0; fix what breaks; one check on a real phone |
+| T1203 | Larger system text: the screens the T1201 walk could not reach | IN PROGRESS — 0.10.0 re-cut | see commits | the phone check (system font large + display size large); owner's pick Regs / Rules; the redesign-sized items under Built |
 
 Source: T1201's sweep (2026-11-26, `app/tools/system-text-sweep.test.ts`): ten screens at 360 and 412 wide and text
 scales 1 to 2.0 came out clean after its fixes, but these were not reached by the harness (the map is blanked there,
@@ -42,6 +42,13 @@ Every screen above is in the walk and clean at 1.3; usable at 2.0. Pictures of a
 merge. The phone check is recorded here (who, what build, what was seen).
 
 Depends: T1201 merged. Size: M. Model: Sonnet. Owner: the phone check, or a look at its pictures.
+
+## Built (2026-11-26)
+
+`app/tools/system-text-sweep.test.ts` now walks 43 screens, sheets and states at 320, 360 and 412 wide: the Map tab in place (search, day bar, rail, the Trout / Salmon switch, legend), the day picker, Layers, search open and with results, Conditions, Runs and its sheet, Spots (empty, with a spot), a spot page, adding a spot, More and every page under it (Offline maps was blank only because the harness gave the Shell no release loader), What's new, Report, a water's Regulations with Gear, Methods and Licence, a fish sheet, a sources sheet, both day pickers, the water's Conditions and Map views, the bell's inbox (rows and a notice), the join card, the developer card, the app-update popup, the sync-error, not-fishing, obstacle and spot-drop sheets, the error and empty states, the first-run notice and the walkthrough. Gate: a fault counts only when a larger size caused it (it is absent at 1.0), at 1.3x; a near-empty render fails. Passes (1.3x clean at all three widths).
+Fixed: weekday heads, the day picker's buttons, sheet titles (cap 1.3) and Done, the spot sheet's Continue, the rating stars, the obstacle sheet's label column, long ids (tile version, release) wrap instead of running off, the water page's top tabs (Regulations to Regs, measured, `water-view-tabs.test.ts`; picture beside "Rules" for his pick).
+Left at 2.0x because they wrap or cut cleanly and lose nothing: the fish key's rows ("Kokanee" on two lines), the Layers "Regulations" option, the Conditions legend title and "Change" chip, the "NO PHOTO" thumbnail, the water map's "Flows into" line, the inbox rows' two-line clamp (designed). New-ticket candidates (a redesign, not a fix): a species-key row that stacks its name over its rule at large text; a Layers option grid that reflows to one column; a legend that stacks its title and count.
+Not walkable here: More → Notifications (phone only) and the walkthrough card's placement (placed from a measured target) are owed to the phone check. The sub-tab row (What you can keep / Gear / Methods / Licence) wraps to a second row as T40 built it; kept.
 
 ## Owner
 
