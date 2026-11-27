@@ -244,7 +244,7 @@ describe("the gauge page shows what the app shows for one station", () => {
     showWebSpotsNotice(true);
     const spots = render(h(WebSpotsNotice, { palette: THEMES.light, contact: STORE_CONTACT }));
     showWebSpotsNotice(null);
-    // (T1194) one component, two callers: the page draws its quiet closing form (`compact`), so the markup differs, the words and buttons do not
+    // (T1194) one component, two callers: the page gives the buttons more room (`gap`) inside its foot card, so the markup differs, the words and buttons do not
     const text = (html: string) => html.replace(/<[^>]+>/g, "|").replace(/\|+/g, "|");
     expect(text(pageHtml)).toBe(text(spots.container.querySelector('[data-testid="get-app"]')!.outerHTML));
     for (const w of ["Get the app", "Join the Android test", "Join the iPhone test"]) expect(pageHtml, w).toContain(w);

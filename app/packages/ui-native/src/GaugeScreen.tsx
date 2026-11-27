@@ -84,17 +84,18 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
                 </Pressable>
               )}
             </View>
-            {/* (T1194) ONE CLOSING SECTION, as the website's: the sources, then one primary action and one quiet one (only where the site has a page for this gauge) */}
-            <View testID="gauge-foot" style={{ marginTop: SPACE.s4, paddingTop: SPACE.s3, borderTopWidth: 1, borderTopColor: palette.line, gap: SPACE.s3 }}>
-              <SourceRow vm={conditionsSourcesOf()} palette={palette} testID="gauge-sources" />
+            {/* (T1194, owner 2026-11-26: "Variant B") ONE CLOSING CARD, as the website's: the sources, then (only where the site has a page for this gauge) one full-width primary and a full-width outline Share */}
+            <View testID="gauge-foot" style={{ marginTop: SPACE.s4, padding: SPACE.s4, gap: SPACE.s3, alignItems: "center", borderWidth: 1,
+                                               borderColor: palette.line, borderRadius: palette.r.box, backgroundColor: palette.wash }}>
+              <SourceRow vm={conditionsSourcesOf()} palette={palette} testID="gauge-sources" center />
               {share && (
-                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: SPACE.s3 }}>
-                  <Button palette={palette} label={GAUGE_PAGE_WORDS.openOnSite} grow={false} testID="gauge-open-site"
+                <View style={{ alignSelf: "stretch", gap: SPACE.s3 }}>
+                  <Button palette={palette} label={GAUGE_PAGE_WORDS.openOnSite} testID="gauge-open-site" style={{ alignSelf: "stretch" }}
                           onPress={linkTo(gaugeUrl(station, facts.name))} />
-                  <Button palette={palette} kind="link" label={share.label} onPress={share.press} busy={share.busy} testID="gauge-share" />
+                  <Button palette={palette} kind="ghost" label={share.label} onPress={share.press} busy={share.busy} testID="gauge-share" style={{ alignSelf: "stretch" }} />
+                  {share.said && <Text testID="gauge-share-said" accessibilityLiveRegion="polite" style={{ ...TYPE.meta, color: palette.sub, textAlign: "center" }}>{share.said}</Text>}
                 </View>
               )}
-              {share?.said && <Text testID="gauge-share-said" accessibilityLiveRegion="polite" style={{ ...TYPE.meta, color: palette.sub }}>{share.said}</Text>}
             </View>
           </>
         )}
