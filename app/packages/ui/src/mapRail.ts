@@ -169,6 +169,7 @@ export function mapPointTap(rail: Pick<MapRail, "picking" | "tapPick" | "selecte
 /** Where the route is, as far as the rail cares: any change of it forgets the pin and the framing. */
 export function railPlace(r: Route): string {
   return r.mode === "water" ? `water|${r.spot ?? ""}`
+    : r.mode === "gauge" ? `gauge|${r.station}`       // (T1194)
     : `${r.tab}|${r.spot ?? ""}|${r.adding === null ? "" : "adding"}|${r.search ? "search" : ""}`;
 }
 
@@ -206,7 +207,7 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
     if (!keepFly) setFly(null);
     if (!keepPick) setPickFor(null);
     // the pin's spot open, or back on its map: kept; anywhere else, forgotten
-    const spotOpen = route === null ? null : route.spot ?? null;
+    const spotOpen = route === null || route.mode === "gauge" ? null : route.spot ?? null;
     if (opened !== null && place !== opened.for && spotOpen !== opened.id) setOpened(null);
   }
   const picking = pickFor !== null && pickFor === place;

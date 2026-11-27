@@ -171,7 +171,7 @@ from pathlib import Path
 
 from pipeline import release_follows as RF
 from pipeline import release_version as RV
-from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT
+from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, ROOTS
 
 #: everything release keeps of its own: the ledger, the baseline reach run, each candidate's check outputs
 HOME = GENERATED.bundle.parent / "release"
@@ -236,7 +236,7 @@ class Finding:
 # Every touch of disk, git and subprocesses goes through these few functions, so the tests swap them out.
 
 def release_root() -> Path:
-    return Path(GENERATED.release)
+    return Path(ROOTS.release)
 
 
 def reach_dir() -> Path:

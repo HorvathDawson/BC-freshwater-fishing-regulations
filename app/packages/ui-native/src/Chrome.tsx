@@ -262,7 +262,7 @@ const LABEL_W = 44, LABEL_GAP = 6;
  *   - Words in `sub`, not `faint` (T40: a legend's words are read, so they meet the text contrast floor), at 11.5–12 px.
  *   - At most `LEGEND_RAMP_MAX` wide, centred: on a desktop the 1250 px stripe read as decoration.
  */
-export function LegendRamp({ palette, stops, title, low, high, marks, mid, band = NORMAL, markWords, describe }: {
+export function LegendRamp({ palette, stops, title, low, high, marks, mid, band = NORMAL, markWords, describe, counted = true, tickLabel }: {
   palette: Palette;
   /** the map's ramp: each colour at its percentile, 0–1, in order (`flowRampStops`) */
   stops: readonly { at: number; colour: string }[];
@@ -285,6 +285,10 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   markWords?: (at: number) => string;
   /** the bar's screen-reader name (default: the percentile scale's) */
   describe?: string;
+  /** (T1194) false: no "N reaches coloured" count (a gauge page marks ONE gauge, not reaches on a map) */
+  counted?: boolean;
+  /** (T1194) a mark's name aloud, in place of "N reaches …" (`legendTickLabel`): the gauge page marks ONE GAUGE, not reaches */
+  tickLabel?: (count: number, at: number) => string;
 }) {
   /*
    * A DISTRIBUTION, NOT A KEY. The marks are binned so that where many gauges land the tick is TALLER rather than merely
@@ -300,7 +304,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   }
   const peak = Math.max(1, ...counts);
   const n = marks?.length ?? 0;
-  const count = legendCount(n);
+  const count = counted ? legendCount(n) : null;
   const pct = (x: number) => `${Math.round(x * 1000) / 10}%` as const;
   const word = { ...TYPE.caption, lineHeight: 15, color: palette.sub } as const;
   // (T1201) Low / High / Normal sit in fixed boxes: one line, whole, following the OS size to LABEL_SCALE; the boxes grow
@@ -324,8 +328,8 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
           {counts.map((c, i) => c === 0 ? null : (
             // (T243) a labelled picture, said as one: a label on a role-less view is ignored by screen readers (axe)
             <View key={i} accessibilityRole="image"
-                  accessibilityLabel={legendTickLabel(c, markWords ? markWords((i + 0.5) / BINS)
-                                                      : FLOW_LEGEND.near((i + 0.5) / BINS))}
+                  accessibilityLabel={tickLabel ? tickLabel(c, (i + 0.5) / BINS)
+                    : legendTickLabel(c, markWords ? markWords((i + 0.5) / BINS) : FLOW_LEGEND.near((i + 0.5) / BINS))}
                   style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
                            paddingHorizontal: 0.5 }}>
               <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />

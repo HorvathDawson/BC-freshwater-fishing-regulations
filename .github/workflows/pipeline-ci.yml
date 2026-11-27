@@ -94,7 +94,7 @@ jobs:
       # This is the `--splits` incident's tripwire. That flag had no default, silently
       # dropped all 376 curated cuts from three full builds, and nothing looked wrong.
       - name: Every curated path resolves
-        run: python -c "from pipeline.common.curated import load, load_data_tree; load_data_tree(); print(load().model_dump_json(indent=1))"
+        run: python -c "from pipeline.common.curated import load, load_roots; load_roots(); print(load().model_dump_json(indent=1))"
 
       # Are the committed match artifacts still in step with the rosters they were built
       # from? A new station appearing with nobody re-running the match is invisible

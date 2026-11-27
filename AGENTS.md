@@ -103,7 +103,7 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
     - An owner step is written into its ticket the same turn it comes up or he answers; a decision goes in the
       decisions page by subject; a ruling on how the book is read goes to `pipeline/docs/RULINGS.md`.
     - Each live chat keeps one short restart page, holding no release id or build number (state is the top entry of
-      `docs/STATUS.md`). Every path a start, restart or owner page cites must exist.
+      `docs/agents/STATUS.md`). Every path a start, restart or owner page cites must exist.
 
 ## Builds and tests
 

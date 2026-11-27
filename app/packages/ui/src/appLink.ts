@@ -13,7 +13,7 @@
  * it throws, naming what it saw, and the caller reports it — it never opens some other page silently.
  */
 import { APP_LINK_HOSTS, bcNow, reportFailure, type Horizon, type Who } from "@app/core";
-import { isItemId, type ItemId } from "@app/data";
+import { isItemId, type ItemId, type StationId } from "@app/data";
 import type { View } from "./route";
 import { fitOf, linkDay, linkPage, linkWhole, pageStartOn, type FitBox, type LinkBad, type RegsStart } from "./startLink";
 
@@ -25,7 +25,7 @@ const PAGE_KEYS = ["tab", "sheet", "scroll", "age", "res", "whole"] as const;
 /** (T1038) the keys only a water's link opens (its view, part and theme) */
 const WATER_KEYS = ["view", "part", "theme"] as const;
 /** the keys the phone opens from a link */
-const READ_KEYS = new Set<string>(["regs", "view", "part", "theme", "fit", ...DAY_KEYS, ...PAGE_KEYS]);
+const READ_KEYS = new Set<string>(["regs", "view", "part", "theme", "fit", "gauge", ...DAY_KEYS, ...PAGE_KEYS]);
 
 export interface AppLink {
   /** the water page's slug (`/water/<slug>`), or null */
@@ -39,6 +39,8 @@ export interface AppLink {
   readonly theme: "light" | "dark" | null;
   /** (T605) `?fit=w,s,e,n`: the map framed on this box, no water. Absent: none. */
   readonly fit?: FitBox;
+  /** (T1194) `?gauge=<station>`: that gauge's own page over the Conditions map, no water. Absent: none. */
+  readonly gauge?: StationId;
   /** (T1038) the link's day and horizon (`linkDay`), on a water's link or a box's */
   readonly days: LinkDays;
   /** (T1038) where the water's Regulations page starts, who is fishing and the whole water (`linkPage`, `linkWhole`) */
@@ -61,6 +63,8 @@ export interface LinkPage { readonly regs: RegsStart | null; readonly who: Who |
 export type AppLinkOpen = ({ readonly item: ItemId; readonly view: View; readonly part: number | null; readonly theme: "light" | "dark" | null }
                            & LinkDays & LinkPage)
   | ({ readonly fit: FitBox } & LinkDays)
+  /** (T1194) a gauge's page (`/?gauge=<station>`, the web's address): the Conditions map with that gauge's page over it */
+  | ({ readonly gauge: StationId } & LinkDays)
   /** (T1038) a link naming a day or horizon and no water or box (`/?date=`): the map on that day, as the web opens it */
   | ({ readonly home: true } & LinkDays);
 
@@ -116,6 +120,11 @@ export function parseAppLink(url: string, now: Date = bcNow()): AppLink | null {
   const onView = pageStartOn(view, start, (k) => q.has(k), "app link");
   if (water) problems.push(...onView.dropped);
   const page: LinkPage = { regs: onView.regs, who, whole };
+  // (T1194) a gauge's link, as the web's start link reads it: a station id; beside a water or a box it is refused by name
+  const gaugeS = q.get("gauge");
+  if (gaugeS !== undefined && !/^[0-9A-Za-z]{3,12}$/.test(gaugeS)) throw new Error(`app link: gauge=${gaugeS} is not a station id`);
+  if (gaugeS !== undefined && (water || fitS !== undefined)) throw new Error(`app link: ${url} names a gauge beside a water or a box (a link opens one place)`);
+  if (gaugeS !== undefined) return { slug, item: null, view, part, theme, days, page, problems, gauge: gaugeS as StationId };
   if (fitS === undefined) return { slug, item: regs as ItemId | null, view, part, theme, days, page, problems };
   const fit = fitOf(fitS);
   if (typeof fit === "string") throw new Error(`app link: fit=${fitS} is not ${fit}`);
@@ -140,6 +149,7 @@ export async function resolveAppLink(url: string, fetcher: (u: string) => Promis
   if (!link) return null;
   for (const p of link.problems) reportFailure(new Error(p));
   if (link.fit) return { fit: link.fit, ...link.days };
+  if (link.gauge) return { gauge: link.gauge, ...link.days };
   const opens = (item: ItemId): AppLinkOpen => ({ item, view: link.view, part: link.part, theme: link.theme, ...link.days, ...link.page });
   if (link.item) return opens(link.item);
   // (T1038) no water and no box: the map on the link's day or horizon (the web's browse start); naming neither, nothing

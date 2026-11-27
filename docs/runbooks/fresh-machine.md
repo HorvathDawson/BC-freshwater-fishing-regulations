@@ -144,7 +144,7 @@ Connect key files in `~/.canifishthis/` (secrets.md).
 
 ## 10. Deploys and secrets
 
-No secret is needed to build. Every deploy script (`deploy/staging/*.sh`, `deploy/prod/*.sh`) needs a login or key that
-is not in git: `docs/runbooks/secrets.md` names each, what it does and how to replace it (uploads: the rclone
-remote `r2:` and a wrangler login; Play: the files under `~/.canifishthis/`). Production steps need `CONFIRM_PROD`
-typed by the owner.
+No secret is needed to build, and no `.env` file is read or needed (T1222). Every deploy script (`deploy/staging/*.sh`,
+`deploy/prod/*.sh`) needs a login or key that is not in git: `docs/runbooks/secrets.md` names each, where it comes from
+(`~/.canifishthis/` key files, tool logins, GitHub and worker secrets, the shell environment) and how to replace it.
+Production steps need `CONFIRM_PROD` typed by the owner.

@@ -160,9 +160,9 @@ def live_store_of(tmp_path_factory):
 def release_root() -> Path:
     """The release root paired with the suite's bundle: a side set's `deliver all --out-dir` dir (`UI_EXPORT_DIR`)
     writes its releases (and LATEST) to `<dir>/release`; without it, the live `data/release`."""
-    from pipeline.common.curated import GENERATED
+    from pipeline.common.curated import ROOTS
     side = os.environ.get("UI_EXPORT_DIR")
-    return Path(side) / "release" if side else Path(GENERATED.release)
+    return Path(side) / "release" if side else Path(ROOTS.release)
 
 
 def predates(msg: str) -> None:

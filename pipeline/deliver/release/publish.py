@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 from typing import List, NamedTuple
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import ROOTS
 
 IMMUTABLE = "public, max-age=31536000, immutable"
 
@@ -92,7 +92,7 @@ def main(argv=None) -> int:
     if a.yes or a.min_app_version is not None:
         print(REFUSED, file=sys.stderr)
         return 2
-    root = GENERATED.release
+    root = ROOTS.release
     from pipeline.deliver.release.manifest import latest
     release = a.release or latest(root)          # THE release on disk: one answer (T133)
     if release is None:
