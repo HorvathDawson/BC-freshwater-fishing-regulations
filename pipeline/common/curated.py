@@ -53,11 +53,14 @@ from __future__ import annotations
 import functools
 import os
 import shutil
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 import yaml
 from pydantic import (BaseModel, ConfigDict, DirectoryPath, FilePath, PrivateAttr, ValidationError, ValidationInfo,
                       field_validator, model_validator)
+
+from pipeline import _trace
 
 #: The repo root. `parents[2]` because this module sits at pipeline/common/ — it was
 #: parents[1] when it lived at pipeline/, and the move silently repointed config.yaml at
@@ -94,6 +97,92 @@ def _absolute(v: object) -> object:
 _STRICT = ConfigDict(frozen=True, extra="forbid")
 
 
+@dataclass(frozen=True)
+class _Reads:
+    """(T1192) What a read of one node of the `curated:` / `generated:` tree records (`_trace.config_read`): its dotted
+    key `at` with its value as config.yaml states it (`raw`, what `stepcache.config_now` digests), and the root it is
+    joined to (`root`: `("roots.curated", value)`; None under `CURATED_ROOT`, whose root is no config value, as
+    `SOURCE.under`)."""
+
+    at: str
+    raw: object
+    root: tuple | None
+
+    def leaf(self, name: str) -> None:
+        _trace.config_read(f"{self.at}.{name}", self.raw[name])
+        self.root_read()
+
+    def whole(self) -> None:
+        """The whole node: a consumer that takes every path under it (`model_dump`, iteration)."""
+        _trace.config_read(self.at, self.raw)
+        self.root_read()
+
+    def root_read(self) -> None:
+        if self.root is not None:
+            _trace.config_read(*self.root)
+
+
+class _Tree(BaseModel):
+    """(T1192) A node of the `curated:` / `generated:` tree that RECORDS EACH READ, so a build stage is keyed on the
+    config values it reads (`CURATED.waters.cuts` records `curated.waters.cuts` + `roots.curated`), never on a whole
+    block. The record is made per ACCESS, in the process that reads (the loaders are cached; validation at load is no
+    read), and callers get the model itself: `isinstance`, pickling and equality are pydantic's. A sub-block is not a
+    read (its leaves are); a method reads what it touches (`GENERATED.build()`: `atlas.builds`, and
+    `atlas.default_build` when no name is given). Taking the whole node (`model_dump`, `model_dump_json`, iterating)
+    records the whole node: `build.curated_digest` is the one whole-tree consumer on a stage's path. Bound by the loaders
+    (`_bind`); an unbound model (another config file's, a test's) records nothing."""
+
+    model_config = _STRICT
+
+    _reads: _Reads | None = PrivateAttr(default=None)
+
+    def __eq__(self, other: object) -> bool:
+        """pydantic's equality, the record left out: a recording tree equals the same values unbound."""
+        if not isinstance(other, _Tree):
+            return NotImplemented
+
+        def kept(m: _Tree) -> dict:
+            return {k: v for k, v in (m.__pydantic_private__ or {}).items() if k != "_reads"}
+        return type(self) is type(other) and self.__dict__ == other.__dict__ and kept(self) == kept(other)
+
+    __hash__ = BaseModel.__hash__
+
+    def __getattribute__(self, name: str):
+        v = object.__getattribute__(self, name)
+        if name[0] != "_" and name in type(self).__pydantic_fields__ and not isinstance(v, _Tree):
+            private = object.__getattribute__(self, "__pydantic_private__")
+            reads = private.get("_reads") if private else None
+            if reads is not None:
+                reads.leaf(name)
+        return v
+
+    def _whole(self) -> None:
+        if self._reads is not None:
+            self._reads.whole()
+
+    def model_dump(self, *args, **kwargs):
+        self._whole()
+        return super().model_dump(*args, **kwargs)
+
+    def model_dump_json(self, *args, **kwargs):
+        self._whole()
+        return super().model_dump_json(*args, **kwargs)
+
+    def __iter__(self):
+        self._whole()
+        return super().__iter__()
+
+
+def _bind(model: _Tree, at: str, raw: dict, root: tuple | None) -> _Tree:
+    """`model` and every sub-block under it record their reads as `at.<key>` (`_Reads`)."""
+    model._reads = _Reads(at, raw, root)
+    for name in sorted(type(model).__pydantic_fields__):
+        v = model.__dict__[name]
+        if isinstance(v, _Tree):
+            _bind(v, f"{at}.{name}", raw[name], root)
+    return model
+
+
 class ConfigError(ValueError):
     """config.yaml does not match `Config`: one line per offending key, named by its dotted path."""
 
@@ -122,7 +211,7 @@ def _under(tree: str):
     return join
 
 
-class Waters(BaseModel):
+class Waters(_Tree):
     """Curation that shapes the atlas itself, and the lists of waters (T324 naming: `*_calls` = the owner's per-item
     decisions, `*_waters` = a list of waters). Each key is its file's name."""
 
@@ -195,7 +284,7 @@ class Waters(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class DfoSalmon(BaseModel):
+class DfoSalmon(_Tree):
     """DFO salmon: the curated places DFO's rules bind to (`places/region-*.json`, was `regulations/entries/
     dfo_salmon/`) and T321's limits wording as a closed registry (`pipeline.regs.dfo_salmon.wording`), AUTHORED; the
     feeds worker reads synced copies (`pipeline.deliver.sync_inputs`)."""
@@ -223,7 +312,7 @@ class DfoSalmon(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class Review(BaseModel):
+class Review(_Tree):
     """The curation review's REVIEWED data (T97): `marks` is the append-only store of every
     reviewer's mark (`pipeline.regs.review.marks`), checked in empty before the first mark.
 
@@ -253,7 +342,7 @@ class Review(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class Regulations(BaseModel):
+class Regulations(_Tree):
     """The synopsis corpus and the book. `synopsis` is the per-region rule corpus (was `entries/catalogue`) — the
     format doc 18 describes: a rule is a TYPE plus named CONDITIONS and the label is generated."""
 
@@ -280,7 +369,7 @@ class Regulations(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class Gauges(BaseModel):
+class Gauges(_Tree):
     """The gauge matching domain: a station id -> FWA keys, plus the hand review of it.
 
     `match_calls` is an INPUT to matching and is never written by a program. `matches` is
@@ -316,7 +405,7 @@ class Gauges(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class RunTiming(BaseModel):
+class RunTiming(_Tree):
     """Run timing: the authored curation (`run_calls.json`, was `review.json`). The parsed timings (`timing.json`, `pipeline/runtiming/
     timing.py`) are source data, `SOURCE / "runtiming/timing.json"` (T331)."""
 
@@ -329,7 +418,7 @@ class RunTiming(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class InSeason(BaseModel):
+class InSeason(_Tree):
     """T226: the provincial in-season notices bound to waters (`notice_waters.json`, was `matches.json`;
     `pipeline.regs.inseason.matches`), AUTHORED — written by the review app's In-season tab or by hand, never by a
     generator. (T679 #11) The owner's matches only: their resolved ranges are generated (`matches.resolved_path()`)."""
@@ -342,7 +431,7 @@ class InSeason(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class Bathymetry(BaseModel):
+class Bathymetry(_Tree):
     """The lake bathymetry charts matched to lakes: the owner's accepted matches, frozen. Written ONLY by
     `python -m pipeline.bathymetry.accept`, one owner decision per row, from the proposals under `GENERATED.bathymetry`;
     no build reads them yet."""
@@ -359,7 +448,7 @@ class Bathymetry(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class Stocking(BaseModel):
+class Stocking(_Tree):
     """The stocked waterbodies matched to lakes: the owner's accepted matches, frozen. Written ONLY by
     `python -m pipeline.bathymetry.accept --set stocking`, from the proposals under `GENERATED.stocking`; no build reads
     them yet."""
@@ -373,7 +462,7 @@ class Stocking(BaseModel):
     _abs = field_validator("*", mode="before")(_under("curated"))
 
 
-class Curated(BaseModel):
+class Curated(_Tree):
     """Every path whose loss costs human time rather than CPU. Each group is a folder of that name under the curated
     root, and each path a name under that root (`TREES`).
 
@@ -401,7 +490,10 @@ class Curated(BaseModel):
 
     @property
     def base(self) -> Path:
-        """The curated root this tree was joined to (`roots.curated`, or the `CURATED_ROOT` copy)."""
+        """The curated root this tree was joined to (`roots.curated`, or the `CURATED_ROOT` copy). Records the root (no
+        leaf): `make_root` copies the directory, whatever its keys name."""
+        if self._reads is not None:
+            self._reads.root_read()
         return self._base
 
 
@@ -434,7 +526,7 @@ class Roots(BaseModel):
 # ======================================================================================
 
 
-class GeneratedAtlas(BaseModel):
+class GeneratedAtlas(_Tree):
     """Graph builds: `full/`, plus any small named build (`--gnis` / `--bbox`, named by `--out`)."""
 
     model_config = _STRICT
@@ -451,7 +543,7 @@ class GeneratedAtlas(BaseModel):
     _abs = field_validator("builds", mode="before")(_under("generated"))
 
 
-class GeneratedRegs(BaseModel):
+class GeneratedRegs(_Tree):
     model_config = _STRICT
 
     #: `synopsis_raw_data.json` and `row_images/` (`pipeline.regs.extraction`).
@@ -468,7 +560,7 @@ class GeneratedRegs(BaseModel):
     _abs = field_validator("*", mode="before")(_under("generated"))
 
 
-class GeneratedGauges(BaseModel):
+class GeneratedGauges(_Tree):
     model_config = _STRICT
 
     #: The published feed: per-station JSON (`<station>.json`) plus `index.json`, `clim.json`, `stats.json`,
@@ -492,7 +584,7 @@ class GeneratedGauges(BaseModel):
     _abs = field_validator("*", mode="before")(_under("generated"))
 
 
-class Generated(BaseModel):
+class Generated(_Tree):
     """Where computed data goes. Losing any of it costs CPU, never human time.
 
     Every field is a plain `Path`, not a `DirectoryPath`: a fresh checkout has run nothing,
@@ -813,25 +905,31 @@ def load_repo(config: Path | None = None) -> Curated:
     return _load(config, None)
 
 
+def _is_config(path: Path) -> bool:
+    """Whether `path` is config.yaml: another config file (a test's) holds no config.yaml value, so its trees and reads
+    record nothing."""
+    return Path(path).resolve() == CONFIG.resolve()
+
+
 def _config_read(path: Path, key: str, value) -> None:
-    """(T1171) The build's stage keys hold the config.yaml VALUES a stage reads, not the file: each loader here names the
-    block it consumed (`pipeline._trace.config_read`). Another config file (a test's) is no config.yaml value."""
-    if Path(path).resolve() == CONFIG.resolve():
-        from pipeline import _trace
+    """(T1171) The build's stage keys hold the config.yaml VALUES a stage reads, not the file
+    (`pipeline._trace.config_read`); (T1192) one value per read, never a block (`_Tree`, `SOURCE`, `ROOTS`)."""
+    if _is_config(path):
         _trace.config_read(key, value)
 
 
 @functools.lru_cache(maxsize=8)
 def _load(config: Path | None, root: Path | None) -> Curated:
+    """Loading records nothing (validation stats each file: no read by the stage); each read records itself (`_Tree`)."""
     path = config or CONFIG
     blob, cfg = parse_config(path)
-    _config_read(path, "curated", blob["curated"])
-    _config_read(path, "roots.curated", blob["roots"]["curated"])
     if root is None:
-        return cfg.curated
-    # the sandbox moves ONE root: the same names, joined to the copy instead of `roots.curated`
-    return _validate(Curated, blob["curated"], path, ("curated",), note=f" (under {ROOT_ENV}={root})",
-                     roots={"curated": root})
+        tree, under = cfg.curated, ("roots.curated", blob["roots"]["curated"])
+    else:
+        # the sandbox moves ONE root: the same names, joined to the copy instead of `roots.curated` (no config value)
+        tree, under = _validate(Curated, blob["curated"], path, ("curated",), note=f" (under {ROOT_ENV}={root})",
+                                roots={"curated": root}), None
+    return _bind(tree, "curated", blob["curated"], under) if _is_config(path) else tree
 
 
 def make_root(dst: Path) -> Path:
@@ -866,9 +964,9 @@ def load_generated(config: Path | None = None) -> Generated:
     """The generated tree: every path a name under `roots.generated`."""
     path = config or CONFIG
     blob, cfg = parse_config(path)
-    _config_read(path, "generated", blob["generated"])
-    _config_read(path, "roots.generated", blob["roots"]["generated"])
-    return cfg.generated
+    if not _is_config(path):
+        return cfg.generated
+    return _bind(cfg.generated, "generated", blob["generated"], ("roots.generated", blob["roots"]["generated"]))
 
 
 class _Lazy:

@@ -231,8 +231,13 @@ class TestTheWholeFileIsStrict:
                     yield from walk(ann, f"{at}{name}.")
         defaulted = [k for k, f in walk(C.Config) if not f.is_required()]
         assert not defaulted, defaulted
-        assert all(m.model_config.get("extra") == "forbid" for m in C.BaseModel.__subclasses__()
-                   if m.__module__ == C.__name__)
+        def every(cls):                 # (T1192) the tree models sit under `_Tree`: every subclass, at any depth
+            for m in cls.__subclasses__():
+                yield m
+                yield from every(m)
+        mine = [m for m in every(C.BaseModel) if m.__module__ == C.__name__]
+        assert {"Waters", "Curated", "GeneratedRegs", "Generated", "Source", "Config"} <= {m.__name__ for m in mine}
+        assert all(m.model_config.get("extra") == "forbid" for m in mine)
 
 
 class TestGetPath:
@@ -425,11 +430,15 @@ class TestOneRootPerTree:
         C.ROOTS.release
         assert set(_trace._config_seen) == {"roots.release"}
         monkeypatch.setattr(_trace, "_config_seen", {})
-        C._load.__wrapped__(None, None)
-        assert set(_trace._config_seen) == {"curated", "roots.curated"}
+        tree = C._load.__wrapped__(None, None)              # (T1192) loading reads no value: each read records its own
+        assert set(_trace._config_seen) == set()
+        tree.waters.cuts
+        assert set(_trace._config_seen) == {"curated.waters.cuts", "roots.curated"}
         monkeypatch.setattr(_trace, "_config_seen", {})
-        C.load_generated.__wrapped__()
-        assert set(_trace._config_seen) == {"generated", "roots.generated"}
+        gen = C.load_generated.__wrapped__()
+        assert set(_trace._config_seen) == set()
+        gen.tiles
+        assert set(_trace._config_seen) == {"generated.tiles", "roots.generated"}
         monkeypatch.setattr(_trace, "_config_seen", {})
         ProjectConfig().get_path("cache", "dfo_salmon")
         assert set(_trace._config_seen) == {"cache.dfo_salmon", "roots.cache"}
@@ -567,3 +576,85 @@ class TestNoLiteralOutputPaths:
         assert not bad, (
             "literal output/ path(s) — use pipeline.common.curated.GENERATED:\n  "
             + "\n  ".join(bad))
+
+
+class TestEachReadRecordsItsLeaf:
+    """(T1192 PR 5) A read of the `curated:` / `generated:` tree records the one value it reads and the root it is
+    joined to (`curated._Tree`), never the block: a build stage is keyed only on the config keys it reads."""
+
+    @staticmethod
+    def seen(monkeypatch, read) -> set:
+        from pipeline import _trace
+        monkeypatch.setattr(_trace, "_config_seen", {})
+        read()
+        return set(_trace._config_seen)
+
+    def test_a_leaf_records_its_key_and_root_and_a_group_records_nothing(self, monkeypatch):
+        live, gen = C.load_repo(), C.load_generated()
+        assert self.seen(monkeypatch, lambda: live.waters) == set()
+        assert self.seen(monkeypatch, lambda: live.waters.cuts) == {"curated.waters.cuts", "roots.curated"}
+        assert self.seen(monkeypatch, lambda: live.dfo_salmon.places) == {"curated.dfo_salmon.places", "roots.curated"}
+        assert self.seen(monkeypatch, lambda: gen.regs.extraction) == {"generated.regs.extraction", "roots.generated"}
+        assert self.seen(monkeypatch, lambda: getattr(live.waters, "no_such_key", None)) == set()
+
+    def test_what_a_caller_gets_back_is_unchanged(self, monkeypatch):
+        import pickle
+        live, (blob, cfg) = C.load_repo(), C.parse_config()
+        assert isinstance(live, C.Curated) and isinstance(live.waters, C.Waters) and type(live.waters.cuts) is type(
+            cfg.curated.waters.cuts)
+        assert live.waters.cuts == cfg.curated.waters.cuts and live == cfg.curated and hash(live) == hash(cfg.curated)
+        assert live.model_dump() == cfg.curated.model_dump()
+        again = pickle.loads(pickle.dumps(live))                   # a worker that gets the tree records its own reads
+        assert again == live and self.seen(monkeypatch, lambda: again.gauges.matches) == {"curated.gauges.matches",
+                                                                                         "roots.curated"}
+
+    def test_the_record_is_per_access_never_per_load(self, monkeypatch):
+        """The loaders are cached: a read after a cache hit (in whichever process reads) still records, and an earlier
+        unrelated read in the same process adds nothing to a later one's record (AGENTS 19)."""
+        C.load_repo().waters.cuts                                  # loaded and read once already
+        assert self.seen(monkeypatch, lambda: C.load_repo().gauges.matches) == {"curated.gauges.matches",
+                                                                                "roots.curated"}
+        assert self.seen(monkeypatch, lambda: C.load_repo().waters.cuts) == {"curated.waters.cuts", "roots.curated"}
+
+    def test_loading_and_validating_record_nothing(self, monkeypatch):
+        """Validation stats every curated file (FilePath): that is no read by the stage, so it records nothing."""
+        assert self.seen(monkeypatch, lambda: (C._load.__wrapped__(None, None), C.load_generated.__wrapped__())) == set()
+
+    def test_taking_a_whole_node_records_the_whole_node(self, monkeypatch):
+        live, gen = C.load_repo(), C.load_generated()
+        assert self.seen(monkeypatch, live.model_dump) == {"curated", "roots.curated"}
+        assert self.seen(monkeypatch, live.waters.model_dump_json) == {"curated.waters", "roots.curated"}
+        assert self.seen(monkeypatch, lambda: dict(live.review)) == {"curated.review", "roots.curated"}
+        assert self.seen(monkeypatch, gen.model_dump) == {"generated", "roots.generated"}
+
+    def test_derived_reads_record_what_they_touch(self, monkeypatch, tmp_path):
+        live, gen = C.load_repo(), C.load_generated()
+        assert self.seen(monkeypatch, lambda: live.base) == {"roots.curated"}
+        assert self.seen(monkeypatch, gen.build) == {"generated.atlas.builds", "generated.atlas.default_build",
+                                                     "roots.generated"}
+        assert self.seen(monkeypatch, lambda: gen.build("t1192-named")) == {"generated.atlas.builds", "roots.generated"}
+        with pytest.raises(FileNotFoundError):
+            gen.registry("t1192-no-such-build")
+        assert self.seen(monkeypatch, lambda: pytest.raises(FileNotFoundError, gen.require_build, "t1192-none")) == {
+            "generated.atlas.builds", "roots.generated"}
+        assert self.seen(monkeypatch, lambda: pytest.raises(KeyError, gen.mkdir, "atlas")) == set()
+        # `mkdir` on a declared key reads that key (on a tree bound to a temp root, so nothing is created here)
+        blob, cfg = C.parse_config()
+        moved = C._bind(cfg.generated.model_copy(update={"scratch": tmp_path / "scratch"}), "generated",
+                        blob["generated"], ("roots.generated", blob["roots"]["generated"]))
+        assert self.seen(monkeypatch, lambda: moved.mkdir("scratch", "x")) == {"generated.scratch", "roots.generated"}
+        assert (tmp_path / "scratch" / "x").is_dir()
+        assert self.seen(monkeypatch, lambda: C.SOURCE / "x.json") == {"roots.source"}
+
+    def test_a_sandboxed_tree_records_its_leaf_not_the_live_root(self, monkeypatch, tmp_path):
+        """Under `CURATED_ROOT` the root is the copy, no config value: a read records the name only (as `SOURCE.under`)."""
+        root = C.make_root(tmp_path / "copy")
+        tree = C._load.__wrapped__(None, root)
+        assert tree.waters.cuts == root / _real_blob()["curated"]["waters"]["cuts"]
+        assert self.seen(monkeypatch, lambda: tree.waters.cuts) == {"curated.waters.cuts"}
+        assert self.seen(monkeypatch, lambda: tree.base) == set()
+
+    def test_another_config_file_records_nothing(self, monkeypatch, tmp_path):
+        p = tmp_path / "config.yaml"
+        p.write_bytes(C.CONFIG.read_bytes())
+        assert self.seen(monkeypatch, lambda: C._load.__wrapped__(p, None).waters.cuts) == set()

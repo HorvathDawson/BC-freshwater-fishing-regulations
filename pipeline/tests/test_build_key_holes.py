@@ -873,3 +873,162 @@ def test_recheck_the_tiles_preflight_refuses_a_missing_pmtiles(tmp_path, monkeyp
     (bin_ / "pmtiles").unlink()
     with pytest.raises(FileNotFoundError, match="pmtiles is not on"):
         tippe.check()
+
+
+# --------------------------- T1192 PR 5: a stage is keyed only on the config keys it READS, never on a whole block
+
+#: a stage stand-in: the real stage module's flag parse (`--help`) and then one deeper read of its run (argv: the
+#: deeper code, the module, its sub-command)
+STAGE_RUN = textwrap.dedent("""
+    import runpy, sys
+    import pipeline                                  # installs the recorder (PIPELINE_TRACE), as every stage does
+    deeper, mod, *rest = sys.argv[1:]
+    sys.argv = [mod, *rest, "--help"]
+    try:
+        runpy.run_module(mod, run_name="__main__")
+    except SystemExit:
+        pass
+    exec(deeper)
+""")
+
+#: stage -> (its module and sub-command, one deeper read of its run, the config key that read is)
+STAGE_READS = {
+    "atlas": (["pipeline.atlas.build"], "from pipeline.atlas import inputs\ninputs.default_path('curated:waters.areas')",
+              "curated.waters.area_closures"),
+    "reach": (["pipeline.atlas.reach.cli"],
+              "from pipeline.atlas.reach.dfo_salmon import load_tidal_calls\nload_tidal_calls()",
+              "curated.dfo_salmon.tidal_calls"),
+    "tiles": (["pipeline.deliver.tiles"],                   # what `tiles.export` reads for the area layers
+              "from pipeline.atlas.splits.area_splits import load_area_split_defs\nload_area_split_defs()",
+              "curated.waters.area_closures"),
+    "deliver": (["pipeline.deliver", "all"],
+                "from pipeline.deliver.bundle.continuation import Decided\nDecided.load()", "curated.waters.continuations"),
+}
+
+
+def _tree_leaves() -> list[str]:
+    """Every dotted leaf of config.yaml's `curated:` and `generated:` blocks."""
+    def walk(node, at):
+        for k, v in node.items():
+            yield from walk(v, f"{at}.{k}") if isinstance(v, dict) else [f"{at}.{k}"]
+    blob = yaml.safe_load((REPO_ROOT / "config.yaml").read_text(encoding="utf-8"))
+    return sorted(x for tree in ("curated", "generated") for x in walk(blob[tree], tree))
+
+
+def _stage_trace(scratch: Path, stage: str, seed: str = "0") -> Path:
+    mod, deeper, _key = STAGE_READS[stage]
+    tr = scratch / f"tr-{stage}-{seed}"
+    subprocess.run([PY, "-c", STAGE_RUN, deeper, *mod], check=True, cwd=REPO_ROOT, capture_output=True,
+                   env=_env(scratch, PIPELINE_TRACE=str(tr), PYTHONHASHSEED=seed))
+    return tr
+
+
+def _edit_unread(config_copy, read: set[str]) -> list[str]:
+    """Every curated / generated key the stage did NOT read, moved; returns them."""
+    unread = [k for k in _tree_leaves() if k not in read]
+    for k in unread:
+        config_copy(k, "t1192/elsewhere")
+    return unread
+
+
+@pytest.mark.parametrize("stage", ["reach", "tiles", "deliver"])
+def test_pr5_a_stage_is_keyed_on_the_config_keys_it_reads_and_no_other(scratch, config_copy, stage):
+    """The acceptance (config audit, PR 5): the stage's flag parse and one deeper read of its run record each key they
+    read, never the `curated` / `generated` block; moving every key it did not read leaves its key alone (no rerun),
+    moving the one its deeper read took moves it."""
+    keyd = {"corpus": "c"}
+    key, _i, code, note = B._traced_key(stage, _stage_trace(scratch, stage), keyd)
+    assert key is not None, note
+    read = set(code["config"])
+    deeper = STAGE_READS[stage][2]
+    assert deeper in read and not read & {"curated", "generated", "*"}, sorted(read)
+    m = {"stages": {stage: {"key": key, "code_files": code["modules"], "code_reads": code["reads"],
+                            "code_packages": code["packages"], "code_config": code["config"]}}, "runs": []}
+    plan_key = lambda: B._sha(dict(keyd, code=B.stage_code(stage, m)))      # noqa: E731
+    assert plan_key() == key
+    assert len(_edit_unread(config_copy, read)) > 40                          # most of both blocks, unread
+    assert plan_key() == key
+    config_copy(deeper, "t1192/moved")
+    assert plan_key() != key
+
+
+def test_pr5_the_atlas_is_behind_only_for_a_config_key_it_read(scratch, config_copy):
+    """`atlas.inputs.code_behind` compares the values the atlas read: a changed key it never read is no reason; one it
+    read is, by name; one renamed or deleted since says so (and never crashes, never matches)."""
+    tr = _stage_trace(scratch, "atlas")
+    atlas = scratch / "atlas"
+    atlas.mkdir()
+    I.write_meta(atlas, {"input_hashes": {}, I.CODE: I.code_stamp(tr)})
+    read = set(I.read_meta(atlas)[I.CODE]["config"])
+    assert {"curated.waters.cuts", "curated.waters.area_closures", "source.fwa_gpkg"} <= read
+    assert not read & {"curated", "generated", "*"}, sorted(read)
+    assert I.code_behind(atlas) == []
+    _edit_unread(config_copy, read)
+    assert I.code_behind(atlas) == []
+    config_copy("curated.waters.area_closures", "t1192/moved")
+    assert I.code_behind(atlas) == ["config.yaml curated.waters.area_closures (code: config): changed since the atlas "
+                                    "was built"]
+    blob = yaml.safe_load(SC.config_path().read_text(encoding="utf-8"))
+    del blob["curated"]["waters"]["area_closures"]
+    SC.config_path().write_text(yaml.safe_dump(blob), encoding="utf-8")
+    assert SC.config_now(["curated.waters.area_closures"]) == {"curated.waters.area_closures": "missing"}
+    assert I.code_behind(atlas) == ["config.yaml curated.waters.area_closures (code: config): no longer in config.yaml "
+                                    "(renamed or deleted since the atlas was built)"]
+
+
+def test_pr5_the_recorded_set_does_not_depend_on_the_run(scratch):
+    """AGENTS 19: the same stage run under another hash seed records the same keys."""
+    sets = [set(SC.Trace(_stage_trace(scratch, "deliver", seed)).config) for seed in ("0", "1")]
+    assert sets[0] == sets[1] and sets[0]
+
+
+def test_pr5_an_old_whole_block_record_reruns_once_never_a_refusal(scratch, config_copy):
+    """A manifest record from before per-key recording names `curated` (the whole block): it is still a record (no
+    refusal, no crash), its key is taken on the block now, and the stage reruns once because the loader module it
+    imported changed (every stage imports `curated.py`)."""
+    cfg = SC.config_now(["curated", "roots.curated"])
+    mods = SC.code_now(["pipeline/__init__.py"])
+    rec = {"key": "k-before", "code_files": {**mods, "pipeline/common/curated.py": "0" * 64}, "code_reads": {},
+           "code_packages": ["pyyaml"], "code_config": cfg}
+    m = {"stages": {"reach": rec}, "runs": []}
+    assert B.refused_record("reach", rec) is None
+    now = B.stage_code("reach", m)
+    assert now["config"] == cfg and B._sha(now) != rec["key"]           # keyed on the record: the stage runs
+    config_copy("curated.review.recheck", "t1192/elsewhere")            # the old whole-block key moves with any value
+    assert B.stage_code("reach", m)["config"] != cfg
+
+
+def test_pr5_no_new_whole_block_config_read():
+    """THE GUARD: a config value is recorded only by the reads that name it. Every `config_read(` call site is one of
+    these; none names a block (`"curated"`, `"generated"`) as a literal; and a whole curated / generated node is
+    recorded only through `_Tree` (`model_dump`, `model_dump_json`, iteration), whose one consumer on a stage's path is
+    `build.curated_digest` (it runs in the `pipeline build` process, never a stage's)."""
+    import ast
+    sites = {("pipeline/common/curated.py", "leaf"), ("pipeline/common/curated.py", "whole"),
+             ("pipeline/common/curated.py", "root_read"), ("pipeline/common/curated.py", "_config_read"),
+             ("pipeline/common/curated.py", "_root_read"),            # ROOTS.<name>: one root
+             ("pipeline/common/curated.py", "__getattr__"),           # SOURCE.<name>: one name
+             ("project_config.py", "config"), ("project_config.py", "get_path")}
+    whole_tree = {("pipeline/build.py", "curated_digest")}
+    found, dumps, literal = set(), set(), []
+    for p in sorted([*REPO_ROOT.joinpath("pipeline").rglob("*.py"), REPO_ROOT / "project_config.py",
+                     *REPO_ROOT.joinpath("tools", "curation-review").rglob("*.py"),
+                     *REPO_ROOT.joinpath("scripts").rglob("*.py")]):
+        r = str(p.relative_to(REPO_ROOT))
+        if "/tests/" in r or r == "pipeline/_trace.py" or "node_modules" in r:
+            continue
+        tree = ast.parse(p.read_text(encoding="utf-8"))
+        for fn in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+            for call in [n for n in ast.walk(fn) if isinstance(n, ast.Call)]:
+                name = getattr(call.func, "attr", getattr(call.func, "id", ""))
+                if name in ("config_read", "_config_read"):
+                    found.add((r, fn.name))
+                    arg = call.args[1] if name == "_config_read" and len(call.args) > 1 else (call.args or [None])[0]
+                    if isinstance(arg, ast.Constant) and arg.value in ("curated", "generated"):
+                        literal.append(f"{r}:{call.lineno}")
+                if name in ("model_dump", "model_dump_json") and re.search(
+                        r"\b(CURATED|GENERATED|load|load_repo|load_generated)\b", ast.unparse(call.func.value)):
+                    dumps.add((r, fn.name))
+    assert not literal, f"a whole-block config record: {literal}"
+    assert found == sites, f"config_read call sites changed: new {sorted(found - sites)}, gone {sorted(sites - found)}"
+    assert dumps == whole_tree, f"whole-tree consumers changed: new {sorted(dumps - whole_tree)}"
