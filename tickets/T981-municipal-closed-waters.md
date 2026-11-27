@@ -44,7 +44,7 @@ Depends: —. Size: M. Owner: yes (accept the inventory rows).
   official page closes Lost Lagoon. Asked keep, pull, or keep and say unofficial? Owner: "Keep it, current source".
 
 ## Inventory, 2026-11-21 (Claude, lane/085-t981): PROPOSALS for next release (Lost Lagoon accepted)
-Full rows (quotes, URLs, matches, conflicts): `data/generated/review/t981_local_closures_proposals.json`. Read nowhere.
+Full rows (quotes, URLs, matches, conflicts): `data/generated/review/t981_local_closures_proposals.json` (removed from git 2026-11-27, it is in git history at 9337319f7). Read nowhere.
 
 | row | water | item | authority, bylaw, section | status |
 |---|---|---|---|---|
