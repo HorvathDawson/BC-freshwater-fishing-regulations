@@ -20,7 +20,7 @@ import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type
 import { CornerStrip } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
-import { TYPE, LABEL_PROPS } from "./type";
+import { TYPE, LABEL_PROPS, LABEL_SCALE } from "./type";
 import { hitProps } from "./regs/hit";
 
 /** A thumb's target: every button here is at least this tall and wide. */
@@ -182,7 +182,7 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
                              borderWidth: c.today ? 1.5 : 0, borderColor: c.chosen ? palette.ink : palette.accent,
                              opacity: c.disabled ? 0.35 : 1,
                            })}>
-                  <Text style={{ ...(c.today || c.chosen ? TYPE.bodyStrong : TYPE.body),
+                  <Text maxFontSizeMultiplier={LABEL_SCALE} style={{ ...(c.today || c.chosen ? TYPE.bodyStrong : TYPE.body),
                                  color: c.chosen ? palette.onAccent : c.today ? palette.accent : palette.ink }}>
                     {c.n}
                   </Text>

@@ -116,7 +116,9 @@ const MEASURE = `(() => {
   const wide = [], over = [];
   // a row that scrolls sideways (the Runs species chips, T902) is reached by scrolling: its far chips are not "past the edge"
   const scrollsX = (e) => { for (; e && e.nodeType === 1; e = e.parentElement) if (/auto|scroll/.test(getComputedStyle(e).overflowX)) return true; return false; };
-  for (const b of boxes) if ((b.r.right > innerWidth + 1 || b.r.left < -1) && !scrollsX(b.el)) wide.push(name(b.el));
+  const scrollsY = (e) => { for (; e && e.nodeType === 1; e = e.parentElement) if (/auto|scroll/.test(getComputedStyle(e).overflowY)) return true; return false; };
+  // past a side edge, or above the window's top outside any scroller (a sheet taller than the window loses its header)
+  for (const b of boxes) if (((b.r.right > innerWidth + 1 || b.r.left < -1) && !scrollsX(b.el)) || (b.r.top < -4 && !scrollsY(b.el))) wide.push(name(b.el));
   for (let a = 0; a < boxes.length; a++) for (let b = a + 1; b < boxes.length; b++) {
     const A = boxes[a], B = boxes[b];
     if (A.i === B.i) continue;

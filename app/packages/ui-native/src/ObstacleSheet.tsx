@@ -10,7 +10,7 @@ import { Text } from "./Text";
 import { Sheet } from "./Sheet";
 import { LABEL_SCALE, TYPE } from "./type";
 import { useCappedScale } from "./textScale";
-import type { Palette } from "./theme";
+import { GUTTER, type Palette } from "./theme";
 
 export function ObstacleSheet({ props, palette, onClose }: {
   /** The tapped mark's tile properties; null: the sheet is down. */
@@ -23,7 +23,7 @@ export function ObstacleSheet({ props, palette, onClose }: {
   return (
     <Sheet open={vm !== null} onClose={onClose} title={vm?.title ?? ""} sub={vm?.sub ?? null} palette={palette} scroll={scaled}   /* (T1203) taller than the window at a large text size: it scrolls under its title and Done; at the default size it is 0.9.0's */
            icon={props ? <ObstacleIcon type={props.type} ink={palette.ink} size={24} /> : undefined}>
-      <View testID="obstacle-sheet" style={{ paddingHorizontal: 20, paddingTop: 12, gap: 8 }}>
+      <View testID="obstacle-sheet" style={{ paddingHorizontal: scaled ? 20 - GUTTER : 20, paddingTop: 12, gap: 8 }}>
         {vm?.rows.map((r) => (
           <View key={r.label} style={{ flexDirection: "row", gap: 12 }}>
             <Text style={{ ...TYPE.small, color: palette.sub, width: 104 * scale, flexShrink: 0 }}>{r.label}</Text>
