@@ -149,10 +149,10 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
 
     "Reviewed" is the one people get wrong: a machine produced it, a human checked it, and re-running the generator
     throws that review away.
-36. **Read curated paths through `pipeline.common.curated.CURATED`** (`CURATED.waters.cuts`), never as a literal. The
-    tree is validated at first access, so a bad key fails by name instead of returning an empty list builds later.
-    All paths come from `config.yaml` (`get_path` raises on an unknown key); CI refuses a literal `"data/..."` path
-    in pipeline code (tests exempt).
+36. **Read curated paths through `pipeline.common.curated.CURATED`** (`CURATED.waters.cuts`), never as a literal. The tree is
+    validated at first access, so a bad key fails by name instead of returning an empty list builds later. All paths come from
+    `pipeline.common.curated` (the roots, the FWA GeoPackage name and the atlas build come from `config.yaml`; every other file's
+    name is declared on its schema field); CI refuses a literal `"data/..."` path in pipeline code (tests exempt).
 36a. **Curated naming.** `*_calls.json` are the owner's per-item decisions, `*_waters.json` a list of waters,
     `*_stations.json` a list of gauges. Every dict-shaped curated JSON has an `_about` (what, who writes, who reads);
     every curated folder has a README. Machine output (proposals, the gauge review queue) lives in `data/generated/`.
