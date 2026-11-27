@@ -1,0 +1,70 @@
+# T1207 — A water closed all year to salmon and game fish shows ONE schedule, not two
+
+Status: OPEN — design, pictures first.
+
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1207 | A water closed all year to salmon and game fish shows one schedule, not two (splits again when they differ) | OPEN — design, pictures first | — | owner picks A / B / C (pictures below); default no change; then build behind `closedWithSalmon` |
+
+Source: the owner, 2026-11-26, via the planning chat, verbatim: "we could combine the salmon and game fish schedules for
+year round closures tho if they are both always closed (they could split again if it ever changes)."
+
+## What the page shows today (all-closed water, Nelson Creek `gnis:20408`, live release r-0aec88ed3edb, 412 px)
+`KeepTab.tsx` draws, top to bottom: the SALMON `[B.C. SYNOPSIS]` block (`salmonBar`, `SalmonYearStrip`: "✕Closed today", a
+year bar, "✕ Closed" legend), the GAME FISH `[B.C.]` block (`YearStrip`: the same again), then the closed banner ("Closed
+to all fishing all year, salmon included", the book row's line, Source). The three say one thing. The Species and limits
+list is NOT drawn on this water (no rows; the Salmon fold is dropped under the merged banner, `KeepTab.tsx` `folds`:
+`!keep.banner?.salmon`). Where the water is not merged, the list is drawn (Kirkup, Old Kootenay in the contact sheet).
+Pictures: `T1207-shots/contact-sheet.png` (today | A | B | C | A dark | Kirkup | Old Kootenay).
+
+## How it changes T1052 and T1078
+- T1052 (owner 2026-11-24, "One block, both calendars"): merged the two STATEMENTS and kept both calendars on purpose
+  ("the 2 schedule calendars are okay though"). T1207 reverses that half: on the same waters the two calendars become one.
+  Nothing else of T1052 changes (the headline, the line words A/B, which are still an open ask there).
+- T1078 (owner 2026-11-26: the banner cites ONE closer, the primary one) is untouched: the banner text stays.
+
+## When the schedules combine, and when they split
+Gate = core `closedWithSalmon` (`core/src/regs/withSalmon.ts`), unchanged: `banner.salmon === true` is the one switch,
+and the UI draws one schedule exactly when it is true. It splits again by itself the moment the page stops passing the
+gate (a day or release where either side differs), because the page is rebuilt from the data every time; no state is kept.
+Counted on the live release r-0aec88ed3edb on Nov 26, 2026, every part of every water, DFO live feed not included
+(20,956 parts): **936 parts on 936 waters combine** (as T1052 measured). Why the rest of the "game fish closed all year"
+pages stay two:
+- 181 parts: same rules but `unless_opened` (a park closure another authority may lift) or another refusal. Stay two.
+- 107 parts (48 waters): "closed all year on N stretches" (merged banner). Stay two.
+- 6 parts: salmon closed all year by a DIFFERENT book rule than the game-fish closure. Stay two (two sources).
+- 2 parts (Kirkup `gnis:12661`, `gnis:1806`): salmon closed only part of the year by the book. Stay two.
+- 5 parts: salmon decided by DFO, not the book. Stay two. 1 part: a notice / finfish / caveat on the card. Stay two.
+- 296 parts (260 waters): game fish closed today but reopens in the year (part-year). Stay two; the 130 of them closed by
+  the same book rule are the T1052 follow-up ("Yes, merge those too"), pictures first: it would use the same switch.
+- A DFO in-season notice or finfish closure arriving: `card.issues` / `card.finfish` fail the gate, so the page splits at once.
+- A water with sections: the gate is per page (part), as T1052. Each part decides on its own.
+The 6 different-rule parts could be combined only by changing the gate (both closed all year, either source): not
+proposed, since it hides which source closes which fish.
+
+## Options (pictures: `T1207-shots/nelson-{today,A,B,C}-light.png`, `nelson-A-dark.png`)
+- A. ONE block, ONE bar: title "Salmon and game fish", "✕Closed today", one year bar, the banner below. Smallest change.
+- B. ONE block, NO bar: the banner alone leads ("Closed to all fishing all year, salmon included", the line, Source). A
+  bar that is all closed adds nothing the headline does not; it also loses the "today" marker and the calendar.
+- C. As A, with both source tags small beside the title ("Salmon · Game fish" [DFO · B.C.]): keeps the DFO / B.C. label.
+Where the two differ (Old Kootenay River Channel `gnis:2123`: salmon closed, game fish open with a spring closure) every
+option splits back to today's two blocks (`old-kootenay-differ-light.png`).
+Species and limits on a merged water: not drawn today (nothing to keep); proposal: leave it so.
+Recommended: A. The owner asked for the calendars combined, so B (no calendar) is more than he asked; C's second tag
+reads as clutter on a page with no second source.
+
+## Work (after the pick)
+1. `KeepTab.tsx`: on `keep.banner?.salmon` draw the chosen block in place of `salmonBar` + the game-fish strip (no logic
+   in the UI: core says which; `strip` stays the game-fish strip, same status as the salmon's by the gate).
+2. Test: through `WaterScreen.oneClosure.test.tsx` the merged water has one calendar; the six split cases keep two.
+3. Pictures after: Nelson light + dark, Kirkup (split), Old Kootenay (split).
+
+## Acceptance
+Nelson Creek draws one schedule; Kirkup, Old Kootenay and every non-gated page draw two as today; counts above hold
+(936 waters); a mutant that draws one schedule on a page the gate refuses fails a test.
+
+Size: S. Depends: T1052 (merged gate). Owner: yes (the pick). Default: no change until he picks.
+
+## Owner
+
+- [ ] 2026-11-26 — Combine the two year calendars on an all-closed water: A (one block, one bar; recommended), B (one block, no bar), or C (one bar, both tags small)? Pictures `tickets/T1207-shots/contact-sheet.png`. Default: no change until you pick.
