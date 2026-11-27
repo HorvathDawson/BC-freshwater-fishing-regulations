@@ -142,15 +142,18 @@ def fwa_code_collisions(streams: list[dict], fwa_lines, *, whole_province: bool)
     for s in novel:
         by_code.setdefault(_prefixes(s["wsc"]), []).append(s)
     roots = {_prefixes(s["wsc"]): s for s in novel if s.get("receiver_kind") == "tidal"}
-    widths = sorted({len(c) for c in roots})        # a code under a root is the root's text + "-" + more groups
+    depths = sorted({len(_wsc.groups(c)) for c in roots})   # a code under a root shares its first groups, has more
     same: dict[str, set[str]] = {}                 # city blk -> FWA blks holding its exact code
     under: dict[str, set[str]] = {}                # tidal-root blk -> FWA blks coded under it
     for code, blk in fwa_lines:                    # one pass (the full build: ~4.9M FWA lines)
         for s in by_code.get(code, ()):
             same.setdefault(str(s["blk"]), set()).add(str(blk))
-        for n in widths:
-            if len(code) > n and code[n] == "-":
-                r = roots.get(code[:n])
+        if not depths:
+            continue
+        ngroups = len(_wsc.groups(code))
+        for d in depths:
+            if ngroups > d:
+                r = roots.get(_wsc.head(code, d))
                 if r is not None:
                     under.setdefault(str(r["blk"]), set()).add(str(blk))
     out: list[str] = []
@@ -159,8 +162,9 @@ def fwa_code_collisions(streams: list[dict], fwa_lines, *, whole_province: bool)
         if blk in exempt:
             continue
         s = named[blk]
-        where = (f"has FWA line(s) {', '.join(sorted(same[blk])[:4])}'s exact code {_prefixes(s['wsc'])}" if blk in same
-                 else f"has FWA line(s) {', '.join(sorted(under[blk])[:4])} coded under its {_prefixes(s['wsc'])}")
+        lines = ", ".join(sorted(same.get(blk) or under[blk])[:4])   # the first four FWA blue line keys, for the message
+        where = (f"has FWA line(s) {lines}'s exact code {_prefixes(s['wsc'])}" if blk in same
+                 else f"has FWA line(s) {lines} coded under its {_prefixes(s['wsc'])}")
         out.append(f"blk {blk} ({s.get('name') or '?'}, {s.get('source') or '?'}) {where}: the atlas would file it "
                    "under that FWA water. Give it a code of its own (T1246)")
     if whole_province:
