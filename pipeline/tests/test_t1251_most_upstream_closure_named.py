@@ -138,6 +138,38 @@ def test_two_closures_on_their_own_rows_water_keep_the_old_order():
     assert got == RIVER
 
 
+def test_a_waters_own_extent_comes_before_what_it_inherits_on_one_rung():
+    """Review round 1: an own-extent closure and an inherited one tied on rank are ranked, never left to input order."""
+    own, inh = _closure(RIVER, via="reach"), _closure(LOWER)
+    assert _named([inh, own], UP) == RIVER and _named([own, inh], UP) == RIVER
+
+
+def test_the_banners_closers_put_the_most_upstream_row_first_and_keep_the_rest_in_order():
+    """The banner's order asks the card's comparison (`upstream_cmp`): the West Kettle creek's case (the Kettle River's
+    tributaries closure first by rule order, the West Kettle's second) comes out West Kettle first; a zone closure and
+    a closure of another rung keep their places."""
+    kettle, west = "r8:kettle_river_s_tributaries@8-14", "r8:west_kettle_river_s_tributaries@8-12"
+    zone = _closure("zp:superior_closures", rank=4, via="reach")
+    got = EV.most_upstream_first([_closure(kettle), _closure(west), zone], frozenset({(west, kettle)}))
+    assert [c.entry_id for c in got] == [west, kettle, "zp:superior_closures"]
+    three = [_closure(RIVER), _closure(HART), _closure(LOWER)]
+    assert [c.entry_id for c in EV.most_upstream_first(three, UP)] == [LOWER, HART, RIVER]
+    assert [c.entry_id for c in EV.most_upstream_first(three, frozenset())] == [RIVER, HART, LOWER], "no pairs: as given"
+
+
+def test_a_circle_in_the_pairs_is_refused():
+    assert N.upstream_cycle({(LOWER, HART), (HART, RIVER)}) == []
+    loop = N.upstream_cycle({(LOWER, HART), (HART, RIVER), (RIVER, LOWER)})
+    assert loop[0] == loop[-1] and set(loop) == {LOWER, HART, RIVER} and len(loop) == 4
+    db = _campbell()
+    db.execute("CREATE TABLE trib_nearer (near TEXT, far TEXT)")
+    db.execute("CREATE TABLE trib_upstream (near TEXT, far TEXT)")
+    db.executemany("INSERT INTO trib_nearer VALUES (?,?)", sorted(N.compute_trib_nearer(db)))
+    db.executemany("INSERT INTO trib_upstream VALUES (?,?)", [(LOWER, HART), (HART, RIVER), (RIVER, LOWER)])
+    with pytest.raises(SystemExit, match="circle"):
+        N.prove(db)
+
+
 def test_the_reader_refuses_a_bundle_without_the_table(tmp_path):
     p = tmp_path / "bundle.sqlite"
     db = sqlite3.connect(p)

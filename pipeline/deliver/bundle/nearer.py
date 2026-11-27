@@ -221,6 +221,37 @@ def compute_trib_upstream(db: sqlite3.Connection) -> Set[Tuple[str, str]]:
     return nearer | {p for p in nested_pairs(walk, own, co) if p not in ordered}
 
 
+def upstream_cycle(pairs: Iterable[Tuple[str, str]]) -> List[str]:
+    """A circle in the (near, far) pairs (`trib_nearer`'s and the nested walks' mixed, with a third row), as the rows
+    met on it (the first repeated at the end); [] when none. The build drops a contradiction pair by pair only, so a
+    circle through three rows is refused here (`prove`)."""
+    nxt: Dict[str, List[str]] = {}
+    for a, b in sorted(pairs):
+        nxt.setdefault(a, []).append(b)
+    state: Dict[str, int] = {}
+    for start in sorted(nxt):
+        if state.get(start):
+            continue
+        path, stack = [], [(start, iter(nxt.get(start, ())))]
+        state[start] = 1
+        path.append(start)
+        while stack:
+            node, it = stack[-1]
+            for b in it:
+                if state.get(b) == 1:
+                    return path[path.index(b):] + [b]
+                if not state.get(b):
+                    state[b] = 1
+                    path.append(b)
+                    stack.append((b, iter(nxt.get(b, ()))))
+                    break
+            else:
+                state[node] = 2
+                path.pop()
+                stack.pop()
+    return []
+
+
 def write_trib_upstream(db: sqlite3.Connection, cov) -> None:
     pairs = sorted(compute_trib_upstream(db))
     db.executemany("INSERT INTO trib_upstream (near, far) VALUES (?,?)", pairs)
@@ -239,7 +270,12 @@ def prove(db: sqlite3.Connection) -> None:
     if stored != compute_trib_nearer(db):
         raise SystemExit("trib_nearer: the stored pairs are not what item_down, entry.matched and the "
                          "rule sets give — rebuild the bundle")
-    if set(db.execute("SELECT near, far FROM trib_upstream")) != compute_trib_upstream(db):
+    stored_up = set(db.execute("SELECT near, far FROM trib_upstream"))
+    loop = upstream_cycle(stored_up)
+    if loop:
+        raise SystemExit(f"trib_upstream: the pairs run in a circle ({' > '.join(loop)}): no row is the most upstream "
+                         f"there — fix the rows' waters or walks, then rebuild the bundle")
+    if stored_up != compute_trib_upstream(db):
         raise SystemExit("trib_upstream: the stored pairs are not what trib_nearer and the rule sets' walks give — "
                          "rebuild the bundle")
 

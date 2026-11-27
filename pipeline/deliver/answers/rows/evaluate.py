@@ -18,20 +18,55 @@ def _stable_sort(xs, key):
 
 
 #: POLICY (T1251, owner 2026-11-27: "The most upstream row, in 0.10.0"): THE MOST UPSTREAM ROW IS NAMED. Of two
-#: INHERITED closures (both reaching the section by the tributary walk, `via` "trib") of two entries tied on rank that
-#: both close the day, the one whose row's water is the more upstream
-#: (`read._upstream_of`, the bundle's `trib_upstream`: `trib_nearer` and the rows whose tributary walks nest) governs
-#: and is the one the card names; the other agrees. Words only: both still close (RULINGS T14: a closure is never
-#: beaten by a nearer row), the day, the fish and the status are the same. Asked before year-round-before-dated and the
-#: fish count. False = T206's order alone (Lower Campbell Lake's creeks name John Hart Lake's closure by entry key).
+#: closures of two entries tied on rank that both close the day, the more upstream one governs and is the one the card
+#: names, and comes first in a closed day's banner (`display.section`, the same comparison: `upstream_cmp`): the
+#: water's OWN extent before an inherited one (the water itself is the most upstream), and of two INHERITED closures
+#: (both reaching the section by the tributary walk, `via` "trib") the one whose row's water is the more upstream
+#: (`read._upstream_of`, the bundle's `trib_upstream`: `trib_nearer` and the rows whose tributary walks nest). Words
+#: only: both still close (RULINGS T14: a closure is never beaten by a nearer row), the day, the fish and the status are
+#: the same. Two closures in two rows' own extents are not ordered by it (an open question, T1251). Asked before T206's
+#: year-round-before-dated and the fish count. False = T206's order alone (Lower Campbell Lake's creeks name John Hart
+#: Lake's closure by entry key, and the banner lists closures in rule order).
 THE_MOST_UPSTREAM_ROW_IS_NAMED = True
+
+
+def upstream_cmp(a, b, upstream: frozenset) -> int:
+    """THE ONE most-upstream comparison of two closures of two entries on one rung (`THE_MOST_UPSTREAM_ROW_IS_NAMED`;
+    each has `entry_id` and `via`): -1 / 1 when it orders them, 0 when it has no say. The card's naming
+    (`_closure_cmp`) and the banner's order (`most_upstream_first`) both ask it; never recomputed per surface."""
+    if not THE_MOST_UPSTREAM_ROW_IS_NAMED:
+        return 0
+    va, vb = getattr(a, "via", None), getattr(b, "via", None)
+    if {va, vb} == {"reach", "trib"}:
+        return -1 if va == "reach" else 1          # the water's own extent before what it inherits
+    if va == vb == "trib" and upstream:
+        if (a.entry_id, b.entry_id) in upstream:
+            return -1
+        if (b.entry_id, a.entry_id) in upstream:
+            return 1
+    return 0
+
+
+def most_upstream_first(items: list, upstream: frozenset) -> list:
+    """`items` (each with `entry_id`, `via`, `rank`) with the more upstream of any two on one rung moved before the
+    other (`upstream_cmp`), every other pair keeping its order: a stable pick, never a sort by a partial order."""
+    rest, out = list(items), []
+    while rest:
+        for i, x in enumerate(rest):
+            if not any(y is not x and y.rank == x.rank and y.entry_id != x.entry_id and upstream_cmp(y, x, upstream) < 0
+                       for y in rest):
+                out.append(rest.pop(i))
+                break
+        else:                                      # a cycle the bundle's prove() refuses; keep the order given
+            out.extend(rest)
+            break
+    return out
 
 
 def _closure_cmp(a, b, upstream: frozenset = frozenset()) -> int:
     """Which of two closures speaking for a fish governs (T206, owner 2026-10-26: never by entry key):
     the nearer rank; two rules of ONE entry keep the book's order (rule order), as before; between two
-    entries, of two inherited closures the more upstream row's (`THE_MOST_UPSTREAM_ROW_IS_NAMED`, `upstream` the
-    (near, far) pairs), then a
+    entries, the more upstream (`upstream_cmp`: own extent before inherited, then the (near, far) pairs), then a
     standing (year-round) closure before a dated one, then the one naming more fish:
     Region 4's invasive-species notice (bass, pike, walleye, perch) over the quota box's single
     "0, CLOSED" lines, which key order let win once `z4:species_quotas` became `z4:daily_quotas`,
@@ -40,11 +75,9 @@ def _closure_cmp(a, b, upstream: frozenset = frozenset()) -> int:
         return -1 if a.rank < b.rank else 1
     if a.entry_id == b.entry_id:
         return 0                                   # one entry: the book's rule order
-    if THE_MOST_UPSTREAM_ROW_IS_NAMED and upstream and a.via == "trib" and b.via == "trib":
-        if (a.entry_id, b.entry_id) in upstream:
-            return -1
-        if (b.entry_id, a.entry_id) in upstream:
-            return 1
+    got = upstream_cmp(a, b, upstream)
+    if got:
+        return got
     da, db = bool(a.f.get("when")), bool(b.f.get("when"))
     if da != db:
         return 1 if da else -1

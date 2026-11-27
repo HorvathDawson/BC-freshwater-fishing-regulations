@@ -24,6 +24,23 @@ def section_scope(key: tuple, B):
     return TIDAL_SCOPE if is_tidal(key) else rule_key(key)
 
 
+class _Closer:
+    """One closing rule as `rows.evaluate.upstream_cmp` reads it: its entry, how it reaches this key (`via`) and its
+    rung there (`read.place`)."""
+    __slots__ = ("key", "fish", "entry_id", "via", "rank")
+
+    def __init__(self, key: str, fish, ctx, scope):
+        from pipeline.deliver.bundle import read
+        self.key, self.fish = key, fish
+        e, r = key.split("::", 1)
+        self.entry_id = e
+        got = [v for ee, rr, v in ctx.B.sets[scope.set_id] if (ee, rr) == (e, r)]
+        if len(got) != 1:
+            raise AnswersError(f"display: closing rule {key} is not once in its key's rule set {scope.set_id}")
+        self.via = got[0]
+        self.rank = read.place(ctx.B.rules[(e, r)], self.via)
+
+
 def section_prepare(scope, ctx):
     """Per slot (day x moment, `answers.slots`): the status index's code for the rule key at that
     moment — a projection of the verdicts (closed on a closed reading, else the key's floor):
@@ -42,6 +59,9 @@ def section_prepare(scope, ctx):
         return [0] * DAYS, [{"status": "tidal", **TIDAL_STATE}]
     st = ctx.store
     k = ctx.B.key_ix[scope]
+    from pipeline.deliver.answers.rows.evaluate import most_upstream_first
+    from pipeline.deliver.bundle import read
+    upstream = read._upstream_of(ctx.B.path)
     floor = "own" if st.own(k) else "base"
     none = "none"
     # RULINGS P12: the lifting rules this key holds by the tributary walk (a ✱ row's, T13 / T3a)
@@ -51,9 +71,12 @@ def section_prepare(scope, ctx):
     for rd in st.readings(k):
         closing = project.closing(lambda f, r=rd.ix: st.rows(st.verdict_id(k, r, f, none)),
                                   st.grade)
+        # (T1251) rule order, then the more upstream of two rows' closures first (`rows.evaluate.most_upstream_first`,
+        # the comparison the card's naming asks): the banner lists `closers` in this order and says a sentence once
+        ordered = most_upstream_first([_Closer(st.rule_ids[r], fs, ctx, scope) for r, fs in sorted(
+            closing.items(), key=lambda p: ctx.rule_index[st.rule_ids[p[0]]])], upstream)
         v = {"status": "closed" if rd.closed else floor,
-             "closing": [[ctx.rule_index[st.rule_ids[r]], fs] for r, fs in sorted(
-                 closing.items(), key=lambda p: ctx.rule_index[st.rule_ids[p[0]]])]}
+             "closing": [[ctx.rule_index[c.key], c.fish] for c in ordered]}
         if rd.closed:
             # display 18: the closures that close the water, decided (page v36 closersAt), never re-chosen by the app
             v["closers"] = closers_of(v["closing"])
