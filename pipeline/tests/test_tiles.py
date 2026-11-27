@@ -467,18 +467,39 @@ def test_the_lake_name_pass_drops_no_point_tippecanoe_would_thin(tmp_path):
     from pipeline.deliver.tiles import tippe
     if shutil.which("tippecanoe") is None or shutil.which("tippecanoe-decode") is None:
         pytest.skip("tippecanoe is not installed")
-    assert "--drop-rate=1" in tippe.alone_flags(4, 7)
+    assert "--drop-rate=1" in tippe.alone_flags(4, 7, points=True) and "--drop-rate=1" not in tippe.alone_flags(4, 7)
     src = tmp_path / "lake_name.geojsonl"
     src.write_text("".join(_json.dumps({"type": "Feature", "properties": {"name": f"Lake {i}", "area_m2": 1e6},
                                          "geometry": {"type": "Point", "coordinates": [-122 + (i % 10) * 0.05, 52 + (i // 10) * 0.05]},
                                          "tippecanoe": {"layer": "lake_name"}}) + "\n" for i in range(60)))
     out = tmp_path / "t.mbtiles"
-    subprocess.run(["tippecanoe", "-o", str(out), "--force", *tippe.alone_flags(4, 7), str(src)], check=True)
+    subprocess.run(["tippecanoe", "-o", str(out), "--force", *tippe.alone_flags(4, 7, points=True), str(src)], check=True)
     for z in (4, 5, 6):
         d = _json.loads(subprocess.run(["tippecanoe-decode", "-z", str(z), "-Z", str(z), str(out)],
                                        check=True, capture_output=True, text=True).stdout)
         names = {f["properties"]["name"] for t in d["features"] for layer in t["features"] for f in layer["features"]}
         assert len(names) == 60, f"z{z}: {len(names)} of 60 points"
+
+
+def test_stream_names_cut_into_passes_at_z8_keep_the_older_bands_whole(tmp_path):
+    """T1210: `stream_name`'s new bands (z4-z7) are their own pass (`ALONE_SPLIT`), so their vertices never pin the z8+
+    name lines (shared nodes are counted over a pass's whole input): each part holds exactly the features first drawn in
+    its range; a layer with no cut is passed whole."""
+    import json as _json
+    from pipeline.deliver.tiles import tippe
+    f = tmp_path / "stream_name.geojsonl"
+    rows = [{"type": "Feature", "properties": {"name": f"R{z}"}, "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 1]]},
+             "tippecanoe": {"layer": "stream_name", "minzoom": z, "maxzoom": z}} for z in range(4, 14)]
+    f.write_text("".join(_json.dumps(r) + "\n" for r in rows))
+    out = tmp_path / "parts"; out.mkdir()
+    parts = tippe.alone_parts(f, out, 4, 13, tippe.ALONE_SPLIT["stream_name"])
+    assert [(a, b) for _, a, b in parts] == [(4, 7), (8, 13)]
+    got = [sorted(_json.loads(x)["tippecanoe"]["minzoom"] for x in p.read_text().splitlines()) for p, _, _ in parts]
+    assert got == [[4, 5, 6, 7], [8, 9, 10, 11, 12, 13]]
+    assert tippe.alone_parts(f, out, 4, 7, ()) == [(f, 4, 7)]
+    # the z8+ pass runs with the flags the whole z8-z13 pass had before T1210
+    assert tippe.alone_flags(8, 13) == tippe._common(8, 13, tippe.ALONE_SIMPLIFICATION_AT_MAX, False, full_detail=tippe.ALONE_DETAIL,
+                                                     low_detail=tippe.ALONE_DETAIL, simplification=tippe.ALONE_SIMPLIFICATION)
 
 
 def test_every_region_feature_has_one_spelling_of_region_id():
