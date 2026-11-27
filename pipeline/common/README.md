@@ -3,7 +3,7 @@
 Depends on nothing else in the pipeline; everything depends on it: the project's paths, models, IO helpers and the small shared
 definitions that must not drift between stages.
 
-- `curated.py`: `CURATED` / `GENERATED` / `SOURCE`, the ONLY way to name a data path (keyed in the root `config.yaml`, validated by pydantic at
+- `curated.py`: `CURATED` / `GENERATED` / `SOURCE`, the ONLY way to name a data path (roots in `config.yaml`, names on its fields, validated by pydantic at
   first access so a wrong key fails at import, naming it). Never a path literal (AGENTS 36, 41; `scripts/check_data_paths.py` fails CI on one).
   A loader for a curated file RAISES on a missing file (37). `curated_write.py` writes curated files.
 - Identity and names: `section_handles.py` (the handle table every artifact keys sections by), `entry_id.py`, `names.py` / `name_sources.py` /
