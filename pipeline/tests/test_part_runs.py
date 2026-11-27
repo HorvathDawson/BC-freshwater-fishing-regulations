@@ -245,6 +245,9 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
     span = {s: (a, b, lo, hi, off, shape) for s, a, b, lo, hi, off, shape in db.execute(
         "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem, s.shape FROM section_span s "
         "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
+    # (T1244) with the bundle's measured side-channel joins laid over, as the export reads them (T1140,
+    # `export.read.with_joins`): without them a channel's run had no km where the export's has its join (Bedwell 3.73)
+    span = export_read.with_joins(span, db.execute("SELECT sid, m, lo FROM section_join"))
     touch = defaultdict(set)
     for a, b in db.execute("SELECT a, b FROM section_touch"):
         touch[a].add(b)
