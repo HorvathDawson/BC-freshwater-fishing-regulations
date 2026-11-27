@@ -97,7 +97,7 @@ The Fraser-watershed (Region 6) and Zone A (7A) closures lift from May 15. Built
 The closure (p.42) excepts "the mainstem of the Fraser River and other streams listed in the tables". We do not know which
 rows count: the tables print no "exempt" line. Owner, strictest reading: lifted ONLY where a row prints its own exemption or
 "open all year" (whole or part); a row with only gear or quota rules keeps the closure, so Cariboo, Moffat, McKinley, Blue Lead,
-Little Horsefly, Mitchell and Canim are closed Apr 1-Jun 30 (330.9 km). What we are unsure of, asked of the Region 5 office
+Little Horsefly, Mitchell and Canim are closed Apr 1-Jun 30 (330.9 km for these seven), plus the lower Quesnel below the Cariboo (owner 2026-11-26), about 431 km in all. What we are unsure of, asked of the Region 5 office
 (BOOK-ERRORS entry 19): whole stream or only the stretch the row describes; park and chain-of-lakes rows; tributaries of a
 listed stream. Looks like a wrong closure on a listed stream: it is the strict reading, not a bug.
 

@@ -29,7 +29,7 @@ from pathlib import Path
 
 from pipeline.regs.dfo_salmon.dossier import ENTRIES, item_pin, osm_link
 from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, SOURCE
 from pipeline.common.names import key as name_key
 from pipeline.common.utils import wsc as _wsc
 
@@ -324,7 +324,6 @@ def split_coords(item_ids) -> dict:
     # (T994 #16) NO CATCH: one `except Exception: return {}` covered the resolved splits, the registry, the gpkg and
     # geopandas, so every failure read as "no coordinates" for every split. A missing file names itself.
     import geopandas as gpd
-    from project_config import get_config
     from pipeline.atlas.registry import load_registry
 
     resolved = json.loads((GENERATED.build() / "splits.resolved.json").read_text())
@@ -335,7 +334,7 @@ def split_coords(item_ids) -> dict:
              {b.id for i in item_ids if i in reg for b in reg[i].boundaries}}
     if not lines:
         return out
-    st = gpd.read_file(str(get_config().fwa_data_gpkg), layer="streams",
+    st = gpd.read_file(str(SOURCE.fwa_gpkg), layer="streams",
                        where="BLUE_LINE_KEY IN (%s)" % ",".join(sorted(lines)),
                        engine="pyogrio").to_crs(4326).sort_values("DOWNSTREAM_ROUTE_MEASURE")
     by_line = {b: g for b, g in st.groupby(st["BLUE_LINE_KEY"].astype(str))}

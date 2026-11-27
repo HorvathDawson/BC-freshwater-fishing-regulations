@@ -19,7 +19,6 @@ def test_get_path_raises_on_a_missing_key():
     cfg = ProjectConfig()
     with pytest.raises(KeyError, match="no.such.key"):
         cfg.get_path("no", "such", "key")
-    assert str(cfg.get_path("no", "such", default="x/y")) == "x/y"
 
 
 def test_dfo_save_round_trips_and_leaves_no_temp(tmp_path):

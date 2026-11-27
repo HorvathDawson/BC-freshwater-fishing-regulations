@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from pipeline.common import source_dates
+from pipeline.common.curated import SOURCE
 
 FORMAT = "app-manifest/2"
 
@@ -195,7 +196,7 @@ def sources_block(data_dir, *, synopsis_title: str, dfo_rules) -> dict:
     hydat = d / "hydat.release"
     return {"synopsis": {"title": synopsis_title, "date": None},
             "dfo": {"date": _dfo_day(Path(dfo_rules))},
-            "fwa": {"date": source_dates.day(d / "bc_fisheries_data.gpkg", "streams")},
+            "fwa": {"date": source_dates.day(SOURCE.under(d).fwa_gpkg, "streams")},
             "basemap": {"date": _pmtiles_osm_day(d / "bc.pmtiles")},
             "hydat": {"date": _day(hydat.read_text()) if hydat.exists() else None}}
 

@@ -31,7 +31,7 @@ import argparse
 import json
 from pathlib import Path
 
-from project_config import get_config
+from pipeline.common.curated import SOURCE
 
 #: The drawing copy (tile mask, place filter) — written from the same exact union by `main`.
 BOUNDARY_FILENAME = "bc_boundary.geojson"
@@ -111,7 +111,7 @@ def load_outline(gpkg_path: str | Path, write_cache: bool = True):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Build the exact BC outline cache (+ the drawing copy).")
-    ap.add_argument("--gpkg", default=str(get_config().fwa_data_gpkg))
+    ap.add_argument("--gpkg", default=str(SOURCE.fwa_gpkg))
     ap.add_argument("--drawing-copy", action="store_true",
                     help=f"also rewrite {BOUNDARY_FILENAME} (tile mask, bundle place filter)")
     args = ap.parse_args()

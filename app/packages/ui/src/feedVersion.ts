@@ -10,7 +10,9 @@
  * Module state, on purpose: the feeds are one per app, and a hook deep in a panel must not need a prop threaded to it.
  */
 import { useSyncExternalStore } from "react";
+import { FEED_TTL_MS } from "@app/data";
 import { clearAnswers } from "./answers";
+import { onAppActive, onAppInactive } from "./today";
 
 export type LiveFeedId = "gauges" | "dfo" | "inseason";
 
@@ -25,11 +27,36 @@ export function feedMoved(id: LiveFeedId): void {
   for (const l of [...listeners]) l();
 }
 
-const subscribe = (on: () => void) => { listeners.add(on); return () => { listeners.delete(on); }; };
+/**
+ * (T1205) THE JUDGEMENT OF A READING'S AGE RE-RUNS AS TIME PASSES, with no fetch: a gauge reading is current by the clock
+ * (`readingCurrentNow`), so a feed that stopped, or a phone offline with the app open, must see its readings go old. While
+ * anything watches the gauges, one beat per feed lifetime (the poll the colours already use) and the app's return to the
+ * front count as a move of the gauge version: every reader keyed on it asks again, and `httpFeed().index()` judges at the
+ * clock. Not a feed change, so the answer store is left alone.
+ */
+let judged = 0;
+let beat: ReturnType<typeof setInterval> | undefined;
+let unsub: (() => void)[] = [];
+function rejudge(): void { judged += 1; for (const l of [...listeners]) l(); }
+/** the beat runs only at the front: the background stops it, and coming back judges at once and starts it again */
+const stopBeat = () => { clearInterval(beat); beat = undefined; };
+const startBeat = () => { stopBeat(); beat = setInterval(rejudge, FEED_TTL_MS); };
+
+const subscribe = (on: () => void) => {
+  listeners.add(on);
+  if (listeners.size === 1) {
+    startBeat();
+    unsub = [onAppActive(() => { rejudge(); startBeat(); }), onAppInactive(stopBeat)];
+  }
+  return () => {
+    listeners.delete(on);
+    if (!listeners.size) { stopBeat(); unsub.forEach((u) => u()); unsub = []; }
+  };
+};
 
 /** The feed's version: a new number each time the update service takes a changed copy of it. */
 export function useFeedVersion(id: LiveFeedId): number {
-  const read = () => versions[id];
+  const read = () => versions[id] + (id === "gauges" ? judged : 0);
   return useSyncExternalStore(subscribe, read, read);
 }
 

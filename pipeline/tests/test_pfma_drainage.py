@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from project_config import get_config
+from pipeline.common.curated import SOURCE
 from pipeline.atlas.splits import pfma_drainage as pd_
 from pipeline.tests import under_test
 from pipeline.tests.conftest import need, GPKG_HINT, ATLAS_HINT
@@ -17,7 +17,7 @@ from pipeline.tests.conftest import need, GPKG_HINT, ATLAS_HINT
 
 def _has(layer: str) -> bool:
     try:
-        con = sqlite3.connect(str(get_config().fwa_data_gpkg))
+        con = sqlite3.connect(str(SOURCE.fwa_gpkg))
         return bool(con.execute(
             "SELECT 1 FROM gpkg_contents WHERE table_name = ?", (layer,)).fetchone())
     except Exception:
@@ -31,10 +31,10 @@ needs_layers = pytest.mark.needs_source
 def _the_layers(request):
     """A test marked `needs_source` FAILS without the layers, naming the command that fetches them."""
     if request.node.get_closest_marker("needs_source"):
-        need(request, "source", get_config().fwa_data_gpkg, GPKG_HINT)
+        need(request, "source", SOURCE.fwa_gpkg, GPKG_HINT)
         if not (_has(pd_.LAYER) and _has("streams")):
             pytest.fail(f"missing source: the {pd_.LAYER} and streams layers in "
-                        f"{get_config().fwa_data_gpkg} — make it with: "
+                        f"{SOURCE.fwa_gpkg} — make it with: "
                         f"python -m data.fetch_data --layers pfma_areas", pytrace=False)
 
 

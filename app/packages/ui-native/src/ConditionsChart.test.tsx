@@ -8,7 +8,7 @@
  *
  * Whole strings only (AGENTS 33).
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -18,6 +18,11 @@ import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { LIGHT } from "./theme";
+
+
+// (T1205) a reading is current by the clock: these fixtures read at 2026-09-04T06:00Z, so the clock is 06:05Z that day
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true }); vi.setSystemTime(Date.parse("2026-09-04T06:05:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 afterEach(cleanup);
 /** (T920) the gauge legend sits in its own fold, closed by default: open it as a reader would (absent: nothing to open) */

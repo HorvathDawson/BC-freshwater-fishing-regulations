@@ -112,6 +112,9 @@ describe("(T147) the no-access block's ground", () => {
       expect([name, deltaE(p.noAccessBand, p.card) >= 3]).toEqual([name, true]);
       // every word on the block is ink, its link too (bold, underlined: the dark accent falls under 4.5:1 on the band)
       expect([name, contrast(p.ink, p.noAccessBand) >= 7]).toEqual([name, true]);
+      // (T1167) the in-force in-season banner and its pointer wear the same look: the amber bar is a mark beside the card,
+      // held to WCAG 1.4.11's 3:1 for a graphic against the card it sits on
+      expect([name, contrast(p.warning, p.card) >= 3]).toEqual([name, true]);
     });
 });
 
