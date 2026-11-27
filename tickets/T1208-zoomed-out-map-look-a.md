@@ -24,32 +24,14 @@ Source: T1200 (owner 2026-11-26: "build A ..."; proposal A, round 3 sheet 2). Pr
    way out, the whole province with Haida Gwaii fits (1280 x 800 at z4.46, 1440 x 900 at z4.63): it already did, now
    pinned (tools/wide-province-fit.test.ts).
 
-## The practice behind look A (research, T1200; kept here: the docs line budget is full)
+## The practice behind look A (research, T1200)
 
-Sources read 2026-11-26: Ordnance Survey, [Text on maps](https://docs.os.uk/more-than-maps/geographic-data-visualisation/guide-to-cartography/text-on-maps);
-[Typography (cartography)](https://en.wikipedia.org/wiki/Typography_(cartography)) (Imhof through it); the radical law of
-selection in [arXiv 1102.1561](https://arxiv.org/pdf/1102.1561); [OSM boundary relations](https://wiki.openstreetmap.org/wiki/Relation%3Aboundary);
-the ArcGIS [Legend](https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Legend.html); Material 2
-[chips](https://m2.material.io/components/chips); Apple's [pickers](https://developer.apple.com/design/human-interface-guidelines/pickers);
-the [Mapbox](https://docs.mapbox.com/style-spec/reference/layers/) and [MapLibre](https://maplibre.org/maplibre-style-spec/layers/) style specs.
-
-| practice | the sources | built as |
-|---|---|---|
-| Water names blue, italic, biggest first; rivers named along a smoothed course | OS; Imhof | T1210: a label layer in our tiles |
-| Towns by rank, then spread; a name above-right, else the next corner | OS; radical law | T1209: three tiers, `text-variable-anchor` |
-| Admin boundaries dashed, quieter than roads, a band inside | OSM; OS | T1208: `dash.region`, `line-offset` band |
-| A phone's legend collapses to one control; a sheet opens it | ArcGIS legend, Material chips | T1211: the floating Map key |
-| A compact day control that opens a calendar | Apple pickers | not built (open with the owner) |
-
-Both engines draw every built layer the same way (T1154): `line-dasharray` (constant), `line-offset`, `concat`,
-`text-variable-anchor` with `text-radial-offset` (Mapbox GL JS 0.54+), `symbol-sort-key` (0.53+), GeoJSON sources with
-inline data, `zoom` in filters (both read it at whole zooms). One difference met: a zoom `step` or `interpolate` over a
-feature-state colour threw in MapLibre GL JS 5.24 (`interpolationFactor is not a function`); look A does not use one.
-
-What the data allowed (measured): the basemap carries 5 BC towns in its z4 tiles, 11 at z5, 30 at z6, with OSM
-placeholder populations below that, so the tiers are our own list (`app/packages/map/src/towns.json`, a reason each).
-The atlas tiles carry only the 10 largest lakes at z4 and river sections too short to hold a name, so lake and river
-names zoomed out need the T1210 tile layer.
+Ordnance Survey's text-on-maps guide and Imhof (water names blue, italic, biggest first), the radical law of selection
+(towns by rank), OSM boundary practice (dashed, quieter than roads, a band inside), the ArcGIS legend and Material chips
+(a phone's legend collapses to one control). Both engines draw every built layer the same way (T1154): constant
+`line-dasharray`, `line-offset`, `concat`, `text-variable-anchor` + `text-radial-offset` (Mapbox 0.54+),
+`symbol-sort-key` (0.53+), inline GeoJSON, `zoom` in filters; MapLibre 5.24 throws on a zoom curve over a feature-state
+colour, which look A does not use. The basemap names only 5 B.C. towns at z4 (hence `towns.json`).
 
 ## The basemap colours the T47 floors bind (review, for the owner's cyan-or-bluer-water question)
 
