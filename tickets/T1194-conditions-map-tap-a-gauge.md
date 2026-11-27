@@ -136,6 +136,7 @@ Default: the design above.
 
 ## Owner
 
-- [ ] 2026-11-26 — Look at the screenshots (Conditions map with a tapped dot, Fraser at Mission and Steveston, a water-less gauge, a failed feed) before this merges.
-- [ ] 2026-11-26 — Does "the gauge page" mean the in-app screen of Design 3 (chart, reading, waters served), or should a tap open the website's `/gauge/...` page in the browser? Default: the in-app screen (works offline, covers the 8 gauges the site has no page for; Share still sends the website link).
-- [ ] 2026-11-26 — A gauge serving no water (8 today, e.g. Kootenay Lake at Queens Bay): open the page with the "not matched to a water" line (default), or leave those dots untappable?
+- [ ] 2026-11-26 — Look at the screenshots (Conditions map with a tapped dot, the gauge page proposal beside the website's page, a water-less and a stale gauge) before this merges.
+- [x] 2026-11-26 — Does "the gauge page" mean the in-app screen of Design 3, or should a tap open the website's `/gauge/...` page? → "the website pages but the same page or simialr in the app maybe? do proposal dont want it to diverge too much" (2026-11-26)
+- [x] 2026-11-26 — A gauge serving no water: open the page with the "not matched to a water" line, or leave those dots untappable? → "yes as long as they have up to date data" (2026-11-26)
+- [ ] 2026-11-26 — Pick the gauge page (pictures in `T1194-pictures/`, the options in the build lane's report): A, one shared component drawing the page for the website and the app (the app adds Back, the list of waters it serves, Share); B, the website's page inside an in-app web view; C, a tap opens the browser on the website's page. Default we build with: A. Until he picks, the tap opens a placeholder screen.
