@@ -1,0 +1,13 @@
+{
+  "_about": "T1190: provenance of data/source/fishing_synopsis.2026-08.pdf, the Province's synopsis as gov.bc.ca served it on the fetch day (a revision of the 2025-27 book: PDF metadata created 2026-07-29, modified 2026-08-25). Kept beside THE BOOK (data/source/fishing_synopsis.pdf, which stays the pipeline's input) for the extraction checks of T1190 and the by-hand adoption of T1179; nothing reads it at build time. Written by hand from the fetch.",
+  "upstream_url": "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf",
+  "fetched_at": "2026-11-27T00:01:31Z",
+  "http_last_modified": "Wed, 26 Aug 2026 15:17:01 GMT",
+  "bytes": 25149573,
+  "sha256": "a83fc5995b29ab2322b18ed20435b4a964bc1480e527ba500768409b64369617",
+  "pdf_pages": 88,
+  "pdf_created": "2026-07-29T12:05:40-07:00",
+  "pdf_modified": "2026-08-25T15:26:10-07:00",
+  "pdf_producer": "Adobe Acrobat (32-bit) 26.1.21662",
+  "note": "Same sha256 as T1157's fetch of 2026-11-25 (a83fc5995b29...). The repo's current book (fishing_synopsis.pdf, 25,041,728 bytes, sha256 08f58537261f..., PDF modified 2025-11-18, InDesign) is known not to be byte-identical to any gov.bc.ca download: these are facts about each file, not a claim that either is the printed edition."
+}

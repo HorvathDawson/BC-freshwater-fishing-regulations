@@ -3,7 +3,7 @@
  * a section it is the gauge of), from the conditions + core files. The one reader for the SEO build (every station) and the
  * app's Share on a gauge (one station): the rule that turns them into "has a page" is core's `gaugePageStations`.
  */
-import type { GaugeRow, GaugeRows, ServeRow, ServesTrust } from "@app/core";
+import { bestServes, TRUST_RANK, type GaugeRow, type GaugeRows, type ServeRow, type ServesTrust } from "@app/core";
 import type { StationClim } from "../feed/stationSource";
 import type { ReleaseLoader } from "./loader";
 import { fileFor } from "./queries";
@@ -14,8 +14,10 @@ export async function readGaugeRows(loader: ReleaseLoader, station?: string): Pr
   const cond = await loader.db("conditions"), core = await loader.db("core");
   const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
   const one = station === undefined ? "" : " WHERE station = ?", arg = station === undefined ? [] : [station];
-  const gauges: GaugeRow[] = (await cond.all(`SELECT station, name, item_id, lat, lon FROM gauge${one} ORDER BY station`, ...arg)).map((r) => ({
+  // `SELECT *`: the flags are additive columns (a release cut before them has none: read as not flagged), never named in the query
+  const gauges: GaugeRow[] = (await cond.all(`SELECT * FROM gauge${one} ORDER BY station`, ...arg)).map((r) => ({
     station: String(r.station), name: String(r.name), item: r.item_id == null || r.item_id === "" ? null : String(r.item_id), lat: num(r.lat), lon: num(r.lon),
+    flags: { tidal: Number(r.tidal ?? 0) === 1, backwater: Number(r.backwater ?? 0) === 1, diversion: Number(r.diversion ?? 0) === 1 },
   }));
   const serves: ServeRow[] = [];
   for (const g of gauges) if (g.item) serves.push({ station: g.station, item: g.item, trust: "own" });
@@ -58,4 +60,39 @@ export async function readGaugeClim(loader: ReleaseLoader): Promise<ReadonlyMap<
     out.set(String(r.station), l);
   }
   return out;
+}
+
+/** (T1194) What the in-app gauge screen reads of one station from the release (offline: all of it is on the phone). */
+export interface GaugePageFacts {
+  readonly station: string;
+  readonly name: string;
+  /** the release's flags (`gauge.tidal`, `.backwater`, `.diversion`); absent columns (an older release) read as not flagged */
+  readonly tidal: boolean;
+  readonly backwater: boolean;
+  readonly diversion: boolean;
+  /** the waters it serves, best trust first (own, lake, good, fair, weak), then by name; empty: it serves no water */
+  readonly serves: readonly { readonly item: string; readonly name: string; readonly trust: ServesTrust }[];
+}
+
+/**
+ * (T1194) ONE STATION'S PAGE FACTS: null when the release holds no such station (a stale link: the screen says so). The serves
+ * come from `readGaugeRows` (the rule the site's page and Share use), the water names from the core file.
+ */
+export async function readGaugePage(loader: ReleaseLoader, station: string): Promise<GaugePageFacts | null> {
+  const rows = await readGaugeRows(loader, station);
+  const g = rows?.gauges[0];
+  if (!rows || !g) return null;
+  const cond = await loader.db("conditions");
+  const flags = (await cond.all("SELECT * FROM gauge WHERE station = ?", station))[0] ?? {};
+  const best = bestServes(rows).get(station) ?? new Map<string, ServesTrust>();
+  const items = [...best.keys()];
+  const core = await loader.db("core");
+  const names = new Map<string, string>();
+  if (items.length)
+    for (const r of await core.all(`SELECT item_id, name FROM item WHERE item_id IN (${items.map(() => "?").join(",")})`, ...items))
+      names.set(String(r.item_id), String(r.name));
+  const serves = items.flatMap((item) => (names.get(item) ? [{ item, name: names.get(item)!, trust: best.get(item)! }] : []))
+    .sort((a, b) => TRUST_RANK[a.trust] - TRUST_RANK[b.trust] || a.name.localeCompare(b.name));
+  return { station, name: g.name, tidal: Number(flags.tidal ?? 0) === 1, backwater: Number(flags.backwater ?? 0) === 1,
+           diversion: Number(flags.diversion ?? 0) === 1, serves };
 }

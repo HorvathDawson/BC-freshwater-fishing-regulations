@@ -1,40 +1,40 @@
 # T1190 — Synopsis PDF text from what is visibly rendered
 
-Status: OPEN — the frame; the method waits on the study
+Status: PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Claude): step 5, painting rules for lines and fills, later
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1190 | Synopsis PDF text from what is visibly rendered | OPEN — the frame; the method waits on the study | — | the study (prototype in scratch, no PR) brings a method; then a lane builds it beside today's extractor and proves it on both books against the baseline |
+| T1190 | Synopsis PDF text from what is visibly rendered | PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Claude): step 5, painting rules for lines and fills, later | 2cc9bd697, 461744993, e4cc0525d, 37fdbccdd, 7fcb1f6e8, f8c24e0c5, 8dd735901, 5f36b8ea5 | step 5: the same painter's model for lines and fills (`## Step 5`); the whole-book gate and the August book are done (0 unexplained, 0 differences) |
 
-Source: the owner, 2026-11-26 ~17:50 (planning chat), verbatim: "also we should do a quick review of the pdf extraction code we have because it does wildd
-stuff to remove bad text in the background of the pdf. i think now that claude is better we could look at the pdf extraction again and do it better (to get the
-sane result) because we know the extractiuon is well tested and good. then you can use that to make sure the new method works good. we want to use what is
-actually visually there based on rendering rules of pdf of something. make sense? this is just to make everything more robust for the future."
-A study agent started ~17:55 (prototype in scratch, no PR); its findings fill "Method".
+Source: the owner, 2026-11-26 ~17:50: "we want to use what is actually visually there based on rendering rules of pdf"; study `night-notes-2026-11-26/pdf-extraction-study.md`.
+Owner ~19:20 (`planning-chat-2026-11-26-day.md`): PyMuPDF accepted; struck text kept, marked, one warning line, only a NEW strike flagged; the August book added.
 
-## Today
-`pipeline/regs/extraction/extract_synopsis.py` decides which characters are real by looking at pixels: `get_cleaned_page` (L163) renders each page at 400 dpi,
-`_get_bg_palette` (L109-126) takes the two commonest light colours as "background", and `_check_char_sanity` (L128-153) keeps a character only if its box holds
-enough dark pixels unlike both (`COLOR_DIFF_THRESHOLD` 30, `LUMINANCE_THRESHOLD` 180, `MIN_INK_PIXELS_STANDARD` 4, font size 4-30 pt; L90-104), then groups and
-clusters what is left (DBSCAN, `DBSCAN_EPS` 0.15). It works, and it is well tested, but every number is tuned by hand to this book's colours.
+## Method (built)
+`pipeline/regs/extraction/visible.py` (the only PyMuPDF import: AGPL-3.0 or commercial, pinned 2.2, pipeline only, noted in `requirements.txt`) says which of
+pdfplumber's characters the PDF's painting rules show, on MuPDF's display list. Hidden only for a stated reason: render mode 3/7, opacity 0, a layer off, outside
+the crop box, clipped, covered by a later opaque fill or image, drawn again at the same origin, the same colour as an opaque fill under it. No pixel or colour
+threshold. Pairing with pdfplumber is by content order; a text disagreement refuses the page by name, an origin one (p.61's "8") only if the page holds rows.
+UNSURE IS KEPT (reviews of #323): the glyph stays, one note per hit (`[visible] PDF page N: kept, <kind>: '<text>'`): a fill under a non-rectangle clip, an image
+whose clip is a guess (`image-clip-unknown`), a translucent or blended "background", a line painted before the text (`possible-strike`); the last two on a page
+with rows fail the gate unless the owner lists them in `known_unsure.json` (empty). DELETED: the 400 dpi cleaning render, palette, ink test, 4-30 pt filter, DBSCAN, the "BROKEN
+CODE" overlap cut, debug plots, scikit-learn/joblib/threadpoolctl (scipy listed itself for one picture tool).
+STRIKES: carried as `raw_regs_marked` ("Sept 1-Oct ~~15~~"), only on a struck row; `raw_regs` unchanged, since the baseline sha, `rows_digest`, carry, ingest
+and reuse key on it. One `[struck]` line per run; a strike not in `known_strikes.json` is NEW and fails the T426 gate. Recorded: Nanaimo River p.19 "Oct ~~15~~".
 
-## Goal
-Keep a character because the PDF's own rules make it visible: its fill colour and text render mode, the clip path it is drawn in, what is painted over it
-later in the page's paint order, its size. No pixel sampling, no colour thresholds. The same rules also see marks the text layer does not carry, such as the
-drawn line through Nanaimo River's "15" (p.17, `BOOK-ERRORS-FOR-THE-PROVINCE.md` entry 15), which the method should report, not drop silently.
+## Results
+- Tests: `test_visible_text.py` (46 hand-written PDFs, both reviews' probes), `test_visible_text_book.py` (the hard pages, Nanaimo, p.61), dump/cut-reading.
+- After the re-review (2026-11-27 03:50, one heavy.sh job): gate on the current book 1,393 of 1,393, 0 unexplained (Heber accepted; Nanaimo known). August book, this
+  code vs the pre-T1190 extractor's reading (`baseline/2026-08/reading.json`, cut from 48fc85d7d): 1,393 of 1,393 identical on the row sha (the TEXT), 0 pages
+  refused; 48fc85d7d's own code vs that reading: 0 unexplained. Reports beside it. Notes: 0 `image-clip-unknown`; 26 `possible-strike` hits, all banner headings on 16 pages without rows.
+  Reproduce: `baseline check --manifest …/2026-08/reading.json --accepted …/2026-08/accepted_diffs.json --pdf data/source/fishing_synopsis.2026-08.pdf`.
+  Found: the extractor command could not start since 0399ce248 (`import get_config` in `main()`); fixed in 37fdbccdd, and by main's T1192.
 
-## The oracle
-Today's extraction is the answer key: the committed baseline `pipeline/regs/extraction/baseline/2025-27.json` (every row's water, MU, raw regs, symbols,
-page, image key) and its gate (`python -m pipeline.regs.extraction.baseline check`, T426). Single pages run in seconds; the whole book is a heavy job
-(`scripts/heavy.sh`). No parser run and no `claude` call is part of this (CLAUDE.md).
+## Step 5 (follow-up, not built)
+`find_tables` and the row bands (a 150 dpi pixel column) still read every painted edge, so a stale frame could steer them: row bands from the display list's fills, `find_tables` given only visible edges, a raster check as a report only.
 
-## Method
-Open: the study's findings go here (the PDF operators read, the library, what is kept and why).
+## A GitHub workflow (owner may want the feeds worker to start one; not built)
+`python -m pipeline.regs.extraction.extract_synopsis <pdf> <out.json>` (`--check-against` = the gate) on ubuntu + Python 3.13 with requirements + constraints, the PDF
+and its sha, ~2 GB, an artifact upload (a rows-only flag would skip the 400 dpi row images); `workflow_dispatch` from the worker, no cron. Gate measured on the Mac only.
 
 ## Acceptance
-1. On the current book (`data/source/fishing_synopsis.pdf`, sha 08f58537…): the baseline check passes with no accepted diff, or every differing row is listed
-   with its page and the reason, one by one, and the owner agrees each is the new method being right.
-2. On the August 2026 book (the gov.bc.ca copy edited 2026-08-25, T1157, T1179): today's extractor and the new method give identical row text, or each
-   difference is explained the same way.
-3. The new method has no colour or pixel threshold; a test per visibility rule (white text, text under a filled box, clipped text, a struck character).
-Model: Opus. Size: M (after the study). Depends: the study's findings; not for the 0.10.0 re-cut.
+Gate 0 unexplained; the August book compared row by row, each difference explained; no colour or pixel threshold, a test per rule. Opus. M. Not for the 0.10.0 re-cut.

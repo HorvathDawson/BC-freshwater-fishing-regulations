@@ -191,7 +191,7 @@ The change: one rule added to ruleset `14082789` "main trunk (T995)", nothing el
   the current ruleset's `name`, `target`, `enforcement`, `conditions`, `bypass_actors` and `rules` plus the rule above.
   Undo: the same call without the rule.
 - What changes for lanes: `gh pr merge --merge --auto` puts the PR in the queue; nobody merges `main` into a stacked
-  PR any more. `AGENTS.md` W47 and `START-HERE.md` step 6 get one line each when it is on.
+  PR any more. `AGENTS.md` W47 and `docs/agents/START-HERE.md` step 6 get one line each when it is on.
 - The admin bypass (pull-request mode) stays as it is.
 
 ## 6. Actions stays free
