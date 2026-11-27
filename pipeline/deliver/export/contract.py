@@ -11,7 +11,7 @@ from pipeline.common.curated import GENERATED
 
 
 BUNDLE = GENERATED.bundle / "bundle.sqlite"
-OUT = GENERATED.base / "regs" / "ui-rules-export.json"
+OUT = GENERATED.regs.export
 
 
 #: THE GUIDE FILE, written beside the data file by the same run (`codec`, C-E).

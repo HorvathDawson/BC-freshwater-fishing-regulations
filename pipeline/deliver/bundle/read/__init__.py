@@ -27,7 +27,8 @@ from pipeline.deliver.bundle.read.facts import (
 )
 from pipeline.deliver.bundle.read.ladder import (
     _RULES_BY_PATH, MOOT_SIZE_CLAUSE_HIDDEN, WATER_CLOSURE_DOMINANT, OWN_ROW_BEATS_INHERITED,
-    OWN_ROW_REPLACES_INHERITED, NEARER_ROW_BEATS_FARTHER, SPEAKERS, SPEAKER_STATES, LOSS_REASONS,
+    OWN_ROW_REPLACES_INHERITED, NEARER_ROW_BEATS_FARTHER, SAME_ROW_RELEASE_SILENCES_ANNUAL, SPEAKERS,
+    SPEAKER_STATES, LOSS_REASONS,
     LOSER_STATES, ASKABLE_ORIGINS, VIAS, place, _ladder_place, _NEARER_BY_PATH, _nearer_of, _rules_of,
     base_region, _count, stricter, effective_rules, origin_matters, _leaf_fish, effective_rules_bound, _Ask,
     _step0_steelhead_sizes, _step1_in_force, _step3_lifts, _own_replacement, _step3b_own_row_replaces,

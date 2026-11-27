@@ -101,7 +101,7 @@ Owner, to the clean-up chat (relayed to the planning chat 19:27), verbatim: "Why
 but we want to simplify the other files. It should be simple enough to be human resdble in not a super long period
 if time. Without an agent summarizing it." So: the rename and the review tool's move no longer wait for 0.10.0 on
 production (the planning chat's condition, overruled by him); a second cut of the non-ticket markdown, target asked
-of him as multiple choice. A new chat finishes it: roadmap prompt D2, restart page `docs/restart/cleanup.md`.
+of him as multiple choice. A new chat finishes it: roadmap prompt D2, restart page `docs/agents/restart/cleanup.md`.
 The rename lands on the planning chat's word, when that evening's 0.10.0 PRs (#264, #265) are on main; after it,
 only code-only picks go onto `release/0.10.0`, and its merge back runs the rename script on that branch first.
 
@@ -131,7 +131,7 @@ the tickets folder unless listed with its reason (`WORKING_PAGES`).
 ## 2026-11-26: the rename landed (#310); what is left
 Tickets are top-level `tickets/`, the rest is `docs/` (#310, 11:31 MST). Each open branch runs
 `python3 scripts/rename_handoff.py --commit`, then merges main. #301 (the restart pages outside the reading total):
-the owner confirmed it ("Confirm", 2026-11-26). Left: the review tool's one home (`docs/restart/cleanup.md` item 3);
+the owner confirmed it ("Confirm", 2026-11-26). Left: the review tool's one home (`docs/agents/restart/cleanup.md` item 3);
 the four release runbook pages cut to one (item 4); close this ticket with the final counts.
 
 ## 2026-11-26: the review tool has one home

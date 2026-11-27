@@ -52,7 +52,7 @@ def test_publish_plan_does_not_stamp(tmp_path, monkeypatch):
     r.mkdir()
     (r / "core.gz").write_bytes(b"c")
     (r / "manifest.json").write_text(json.dumps({"files": {"core": {"url": "r-x/core.gz"}}, "tiles": {}}))
-    monkeypatch.setattr(PUB, "GENERATED", type("G", (), {"release": tmp_path})())
+    monkeypatch.setattr(PUB, "ROOTS", type("R", (), {"release": tmp_path})())
     assert PUB.main(["--release", str(r)]) == 0
     # (T994 #1) the plan module never stamps: --min-app-version is refused (the staging upload stamps it)
     assert PUB.main(["--release", str(r), "--min-app-version", "0.2.0"]) == 2

@@ -10,7 +10,7 @@ names only confirm.
 - `pipeline/stocking/fetch_fidq.py`: the FIDQ bulk preview per watershed group, lakes only, to
   `~/data-offgit/bc-stocking-fidq/`.
 - `pipeline/stocking/propose.py`: code picks, name confirms, `wbk:` stored, proposals to
-  `GENERATED.base/stocking/proposals.json`; accepted with `python -m pipeline.bathymetry.accept --set stocking`.
+  `GENERATED.stocking/proposals.json`; accepted with `python -m pipeline.bathymetry.accept --set stocking`.
 - `pipeline/stocking/generate/identifiers.py` (group code to lake nodes) and `match.py` (registry item per stocked
   waterbody; not sound under the owner's rules, retire it when the feed is built).
 - Tests: `pipeline/tests/test_stocking_match.py` (synthetic rows); `test_doc_drift.py` keeps the README rows real.

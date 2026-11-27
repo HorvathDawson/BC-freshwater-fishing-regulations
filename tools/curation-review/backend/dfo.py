@@ -255,7 +255,7 @@ _TIDAL_MEMO = reuse._Memo()
 
 def _tidal_ctx() -> tuple[dict, dict]:
     from pipeline.common.curated import CURATED
-    return _TIDAL_MEMO.get((reuse._stamp((CURATED.waters.tidal, CURATED.waters.cuts)), D.tidal_context),
+    return _TIDAL_MEMO.get((reuse._stamp((CURATED.waters.tidal_limits, CURATED.waters.cuts)), D.tidal_context),
                            D.tidal_context)
 
 
@@ -586,7 +586,7 @@ def _rows_inputs() -> tuple:
     from pipeline.common.curated import CURATED
     return (reuse.marks_stamp(),
             reuse._stamp((SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
-                          CURATED.review.proposal_overrides, CURATED.waters.tidal, CURATED.waters.cuts)),
+                          CURATED.review.proposal_overrides, CURATED.waters.tidal_limits, CURATED.waters.cuts)),
             D.regions(reuse._dfo_dir()), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
             _locations, _states, _row)
 

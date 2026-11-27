@@ -2,7 +2,7 @@
  * WHERE THE READER IS: the route, its one back, the one water opener and the water header's views — the Shell's
  * navigation, read once here and handed down (T62 3.4).
  */
-import { waterExit } from "@app/core";
+import { GAUGE_PAGE_WORDS, waterExit } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
@@ -39,7 +39,7 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   // beside the page). The page opens its own part's file; the others come ahead behind the reader (Shell: `want`).
   const adding = route.mode === "browse" ? route.adding : null;
   // a spot open over the browse map, or (T131) over a water, its pin tapped on the water's map
-  const openSpot = route.mode === "browse" ? route.spot : route.spot ?? null;
+  const openSpot = route.mode === "browse" ? route.spot : route.mode === "water" ? route.spot ?? null : null;
   const toTab = (k: BrowseTab) => go({ type: "tab", tab: k });
   /*
    * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe.
@@ -124,7 +124,8 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
    */
   // ‹ and × name where they go: the tab, or search when it is still open under the water (a map tap beside it)
   const exit = route.mode === "water"
-    ? waterExit(route.stack.length, TABS.find((t) => t.k === route.from.tab)!.t, route.from.search) : null;
+    ? waterExit(route.stack.length, route.via ? GAUGE_PAGE_WORDS.backName : TABS.find((t) => t.k === route.from.tab)!.t,
+                route.via ? false : route.from.search) : null;   // (T1194) opened off a gauge page: ‹ and × go back to it
   const waterViews: WaterViews | null = route.mode === "water" && frame !== null && exit !== null
     ? { views: frameViews(frame), on: frame.view, onView: (v) => go({ type: "view", view: v }), onBack: back,
         backLabel: exit.back,

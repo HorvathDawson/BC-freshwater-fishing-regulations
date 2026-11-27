@@ -4,11 +4,11 @@ Status: IN PROGRESS (iOS chat, docs lane; screenshots after T718).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T727 | iOS: store pack, everything except what needs the Apple account (IOS-10) | IN PROGRESS (iOS chat, docs lane; screenshots after T718) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-10 in docs/ios/START-HERE-ios.md |
+| T727 | iOS: store pack, everything except what needs the Apple account (IOS-10) | IN PROGRESS (iOS chat, docs lane; screenshots after T718) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-10 in docs/agents/START-HERE-ios.md |
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-10 in
-`docs/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
+`docs/agents/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
 Owner answers 2026-11-14 mid-day, verbatim: "all privacy and descriptions and stuff could use playstore items. like icon
 and name etc it is can i fish? on the icon but can i fish this? on everything else. we want precise. it is the id mainly for
 for analytics and bug report etc etc choose best category"

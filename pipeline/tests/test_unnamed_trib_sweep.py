@@ -169,7 +169,7 @@ def test_an_mu_group_rule_binds_its_members_and_a_straddler_is_marked_in():
 
 def _paths():
     from pipeline.tests import under_test
-    return under_test.path("bundle"), under_test.path("atlas"), Path(under_test.curated().waters.areas)
+    return under_test.path("bundle"), under_test.path("atlas"), Path(under_test.curated().waters.area_closures)
 
 
 @pytest.mark.needs_bundle

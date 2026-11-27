@@ -32,8 +32,8 @@ def release_dir(path: Optional[Path]) -> Path:
     `data/release` (its LATEST)."""
     from pipeline.deliver.release.manifest import latest
     if path is None:
-        from pipeline.common.curated import GENERATED
-        path = GENERATED.release
+        from pipeline.common.curated import ROOTS
+        path = ROOTS.release
     p = Path(path)
     if (p / "manifest.json").is_file():
         return p

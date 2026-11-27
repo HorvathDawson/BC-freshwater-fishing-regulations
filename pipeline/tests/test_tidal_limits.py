@@ -344,7 +344,8 @@ def test_the_atlas_build_never_hands_a_mouth_row_to_the_cutter():
 def test_the_old_tidal_records_are_gone_and_unread():
     from pipeline.common.curated import REPO_ROOT
     assert not (under_test.curated().base / "waters" / "tidal_waters.json").exists()
-    assert Path(under_test.curated().waters.tidal).name == "tidal_limits.json" and not hasattr(under_test.curated().waters, "tidal_waters")
+    waters = under_test.curated().waters
+    assert Path(waters.tidal_limits).name == "tidal_limits.json" and not hasattr(waters, "tidal_waters")
     assert '"tidal"' not in Path(under_test.curated().waters.cuts).read_text()
     src = "\n".join(p.read_text() for p in (REPO_ROOT / "pipeline").rglob("*.py") if "tests" not in p.parts)
     src += "\n".join(p.read_text() for p in (REPO_ROOT / "tools/curation-review/backend").glob("*.py"))

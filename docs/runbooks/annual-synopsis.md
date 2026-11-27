@@ -47,8 +47,8 @@ bash scripts/heavy.sh synopsis-extract 50 -- .venv/bin/python -m pipeline.regs.e
   data/source/fishing_synopsis.pdf $W/extraction/synopsis_raw_data.json --workers 4 2>&1 | tee $W/extract.log
 ```
 
-Check `grep -c 'Error on page' $W/extract.log` is 0, the row count is near last year's (1,393), and 10 rows against
-`$W/extraction/row_images/`. A fix here goes back through 2a to 2c.
+A page it cannot read fails the run by name (T1190). Check the rows are near last year's (1,393), the one `[struck]` line (a NEW
+item is not in `extraction/known_strikes.json`: show the owner), 10 rows against `$W/extraction/row_images/`; a fix goes back to 2a.
 
 ## 3-4. Export every row, then carry the unchanged ones (Claude)
 

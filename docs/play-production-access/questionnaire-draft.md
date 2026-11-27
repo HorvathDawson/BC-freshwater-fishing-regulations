@@ -132,7 +132,7 @@ plausible, not that it is met.
 - **Every change is checked before it lands:** each change goes through a pull request with four required automated
   checks (app, data pipeline, feeds worker, docs), and a second reviewer reads it before it merges (`AGENTS.md` W47).
 - **Every release passes gates:** the release command stops on any failed check; smoke tests run against the live
-  site and data after each release (18–19 checks, all passing on the last releases, `STATUS.md`); the phone builds
+  site and data after each release (18–19 checks, all passing on the last releases, `docs/agents/STATUS.md`); the phone builds
   are walked on an emulator (fresh install first) and benchmarked (0.8.3: 44 of 44 benches, opening a water in
   340–360 ms, pinch-zoom 55–57 fps).
 - **Crashes are read every session:** a single command reads every crash and problem report, TestFlight and Play

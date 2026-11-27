@@ -184,7 +184,7 @@ def test_every_pytest_a_script_starts_names_its_tier():
     named = {f for f, text in found.items() if _INVOKES.search(text)}
     assert {"pipeline/release_follows.py", "scripts/fast-fail.sh", "app/tools/regs-recut/pins.mjs",
             "scripts/test-full.sh", "scripts/before_push.py"} <= named, named        # the scan sees the callers
-    assert len(re.findall(r"-m pytest .*--with-data", found["scripts/fast-fail.sh"])) == 7
+    assert len(re.findall(r"-m pytest .*--with-data", found["scripts/fast-fail.sh"])) == 8     # + the Makefile's step
 
 
 def test_the_tier_scan_names_a_caller_that_leans_on_the_default():

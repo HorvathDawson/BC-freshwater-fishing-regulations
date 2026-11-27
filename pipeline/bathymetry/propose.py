@@ -34,7 +34,7 @@ stored unchanged beside the normalised forms.
 The watershed code is EVIDENCE only, never a gate: the deleted stocking audit found the two sources encode it
 differently and comparing them invented mismatches (Jessie, Twin).
 
-OUTPUT: `GENERATED.base/bathymetry/proposals.json` (machine output, rewritten freely). The frozen file is written only
+OUTPUT: `GENERATED.bathymetry/proposals.json` (machine output, rewritten freely). The frozen file is written only
 by `pipeline.bathymetry.accept`, on the owner's word.
 
     python -m pipeline.bathymetry.propose            # heavy-ish: reads the gpkg (via scripts/heavy.sh)
@@ -389,14 +389,15 @@ def main(argv=None) -> int:
     import shutil
     import tempfile
 
-    from pipeline.common.curated import CURATED, GENERATED, SOURCE
+    from pipeline.bathymetry import accept
+    from pipeline.common.curated import CURATED, ROOTS, SOURCE
 
     ap = argparse.ArgumentParser(description="chart -> lake proposals (T634)")
     ap.add_argument("--release", type=Path, help="a release directory (default: the one data/release/LATEST names)")
     a = ap.parse_args(argv)
     gpkg = SOURCE.fwa_gpkg
     from pipeline.deliver.release.manifest import live
-    rel = a.release or live(GENERATED.release)
+    rel = a.release or live(ROOTS.release)
     cores = sorted(p for p in Path(rel).glob("core-*.sqlite.gz") if p.name.count("-") == 1)
     if len(cores) != 1:
         raise SystemExit(f"{rel}: want one core-<hash>.sqlite.gz, found {[p.name for p in cores]}")
@@ -409,7 +410,7 @@ def main(argv=None) -> int:
     sheets, polys = read_inputs(gpkg, SOURCE / "wsa_bathymetry_maps.csv")
     out = propose(sheets, polys, variants, app)
     out["inputs"] = {"release": Path(rel).name, "gpkg": gpkg.name, "open_table": "wsa_bathymetry_maps.csv"}
-    dest = GENERATED.base / "bathymetry" / "proposals.json"
+    dest = accept.proposals_path("charts")
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(".tmp")
     tmp.write_text(json.dumps(out, indent=1, sort_keys=True, ensure_ascii=False))
