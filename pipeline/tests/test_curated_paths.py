@@ -243,8 +243,108 @@ class TestGetPath:
         from project_config import ProjectConfig
         cfg = ProjectConfig()
         assert "default" not in inspect.signature(cfg.get_path).parameters
-        assert cfg.get_path("data_accessor", "gpkg_path") == cfg._model.data_accessor.gpkg_path
-        assert cfg.get_path("data_accessor", "gpkg_path").is_absolute()
+        assert cfg.get_path("cache", "dfo_salmon") == cfg._model.cache.dfo_salmon
+        assert cfg.get_path("cache", "dfo_salmon").is_absolute()
+
+
+#: (T1192) one fresh process per entry: `dotenv.load_dotenv` stubbed to count its calls, then the reads
+_ENV_PROBE = """
+import json, sys, types
+calls = []
+stub = types.ModuleType("dotenv")
+stub.load_dotenv = lambda path=None, *a, **k: calls.append(str(path))
+sys.modules["dotenv"] = stub
+for read in sys.argv[1:]:
+    if read == "source":
+        from pipeline.common.curated import SOURCE
+        SOURCE.fwa_gpkg
+    elif read == "curated":
+        from pipeline.common.curated import CURATED
+        CURATED.waters.cuts
+    elif read == "get_config":
+        from project_config import get_config
+        get_config()
+print(json.dumps(calls))
+"""
+
+
+@pytest.mark.parametrize("reads", [["source"], ["curated"], ["get_config"], ["source", "curated", "get_config"]],
+                         ids="+".join)
+def test_the_env_file_is_loaded_once_by_whichever_config_read_comes_first(reads):
+    """`.env` is loaded on the one config load path (`parse_config`), once per process: `get_config()` loaded it before
+    this change, and a process that reads config only through SOURCE / CURATED loads it too (its removal is T1222)."""
+    import json
+    import os
+    import subprocess
+    import sys
+    env = {k: v for k, v in os.environ.items() if k != C.ROOT_ENV}
+    env["PYTHONPATH"] = str(C.REPO_ROOT)
+    got = subprocess.run([sys.executable, "-c", _ENV_PROBE, *reads], cwd=C.REPO_ROOT, env=env, check=True,
+                         capture_output=True, text=True)
+    assert json.loads(got.stdout.strip().splitlines()[-1]) == [str(C.REPO_ROOT / ".env")]
+
+
+class TestNamedSourceFiles:
+    """(T1192) config.yaml `source:`: each named source file has ONE name, relative to the source root, read as
+    `SOURCE.<name>` by the fetcher that writes it and by every reader."""
+
+    def test_each_file_is_named_once_in_the_config(self):
+        blob = _real_blob()
+        for name, rel in blob["source"].items():
+            spelt = [".".join(k) for k in LEAVES if isinstance(v := _at(blob, k), str) and v.endswith(rel)]
+            assert spelt == [f"source.{name}"], (name, spelt)
+
+    def test_a_named_file_is_its_name_under_the_source_root(self):
+        blob, root = _real_blob(), C.load_data_tree().source
+        assert set(blob["source"]) == set(C.Source.model_fields)
+        for name, rel in blob["source"].items():
+            assert getattr(C.SOURCE, name) == root / rel and getattr(C.SOURCE, name).is_absolute()
+        assert C.SOURCE / "bc_places.json" == root / "bc_places.json" and str(C.SOURCE) == str(root)
+
+    def test_the_same_names_under_another_source_tree(self, tmp_path):
+        blob = _real_blob()
+        assert C.SOURCE.under(tmp_path).fwa_gpkg == tmp_path / blob["source"]["fwa_gpkg"]
+        assert C.SOURCE.under(tmp_path) / "x.json" == tmp_path / "x.json"
+
+    def test_a_read_records_its_own_name_and_the_root_only(self, monkeypatch):
+        from pipeline import _trace
+        monkeypatch.setattr(_trace, "_config_seen", {})
+        C.SOURCE.fwa_gpkg
+        assert set(_trace._config_seen) == {"source.fwa_gpkg", "data_tree.source"}
+        monkeypatch.setattr(_trace, "_config_seen", {})
+        C.SOURCE.under("/elsewhere").coast_gpkg
+        assert set(_trace._config_seen) == {"source.coast_gpkg"}
+
+    @pytest.mark.parametrize("bad", ["/abs/x.gpkg", "../x.gpkg", "sub/../../x.gpkg", "", "."])
+    def test_a_name_outside_the_source_root_is_refused_naming_it(self, tmp_path, bad):
+        p = _edit(tmp_path, ("source", "fwa_gpkg"), lambda n, last: n.__setitem__(last, bad))
+        with pytest.raises(C.ConfigError, match=r"source\.fwa_gpkg: Value error, a name under the source root"):
+            C.parse_config(p)
+
+    def test_a_name_the_block_does_not_declare_is_refused(self):
+        with pytest.raises(AttributeError, match=r"names no 'gpkg' \(it names fwa_gpkg, coast_gpkg"):
+            C.SOURCE.gpkg
+
+    def test_get_path_refuses_a_named_source_file(self):
+        from project_config import ProjectConfig
+        with pytest.raises(KeyError, match=r"source\.fwa_gpkg is a named source file: read it as "
+                                           r"`SOURCE\.fwa_gpkg`"):
+            ProjectConfig().get_path("source", "fwa_gpkg")
+
+    @pytest.mark.parametrize("old,new", [("fwa_data_gpkg", "SOURCE.fwa_gpkg"), ("fwa_coast_gpkg", "SOURCE.coast_gpkg"),
+                                         ("fetch_output_gpkg_path", "SOURCE.fwa_gpkg"),
+                                         ("fetch_temp_dir", "SOURCE.fetch_temp"),
+                                         ("synopsis_pdf_path", "SOURCE.synopsis_pdf")])
+    def test_the_retired_accessors_name_their_replacement(self, old, new):
+        from project_config import get_config
+        with pytest.raises(AttributeError, match=rf"ProjectConfig\.{old} was retired .* import SOURCE` and {new}\."):
+            getattr(get_config(), old)
+
+
+def _at(blob, keys):
+    for k in keys:
+        blob = blob[k]
+    return blob
 
 
 class TestTheTreeIsImmutable:

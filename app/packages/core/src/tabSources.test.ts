@@ -67,6 +67,10 @@ describe("regsSourcesOf: one link per synopsis page the DRAWN tabs cite (owner 2
     const g = { lines: [{ src: { who: "", aria: "", open: "srcs:gl|hook", keys: [], pages: [{ printed: 22, pdf: 24 }] } }] };
     expect(sourcesText(regsSourcesOf(drawnRegsOf(page(), tabs(g), null, []), none))).toBe("Source All sources ›");
   });
+  it("(T1077) the bait list's own source (srcs:bait: folded into the Gear section's one line since T900) cites nothing", () => {
+    const g = { bait: { src: { who: "", aria: "", open: "srcs:bait", keys: [], pages: [{ printed: 22, pdf: 24 }] } } };
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(page(), tabs(g), null, []), none))).toBe("Source All sources ›");
+  });
   it("a page the PDF map lacks is said unlinked, as every book run says it", () => {
     expect(sourcesText(regsSourcesOf([[book(7, null)]], none))).toBe("Source B.C. Synopsis p.7 All sources ›");
     expect(sourcesText(regsSourcesOf([], { ...none, waterPages: [book(7, null)] as never }))).toBe("Source B.C. Synopsis p.7 (this water) All sources ›");

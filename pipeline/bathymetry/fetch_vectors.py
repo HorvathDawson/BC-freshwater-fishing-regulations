@@ -99,8 +99,8 @@ def main(argv=None) -> int:
     if repo in out.parents or out == repo:
         raise SystemExit(f"--out {out} is inside the repo; the vector files stay outside git")
     if a.gpkg is None:
-        from project_config import get_config
-        a.gpkg = Path(get_config().get_path("data", "fetch", "output_gpkg"))
+        from pipeline.common.curated import SOURCE
+        a.gpkg = SOURCE.fwa_gpkg
     rows = sheets(a.gpkg)
     out.mkdir(parents=True, exist_ok=True)
     _write_json(out / "sheets.json", rows)
