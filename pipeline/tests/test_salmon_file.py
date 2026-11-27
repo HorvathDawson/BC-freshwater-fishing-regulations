@@ -232,11 +232,12 @@ def test_salmon_2_splits_per_bundle_region_and_round_trips():
 
 def test_t228_an_area_bound_place_and_a_partial_place_carry_nothing():
     """T228: an area-bound place's edge is a real line (Klinaklini leaves MUs 5-6 to 5-11) and a place covering only
-    part of a water's stem (1, 2 of 1, 2, 6) is bound there: neither takes a side channel."""
+    part of a water's stem (1, 2 of 1, 2, 6) is bound there: neither takes a side channel that also reaches the stem
+    beyond (the braid 3-4 leaves 2 and rejoins at 6; T1177 carries only a braid wholly beside the place)."""
     from pipeline.deliver.salmon import carry_side_channels
     sid_of = {f"h{i}": i for i in range(1, 7)}
     ord_of = {1: 10, 2: 10, 3: 10, 4: 10, 5: 20, 6: 10}
-    touch = {1: {2, 5, 6}, 2: {1, 3}, 3: {2, 4}, 4: {3}, 5: {1}, 6: {1}}
+    touch = {1: {2, 5, 6}, 2: {1, 3}, 3: {2, 4}, 4: {3, 6}, 5: {1}, 6: {1, 4}}
     off = [3, 4, 5]                                         # 3 off 2, 4 off 3 (a channel off a channel), 5 another water's
     placed = [{"location_id": "tat", "mapped": True, "sections": ["h1", "h2"]},
               {"location_id": "mu", "mapped": True, "sections": ["h1", "h2"]}]
@@ -246,12 +247,13 @@ def test_t228_an_area_bound_place_and_a_partial_place_carry_nothing():
 
 
 def test_t228_side_channels_carry_only_on_a_water_the_place_covers_whole():
-    """T228: water 10's main stem is 1, 2, 6; side channels 3 (off 2) and 4 (off 3); 5 another water's channel. A place
-    covering the whole stem carries 3 and 4; one covering only 1, 2 (Morice: part of the water) carries nothing."""
+    """T228: water 10's main stem is 1, 2, 6; side channels 3 (off 2) and 4 (off 3, back into 6); 5 another water's
+    channel. A place covering the whole stem carries 3 and 4; one covering only 1, 2 (Morice: part of the water) carries
+    nothing, the braid running past its cut to 6."""
     from pipeline.deliver.salmon import carry_side_channels
     sid_of = {f"h{i}": i for i in range(1, 7)}
     ord_of = {1: 10, 2: 10, 3: 10, 4: 10, 5: 20, 6: 10}
-    touch = {1: {2, 5, 6}, 2: {1, 3}, 3: {2, 4}, 4: {3}, 5: {1}, 6: {1}}
+    touch = {1: {2, 5, 6}, 2: {1, 3}, 3: {2, 4}, 4: {3, 6}, 5: {1}, 6: {1, 4}}
     whole = [{"location_id": "w", "mapped": True, "sections": ["h1", "h2", "h6"]}]
     part = [{"location_id": "p", "mapped": True, "sections": ["h1", "h2"]}]
     assert carry_side_channels(whole, set(), sid_of, ord_of, [3, 4, 5], touch)[0]["sections"] == ["h1", "h2", "h6", "h3", "h4"]
