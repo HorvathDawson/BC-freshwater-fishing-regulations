@@ -8,7 +8,8 @@
  *
  * Measured per screen: a word cut by a clamp or hidden overflow (`cut`), two lines of different words drawn over each
  * other (`over`), a text line past the window's edge (`wide`), sideways overflow, and a one-word label drawn on two lines
- * (`broken`: "SALMO" / "N"). The gate is 1.3x (what a phone's labels follow, `LABEL_SCALE`): none of those. 1.15, 1.5 and
+ * NOTE: the walkthrough's card is placed from a measured target, which a static render cannot give it: its words are in the page and its
+ * dimmed map, rail and legend are walked, but where the card sits is for the phone check (T1203). (`broken`: "SALMO" / "N"). The gate is 1.3x (what a phone's labels follow, `LABEL_SCALE`): none of those. 1.15, 1.5 and
  * 2.0 are laid out too and reported (T1201_REPORT=<file.json>; T1201_SHOTS=<dir> saves each as a PNG): at 2.0 wrapping is
  * fine, loss is not, so a screen at 1.5 or 2.0 is judged by the report and the pictures, not by this gate.
  */
@@ -254,7 +255,7 @@ const SCREENS: Screen[] = [
   { id: "spots-empty", must: "spots-screen", go: () => tab("Spots") },
   { id: "spots", spots: true, must: /Tamihi/, go: () => tab("Spots") },
   { id: "spot-page", spots: true, must: /Tamihi/, start: { ...HOME, tab: "spots", spot: "s1" } },
-  { id: "spot-add", must: /Pick the water|Save/, start: { ...HOME, adding: { at: { lat: 49.1, lon: -122 } } }, go: () => settle(700) },
+  { id: "spot-add", must: /Pick the water|Save/, min: 3, start: { ...HOME, adding: { at: { lat: 49.1, lon: -122 } } }, go: () => settle(700) },
   { id: "more", must: /Settings/, go: () => tab("More") },
   { id: "more-settings", must: "menu-page-settings", go: async () => { tab("More"); press(/^Settings$/); await settle(500); } },
   { id: "more-offline-maps", must: "menu-page-offline", go: async () => { tab("More"); press(/^Offline maps$/); await settle(600); } },
@@ -264,7 +265,7 @@ const SCREENS: Screen[] = [
   { id: "more-about", must: "menu-page-about", go: async () => { tab("More"); press(/^About$/); await settle(500); } },
   { id: "more-whats-new", must: "menu-page-changelog", go: async () => { tab("More"); press(/^About$/); await settle(500); press(/What's new/); await settle(500); } },
   { id: "more-report-a-problem", must: "menu-page-report", go: async () => { tab("More"); press(/^Report a problem$/); await settle(500); } },
-  { id: "walkthrough", must: /1 of 5/, props: { walkthrough: { read: () => null, write() {} } }, go: () => settle(600) },
+  { id: "walkthrough", must: /1 of 5/, min: 5, props: { walkthrough: { read: () => null, write() {} } }, go: () => settle(600) },
   { id: "first-run-notice", must: /Before you fish/, props: { firstRun: { read: () => null, write() {} } }, go: () => settle(600) },
   { id: "water-regs-gear", start: WATER("regs"), must: "regs-scroll", go: async () => { await waitReg(); press(/^Gear$/); await settle(300); } },
   { id: "water-regs-methods", start: WATER("regs"), must: "regs-scroll", go: async () => { await waitReg(); press(/^Methods$/); await settle(300); } },
@@ -285,7 +286,7 @@ const SCREENS: Screen[] = [
   { id: "state-empty", must: /./, min: 2, node: () => h(EmptyState, { palette: LIGHT, title: "No spots yet", body: "A spot is a place you fished. Press and hold the map, or use Add a spot." }) },
   { id: "sheet-bell-news", must: "inbox-row", node: () => h(InSeasonNotice, { open: true, palette: LIGHT, onClose() {}, inbox: { vm: inboxVM(INBOX, INBOX_TODAY), detail: null, failure: null, pick() {}, back() {} } as never }) },
   { id: "sheet-bell-news-detail", must: /./, node: () => h(InSeasonNotice, { open: true, palette: LIGHT, onClose() {}, inbox: { vm: inboxVM(INBOX, INBOX_TODAY), detail: inboxDetail(INBOX, "is-a", INBOX_TODAY), failure: null, pick() {}, back() {} } as never }) },
-  { id: "popup-join-test", must: /./, node: () => h(JoinTestCard, { store: "android", ask: joinTestAsk("android", "contact@example.invalid"), palette: LIGHT, onClose() {}, copy: async () => true }) },
+  { id: "popup-join-test", must: /./, min: 3, node: () => h(JoinTestCard, { store: "android", ask: joinTestAsk("android", "contact@example.invalid"), palette: LIGHT, onClose() {}, copy: async () => true }) },
   { id: "card-developer", must: /./, node: () => h(DeveloperModal, { open: true, theme: "light", palette: LIGHT, info: { appBuild: null, contact: null } as never, release: "r-t1203", onClose() {} }) },
   { id: "water-regs", start: WATER("regs"), must: "regs-scroll", go: () => waitReg() },
   { id: "water-conditions", start: WATER("conditions"), must: /./ },

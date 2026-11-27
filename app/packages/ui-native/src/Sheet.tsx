@@ -130,7 +130,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const titleText = <Text nativeID={titleId} accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
   const titleEl = shown.icon
     ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 }}>{shown.icon}{titleText}</View>
-    : titleText;
+    // (T1203) the title yields to Done: at a large text size a long title wraps inside its share, never pushing Done off the sheet
+    : <View style={{ flexShrink: 1 }}>{titleText}</View>;
   useEffect(() => {
     /*
      * The wide dialog's Modal shows `open` itself and runs no motion of ours, so a close there must put `up` down at once:
@@ -194,7 +195,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                paddingBottom: 10, borderBottomWidth: 1.5,
                                borderBottomColor: palette.ink }}>
                   {titleEl}
-                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done} {...DONE_HIT}>
+                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done} {...DONE_HIT} style={{ flexShrink: 0, marginLeft: 12 }}>
                     <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                   </Pressable>
                 </View>
@@ -251,7 +252,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                              borderBottomColor: palette.ink }}>
                 {titleEl}
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done}
-                           {...DONE_HIT}>
+                           {...DONE_HIT} style={{ flexShrink: 0, marginLeft: 12 }}>
                   <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                 </Pressable>
               </View>
