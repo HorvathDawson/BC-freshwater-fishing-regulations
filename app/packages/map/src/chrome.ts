@@ -72,9 +72,12 @@ export const SHOW_SCALE = true;
  * (and Esri's badge, while its imagery is drawn) bottom-RIGHT, both `bottom` over the foot block. Nothing else lives in the
  * bottom corners, so they cannot overlap while the scale (`scaleLeft + scaleMax`) ends left of where the credits begin
  * (`esriBadgeMax + gap + chip + right` in from the right edge); a test checks it at the narrowest width.
+ * (T1212, option A "Tidy") ONE GRID: the scale and the © chip stand `right` / `scaleLeft` = 14 px in, the search field's,
+ * the rail's and the key chip's edge; their foot is `bottom` = 10 px up, the key chip's. The © is a 28 px chip in a
+ * `target` = 44 px press (its box is `(target - chip) / 2` further out, so the chip itself sits on the grid).
  */
 export const GEOMETRY = {
-  scaleLeft: 10, scaleMax: 92, scaleBottom: 10,
-  right: 8, bottom: 8, chip: 28, gap: 6, esriBadgeMax: 100, cardMax: 340,
+  scaleLeft: 14, scaleMax: 92, scaleBottom: 10,
+  right: 14, bottom: 10, chip: 28, target: 44, gap: 6, esriBadgeMax: 100, cardMax: 340,
 } as const;
 

@@ -5,5 +5,7 @@
 /ios
 /.expo
 /dist
+# (T1252) the web map's GL worker, copied from maplibre-gl when Metro starts (gl-worker.js)
+/public/maplibre-gl-*/
 # local Expo modules: Gradle output
 /modules/*/android/build

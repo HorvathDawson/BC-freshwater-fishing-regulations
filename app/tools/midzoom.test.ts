@@ -18,6 +18,8 @@
  * also have brought T470's mid-zoom shape and an older in-season opacity clause, neither of them T735's.
  * (T467 shaded band, 2026-11-22) The light and dark `lake__edge` line-color only, hex for hex: each colour the shoreline
  * follows drawn `shade.lake.edge` off it (`shadeHex`, light -0.4, dark 0.45); the colour-blind theme keeps its solid edge.
+ * (T1208 look A, owner 2026-11-26) The `region__edge` line-dasharray only, in every theme (`dash.region`, dash-dot): a region border is
+ * dashed at every zoom so it never reads as a road; its width from z12 in and every other value are as they were.
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";

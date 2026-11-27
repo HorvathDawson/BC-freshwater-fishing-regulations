@@ -69,7 +69,7 @@ def test_area_of_is_a_lookup():
 def test_missing_area_is_an_error_not_an_empty_answer():
     """A silently empty area is indistinguishable from a water with no regulation."""
     with pytest.raises(ValueError, match="carries no polygon"):
-        pd_.basin_areas(areas=(9999,))
+        pd_.basin_areas(areas=(9999,), city_mouths=())
 
 
 @needs_layers
@@ -81,8 +81,8 @@ def test_asking_for_one_area_gives_the_same_answer_as_asking_for_four():
     section E's Area 5 rule reaches the whole Skeena system. A neighbouring Area that was not
     offered also cannot win.
     """
-    four = pd_.basin_areas((3, 4, 5, 6))
-    five = pd_.basin_areas((5,))
+    four = pd_.basin_areas((3, 4, 5, 6), city_mouths=())
+    five = pd_.basin_areas((5,), city_mouths=())
     assert five == {b: a for b, a in four.items() if a == 5}
     assert "400-" not in five, "the Skeena drains to Area 4 and must not appear under Area 5"
 
@@ -106,7 +106,7 @@ def test_out_of_province_basins_never_get_an_area():
     reach the sea in the Gulf of Alaska, 647 km from Area 3. The Tatshenshini is a NAMED DFO
     Region 6 water, so this is not hypothetical — section E must not reach that drainage.
     """
-    basins = pd_.basin_areas()
+    basins = pd_.basin_areas(city_mouths=())
     leaked = [b for b in basins if b.split("-")[0] in pd_.OUT_OF_PROVINCE_GROUPS]
     assert not leaked, f"out-of-province basins were assigned an Area: {leaked[:5]}"
 
@@ -116,7 +116,7 @@ def test_areas_3_to_6_draw_only_from_the_north_coast():
     """Areas 3-6 are the coast north of Cape Caution, so the only coastal groups that should
     appear are 910 and 915 — plus the two major rivers that empty into them, the Skeena and the
     Nass. A south-coast or Vancouver Island group turning up means the mouth search has drifted."""
-    groups = {b.split("-")[0] for b in pd_.basin_areas()}
+    groups = {b.split("-")[0] for b in pd_.basin_areas(city_mouths=())}
     assert groups == {"910", "915", "400", "500"}, f"unexpected groups: {sorted(groups)}"
 
 
@@ -128,7 +128,7 @@ def test_basins_that_never_reach_tidewater_are_dropped():
     The data leaves a wide gap: p97 is 0 m, 15,464 of 15,720 are within 10 km, the rest jump to
     hundreds of kilometres."""
     assert pd_.MAX_MOUTH_OFFSET_M == 10_000
-    basins = pd_.basin_areas()
+    basins = pd_.basin_areas(city_mouths=())
     assert 1_000 < len(basins) < 6_000
 
 
@@ -137,7 +137,7 @@ def test_the_big_rivers_drain_to_the_right_area():
     """**The check that makes the assignment trustworthy.** These Areas are known independently of
     this code: the Skeena enters at Chatham Sound (4), the Nass at Portland Inlet (3), the Kitimat
     down Douglas Channel (6)."""
-    basins = pd_.basin_areas()
+    basins = pd_.basin_areas(city_mouths=())
     assert basins.get("400-") == 4
     assert basins.get("500-") == 3
     assert basins.get("910-665062-") == 6
@@ -149,7 +149,7 @@ def test_a_rivers_braids_do_not_become_extra_basins():
     own local DOWNSTREAM_ROUTE_MEASURE 0 — one of them 110 km inland near Babine. They all share
     the prefix, so they are ONE basin, and the mouth is whichever candidate is nearest the sea. If
     this regresses, inland braids become their own basins and get their own Areas."""
-    basins = pd_.basin_areas()
+    basins = pd_.basin_areas(city_mouths=())
     skeena = [b for b in basins if b.startswith("400")]
     assert skeena == ["400-"], f"the Skeena split into {len(skeena)} basins: {skeena[:5]}"
 
@@ -158,7 +158,7 @@ def test_a_rivers_braids_do_not_become_extra_basins():
 def test_the_basin_count_is_in_range():
     """Nearest-Area always returns something, so the counts are the sanity check. An
     order-of-magnitude move means the basin or mouth rule drifted."""
-    basins = pd_.basin_areas()
+    basins = pd_.basin_areas(city_mouths=())
     assert 1_000 < len(basins) < 6_000, (
         f"{len(basins):,} basins draining to Areas 3-6 — far off means the basin rule broke")
     assert set(basins.values()) <= set(pd_.SECTION_E_AREAS)

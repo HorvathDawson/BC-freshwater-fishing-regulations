@@ -1,6 +1,15 @@
 {
   "name": "dark",
+  "$comment_basemap": "(T1208 review) color.ui.basemap.ground and .water are BOUND by tools/status-colours-distinct.test.ts (T47), which reads them from here: no access / closed as a thin line 8.51 on this ground (floor 8.5; the flavour's own #141414 gives 8.41); closed / own as a lake fill 22.4 over this water (floor 22; #333333 gives 21.9). Change them only with that test.",
   "values": {
+    "color.region.line": "@color.region.edge",
+    "color.label.region": "@color.region.line",
+    "dash.region": [5, 2, 1, 2],
+    "opacity.region.band": 0.11,
+    "width.region.band": 5,
+    "color.ui.basemap.ground": "#121618",
+    "color.ui.basemap.water": "#31353F",
+    "opacity.ground.cover": 1,
     "color.water.mapped": "#38B6DE",
     "color.water.unmapped": "#93A0AB",
     "color.highlight": "#ff77b8",

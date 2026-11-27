@@ -92,8 +92,9 @@ def owner_limited(graph: StreamGraph, tidal, limit_rows, waters=()) -> frozenset
     """The blks the coast cut never cuts because the owner's own limit governs them: every line of a WATER (same gnis,
     or one registry water: `waters`, each the set of blks of one stream item) one of whose lines carries a `split` or
     `whole` row (`limit_rows`: `blk`, `limit`, as dicts or `tidal.Limit`) or holds a section of `tidal`. The registry
-    waters are what joins an added line with no gnis to its water (T685: Port Moody's Turner Creek line is Noons Creek,
-    which the owner's railway-bridge boundary governs; by gnis alone the coast rule cut it a second time)."""
+    waters are what joins an added line with no gnis to its water (T685: Port Moody's Turner Creek line was then filed
+    in Noons Creek, which the owner's railway-bridge boundary governs; since T1246 it is its own water with its own
+    rail-line limit)."""
     def val(r, k):
         return r.get(k) if isinstance(r, Mapping) else getattr(r, k, None)
     gnis_of: dict[str, str] = {}
@@ -113,6 +114,27 @@ def owner_limited(graph: StreamGraph, tidal, limit_rows, waters=()) -> frozenset
         if not lim.isdisjoint(w):
             out |= set(w)
     return frozenset(out)
+
+
+#: POLICY (T1199 review, 2026-11-27): a line ends in the sea when nothing leaves it AT ITS MOUTH. An edge leaving its
+#: lowest piece higher up (a distributary 9 km above Lost Shoe Creek's mouth) is not where the line goes. Before T1199
+#: moved the closure-area cuts after the coast cut, which pieces held such an edge depended on where an unrelated
+#: area cut happened to fall (Pacific Rim's at 4 km kept Lost Shoe's lowest piece clear of it). False is the pin.
+A_DISTRIBUTARY_HIGHER_UP_IS_NOT_THE_MOUTH = True
+
+
+def leaves_at_mouth(graph: StreamGraph, lowest, leaves_at, within_m: float) -> list[int]:
+    """The edges leaving a line's LOWEST piece at its mouth: to another line or a waterbody, leaving within `within_m`
+    of the mouth or where `leaves_at` cannot place them (as before: an unplaced edge counts as the mouth's)."""
+    out = []
+    for i in sorted(graph.down_adj.get(lowest.node_id, ())):
+        t = graph.nodes.get(graph.edges[i].to_node)
+        if t is not None and t.blk and t.blk == lowest.blk:
+            continue
+        m = leaves_at(i) if A_DISTRIBUTARY_HIGHER_UP_IS_NOT_THE_MOUTH else None
+        if m is None or m <= lowest.down_m + within_m:
+            out.append(i)
+    return out
 
 
 def edge_leave_measures(graph: StreamGraph, geoms, view=None):

@@ -572,7 +572,7 @@ GEAR_BUILD = {
     "cowichan": lambda: R11._rules("stream", hook=R11.Z1_HOOK, fly=R11.COWICHAN_FLY),
     "lines: stream": lambda: _lines("stream"),
     "lines: lake": lambda: _lines("lake"),
-    "lines: any water": lambda: _lines(None),
+    "lines: wetland": lambda: _lines("wetland"),
     "lines: kootenay": lambda: _lines("lake", kootenay=True),
 }
 GFIELDS = {
@@ -587,7 +587,8 @@ GEAR = {
     "cowichan": {"summary: says": GEAR_COWICHAN},
     "lines: stream": {"lines: says, cites": (LINES_ONE, [R11.PROVINCE])},
     "lines: lake": {"lines: says, cites": (LINES_LAKE, [R11.PROVINCE])},
-    "lines: any water": {"lines: says": "1 line (rod); 2 while alone in a boat on a lake"},
+    # T1249: every key has a kind (the bundle's); a wetland is no lake, as every named wetland reads
+    "lines: wetland": {"lines: says, cites": (LINES_ONE, [R11.PROVINCE])},
     "lines: kootenay": {"lines: says, cites": (LINES_KOOTENAY, [R11.PROVINCE, R11.KOOTENAY])},
 }
 

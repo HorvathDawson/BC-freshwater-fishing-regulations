@@ -31,7 +31,7 @@ A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal 
 | Water map: a boundary mark open | closes the mark (the map stays) | WaterMapView `MarkPop` `useBackLayer` | WaterMapView.test |
 | Water map: the fork chooser | closes it, no way taken | WaterMapView `Chooser` `useBackLayer` | WaterMapView.test |
 | Pick on the map (pick mode's banner) | leaves pick mode, nothing made (= its Cancel; Escape on the web); the next back is the tab rule | SpotPickBanner `useBackLayer` | MapRail.shell "pick mode is a back layer" |
-| Layers sheet (and every `<Sheet>`) | closes the sheet | Sheet `useBackLayer` | back.test "Layers", gestures.render |
+| Layers sheet (and every `<Sheet>`); the Map tab's open Map key (T1211) | closes the sheet; closes the key (so does a tap on the map: a class shown alone stays, named on the chip) | Sheet / MapKey `useBackLayer` | back.test "Layers", gestures.render, T1211.map-key |
 | Regulations page: "Which day?" (the date pill's DaySheet) | closes the sheet, the day kept; the next back leaves the water | DaySheet → `<Sheet>` | back.test "day sheet" |
 | A spot (viewed) | back to the tab it was opened over (the Spots tab, or a map) | route | back.test "a spot", MapRail.shell |
 | A spot being edited, nothing changed | ends the edit, stays on the spot (= Cancel) | SpotScreen `useBackLayer` | back.test |

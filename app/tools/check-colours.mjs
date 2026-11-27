@@ -54,8 +54,14 @@ const EXT = /\.(tsx?|mjs|cjs|js|css|json)$/;
  * `pnpm check:fast` after the T603 emulator run). A colour a tool measured on a screen is not a colour the app draws.
  */
 export const NOT_SOURCE = ["tools/testbed/out"];
-/** Is this file (app-relative) source the gate reads? Everything but what sits under a `NOT_SOURCE` folder. */
-export const isSource = (rel) => !NOT_SOURCE.some((d) => rel.startsWith(`${d}/`));
+/**
+ * (T1252) And maplibre-gl's own worker, copied from the installed package into `apps/mobile/public/maplibre-gl-<version>/`
+ * when Metro starts (`apps/mobile/gl-worker.js`, git-ignored): GL's minified code names CSS colours in its debug drawing.
+ * Only that folder shape; anything else in `public/` is read.
+ */
+export const GL_WORKER_COPY = /^apps\/mobile\/public\/maplibre-gl-[^/]+\//;
+/** Is this file (app-relative) source the gate reads? Everything but what sits under a `NOT_SOURCE` folder or GL's worker copy. */
+export const isSource = (rel) => !NOT_SOURCE.some((d) => rel.startsWith(`${d}/`)) && !GL_WORKER_COPY.test(rel);
 
 /** CSS named colours. `transparent` and `currentColor` say "no colour of our own" and are fine. */
 const NAMED = new Set(("aliceblue antiquewhite aqua aquamarine azure beige bisque black " +

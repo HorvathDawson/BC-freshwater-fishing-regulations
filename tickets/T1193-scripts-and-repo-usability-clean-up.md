@@ -42,3 +42,16 @@ clean-up the owner mentioned is a later ticket. Task runner (owner, same day): "
 
 ## PRs 5-6, owner-approved deletes (owner 2026-11-26)
 PR 5: five dead or frozen generated files deleted (0.24 MB: proposals index, t981 proposals, t678 drafts, the two frozen audits). Kept, for the owner to decide: `review/q154/sample.json` (1.4 MB; a closed domain's input is still read by the marks health view: its 80 marks would count as orphans), `review/tidal/pass2/entries.json` (3.3 MB; `tidal_pass2 propose` is a documented step that reads it), `review/name-variants/candidates.json` (9 MB; `test_review_shrink_guard` reads it), and the five re-makeable review inputs (they feed open review domains; a pull would delete them from his checkout). PR 6: `tickets/shots` deleted (24 MB); no other picture folder belongs to a closed ticket.
+
+Found, not fixed: `python -m pipeline.tools.audit.tidal_pass2 propose` run twice on one `entries.json` would double every
+`streams` list (`setdefault` + append, `tidal_pass2.py:1033`; read from code, not run): run `extract` before each `propose`.
+
+## Owner
+
+- [x] 2026-11-27 — The name-variants candidates file (A): "keep and fix. IF it looks like the names could be valuable?
+  could you go through sources etc and see how many are actually potentially new and not in the main name variants file
+  etc etc". Nothing is deleted; the planning chat is measuring how many candidates are really new; fixing the mining
+  script (its repo root broke in the folder move: `docs/curation-review/name-variants/fwa_index.py:22` and
+  `osm_extract.py:20` use `parents[4]`) waits on that result and his word.
+- [x] 2026-11-27 — `tidal/pass2/entries.json` (B): "Delete it now (Recommended)". Consequence: the file goes in its own
+  small PR; `extract` is then run before `propose`.

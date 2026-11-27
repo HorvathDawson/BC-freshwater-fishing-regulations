@@ -452,6 +452,14 @@ export function gearEdgeColour(theme: string): string {
   return hex;
 }
 
+/** (T1208) The region boundary's grey and its dash-dot (in line widths) in one theme — the Map key draws the line the map does. */
+export function regionEdgeStyle(theme: string): { colour: string; dash: readonly number[] } {
+  const t = resolveTheme(theme);
+  const colour = t["color.region.line"], dash = t["dash.region"];
+  if (typeof colour !== "string" || !Array.isArray(dash)) throw new Error(`theme "${theme}" has no region boundary`);
+  return { colour, dash: dash as number[] };
+}
+
 /** (T377) Closed's stripe (its cue besides colour) in one theme — the legend's swatch draws it on the Closed line. */
 export function closedCueColour(theme: string): string {
   const hex = resolveTheme(theme)["color.cue.closed"];

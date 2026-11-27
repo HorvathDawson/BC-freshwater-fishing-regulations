@@ -145,7 +145,8 @@ try {
 
   // trout mode and today, the Vedder framed: its search row opened, then Back (the map stays framed on it, T340)
   ns = await look(d);
-  if (/Keep salmon/.test(ns.map((n) => n.text).join('\n'))) { tapAt(mid(node(ns, (n) => /^Colour by trout/.test(n.desc), 'the TROUT mode button'))); await ctx.timer(1500, 'the mode switch'); }
+  // (T1211) the mode is read from the rail's own switch (its Salmon checked), not from the key's words: the key is a chip now
+  if (ns.find((n) => n.id === 'regs-paint-salmon')?.checked === true) { tapAt(mid(node(ns, (n) => n.id === 'regs-paint-standard', 'the TROUT mode button'))); await ctx.timer(1500, 'the mode switch'); }
   d.logcatClear();
   ctx.flow('search', { Q: WATER.q });
   ctx.flow('open-result', { LINE: WATER.row });

@@ -30,7 +30,7 @@ describe("the Map tab's legend strip", () => {
     strip("regulations", true);
     const el = screen.getByTestId("legend-strip");
     expect([el.style.flexWrap, el.style.flexDirection, el.textContent])
-      .toEqual(["wrap", "row", "ClosedHas its own regulationsBase regulations onlyNo public access"]);
+      .toEqual(["wrap", "row", "ClosedIts own rulesRegion rules onlyNo public access"]);
   });
 
   it("(T165) the regulations key draws no public access as the map does — a dotted grey line; the rest solid", () => {
