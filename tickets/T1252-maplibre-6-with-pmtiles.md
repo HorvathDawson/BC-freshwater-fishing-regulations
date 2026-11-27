@@ -5,7 +5,7 @@ planning chat's pre-PR check, a second agent's review, the PR; the review tool's
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1252 | maplibre-gl 6 on the web map, with the pmtiles that works with it | IN PROGRESS | ecba9af15, a3834dc42 | left (Claude): before_pr.sh + second review + PR (supersedes Dependabot #355); the review tool's frontend (#317) is a second lane |
+| T1252 | maplibre-gl 6 on the web map, with the pmtiles that works with it | IN PROGRESS | ecba9af15, a3834dc42, bb51239c4 | left (Claude): before_pr.sh + second review + PR (supersedes Dependabot #355); the review tool's frontend (#317) is a second lane |
 
 Source: Dependabot #355 (maplibre-gl 5.24.0 → 6.4.1 in /app, red on `gates` and `vitest (3/4)`: tools/gl-internals.test.ts)
 and #317 (the same in tools/curation-review/frontend). Owner, 2026-11-27: "do upgrade now just make sure maplibre isnt
