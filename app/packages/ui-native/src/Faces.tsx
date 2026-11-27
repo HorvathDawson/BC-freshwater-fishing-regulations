@@ -19,16 +19,16 @@
  * Both labels stay visible rather than showing only the alternative: which questions this water answers is itself
  * information, and a reader who does not know Conditions exists will never go looking for it.
  */
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, waterBackName, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
+import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, waterBackName, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, WATER_VIEW_SHORT, type WaterView } from "@app/core";
 import { WaterViewsContext } from "./ViewSwipe";
 import { useCoachRefs, useCoachTarget } from "./CoachMarks";
 import { Icon, IconText } from "./icons";
 import { hitProps } from "./regs/hit";
-import { TYPE } from "./type";
+import { LABEL_PROPS, TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
 export type Face = "conditions" | "regulations";
@@ -105,7 +105,16 @@ export function ViewTabs({ palette, views, on, onView }: {
 }) {
   const shown = WATER_VIEWS.filter((v) => views.includes(v));
   const coach = useCoachRefs();   // (T293) the walkthrough points at Regulations and Conditions (`view:<view>`)
+  // (T1203) THE WORDS FIT THE ROW OR SHORTEN: the row's room and the full words' width are MEASURED (an invisible twin row of the
+  // full words, as the place label's), and when the words are wider than the room "Regulations" is "Regs" (core
+  // `WATER_VIEW_SHORT`; the full word stays the accessible name). Decided from widths, not from a text-size threshold, so it holds
+  // at any window width and any text size. The labels are a fixed row's: one line, capped at `LABEL_SCALE` (type.ts, the one rule).
+  const [room, setRoom] = useState<number | null>(null);
+  const [need, setNeed] = useState<number | null>(null);
+  const short = room !== null && need !== null && need > room;
+  const text = { ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6 };
   return (
+    <View testID="water-views-room" onLayout={(e) => setRoom(e.nativeEvent.layout.width)}>
     <View accessibilityRole="tablist" accessibilityLabel={WATER_VIEWS_LABEL}
           style={{ flexDirection: "row", gap: 22, borderBottomWidth: 1, borderBottomColor: palette.line }}>
       {shown.map((v) => {
@@ -118,11 +127,17 @@ export function ViewTabs({ palette, views, on, onView }: {
                      {...hitProps({ w: 28, h: 38 })}
                      style={{ minHeight: 38, justifyContent: "flex-end", paddingTop: 2, marginBottom: -1,
                               borderBottomWidth: 3, borderBottomColor: sel ? palette.ink : "transparent" }}>
-            <Text style={{ ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6,
-                           color: sel ? palette.ink : palette.sub }}>{WATER_VIEW_LABEL[v]}</Text>
+            <Text {...LABEL_PROPS} style={{ ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6,
+                           color: sel ? palette.ink : palette.sub }}>{short ? WATER_VIEW_SHORT[v] : WATER_VIEW_LABEL[v]}</Text>
           </Pressable>
         );
       })}
+    </View>
+    {/* the measuring twin: the full words, one row, invisible, at the same text size */}
+    <View testID="water-views-twin" aria-hidden pointerEvents="none" importantForAccessibility="no-hide-descendants" onLayout={(e) => setNeed(e.nativeEvent.layout.width)}
+          style={{ position: "absolute", left: 0, top: 0, opacity: 0, flexDirection: "row", gap: 22, alignSelf: "flex-start" }}>
+      {shown.map((v) => <Text key={v} {...LABEL_PROPS} style={text}>{WATER_VIEW_LABEL[v]}</Text>)}
+    </View>
     </View>
   );
 }

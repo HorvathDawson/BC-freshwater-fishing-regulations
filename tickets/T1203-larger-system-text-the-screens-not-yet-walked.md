@@ -19,6 +19,14 @@ one page rendered blank, the rest were not walked):
 6. Runs and Conditions with real data (walked only in their empty or fixture state).
 7. At 360 wide the five tabs are no longer equal in width when a label needs more room (T1201's fix, owner saw the
    picture 2026-11-26 and said it "looks good"): nothing to do unless a sixth tab or a longer word arrives.
+8. A water page's top tabs (Regulations / Conditions / Map) at a larger text size (owner, 2026-11-26: "another thing i notice
+   here is the regulations, conditions, map top tabs should be dynamic if they get too big with text increase then
+   regulations could become regs or rules.. also then the data selector could go up into tab bar maybe? i guess the back
+   button is up there tho which will take up extra space so scratch that...."). Built: the tabs measure their row and the
+   full words (`Faces.tsx` `ViewTabs`) and shorten Regulations to "Regs" (`WATER_VIEW_SHORT`, core `waterViews.ts`) only when
+   the full words do not fit; the full word stays the accessible name; the labels are one line, capped at 1.3. The date
+   selector stays where it is (withdrawn). The sub-tab row (What you can keep / Gear / Methods / Licence) already wraps to a
+   second row (T40), which loses nothing; proposal: keep that.
 
 ## Work
 
@@ -39,3 +47,4 @@ Depends: T1201 merged. Size: M. Model: Sonnet. Owner: the phone check, or a look
 
 - [x] 2026-11-26 — the switch is wider than the rail buttons at 1.3x → "we just want to make sure bigger text plays nicely in all parts of the app" (2026-11-26): not a defect; check larger text on EVERY screen and fix what breaks.
 - [ ] 2026-11-26 — the phone check: system font large + display size large on a real Android phone (what to look at is in the report).
+- [x] 2026-11-26 — the water page's top tabs should shorten when text is large (Regulations to Regs or Rules); the date selector up in the tab bar withdrawn → "regulations could become regs or rules", "scratch that" (2026-11-26): built as Regs, measured; sub-tab row left to wrap.

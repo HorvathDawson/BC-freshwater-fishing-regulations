@@ -23,6 +23,17 @@ export const WATER_VIEW_LABEL: { readonly [V in WaterView]: string } = {
   map: "Map",
 };
 
+/**
+ * (T1203, owner 2026-11-26: "regulations could become regs or rules") The strip's SHORT names, drawn only when the full words do
+ * not fit the row at the reader's text size (measured, `Faces.tsx` `ViewTabs`); a screen reader always says the full name.
+ * Only Regulations has a shorter form: "Conditions" and "Map" are kept whole.
+ */
+export const WATER_VIEW_SHORT: { readonly [V in WaterView]: string } = {
+  regs: "Regs",
+  conditions: "Conditions",
+  map: "Map",
+};
+
 /** The strip's own name for a screen reader. */
 export const WATER_VIEWS_LABEL = "Views of this water";
 
