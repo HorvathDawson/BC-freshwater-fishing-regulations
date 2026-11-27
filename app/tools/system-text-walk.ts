@@ -296,6 +296,8 @@ const SCREENS: Screen[] = [
   { id: "water-map", start: WATER("map"), must: /./ },
 ];
 
+/** the window's height, px (T1203_HEIGHT: a taller page for a picture of something below the fold) */
+const HEIGHT = Number(process.env.T1203_HEIGHT ?? 800);
 const only = process.env.T1203_ONLY ? process.env.T1203_ONLY.split(",") : undefined;
 
 async function arrive(sc: Screen) {
@@ -322,14 +324,14 @@ async function sweep(ids: readonly string[], scales: readonly number[], widths: 
   const jobs: { page: string; size: [number, number]; measure: string; shot?: string }[] = [];
   const keys: string[] = [], mins: number[] = [];
   for (const scale of scales) for (const w of widths) for (const sc of SCREENS.filter((x) => ids.includes(x.id) && (!only || only.includes(x.id)))) {
-    SCALE.v = scale; WIN.w = w; WIN.h = 800;
+    SCALE.v = scale; WIN.w = w; WIN.h = HEIGHT;
     window.dispatchEvent(new Event("resize"));
     await arrive(sc);
     const file = join(dir, `${sc.id}-${w}-${scale}.html`);
     writeFileSync(file, snapshot());
     cleanup();
     const shot = process.env.T1201_SHOTS ? { shot: join(process.env.T1201_SHOTS, `${sc.id}-${w}-${String(scale).replace(".", "_")}.png`) } : {};
-    jobs.push({ page: file, size: [w, 800], measure: join(dir, "measure.js"), ...shot });
+    jobs.push({ page: file, size: [w, HEIGHT], measure: join(dir, "measure.js"), ...shot });
     keys.push(`${sc.id} ${w} ${scale}x`); mins.push(sc.min ?? 8);
   }
   SCALE.v = 1;
