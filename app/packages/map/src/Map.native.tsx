@@ -69,7 +69,7 @@ import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
 import { nativeLabelAnchors } from "./native/labelAnchor";
-import { GAUGE_TAP_LAYERS, gaugeBox, gaugeHit, type GaugeFeature } from "./gauge-hit";
+import { queryGauge, type GaugeFeature } from "./gauge-hit";
 import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, markBox, markBoxImage, markHit, marksData,
          marksLayers, pinDotLayer, pinsData, titledPin, PIN_DOT } from "./point-marks";
 import type { MarkLabelAnchor } from "./marks";
@@ -769,9 +769,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   /** (T1194) The gauge under a press: its station, or null. A failed query is reported and says none (the host's tap goes on). */
   const pressGaugeAt = useCallback(async (x: number, y: number, lon: number, lat: number): Promise<string | null> => {
-    const found = await mapRef.current?.queryRenderedFeatures(gaugeBox(x, y), { layers: [...GAUGE_TAP_LAYERS] })
-      .catch((e: unknown) => { report(e); return []; }) ?? [];
-    return gaugeHit(found as readonly GaugeFeature[], [lon, lat]);
+    const m = mapRef.current;
+    if (!m) return null;
+    return queryGauge((box, layer) => m.queryRenderedFeatures(box, { layers: [layer] })
+      .catch((e: unknown) => { report(e); return []; }) as Promise<readonly GaugeFeature[]>, x, y, [lon, lat]);
   }, [report]);
   /** (T716) the last tap's lift and what it found (`onTapUp`), for that tap's click */
   const lift = useRef<Lift<PressHit> | null>(null);
@@ -806,7 +807,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         .catch((e: unknown) => { report(e); return []; }) ?? []);   // (T368, Q2) the tap falls through; the host reports it
       if (hit !== null) { pressMarkNow.current?.(hit); return; }
     }
-    // (T1194) a gauge dot's 44 px box (the shared `gaugeBox`/`gaugeHit`, as the web's), asked before the water and every
+    // (T1194) a gauge dot's 44 px box (the shared `queryGauge`, as the web's), asked before the water and every
     // other query below; the tap opens that gauge and nothing else. It is asked here, after the lift's answer: the lift
     // (`onTapUp`) leaves a gauge tap undecided (`early` null), so the click is the one that opens it
     if (!early && cb.current.onPressGauge && rendered.current) {
@@ -853,16 +854,16 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const ask = async (): Promise<LiftAnswer<PressHit> | null> => {
       if (spotUnder(spotsAt.current.marks, lat, lon, spotsAt.current.zoom)) return null;
       try {
-        // (T1194) a gauge dot under the finger is the dot's: no water is said (the click opens the gauge)
-        if (cb.current.onPressGauge && await pressGaugeAt(x, y, lon, lat) !== null) return null;
         if (marksNow.current?.length) {
           const mk = markHit(await mapRef.current?.queryRenderedFeatures(markBox(x, y), { layers: [MARK_RING, MARK_LABEL] })
             .catch((err: unknown) => { report(err); return []; }) ?? []);
           if (mk !== null) return null;
         }
-        // the two asked together: the cue waits on one round trip, not two
-        const [ob, hit] = await Promise.all([cb.current.onPressObstacle ? renderer.pressObstacle(x, y) : null, renderer.press(x, y)]);
-        if (ob) return null;
+        // the three asked together: the cue waits on one round trip, not two. (T1194) a gauge under the finger (its pill, or its dot's
+        // 44 px box) is the gauge's: no water is said, the click opens the gauge
+        const [g, ob, hit] = await Promise.all([cb.current.onPressGauge ? pressGaugeAt(x, y, lon, lat) : null,
+                                                cb.current.onPressObstacle ? renderer.pressObstacle(x, y) : null, renderer.press(x, y)]);
+        if (g !== null || ob) return null;
         if (hit) start(hit.layer, hit.id, lat, lon);
         return { hit };
       } catch (err) { report(err); return null; }

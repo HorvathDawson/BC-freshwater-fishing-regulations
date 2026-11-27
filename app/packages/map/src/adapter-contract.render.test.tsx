@@ -132,6 +132,8 @@ const native: { props: Record<string, unknown> | null; camera: Record<string, un
                 geojson: Record<string, unknown>; holdRender: boolean; watched?: string[];
                 /** (T1154) every `watchTiles` call, in order: each asks the binding to send every tile's ids again */
                 watches?: string[][];
+                /** (T1194) a gate every native query waits on once it is logged: shows which queries a tap issues BEFORE any answers */
+                hold?: Promise<void>;
                 layers?: Record<string, { type: string; paint?: unknown }>;
                 images?: Record<string, unknown>; fitOpts?: unknown[]; easeOpts?: unknown[];
                 onLog?: (e: { level: string; tag: string; message: string }) => boolean } =
@@ -146,6 +148,7 @@ const maplibreSdk = () => ({
         const box = Array.isArray(a) ? a : null;
         const layers = (box ? b?.layers : (a as { layers?: string[] } | undefined)?.layers) ?? [];
         log.push(`query ${box ? JSON.stringify(box) : "viewport"} ${layers.join(",")}`);
+        if (native.hold) await native.hold;
         return answer(layers, true);
       },
       getBounds: async () => [-123, 48, -121, 50],
@@ -218,7 +221,7 @@ afterEach(() => {
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
   web.fitOpts = []; web.canvasH = 800; web.data = {}; webCam.lng = -122; webCam.lat = 49;
-  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = []; native.easeOpts = [];
+  native.hold = undefined; native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = []; native.easeOpts = [];
   native.watches = [];
 });
 
@@ -355,7 +358,7 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
     });
   });
 
-  it("(T1194) a gauge dot under the finger is the dot's: a 44 px box asked FIRST, that station opens, no water and no map point", async () => {
+  it("(T1194) a gauge dot under the finger is the dot's: the PILL asked at the point and the DOT in its 44 px box, that station opens, no water and no map point", async () => {
     const gauge = vi.fn(), press = vi.fn(), point = vi.fn();
     const dot = (station: string, lon: number) => ({ properties: { station }, geometry: { type: "Point", coordinates: [lon, 49.1] } });
     // two dots in the box: the nearer to the press (-122.3) wins; a stream is under the finger too, and is not asked
@@ -367,8 +370,26 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
     P.tap(100, 200, -122.3, 49.1);
     await waitFor(() => expect(gauge.mock.calls).toEqual([["08MH001"]]));
     await act(async () => {});
-    expect({ press: press.mock.calls, point: point.mock.calls, queries: [...new Set(log.filter((l) => l.startsWith("query")))] })
-      .toEqual({ press: [], point: [], queries: ["query [[78,178],[122,222]] gauge-dot,gauge-label"] });
+    expect({ press: press.mock.calls, point: point.mock.calls, queries: [...new Set(log.filter((l) => l.startsWith("query")))].sort() })
+      .toEqual({ press: [], point: [], queries: ["query [[85,185],[115,215]] gauge-dot", "query [[99,199],[101,201]] gauge-label"] });
+  });
+
+  it("(T1194) a pill under the finger opens ITS station, though another dot is nearer; a river 30 px from a dot opens the water", async () => {
+    const gauge = vi.fn(), press = vi.fn();
+    const f = (station: string, lon: number) => ({ properties: { station }, geometry: { type: "Point", coordinates: [lon, 49.1] } });
+    answer = (layers) => (layers.includes("gauge-label") ? [f("PILL-A", -122.2)] : layers.includes("gauge-dot") ? [f("DOT-B", -122.3)]
+      : layers.includes("stream") ? [{ id: 311274 }] : []);
+    render(<P.Map {...base({ data: undefined, highlight: undefined, onPressGauge: gauge, onPressFeature: press })} />);
+    await waitFor(() => expect(native.props ?? web.map).toBeTruthy());
+    P.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(gauge.mock.calls).toEqual([["PILL-A"]]));
+    cleanup(); gauge.mockClear();
+    answer = (layers) => (layers.includes("stream") ? [{ id: 311274 }] : []);          // nothing within the dot's box or under a pill
+    render(<P.Map {...base({ data: undefined, highlight: undefined, onPressGauge: gauge, onPressFeature: press })} />);
+    await waitFor(() => expect(native.props ?? web.map).toBeTruthy());
+    P.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(press.mock.calls.length).toBe(1));
+    expect(gauge).not.toHaveBeenCalled();
   });
 
   it("(T1194) no gauge dot in the box: the water is asked as before; no gauge prop: the dot layers are never asked", async () => {
@@ -1401,6 +1422,24 @@ describe("(T1154) native: the patched binding's still tap and per-tile ids", () 
       obstacle: [[{ kind: "falls", name: "Tamihi Falls" }]],
       log: ["query [[88,188],[112,212]] obstacle", STREAM_TAP, "query [[88,188],[112,212]] obstacle"],
     });
+  });
+
+  it("(T1194) the lift asks the gauge, the obstacle and the water in ONE round trip: all three queries are issued before any answers (T716: not two)", async () => {
+    const start = vi.fn(), gauge = vi.fn();
+    answer = (layers) => (layers.includes("stream") ? [{ id: "311274" }] : []);
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onPressStart: start, onPressFeature: vi.fn(), onPressObstacle: vi.fn(), onPressGauge: gauge })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    await act(async () => {});
+    log.length = 0;
+    let open!: () => void;
+    native.hold = new Promise<void>((r) => { open = r; });          // no query answers until the gate opens
+    lift(100, 200, -122.3, 49.1);
+    await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
+    const issued = [...log].filter((l) => l.startsWith("query")).map((l) => l.split("] ").pop()).sort();
+    expect(issued).toEqual(["gauge-dot", "gauge-label", "obstacle", "stream,lake_flowing,wetland_flowing"].sort());
+    open();
+    await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
+    expect(start.mock.calls).toEqual([["stream", 311274, 49.1, -122.3]]);       // and, no gauge there, the water is said as before
   });
 
   it("(T716) a click away from the lift's point asks for itself", async () => {
