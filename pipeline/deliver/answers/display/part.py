@@ -55,7 +55,12 @@ class Water:
 
 
 def part_label(W: Water, i: int) -> str:
-    """`partLabel` — what sets part i apart (consumer 3.1 step 3)."""
+    """`partLabel` — what sets part i apart (consumer 3.1 step 3), from its rules' own words — with the ecological
+    reserve's short form (`eco_reserve`), as every end word says it ("Within Skeena River Eco Reserve")."""
+    return eco_reserve(_part_label(W, i))
+
+
+def _part_label(W: Water, i: int) -> str:
     n = len(W.parts)
     if n == 1:
         return "Whole water"
@@ -231,9 +236,18 @@ def _crossing_words(doc: dict, base: str, side: str) -> str:
 
 
 #: (T1172, owner 2026-11-26: "inside Creston Valley WMA") the short form an area's kind takes in a part's name and subtitle
-#: ("Squamish River inside Baynes Island Eco Reserve", round 4); a national park reserve and a park stay in full
-AREA_SHORT = ((re.compile(r"\bWildlife Management Area\b", re.I), "WMA"),
-              (re.compile(r"\bEcological Reserve\b", re.I), "Eco Reserve"))
+AREA_SHORT = ((re.compile(r"\bWildlife Management Area\b", re.I), "WMA"),)
+#: (T1172, owner 2026-11-26: "it should be \"[name] eco reserve\" everywhere") every word a part ships says an ecological
+#: reserve's short form — its name, its ends (`display.ends`, the map's marks), its subtitle, its label — applied by ONE
+#: function (`eco_reserve`) at the two sources every such word is composed from (`end_name`, `part_label`); a national
+#: park reserve and a park stay in full
+ECO_RESERVE = (re.compile(r"\bEcological Reserve\b", re.I), "Eco Reserve")
+
+
+def eco_reserve(words: str) -> str:
+    """Words with an ecological reserve said in its short form (`ECO_RESERVE`): the one rule, at the two sources of a
+    part's words — `end_name` (its ends, name, marks and subtitle) and `part_label` (its label, from its rules' words)."""
+    return ECO_RESERVE[0].sub(ECO_RESERVE[1], words)
 
 
 def area_short(words: str) -> str:
@@ -258,7 +272,12 @@ MOUTH_OF = "mouth:"
 
 
 def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
-    """`endName` — a run end in words."""
+    """`endName` — a run end in words: THE ONE COMPOSER every part word goes through (`_end_short` / `end_words` /
+    `display.ends`, `_run_txt` / the subtitle, `side_words`), with the ecological reserve's short form (`ECO_RESERVE`)."""
+    return eco_reserve(_end_name(doc, e, side))
+
+
+def _end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     if not e:
         return ""
     if str(e).startswith(MOUTH_OF):
@@ -421,7 +440,7 @@ def side_only(part: dict) -> bool:
 
 
 def area_words(doc: dict, area: Sequence) -> str:
-    """(T1172) The words of the area a part lies inside or at ("inside Creston Valley WMA", "at Hayne's Lease Ecological
+    """(T1172) The words of the area a part lies inside or at ("inside Creston Valley WMA", "at Hayne's Lease Eco
     Reserve"): its end token (`AREA_HEAD`) said by `end_words`, exactly as the part's name says it."""
     w = end_words(doc, f"{AREA_HEAD[area[1]]}area:{area[0]}", "from")
     return w[:1].lower() + w[1:]

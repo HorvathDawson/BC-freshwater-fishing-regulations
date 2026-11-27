@@ -413,6 +413,20 @@ def unmeasured_side_parts(W: "Water", names: List[dict]) -> List[str]:
     return out
 
 
+def untold_side_parts(W: "Water") -> List[str]:
+    """(T1172, review of rounds 3-4) the parts whose label NEEDS its distance — a part of side channels only on a water
+    with more than one such part (`part.SIDE_APART`: the distance tells them apart) — with a channel no measure places:
+    the build stops on them, named (none today: no water has two such parts)."""
+    out = []
+    for i, p in enumerate(W.parts):
+        if side_only(p) and p.get(SIDE_APART):
+            bare = [r for r in p.get("runs") or [] if r.get("branch") and r.get("km_from") is None]
+            if bare:
+                out.append(f"display: {W.id} part {W.export_ix[i]}: one of its water's several parts of side channels "
+                           f"only, told apart by its distance, with {len(bare)} channel(s) no measure places (T1172)")
+    return out
+
+
 def inside_candidates(item_id: str, w: dict, crossings: Dict[tuple, object]) -> List[str]:
     """(T1172) the parts the bundle measures inside a membership-only area no reviewer has looked at
     (`part.REVIEWED_INSIDE`): their subtitles say the area, their names wait for the look — listed, never silent."""
@@ -476,6 +490,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         except AnswersError as e:              # (T1140) every part the rules cannot name, together, then stop
             stops.append(str(e))
             continue
+        stops += untold_side_parts(W)
         for u in unmeasured_side_parts(W, names):
             log(f"  side part said by its label with no measure (no stop; it sorts last among its water's parts): {u}")
         closed = []

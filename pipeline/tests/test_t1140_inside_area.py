@@ -462,7 +462,9 @@ def test_never_a_region_or_two_areas(tmp_path):
     assert _inside(tmp_path, ch, [RESERVE, ("PARK", "parks", box(-10, -10, 200, 200))], log=log) == []   # two cut areas
     assert any("INSIDE two areas: gnis:1 part 1" in x for x in log)
     two = [("A PARK", "park", box(0, 0, 100, 100), False), ("B WMA", "wma", box(-10, -10, 200, 200), False)]
-    assert _inside(tmp_path, ch, two) == []                                     # two membership-only areas, no cut one
+    log = []
+    assert _inside(tmp_path, ch, two, log=log) == []                            # two membership-only areas, no cut one
+    assert any("INSIDE two areas: gnis:1 part 1 in ['A PARK', 'B WMA']: no row" in x for x in log)
 
 
 def test_an_unmeasured_section_means_not_inside(tmp_path):
@@ -520,8 +522,11 @@ def test_a_membership_area_never_moves_a_cut_areas_name(tmp_path):
     # never dropped for two; the reserve unreviewed stops the build at the answers step, as before
     park = ("SOME PARK", "park", box(-10, -10, 200, 200), False)
     for iid in ("gnis:25671", "gnis:1"):
-        assert _inside(tmp_path, CH, [RESERVE, park], iid=iid) == \
+        log = []
+        assert _inside(tmp_path, CH, [RESERVE, park], iid=iid, log=log) == \
             [(1, 1, "BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "inside", 1)]
+        assert any(f"INSIDE: {iid} part 1 said by the cut area 'BAYNES ISLAND ECOLOGICAL RESERVE' over the membership-only "
+                   f"['SOME PARK']" in x for x in log)                    # the dropped area is said, never silent
 
 
 def test_a_membership_only_area_keeps_the_95_percent_rule(tmp_path):
@@ -718,7 +723,7 @@ def test_a_part_said_by_its_channels_named_ends():
     assert n["lo"] == n["hi"] and n["lo"].startswith(SIDE)
     said = _said(W)[1]
     assert said.startswith("Skeena River side channel from ") and "Exchamsiks" in said and \
-        "up to Skeena River Ecological Reserve" in said
+        "up to Skeena River Eco Reserve" in said                 # (T1172) the short form, a boundary end too
 
 
 def test_a_channel_that_names_only_its_own_mouth_takes_the_water_its_flow_reaches():
@@ -943,7 +948,8 @@ def test_the_area_short_form_in_name_and_subtitle_alike():
     from pipeline.deliver.answers.display.part import area_short
     assert area_short("Creston Valley Wildlife Management Area") == "Creston Valley WMA"
     assert area_short("Strathcona - Westmin Park") == "Strathcona - Westmin Park"       # the parks source's own hyphen
-    assert area_short("Baynes Island Ecological Reserve") == "Baynes Island Eco Reserve"        # (round 4)
+    from pipeline.deliver.answers.display.part import eco_reserve
+    assert eco_reserve("Baynes Island Ecological Reserve") == "Baynes Island Eco Reserve"       # (round 4: everywhere)
     assert area_short("Pacific Rim National Park Reserve") == "Pacific Rim National Park Reserve"     # stays in full
     # a cut WMA (said by its split) takes it too
     SPLITS["area:X WILDLIFE MANAGEMENT AREA"] = {"name": "X Wildlife Management Area boundary", "kind": "area"}
@@ -1004,3 +1010,70 @@ def test_the_answers_step_reads_the_bundles_new_tables(tmp_path):
     got = _crossings(str(p))
     assert got[("gnis:36111", "inside", 0)] == ("X RESERVE", "at", True)
     assert got[("gnis:23366", "own", 4)] == ("Turner Creek", "Port Moody")
+
+
+# --- (T1172, review of rounds 3-4) the ecological reserve's short form everywhere; the loud cases; produce_parts wired ----
+
+def test_an_ecological_reserve_is_said_eco_reserve_in_every_part_word():
+    # (owner 2026-11-26: "it should be \"[name] eco reserve\" everywhere") a boundary end, its subtitle words, its label
+    from pipeline.deliver.answers.display.part import end_words, part_label, runs_label
+    SK = "area:SKEENA RIVER ECOLOGICAL RESERVE"
+    W = _water([[_run(SK, "mouth", 63.0, 0.0)], [_run("source", SK, 90.0, 63.0)]], iid="gnis:2936", name="Skeena River")
+    assert end_words(W.doc, SK, "from") == "Skeena River Eco Reserve boundary"
+    assert runs_label(W.doc, W.parts[0]) == "From the mouth up to Skeena River Eco Reserve boundary"
+    assert "Ecological" not in " ".join(_said(W))
+    W.doc["rules"] = {"r": {"parts": {"where": "Within Skeena River Ecological Reserve", "what": "No fishing"},
+                            "provenance": {"rank": 0}, "family": "closure", "fields": {}, "label": "x"}}
+    W.doc["rulesets"] = [{"reach": ["r"]}, {}]
+    W = Water(W.id, W.w, W.doc)
+    assert part_label(W, W.export_ix.index(0)).startswith("Within Skeena River Eco Reserve: ")
+    # a national park reserve, a park and a WMA's own rule are untouched
+    from pipeline.deliver.answers.display.part import eco_reserve
+    assert eco_reserve("Pacific Rim National Park Reserve; Strathcona Park") == "Pacific Rim National Park Reserve; Strathcona Park"
+
+
+def test_a_part_that_needs_its_distance_and_has_none_stops_the_build():
+    # (review should-fix 1) two parts of side channels only, one with a channel no measure places: its label would lack
+    # the distance that tells it apart — the build stops, named (none today)
+    from pipeline.deliver.answers.display.builders import side_facts, untold_side_parts
+    W = _water([MAIN, LOOSE, [_run("source", "mouth", None, None, branch=True)]])
+    Wf = Water(W.id, side_facts(W.id, W.w, {}), W.doc)
+    got = untold_side_parts(Wf)
+    assert len(got) == 1 and "gnis:25671 part 2" in got[0] and "told apart by its distance" in got[0]
+    one = _water([MAIN, [_run("source", "mouth", None, None, branch=True)]])          # its water's only one: no stop
+    assert untold_side_parts(Water(one.id, side_facts(one.id, one.w, {}), one.doc)) == []
+
+
+def _produce(monkeypatch, parts_runs, crossings, iid="gnis:777"):
+    """`produce_parts` over one water, its bundle, verdicts and licences stubbed: the facts and the log."""
+    from types import SimpleNamespace as N
+    from pipeline.deliver.answers import common as C
+    from pipeline.deliver.answers.display import builders as BL
+    W = _water(parts_runs, iid=iid)
+    doc = {**W.doc, "entries": {}, "licensing": {}, "licensing_sets": {}}
+    monkeypatch.setattr(BL, "_crossings", lambda _p: crossings)
+    monkeypatch.setattr(BL, "closed_all_year", lambda *_a: False)
+    monkeypatch.setattr(BL, "paper_licence", lambda *_a, **_k: [])
+    monkeypatch.setattr(C, "rule_key", lambda k: k)
+    keys = [f"k{i}" for i in range(len(parts_runs))]
+    B = N(path="unused", key_ix={k: i for i, k in enumerate(keys)})
+    log = []
+    out = BL.produce_parts(B, doc, keys, {iid: list(range(len(parts_runs)))}, log=log.append, store=object())
+    return out[iid]["parts"], log
+
+
+def test_produce_parts_is_wired_to_side_facts_and_both_lines(monkeypatch):
+    # (review should-fix 2) the subtitle's area (`side_facts`), the INSIDE candidate line and the no-measure line: removing
+    # any one fails here
+    cr = {("gnis:777", "inside", 1): ("SOME PARK", "inside", False)}
+    facts, log = _produce(monkeypatch, [MAIN, [_run("source", "mouth", None, None, branch=True)]], cr)
+    assert facts[1]["runs"] == "Side channel inside Some Park" and facts[1]["lo"] is None
+    assert any("INSIDE candidate" in x and "gnis:777 part 1 inside 'SOME PARK'" in x for x in log)
+    assert any("with no measure" in x and "gnis:777 part 1: 1 of 1 channel(s)" in x for x in log)
+
+
+def test_produce_parts_stops_on_a_part_that_needs_its_distance(monkeypatch):
+    with pytest.raises(AnswersError, match="told apart by its distance"):
+        # each said near a named water (`part_near`), so only the missing distance stops it
+        _produce(monkeypatch, [MAIN, LOOSE, [_run("source", "mouth", None, None, branch=True)]],
+                 {("gnis:777", "part", 1): "water:gnis:9", ("gnis:777", "part", 2): "water:gnis:8"})

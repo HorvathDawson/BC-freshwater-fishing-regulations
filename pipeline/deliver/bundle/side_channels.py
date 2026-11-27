@@ -29,9 +29,11 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    channel's lower end (only where its flow pointer says that end is the downstream one: never a lake it leaves) (`section_span.lo` = `lake_inlet:<lake>`: "side channel into <Lake>"); its own polygon (a wide
    reach) or an unnamed lake its main line runs through is measured at the main line's point nearest the touch,
    whatever the distance
-   — the snap limit holds only where the end touches NO water body of its river. A channel failing one gets NO join (never a guessed distance), logged here; a part whose NAME then lacks a
-   distance stops the build at the answers step, named. (Coordinator's proposal 2026-11-25) one beyond the snap limit
-   that touches no water body still gets the main line's NEAREST point (`section_join.how` = 'nearest'); the stop is left for a channel with no main line to measure against (`answers.display.builders._names`). Written as the
+   — the snap limit holds only where the end touches NO water body of its river. A channel failing one gets NO join
+   (never a guessed distance), logged here; (T1172) the answers step logs, by name, a part said by its label with such a
+   channel (`builders.unmeasured_side_parts`), and stops on one whose label needs its distance (`builders.untold_side_parts`).
+   (Coordinator's proposal 2026-11-25) one beyond the snap limit that touches no water body still gets the main line's
+   NEAREST point (`section_join.how` = 'nearest'). Written as the
    join of every section of that channel (`section_join`): the export's runs carry it (`km_from`), which orders the
    part in its river; (T1172, owner 2026-11-26: "Distance only to tell parts apart", "No verb for a leaving channel")
    its label says "N km from the mouth", with no verb, only where its water has more than one such part
@@ -58,7 +60,7 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    negative blk in `section_measure`), all one added stream's name (the atlas graph's name tuple for it,
    `added_stream_names`), not the water's: named by it, with the words of its source (`name_source.label`). Noons Creek p4 is the City of
    Port Moody's Turner Creek, Seymour River p3 the City of Burnaby's Tunnel Creek (a watershed-code collision filed them
-   there). One with no own name gets no row (and stops the build at the answers step if its name needs a distance).
+   there). One with no own name gets no row (the answers step then says it by its label, the plain count).
 """
 from __future__ import annotations
 
@@ -81,9 +83,9 @@ TOUCH_M = 1.0
 LAKE_KINDS = ("lake", "reservoir")
 #: Area kinds of the catalogue that are never a part's name (a region, an MU group, a sign zone: lines, not places).
 NOT_A_PLACE = ("region", "mu_group", "sign_zone")
-#: (T1172, owner 2026-11-26) the kinds of a MEMBERSHIP-ONLY area (`cut` = 0) that may name a part, for a reviewed pair
-#: only: places with a name of their own. Never Indigenous land (`indigenous_land`) without the owner's word, never
-#: permit land or a watershed.
+#: (T1172, owner 2026-11-26) the kinds of a MEMBERSHIP-ONLY area (`cut` = 0) a part is measured against, reviewed or not
+#: (the answers step names a part by one only for a reviewed pair; its subtitle says it always): places with a name of
+#: their own. Never Indigenous land (`indigenous_land`) without the owner's word, never permit land or a watershed.
 MEMBERSHIP_PLACES = ("park", "wma", "ecological_reserves", "national_parks")
 #: (T1172) how far (metres) a tributary's junction may lie from where its FWA measure puts it along a stem section, for
 #: the junction to say which way the section is drawn (`check_stem_order`); a junction where the two ways lie within
@@ -615,6 +617,9 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
         # the atlas's own cut areas first; a membership-only area only where no cut area holds the part
         cut_names = [h for h in by_name.values() if h[3]]
         pick = cut_names if cut_names else list(by_name.values())
+        if len(cut_names) == 1 and len(by_name) > 1:
+            log(f"     side channel INSIDE: {iid_of[o]} part {p} said by the cut area {cut_names[0][1]!r} over the "
+                f"membership-only {sorted(h[1] for h in by_name.values() if not h[3])}")
         if len(pick) == 1:
             share, name, how, cut = pick[0]
             out.append((o, p, name, share, how, cut))

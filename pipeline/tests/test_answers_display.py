@@ -156,6 +156,8 @@ def test_part_labels_match_the_page(page, monkeypatch):
         if lone:
             want = {**want, **{f: [re.sub(r"^Side channel \(from [^)]*\)", "Side channel", t) for t in want[f]]
                                for f in ("labels", "runs")}}
+        # (T1172, owner 2026-11-26: "it should be \"[name] eco reserve\" everywhere") the short form the page never said
+        want = {**want, **{f: [X.part.eco_reserve(t) for t in want[f]] for f in ("labels", "runs", "hint")}}
         want["labels"] = [g if w.endswith("…") and g.startswith(w[:-1]) and len(g) > len(w) else w
                           for g, w in zip(got["labels"], want["labels"])]
         bad += [(want["name"], f, got[f], want[f]) for f in got if got[f] != want[f]]
