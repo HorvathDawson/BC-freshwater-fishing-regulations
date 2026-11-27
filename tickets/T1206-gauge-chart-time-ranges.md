@@ -1,10 +1,10 @@
 # T1206 — Gauge chart time ranges: 72 h / 1 week / 1 year, forecast on the first two, measured data not diminished
 
-Status: OPEN. Proposal only; nothing built. Depends on T1194 (the shared gauge page) so the website and the app change together.
+Status: OPEN. Owner picked option A (three ranges); real renders for his look before it is built in; built AFTER the 0.10.0 re-cut unless he says otherwise. Nothing built. Depends on T1194 (the shared gauge page) so the website and the app change together.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1206 | Gauge chart time ranges: 72 h / 1 week / 1 year, forecast on the first two, measured data not diminished | OPEN | — | owner picks an option (see ## Owner); then build once in the shared chart |
+| T1206 | Gauge chart time ranges: 72 h / 1 week / 1 year, forecast on the first two, measured data not diminished | OPEN | — | option A picked; real renders for his look, then build after the 0.10.0 re-cut |
 
 Source: owner 2026-11-26, verbatim, on the T1194 gauge page: "also i think we might want to change the short term forecast to show slightly more
 data? like it could have the more coarse data from 72hr to 1 week? or we have 3 time periods 72 hrs 1 week and 1 year. the first 2 will show forecast.
@@ -32,4 +32,5 @@ Checks for the build: the week's daily-mean step against the 30-minute line must
 
 ## Owner
 
-- [ ] 2026-11-26 — Which time-range change: A (three ranges), B (forecast cut to the measured span), C (split plot), or A with B's rule (default we build with)? Sketch: `T1206-shots/options-sketch.png`.
+- [x] 2026-11-26 — Which time-range change: A (three ranges), B (forecast cut to the measured span), C (split plot), or A with B's rule? → "Three ranges: 72 h, 1 week, 1 year (Recommended)" (2026-11-26)
+- [ ] 2026-11-26 — Look at real renders of the three ranges before it is built in (to be made; it is built after the 0.10.0 re-cut unless he says otherwise).

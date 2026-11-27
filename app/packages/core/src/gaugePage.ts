@@ -6,6 +6,7 @@
  * WHICH STATIONS HAVE A PAGE: `gaugePageStations` below: every station that serves at least one water with a page (its own
  * water, a lake it gauges, a section it is the gauge of, at any trust).
  */
+import { STEADY_RATIO } from "./change";
 import { SITE_ORIGIN } from "./share";
 
 /** "Chilliwack/Vedder River" -> "chilliwack-vedder-river"; "Écho Lake" -> "echo-lake". (T192: waters and gauges alike) */
@@ -94,6 +95,8 @@ export const GAUGE_PAGE_WORDS = {
   /** each served water's trust, in a word (`weak` is a rough guide) */
   trust: { own: "On this water", lake: "On this lake", good: "Good match", fair: "Fair match", weak: "Rough guide" } as Readonly<Record<ServesTrust, string>>,
   open: (water: string): string => `Open ${water}, conditions`,
+  /** what the measured line has done over about a day, beside the big reading (`gaugeTrend`) */
+  trend: { rise: "rising", steady: "steady", fall: "falling" } as const,
   /** the waters list folds past `GAUGE_SERVES_SHOWN` */
   more: (n: number): string => `Show ${n} more`,
   fewer: "Show fewer",
@@ -116,4 +119,35 @@ export function gaugeNotes(flags: { readonly tidal: boolean; readonly backwater:
   if (flags.backwater && quantity === "level") out.push(GAUGE_PAGE_WORDS.backwater);
   if (flags.diversion) out.push(GAUGE_PAGE_WORDS.diversion);
   return out;
+}
+
+/** The trend's window: the reading against the one about a day before it. */
+export const TREND_WINDOW_MS = 24 * 3_600_000;
+
+/**
+ * (T908, restored T1194) WHAT THE MEASURED LINE HAS DONE over about a day, by the same "little change" factor (`STEADY_RATIO`) the
+ * forecast uses: a ratio of two FLOWS. Null when there is nothing to compare (no earlier flow above zero, no reading).
+ */
+export function observedTrend(before: number, now: number): keyof typeof GAUGE_PAGE_WORDS.trend | null {
+  if (!(before > 0) || !(now >= 0)) return null;
+  const r = now / before;
+  return r >= STEADY_RATIO ? "rise" : r <= 1 / STEADY_RATIO ? "fall" : "steady";
+}
+
+/**
+ * THE TREND OF A MEASURED FLOW LINE (`at` ISO stamps, `values` aligned, a null a gap): its last value against the latest value at
+ * least a day before it. Null where the line does not reach back a day, or either end is a gap: never a guess. Flow only — a ratio of
+ * stages is not a ratio of water (the Change view's rule), so a Level line has no trend word.
+ */
+export function gaugeTrend(at: readonly string[], values: readonly (number | null)[]): keyof typeof GAUGE_PAGE_WORDS.trend | null {
+  let last = -1;
+  for (let i = values.length - 1; i >= 0; i--) if (values[i] !== null && values[i] !== undefined) { last = i; break; }
+  if (last < 0) return null;
+  const t = Date.parse(at[last] ?? "");
+  if (!Number.isFinite(t)) return null;
+  for (let j = last - 1; j >= 0; j--) {
+    const tj = Date.parse(at[j] ?? "");
+    if (Number.isFinite(tj) && t - tj >= TREND_WINDOW_MS && values[j] !== null && values[j] !== undefined) return observedTrend(values[j]!, values[last]!);
+  }
+  return null;
 }

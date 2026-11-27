@@ -246,7 +246,7 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
  * own name, which already holds the water's word ("Alouette River Near Haney"), so the title adds none of its own and never says
  * "river river". WHAT it measures is the release's (`gaugeSubject` of its `gauge_clim`): a level-only gauge says "level", a
  * flow-only one "flow", one the release knows nothing of "conditions". "Forecast" is not in it: whether the River Forecast
- * Centre runs one is live data, said in the lede and description as "where ... runs one".
+ * Centre runs one is live data, said in the description as "where ... runs one".
  */
 export function gaugeTitle(g: Pick<GaugeModel, "name" | "station" | "parameters">): string {
   const tail = ` ${gaugeSubject(g.parameters)} (${g.station})`;
@@ -256,14 +256,6 @@ export function gaugeTitle(g: Pick<GaugeModel, "name" | "station" | "parameters"
 export const gaugeHeading = (g: Pick<GaugeModel, "name" | "parameters">): string => `${g.name} ${gaugeSubject(g.parameters)}`;
 /** (T1045) the forecast, said only as what it is: the River Forecast Centre's run, where it runs one, for as many days as that run covers */
 export const FORECAST_WORDS = "where the BC River Forecast Centre runs one";
-/**
- * (T1045) the lede under the heading, in the static HTML: what the page shows. The flow forecast has no day count (it varies by
- * gauge and run); only the weather has a horizon of its own (`WEATHER_DAYS`).
- */
-export const gaugeLede = (g: Pick<GaugeModel, "name" | "station" | "parameters">): string =>
-  `${gaugeSubject(g.parameters) === "conditions" ? "Live conditions" : `Live ${gaugeSubject(g.parameters)}`}, and the weather for ${g.name}, from Water Survey of Canada gauge ${g.station}, ` +
-  `with the flow forecast ${FORECAST_WORDS}, for as many days as that run covers. The weather is for the next ${WEATHER_DAYS} days.`;
-
 export function gaugeDescription(g: GaugeModel): string {
   const w = g.close[0]?.name ?? g.rough[0]?.name;
   const what = gaugeSubject(g.parameters) === "conditions" ? "conditions" : gaugeSubject(g.parameters).replace(" and ", " or ");
@@ -289,11 +281,13 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
   const cfg = JSON.stringify(gaugeConfig(g, release, chart)).replace(/</g, "\\u003c");
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
     `<h1>${esc(gaugeHeading(g))}</h1>` +
-    `<p class="lede">${esc(gaugeLede(g))}</p>` +
-    `<p class="small">Water Survey of Canada gauge ${esc(g.station)}${g.lat !== null && g.lon !== null ? ` at ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)}` : ""} · read each time this page opens.</p>` +
+    // (T1194, owner 2026-11-26: "this is bloated … or actually just removed") NO INTRO PARAGRAPH: the page opens as the app's does (the name, then
+    // the reading); what it is and where it is from live in the description, the JSON-LD place and the credit at the foot. This line stays
+    // because the JSON-LD's station and coordinates are held to the page (`checkJsonLd`)
+    `<p class="small">Station ${esc(g.station)}${g.lat !== null && g.lon !== null ? ` · ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)}` : ""}</p>` +
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>` +
     // (T1039) the app's own chart, drawn by its deferred script (gaugeChart.tsx); the box keeps its place meanwhile
-    `<h2>Readings and forecast</h2><div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div>` +
+    `<div id="gauge-chart"><p class="small">Drawing the chart…</p></div>` +
     `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div><div id="gauge-sun"></div>` +
     `<h2>Waters this gauge serves</h2>` +
     (g.main.length ? `<ul>${g.main.map(line).join("")}</ul>` : "") +
@@ -301,6 +295,8 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     (g.more.length ? `<details><summary>${esc(moreSummary(g))}</summary>` +
       `<ul class="cols">${g.more.map(line).join("")}</ul></details>` : "") +
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
+    // (T1194) the sources at the foot, as every page has them: the readings' and the forecast's credit (gaugeClient.ts `creditHtml`)
+    `<div id="gauge-credit"></div>` +
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
     `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a></div>` +
@@ -313,7 +309,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
 
 /**
  * (T1045) what is wrong with a gauge page's search words, against the gauge's data: the title and heading say what the release
- * holds for the station, once, no word twice in a row; the page has its lede; "forecast" is only ever hedged ("where the BC River
+ * holds for the station, once, no word twice in a row; "forecast" is only ever hedged ("where the BC River
  * Forecast Centre runs one"), never in the title or heading.
  */
 export function gaugeWordsProblems(g: GaugeModel, title: string, description: string, body: string): string[] {
@@ -327,9 +323,7 @@ export function gaugeWordsProblems(g: GaugeModel, title: string, description: st
     const twice = /\b([A-Za-z]{3,})\s+\1\b/i.exec(t);
     if (twice) bad.push(`${what} "${t}" says "${twice[0]}" twice in a row`);
   }
-  if (!body.includes('<p class="lede">')) bad.push("no lede");
-  for (const [what, t] of [["description", description], ["lede", /<p class="lede">([^<]*)<\/p>/.exec(body)?.[1] ?? ""]] as const)
-    if (/forecast/i.test(t) && !t.includes(FORECAST_WORDS) && !(what === "description" && t.endsWith("…"))) bad.push(`${what} says forecast without "${FORECAST_WORDS}"`);
+  if (/forecast/i.test(description) && !description.includes(FORECAST_WORDS) && !description.endsWith("…")) bad.push(`description says forecast without "${FORECAST_WORDS}"`);
   if (!/forecast/i.test(description) && !description.endsWith("…")) bad.push(`description lacks "forecast"`);
   return bad;
 }

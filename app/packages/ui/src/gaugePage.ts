@@ -6,9 +6,9 @@
  *                      reading (core `readingCurrent`, which this file only calls), the plain line saying when it last reported.
  *   `useGaugePage`     the release's facts for one station (`readGaugePage`): name, flags, the waters it serves.
  */
-import { CONDITIONS_WORDS, GAUGE_PAGE_WORDS, donorLastReport, figureIn, freshness, now as clockNow, readingAgeLine,
+import { CONDITIONS_WORDS, GAUGE_PAGE_WORDS, donorLastReport, gaugeTrend, figureIn, freshness, now as clockNow, readingAgeLine,
          readingCurrent, readingStanding, type Standing } from "@app/core";
-import type { Parameter } from "@app/data";
+import type { Parameter, Series } from "@app/data";
 import { readGaugePage, type GaugePageFacts, type ReleaseLoader } from "@app/data/release";
 import type { Conditions } from "./hooks";
 import { readingQuantityOf } from "./panel/conditions";
@@ -22,6 +22,8 @@ export interface GaugeReadingVM {
   standing: string | null;
   /** the reading's place on the colour bar, 0–1; null: no mark (no current reading, or not ranked) */
   percentile: number | null;
+  /** (T1194, owner 2026-11-26) "falling", beside the big reading: flow only, a current reading with a measured line a day back; else null */
+  trend: string | null;
   /** the foot line: how old the reading is */
   age: string | null;
   /** no current reading: when it last reported, said plainly */
@@ -29,8 +31,9 @@ export interface GaugeReadingVM {
 }
 
 /** The reading as the page says it. `ref`: the instant it is judged against (the feed's own write time, `Conditions.fetchedAt`). */
-export function gaugeReadingVM(c: Conditions | null, ref: number | null = c?.fetchedAt ?? null): GaugeReadingVM {
-  const none = (last: string): GaugeReadingVM => ({ figure: null, quantity: null, standing: null, percentile: null, age: null,
+export function gaugeReadingVM(c: Conditions | null, ref: number | null = c?.fetchedAt ?? null,
+                               measured: Pick<Series, "at" | "values"> | null = null): GaugeReadingVM {
+  const none = (last: string): GaugeReadingVM => ({ figure: null, quantity: null, standing: null, percentile: null, trend: null, age: null,
                                                     noReading: GAUGE_PAGE_WORDS.noReading(last) });
   if (!c) return none("The live feed has no report from this gauge.");
   const rq = readingQuantityOf(c);
@@ -42,6 +45,7 @@ export function gaugeReadingVM(c: Conditions | null, ref: number | null = c?.fet
     standing: ranked ? readingStanding({ percentile: c.percentile, standing: c.standing as Standing | null,
                                         ...(c.rankedAt !== undefined ? { rankedAt: c.rankedAt } : {}), observedAt: c.observedAt }) : null,
     percentile: ranked ? c.percentile! : null,
+    trend: rq.quantity === "discharge" && measured ? (() => { const t = gaugeTrend(measured.at, measured.values); return t ? GAUGE_PAGE_WORDS.trend[t] : null; })() : null,
     age: readingAgeLine(freshness(c.fetchedAt, clockNow()), c.observedAt, undefined, !!c.kept),
     noReading: null,
   };

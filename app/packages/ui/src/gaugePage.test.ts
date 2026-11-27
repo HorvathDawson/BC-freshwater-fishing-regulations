@@ -35,6 +35,21 @@ describe("(T1194) the reading as the page says it", () => {
   });
 });
 
+describe("(T1194) the trend beside the reading", () => {
+  const H = 3_600_000, at = [48, 24, 0].map((h) => new Date(FED - h * H).toISOString());
+  it("flow, current, with a measured line a day back: the word; the same for a rise and for little change", () => {
+    expect(gaugeReadingVM(reading(), FED, { at, values: [20, 12, 8.01] }).trend).toBe("falling");
+    expect(gaugeReadingVM(reading(), FED, { at, values: [4, 5, 8.01] }).trend).toBe("rising");
+    expect(gaugeReadingVM(reading(), FED, { at, values: [8, 8.2, 8.01] }).trend).toBe("steady");
+  });
+  it("no trend: a level reading, a line that is not there, a line too short, a reading that is not current", () => {
+    expect(gaugeReadingVM(reading({ discharge: null, level: 1.85, parameter: "level" }), FED, { at, values: [2, 2, 1.85] }).trend).toBeNull();
+    expect(gaugeReadingVM(reading(), FED, null).trend).toBeNull();
+    expect(gaugeReadingVM(reading(), FED, { at: at.slice(2), values: [8.01] }).trend).toBeNull();
+    expect(gaugeReadingVM(reading({ observedAt: "2026-10-25T10:00:00-08:00" }), FED, { at, values: [20, 12, 8] }).trend).toBeNull();
+  });
+});
+
 describe("(T1194) the page's words", () => {
   it("the tide is said on Level only; a diversion on both; nothing flagged says nothing", () => {
     const f = { tidal: true, backwater: false, diversion: false };

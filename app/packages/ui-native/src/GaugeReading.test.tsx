@@ -13,9 +13,11 @@ vi.mock("./StationChart", () => ({ StationChart: () => null }));
 afterEach(() => { cleanup(); setFailureSink(null); });
 
 const FED = Date.parse("2026-10-28T05:01:28Z");
-const source = (now: () => Promise<unknown>): GaugeReadingSource => ({
+const H = 3_600_000;
+const source = (now: () => Promise<unknown>, flows: number[] | null = null): GaugeReadingSource => ({
   gaugeNow: now as GaugeReadingSource["gaugeNow"],
-  gaugeSeries: async () => null,
+  gaugeSeries: (async () => (flows ? { value: { step: "1h", from: "", parameter: "discharge", values: flows, band: [], now: null, forecast: null, forecasts: [],
+                                               at: flows.map((_, i) => new Date(FED - (flows.length - 1 - i) * 12 * H).toISOString()) }, fetchedAt: FED } : null)) as never,
   gaugeParameters: async () => ["discharge"],
 });
 const ST = "08MH103" as StationId;
@@ -47,5 +49,19 @@ describe("(T1194) the shared gauge reading", () => {
       .toBe("No current reading. Last reported 2026-10-25 at 11:00 PT."));
     expect(screen.queryByTestId("gauge-figure")).toBeNull();
     expect(screen.queryByTestId("legend-ramp")).toBeNull();
+  });
+});
+
+describe("(T1194) the trend word beside the reading", () => {
+  const now = async () => ({ fetchedAt: FED, value: { discharge: 8.01, level: null, parameter: "discharge", percentile: 0.02,
+                                                     standing: null, at: "2026-10-27T20:05:00-08:00" } });
+  it("falling: said beside the figure; with no measured line a day back there is no word", async () => {
+    render(<GaugeReading source={source(now, [20, 14, 12, 9, 8.01])} station={ST} palette={LIGHT} theme="light" />);
+    await waitFor(() => expect(screen.getByTestId("gauge-trend").textContent).toBe("· falling"));
+    expect(screen.getByTestId("gauge-figure").textContent).toBe("8.01 m³/s");
+    cleanup();
+    render(<GaugeReading source={source(now, [8.01])} station={ST} palette={LIGHT} theme="light" />);
+    await waitFor(() => expect(screen.getByTestId("gauge-figure").textContent).toBe("8.01 m³/s"));
+    expect(screen.queryByTestId("gauge-trend")).toBeNull();
   });
 });

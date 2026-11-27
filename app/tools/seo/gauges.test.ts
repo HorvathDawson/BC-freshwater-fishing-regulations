@@ -12,7 +12,7 @@ import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { browserSafe, chartInputsOf, FORECAST_WORDS, gaugeBody, gaugeDescription, gaugeHeading, gaugeLede, gaugeModels, gaugePath, gaugeTitle, gaugeWordsProblems, LIVE, moreSummary, WEATHER_DAYS, type GaugeModel, type GaugeRows } from "./gauges";
+import { browserSafe, chartInputsOf, FORECAST_WORDS, gaugeBody, gaugeDescription, gaugeHeading, gaugeModels, gaugePath, gaugeTitle, gaugeWordsProblems, LIVE, moreSummary, WEATHER_DAYS, type GaugeModel, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
 import { STORE_CONTACT } from "@app/core";
 
@@ -103,7 +103,7 @@ describe("T487 gauge pages", () => {
     // the app's own components and data code are in it, by their own words (not a page's re-drawing)
     for (const w of ["Real-time only", "Scroll to zoom", "gauge-page-chart", "/obs.json"]) expect(js, w).toContain(w);
     expect(js).not.toMatch(/feeds\/cards\//);                                    // the chart never reads the share card's facts
-    expect(p.html).toMatch(/<div id="gauge-chart"><p class="small">Drawing the chart…<\/p><\/div><div id="gauge-credit"><\/div>/);
+    expect(p.html).toMatch(/<div id="gauge-chart"><p class="small">Drawing the chart…<\/p><\/div>/);
     const cfg = JSON.parse(/<script type="application\/json" id="gauge-config">([^<]*)<\/script>/.exec(p.html)![1]!);
     expect(cfg.live).toBe(`${LIVE.data}/feeds/live`);
     expect(cfg.clim).toEqual([{ parameter: "discharge", bands: Buffer.from(CLIM).toString("base64") }]);
@@ -185,21 +185,18 @@ describe("(T1045) gauge pages for the searcher's words", () => {
     expect(byStation("08MH001").title).toMatch(/ flow \(08MH001\)$/);
     expect(byStation("08MH016").title).toMatch(/ conditions \(08MH016\)$/);
     for (const gp of gaugePages()) {
-      expect(gp.html, gp.path).toMatch(/<h1>[^<]*<\/h1><p class="lede">/);
+      expect(gp.html, gp.path).toMatch(/<h1>[^<]*<\/h1><p class="small">Station /);     // (T1194) no intro paragraph under the heading
+      expect(gp.html, gp.path).not.toMatch(/class="lede"/);
       expect(gp.title + text(gp.html.match(/<h1>[^<]*<\/h1>/)![0]), gp.path).not.toMatch(/forecast|\b(\w{3,}) \1\b/i);
     }
   });
   it("the flow forecast is only ever 'where the BC River Forecast Centre runs one', with no day count; the weather has its own horizon (the one constant)", () => {
     const m = model("Alouette River Near Haney", ["discharge"]);
-    const l = gaugeLede(m);
-    expect(l).toContain(FORECAST_WORDS);
-    expect(l).toContain(`The weather is for the next ${WEATHER_DAYS} days.`);
-    expect(l.replace(`${WEATHER_DAYS} days`, "")).not.toMatch(/\d+[- ]days?\b/i);
     expect(gaugeDescription(m)).toContain(FORECAST_WORDS);
     const p = gaugePages()[0]!;
     expect(p.html).toContain(`forecast_days=${WEATHER_DAYS}`);
   });
-  it("the gate checks the words against the data: a level-only gauge titled 'level and flow', a doubled word, a forecast claimed outright, no lede", () => {
+  it("the gate checks the words against the data: a level-only gauge titled 'level and flow', a doubled word, a forecast claimed outright", () => {
     const lvl = model("Alouette River Near Haney", ["level"]);
     expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), gaugeDescription(lvl), body(lvl))).toEqual([]);
     expect(gaugeWordsProblems(lvl, "Alouette River Near Haney level and flow (08MH005)", gaugeDescription(lvl), body(lvl))).toEqual([expect.stringMatching(/lacks "level" \(the release holds level for the station\)/)]);
@@ -207,7 +204,6 @@ describe("(T1045) gauge pages for the searcher's words", () => {
     expect(gaugeWordsProblems(lvl, "Alouette River River level (08MH005)", gaugeDescription(lvl), body(lvl))).toEqual([expect.stringMatching(/"River River" twice/)]);
     expect(gaugeWordsProblems(lvl, "Alouette River Near Haney level forecast (08MH005)", gaugeDescription(lvl), body(lvl)).join()).toMatch(/says forecast/);
     expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), "Live level and the flow forecast.", body(lvl)).join()).toMatch(/description says forecast without/);
-    expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), gaugeDescription(lvl), body(lvl).replace('<p class="lede">', "<p>"))).toEqual(["no lede"]);
     expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), gaugeDescription(lvl), body(lvl).replace(/<h1>[^<]*<\/h1>/, "<h1>Alouette</h1>"))).toEqual([expect.stringMatching(/heading "Alouette" lacks "level"/)]);
   });
   it("a gauge page's JSON-LD names its place by name, station and coordinates, and the gate holds each to the page", () => {
@@ -220,7 +216,7 @@ describe("(T1045) gauge pages for the searcher's words", () => {
     }
     const vedder = gaugePages().find((x) => x.path.startsWith("/gauge/08MH001"))!;
     expect(/"geo":\{"@type":"GeoCoordinates","latitude":49\.0973,"longitude":-121\.9638\}/.test(vedder.html)).toBe(true);
-    expect(text(vedder.html)).toContain("at 49.0973, -121.9638");
+    expect(text(vedder.html)).toContain("Station 08MH001 · 49.0973, -121.9638");
   });
   it("(owner 2026-11-23) a water page carries no link to a gauge page: gauge pages are reached by share links, /gauges and the sitemap", () => {
     for (const w of built.build.pages.filter((x) => x.kind === "water")) expect(w.html, w.path).not.toMatch(/href="\/gauge\//);

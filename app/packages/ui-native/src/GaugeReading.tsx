@@ -12,7 +12,7 @@ import { useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 import { FLOW_LEGEND, GAUGE_PAGE_WORDS } from "@app/core";
 import type { StationId } from "@app/data";
-import { gaugeReadingVM, noRecordLine, readingQuantityOf, useStationChart, useStationReading, type ChartSource } from "@app/ui";
+import { gaugeReadingVM, noRecordLine, readingQuantityOf, useSeries, useStationChart, useStationReading, type ChartSource } from "@app/ui";
 import type { WaterSource } from "@app/data";
 import { LegendRamp } from "./Chrome";
 import { ErrorState } from "./ErrorState";
@@ -21,6 +21,9 @@ import { StationChart } from "./StationChart";
 import { Text } from "./Text";
 import { TYPE } from "./type";
 import { flowRampStops, SPACE, type Palette } from "./theme";
+
+/** the trend word beside the figure */
+const TREND_FACE = TYPE.title;   // same size as the figure (owner 2026-11-26: "big near the big units"); one step down read as a footnote
 
 /** what the piece asks of its source: the chart's two questions and the station's reading */
 export type GaugeReadingSource = ChartSource & Pick<WaterSource, "gaugeNow">;
@@ -39,7 +42,9 @@ export function GaugeReading({ source, station, palette, theme, feed, notes }: {
   const rq = c ? readingQuantityOf(c) : null;
   const vm = useStationChart(source, station, { width, feed: feed ?? null, offRecord: c?.offRecord ?? null,
                                                ...(rq ? { reports: c!.reports ?? null, readingQuantity: rq.quantity } : {}) });
-  const r = got.state === "ready" ? gaugeReadingVM(c) : null;
+  // the last day's measured flow, for the trend word (the 72 h series, shared with the chart's own asks)
+  const day = useSeries(source, station, "72h", "discharge", undefined, rq?.quantity === "discharge");
+  const r = got.state === "ready" ? gaugeReadingVM(c, c?.fetchedAt ?? null, day.state === "ready" ? day.value ?? null : null) : null;
   const noRecord = noRecordLine(vm.shown, vm.banded, vm.known, rq ? c!.reports : null, c?.offRecord ?? null);
   const failed = got.state === "failed" || vm.chart.state === "failed" || vm.series.state === "failed";
   return (
@@ -49,7 +54,10 @@ export function GaugeReading({ source, station, palette, theme, feed, notes }: {
       {r?.noReading && <Text testID="gauge-no-reading" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.noReading}</Text>}
       {r?.figure && (
         <View style={{ gap: SPACE.s1 }}>
-          <Text testID="gauge-figure" style={{ ...TYPE.title, color: palette.ink }}>{r.figure}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: SPACE.s2 }}>
+            <Text testID="gauge-figure" style={{ ...TYPE.title, color: palette.ink }}>{r.figure}</Text>
+            {r.trend && <Text testID="gauge-trend" style={{ ...TREND_FACE, color: palette.sub }}>{`· ${r.trend}`}</Text>}
+          </View>
           {(noRecord ?? r.standing) && <Text testID={noRecord ? "reading-no-record" : "gauge-standing"} style={{ ...TYPE.bodyStrong, color: palette.ink }}>{noRecord ?? r.standing}</Text>}
         </View>
       )}
