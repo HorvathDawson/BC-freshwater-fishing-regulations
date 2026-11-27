@@ -38,11 +38,4 @@ which `scripts/test-env.sh` `no_data_markers` now calls: one reader of the one h
 explicit `-m` is untouched; both together is a usage error. Every caller that leaned on the old default now says
 `--with-data`: `scripts/test-full.sh`'s fast step, fast-fail's named-file steps, the release follows' whole files
 (`release_follows.pipeline_tests_cmd`), the re-cut's pins (`pins.mjs`), the annual-synopsis runbook. The pytest folder
-clean-up the owner mentioned is a later ticket. Task runner (owner, same day): "A Makefile (Recommended)".
-
-## PR 4, the root Makefile (owner 2026-11-26: "A Makefile (Recommended)")
-`make` lists the verbs from the file's `## ` lines: setup, fetch-data, test (test-py + test-app), check, test-all, build,
-build-first, app (`scripts/app-dev.sh`: refuses a taken port, one server stopping stops both), review, release (the
-release-by-hand steps and the cut's dry run; "nothing to release since <tag>" is exit 0) and prod (prints the owner's
-command only). Pinned by `pipeline/tests/test_makefile.py`, run by fast-fail when the Makefile changes. Not watched by CI's
-areas for a Makefile-only change (`scripts/ci_paths.py` holds no `Makefile`): proposed after the merge-back.
+clean-up the owner mentioned is a later ticket. Task runner (owner, same day): "A Makefile (Recommended)". PR 4 (the root Makefile): `make` lists the verbs; pinned by `pipeline/tests/test_makefile.py`, run by fast-fail; `scripts/ci_paths.py` holds no `Makefile`: proposed after the merge-back.
