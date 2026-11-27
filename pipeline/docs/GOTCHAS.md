@@ -111,7 +111,7 @@ On Jan 1 both "keep 1" and "release all" speak. Owner: "keep release add to gotc
 The row prints "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek" (Region 4, p.37) with no linking word; the
 Findlay Creek row prints "(mainstem only) from ... to ...". Owner: "between the 2 only with a gotcha added". Built (T1177): catch and release
 ONLY on the main stem between Leadville Creek (km 33.1) and Cameron Creek (km 42.6); the rest of the main stem takes the regional quota; the
-creeks get nothing extra. Before this the whole main stem (86 km) was catch and release. A reading, not the book's words: asked of the Province
+creeks get nothing extra. Before this the whole Goat (86.3 km: the 77.3 km main stem plus 9.0 km of side channels) was catch and release; now 9.5 km keeps it and 76.8 km (67.8 km main stem + 9.0 km side channels) takes the region's quota. A reading, not the book's words: asked of the Province
 (BOOK-ERRORS entry 11); evidence `one-offs-evidence/A-goat-river.md`.
 
 ## Mine Lake takes Main Lake's rules because FWA calls it Main Lake (O11)

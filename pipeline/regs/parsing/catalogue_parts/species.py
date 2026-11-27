@@ -559,15 +559,11 @@ _COUNTED_TYPES = (RuleType.retention_limit, RuleType.stop_fishing_after_quota)
 #: one is refused (`CatalogueEntry._no_source_artefacts`), so a reparse cannot re-create it; the
 #: parse prompt names each one (CATALOGUE_PARSE_PROMPT.md, "Known source artefacts") and the export
 #: guide lists them (`gotchas.source_artefacts`). Keyed on the row's entry id; the text is matched
-#: case-insensitively inside a rule's `verbatim`.
-SOURCE_ARTEFACTS: tuple[dict, ...] = (
-    {"entry_id": "r4:goat_river@4-6", "row": "GOAT RIVER 4-6",
-     "text": "Leadville Creek Cameron Creek",
-     "says": "GOAT RIVER 4-6 prints 'Trout/char catch and release (mainstem only) Leadville Creek "
-             "Cameron Creek' — the two creek names are map labels that landed in the row, not a "
-             "rule (user ruling 2026-09-30). The row is its mainstem-only release and its bait "
-             "ban; Leadville and Cameron creeks are tributaries like any other."},
-)
+#: case-insensitively inside a rule's `verbatim`. NONE IS KNOWN NOW: the one there was, GOAT RIVER 4-6's
+#: "Leadville Creek Cameron Creek" (read as two map labels, user ruling 2026-09-30), is read since 2026-11-26 as the
+#: stretch "between Leadville Creek and Cameron Creek" that its "(mainstem only)" release names (owner, T1177 O10;
+#: RULINGS E29), so `goat_river.r1` quotes it. The guard stays for the next one.
+SOURCE_ARTEFACTS: tuple[dict, ...] = ()
 
 
 def source_artefact_problems(entry_id: str, rules) -> List[str]:
