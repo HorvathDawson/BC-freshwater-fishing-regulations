@@ -11,7 +11,6 @@ Re-read when the file changes (mtime), no restart.
 from __future__ import annotations
 
 import json
-import os
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -20,8 +19,7 @@ from pipeline.common.curated import GENERATED
 
 import reuse
 
-PATH = Path(os.environ.get("CURATION_T89_AWAITING_WATER")
-            or GENERATED.review / "t89-awaiting-water.json")
+PATH = Path(GENERATED.review / "t89-awaiting-water.json")
 MAX_CANDIDATES = 8   # the nearest same-name waters are drawn; the full list stays in the panel
 
 

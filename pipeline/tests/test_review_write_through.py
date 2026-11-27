@@ -86,9 +86,13 @@ def wt(tmp_path, monkeypatch, request):
         no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
     store = Path(CURATED.review.marks)
-    for k, v in {"CURATION_SLOUGH_AUTOMARK": "automark.json",
-                 "CURATION_SLOUGH_FINDER": "finder.json.gz", "CURATION_NAME_CANDIDATES": "cands.json",
-                 "CURATION_BACKUP_DIR": "backups",
+    from pipeline.regs.review import names as N
+    from pipeline.regs.review import slough as S
+    # T1192: the readers' own accessors at this test's files (the fixture also serves the live atlas to a data test,
+    # which no whole generated copy can hold)
+    monkeypatch.setattr(S, "_paths", lambda: (tmp_path / "automark.json", tmp_path / "finder.json.gz"))
+    monkeypatch.setattr(N, "_path", lambda: tmp_path / "cands.json")
+    for k, v in {"CURATION_BACKUP_DIR": "backups",
                  "CURATION_WRITE_THROUGH_LOG": "write-through.jsonl",
                  "CURATION_REFUSED_LOG": "refused.jsonl"}.items():
         monkeypatch.setenv(k, str(tmp_path / v))
@@ -127,8 +131,6 @@ def wt(tmp_path, monkeypatch, request):
     monkeypatch.syspath_prepend(str(BACKEND))
     for mod in MODS:
         sys.modules.pop(mod, None)
-    from pipeline.regs.review import names as N
-    from pipeline.regs.review import slough as S
     S._load.cache_clear()
     N._load.cache_clear()
     import app as app_mod                                                  # noqa: E402
@@ -465,8 +467,9 @@ def test_a_tidal_mark_writes_waters_tidal_json_in_the_request(wt, monkeypatch):
         "proposed": {"measure": 2979.5, "coord": [-123.880448, 49.116249], "split_label": "tidal boundary",
                      "split_name": "Nanaimo River: tidal boundary"}, "polygon": {"crossing": "clean"}, "sources": [],
         "confidence": "high", "words_point": {"measure": 2979.5}}]}))
-    monkeypatch.setenv("CURATION_TIDAL_CANDIDATES", str(cands))
     from pipeline.regs.review import tidal as T
+    monkeypatch.setattr(T, "path", lambda: cands)            # T1192: the reader's own accessor at this file
+    monkeypatch.setattr(T, "pass2_path", lambda: None)
     T._load.cache_clear()
     row = T.candidate(cid)
     mark = M.Mark.model_validate({
@@ -540,16 +543,16 @@ def test_write_through_is_off_over_a_temp_store_unless_asked(tmp_path, monkeypat
     sys.modules.pop("write_through", None)
     import write_through as W
     monkeypatch.delenv("CURATION_WRITE_THROUGH", raising=False)
-    assert not W.from_env(tmp_path / "marks.jsonl", tmp_path).enabled
+    assert not W.from_env(tmp_path / "marks.jsonl").enabled
     # the LIVE store's path (named, never read; T777: the suite's own `CURATED` is a sandbox)
-    assert W.from_env(Path(load_repo().review.marks), tmp_path).enabled
+    assert W.from_env(Path(load_repo().review.marks)).enabled
     curated_root(monkeypatch, tmp_path / "curated")           # T422: a sandbox's store is not the live one
-    assert not W.from_env(Path(CURATED.review.marks), tmp_path).enabled
+    assert not W.from_env(Path(CURATED.review.marks)).enabled
     monkeypatch.delenv("CURATED_ROOT")
     monkeypatch.setenv("CURATION_WRITE_THROUGH", "0")
-    assert not W.from_env(Path(CURATED.review.marks), tmp_path).enabled
+    assert not W.from_env(Path(CURATED.review.marks)).enabled
     monkeypatch.setenv("CURATION_WRITE_THROUGH", "1")
-    assert W.from_env(tmp_path / "marks.jsonl", tmp_path).enabled
+    assert W.from_env(tmp_path / "marks.jsonl").enabled
     sys.modules.pop("write_through", None)
 
 
@@ -569,7 +572,11 @@ def app_env(tmp_path):
     curated_root(mp, tmp_path / "curated")                    # T422: the whole curated tree, nothing closed
     store = Path(CURATED.review.marks)
     store.write_text("".join(M.line(m) for m in (_pond("lake:1"), _pond("lake:2"))))
-    mp.setenv("CURATION_Q154_SAMPLE", str(sample))
+    from pipeline.tests.conftest import generated_root
+    generated_root(mp, tmp_path / "generated")               # T1192: this test's sample, in a whole generated copy
+    from pipeline.regs.review import q154 as _Q
+    _Q._path().parent.mkdir(parents=True)
+    sample.replace(_Q._path())
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path / "backups"))
     mp.syspath_prepend(str(BACKEND))
     for mod in MODS:

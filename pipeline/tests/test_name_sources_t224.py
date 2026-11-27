@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.tests import under_test
-from pipeline.tests.conftest import curated_root, no_served_build
+from pipeline.tests.conftest import curated_root, generated_root, no_served_build
 from pipeline.common.models import NameRecord, NameSource, NameTuple, RegistryItem
 from pipeline.common.name_sources import LABELS, CITY_LABELS, is_official, label_of
 
@@ -165,8 +165,10 @@ CANDS = [
 
 @pytest.fixture()
 def env(tmp_path, monkeypatch):
-    (tmp_path / "cands.json").write_text(json.dumps({"candidates": CANDS}))
-    monkeypatch.setenv("CURATION_NAME_CANDIDATES", str(tmp_path / "cands.json"))
+    from pipeline.regs.review import names as _N
+    generated_root(monkeypatch, tmp_path / "generated")  # T1192: this test's inputs, in a whole generated copy
+    _N._path().parent.mkdir(parents=True)
+    _N._path().write_text(json.dumps({"candidates": CANDS}))
     no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree is a temp copy
     monkeypatch.setenv("CURATION_BACKUP_DIR", str(tmp_path / "backups"))

@@ -21,6 +21,7 @@ from pipeline.regs.review import export as E
 from pipeline.regs.review import names as N
 from pipeline.regs.review import slough as S
 from pipeline.regs.review import tidal as T
+from pipeline.tests.conftest import generated_root
 
 
 def _doc(n: int) -> str:
@@ -30,7 +31,7 @@ def _doc(n: int) -> str:
 # --------------------------------------------------------------------------- loaders
 
 def test_names_missing_input_raises(tmp_path, monkeypatch):
-    monkeypatch.setenv("CURATION_NAME_CANDIDATES", str(tmp_path / "gone.json"))
+    generated_root(monkeypatch, tmp_path / "generated")      # T1192: a whole copy with no candidates in it
     N._load.cache_clear()
     with pytest.raises(OSError):
         N.load()
@@ -38,19 +39,20 @@ def test_names_missing_input_raises(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("missing", ["automark", "finder"])
 def test_slough_missing_input_raises(tmp_path, monkeypatch, missing):
-    (tmp_path / "automark.json").write_text(json.dumps({"rows": []}))
-    with gzip.open(tmp_path / "finder.json.gz", "wt") as f:
+    generated_root(monkeypatch, tmp_path / "generated")  # T1192: this test's inputs, in a whole generated copy
+    automark, finder = S._paths()
+    automark.parent.mkdir(parents=True)
+    automark.write_text(json.dumps({"rows": []}))
+    with gzip.open(finder, "wt") as f:
         json.dump({"candidates": []}, f)
-    (tmp_path / ("automark.json" if missing == "automark" else "finder.json.gz")).unlink()
-    monkeypatch.setenv("CURATION_SLOUGH_AUTOMARK", str(tmp_path / "automark.json"))
-    monkeypatch.setenv("CURATION_SLOUGH_FINDER", str(tmp_path / "finder.json.gz"))
+    (automark if missing == "automark" else finder).unlink()
     S._load.cache_clear()
     with pytest.raises(OSError):
         S.load()
 
 
 def test_tidal_missing_input_raises(tmp_path, monkeypatch):
-    monkeypatch.setenv("CURATION_TIDAL_CANDIDATES", str(tmp_path / "gone.json"))
+    generated_root(monkeypatch, tmp_path / "generated")      # T1192: a whole copy with no candidates in it
     with pytest.raises(OSError):
         T.load()
 

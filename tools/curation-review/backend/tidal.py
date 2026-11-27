@@ -15,7 +15,6 @@ changes.
 from __future__ import annotations
 
 import json
-import os
 from collections import Counter
 from functools import lru_cache
 from pathlib import Path
@@ -25,9 +24,8 @@ import reuse
 from pipeline.common.curated import SOURCE
 from pipeline.regs.review import tidal as T
 
-#: the build gpkg the polygon's edge is drawn from (read only); `CURATION_TIDAL_GPKG` overrides
-GPKG = (Path(os.environ["CURATION_TIDAL_GPKG"]) if os.environ.get("CURATION_TIDAL_GPKG")
-        else SOURCE.fwa_gpkg)
+#: the build gpkg the polygon's edge is drawn from (read only)
+GPKG = SOURCE.fwa_gpkg
 #: how far (m) an accepted point may sit from the stream it cuts
 SNAP_MAX_M = 500.0
 #: the polygon's edge is drawn within this box (m) around the candidate

@@ -1,10 +1,10 @@
 # T1192 — config.yaml clean-up: paths only, the file list in the schema (Option A)
 
-Status: IN PROGRESS — lane: the repo clean chat; PRs 1-5 and 7 merged; PR 8 and PR 9 (PR 7's review follow-ups) up.
+Status: IN PROGRESS — lane: the repo clean chat; PRs 1-5 and 7-9 merged; PR 6 up (an independent review first).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 6, the review tool's ~25 per-file CURATION_* path overrides become one whole-tree override; PR 8 (plain field notes) and PR 9 (PR 7's review follow-ups) up |
+| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 6's review and merge (one whole-tree GENERATED_ROOT, the per-file CURATION_* paths refused); then only the owner lines and the open [ ] finds |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "the config.yaml i feel has a lot of stuff in it that is noit
 needed too? like there is a lot of bloat because of the way stuff is formatted could we audit this and maybe use it as
@@ -34,8 +34,7 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
    refuses the gpkg names in code. A read records `source.<name>` + its root, per leaf.
 4. Relative paths under `roots`; rename `waters.areas` → `area_closures`, `waters.tidal` → `tidal_limits`; declare the
    unlisted curated files (`closed_areas.json`, `owner_carries.json`, `recheck.json`, bathymetry, stocking) and the
-   generated folders; `release` becomes a root. [x] (PR 2's review) `check_curated`'s stocking / bathymetry entries
-   read `pipeline/bathymetry/accept.py`'s frozen paths (`frozen_path`), not `None`.
+   generated folders; `release` becomes a root.
    PR 4 (merged): one `roots:` block (source, curated, generated, release, cache); every other path is a
    name under the root of its block (`curated.TREES`), refused when absolute or climbing out; `data_tree`,
    `curated.base`, `generated.base`, `generated.release` and their cross-check gone; `CURATED_ROOT` moves the one
@@ -48,10 +47,8 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
    and `GENERATED.regs.extraction.parent` (`passage_boxes.py`) still find a generated folder beside another key.
    - [ ] Gap (spin-off 3): `dfo_salmon.closed_areas` is declared but kept out of `build.curated_digest`
      (`NOT_DELIVER_INPUTS`), as before: deliver reads it but is covered only because deliver depends on reach.
-   - [x] (review) `check_curated`'s bathymetry entry reads the accept's shape (`matches.chart_id`, the sheet code the
-     roster's `waterbody_identifier` is). [ ] Its stocking entry is back to `frozen=None`: the accept writes
-     `matches[].chart_id` = FIDQ `wbody_id`, but no fetcher writes `bc_stocked_waterbodies.json`, so its
-     `waterbody_id` is not shown to be that id; wire it with the roster's writer.
+   - [ ] `check_curated`'s stocking entry is `frozen=None`: the accept writes `matches[].chart_id` = FIDQ `wbody_id`,
+     but no fetcher writes `bc_stocked_waterbodies.json`, so its `waterbody_id` is not shown to be that id; wire it.
    - [ ] Generated root + literal writers still undeclared: `build-manifest.json` and `build-logs/` (`pipeline/build.py`),
      `deliver-cache/` (`pipeline/deliver/__main__.py`, `pipeline/tools/mini_release.py`), generated `release/` and
      `release/checks` (`pipeline/release.py`, `pipeline/deliver/__main__.py`).
@@ -62,22 +59,23 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
 5. Per-leaf C lines. PR 5 (merged): a read records its key + root per access (`curated._Tree`); a whole node taken
    (`model_dump`, iteration) records the node. [ ] Import-time constants (`gauges.matches.MATCH_FILE`) key every deliver
    step on `gauges.matches`. [ ] A `test_stage_content_keys`-style pin: each curated / generated read is in its stage key.
-6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused.
+6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused. PR 6 (up): `GENERATED_ROOT`
+   moves every `GENERATED` path (refused in a traced stage); 19 per-file overrides refused; kept: the served vintage (5)
+   and 3 output paths. [ ] Found, not fixed (a missing input reads as nothing): backend `dfo.py` 123-166, 1067, 1078,
+   `preverify.py` 43-47, `awaiting_water.py` 31-35; `regs/review/tidal.py` 400, `proposals.py` 1781.
 7. Option A: the file list moves into the schema; config.yaml about 12 lines. PR 7 (merged, #358): config.yaml
    = `roots:`, `source.fwa_gpkg`, `atlas_build` (was `generated.atlas.default_build`); every other name is an `At` on its
    field, added to the parsed file by `curated.read_config` (the loaders' and `config_now`'s one source; a name stated in
    both is refused). A rename is a curated.py edit: every stage reruns (its bytes are in every code key).
-   Left / found, not fixed: [ ] each file's `kind` (authored / promoted / applied / reviewed) as schema data on `At`,
-   read by one consumer. [ ] Retire `project_config.py` (`project_root`, `dfo_salmon_cache`, `get_path`; 6 importers +
-   CI path lists). [x] PR 9: the stale docs, the unknown-key hint, empty / null blocks, `atlas_build`, every `At` pinned.
+   Left: [ ] each file's `kind` (authored / promoted / applied / reviewed) as schema data on `At`, read by one consumer.
+   [ ] Retire `project_config.py` (`project_root`, `dfo_salmon_cache`, `get_path`; 6 importers + CI path lists).
 
 ## Acceptance
 Each PR proves, in its body: every resolved path (`CURATED`, `GENERATED`, `SOURCE`, every `get_config()` accessor)
-identical before and after apart from the renames it lists; `curated_digest()` and the atlas input digests
-(`python -m pipeline.atlas.inputs`) identical per file; a mini release (`pipeline/tools/mini_release.py`) with identical
-bytes. PR 1 proves `yaml.safe_load` of the old and new config.yaml equal, and lists where every removed sentence lives.
+identical before and after apart from the renames it lists; `curated_digest()` and the atlas input digests (`python -m
+pipeline.atlas.inputs`) identical per file; a mini release (`pipeline/tools/mini_release.py`) with identical bytes.
 
-Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
+Depends: none. Size: M. Owner: three small calls (below). Model: Opus.
 
 ## Owner
 
@@ -85,3 +83,5 @@ Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
   the two stale notes were fixed with the renames (PR 4).
 - [ ] 2026-11-27 — AGENTS rule 36 says "All paths come from config.yaml"; since #358 only the roots, the FWA gpkg name
   and `atlas_build` do (every other name: `pipeline/common/curated.py`). His wording to change; default: left as it is.
+- [ ] 2026-11-27 — The review tool's tunables (backups kept 500 / 60 days / 120 s burst, debounces): a `review_app:`
+  block in config.yaml, or code constants (tools/curation-review/README.md "Environment")? Default: kept as code constants.

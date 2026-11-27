@@ -17,7 +17,6 @@ Each verdict is {"status": pre-verified | disagree | unchecked, "why", "method",
 from __future__ import annotations
 
 import json
-import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -27,9 +26,9 @@ import reuse
 
 _PLAN = GENERATED.review
 FILES = {
-    "dfo": Path(os.environ.get("CURATION_DFO_PREVERIFY") or _PLAN / "dfo-preverify.json"),
-    "tidal": Path(os.environ.get("CURATION_TIDAL_PREVERIFY") or _PLAN / "tidal/tidal-preverify.json"),
-    "entry": Path(os.environ.get("CURATION_ENTRY_SPLIT_SUGGESTIONS") or _PLAN / "entry-split-suggestions.json"),
+    "dfo": Path(_PLAN / "dfo-preverify.json"),
+    "tidal": Path(_PLAN / "tidal/tidal-preverify.json"),
+    "entry": Path(_PLAN / "entry-split-suggestions.json"),
 }
 STATUSES = ("pre-verified", "disagree", "unchecked")
 KEEP = ("status", "why", "method", "first", "delta_m", "tolerance_m", "duplicate_of")

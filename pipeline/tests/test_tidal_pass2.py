@@ -135,12 +135,16 @@ def test_merge_agreeing_keeps_triage_and_adds_new_stream():
     assert T.prints(n)["records"][0]["key"] == "split:tidal:2"
 
 
-def test_pass2_off_for_a_test_copy(monkeypatch, tmp_path):
-    monkeypatch.delenv("CURATION_TIDAL_PASS2", raising=False)
-    monkeypatch.setenv("CURATION_TIDAL_CANDIDATES", str(tmp_path / "c.json"))
-    assert T.pass2_path() is None
-    monkeypatch.setenv("CURATION_TIDAL_PASS2", "")
-    assert T.pass2_path() is None
+def test_pass2_comes_from_the_candidates_own_tree(monkeypatch, tmp_path):
+    """(T1192) pass 2 is read from the same tree as the candidates: a whole generated copy reads its own, and none
+    when it holds none (never the live pass 2 beside a copied candidates file)."""
+    from pipeline.tests.conftest import generated_root
+    root = generated_root(monkeypatch, tmp_path / "generated")
+    assert T.pass2_path().parent.parent == T.path().parent and root in T.path().parents
+    T.path().parent.mkdir(parents=True)
+    T.path().write_text(json.dumps({"coverage": {}, "candidates": []}))
+    T._load.cache_clear()
+    assert "pass2" not in T.load()["coverage"]
 
 
 def test_mouth_names_and_class():

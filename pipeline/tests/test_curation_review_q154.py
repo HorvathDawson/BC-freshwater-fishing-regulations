@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.tests import under_test
-from pipeline.tests.conftest import curated_root, no_served_build
+from pipeline.tests.conftest import curated_root, generated_root, no_served_build
 
 REPO = Path(__file__).resolve().parents[2]
 #: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
@@ -29,10 +29,13 @@ def _pond(i, caught, s="example", **kw):
 @pytest.fixture(scope="module")
 def env(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("q154")
-    (tmp / "sample.json").write_text(json.dumps({"cutoff": {"max_ha": 1.0}, "rows": [
-        _pond(1, True), _pond(2, False), _pond(3, True, "sample")]}))
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_Q154_SAMPLE", str(tmp / "sample.json"))
+    from pipeline.regs.review import q154 as _Q
+    # T1192: this test's inputs, in a whole generated copy that holds the committed slough queue the app also serves
+    generated_root(mp, tmp / "generated", "sloughs/slough-automark.json", "sloughs/candidates_v2.json.gz")
+    _Q._path().parent.mkdir(parents=True)
+    _Q._path().write_text(json.dumps({"cutoff": {"max_ha": 1.0}, "rows": [
+        _pond(1, True), _pond(2, False), _pond(3, True, "sample")]}))
     no_served_build(mp, tmp)  # (T777) the app serves no atlas, as on CI
     curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))

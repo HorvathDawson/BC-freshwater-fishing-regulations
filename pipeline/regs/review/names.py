@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import random
 import re
 from functools import lru_cache
@@ -27,7 +26,6 @@ from typing import Optional
 
 from pipeline.common.curated import CURATED, GENERATED
 
-CANDIDATES = GENERATED.review / "name-variants/candidates.json"
 SPOT_SAMPLE = 30
 
 #: the candidate source key -> (NameSource code, label when the candidate's own is not better)
@@ -87,7 +85,8 @@ def cid(c: dict) -> str:
 
 
 def _path() -> Path:
-    return Path(os.environ.get("CURATION_NAME_CANDIDATES") or CANDIDATES)
+    """The mined name candidates, per call (moved only with the whole tree by `GENERATED_ROOT`)."""
+    return Path(GENERATED.review / "name-variants/candidates.json")
 
 
 @lru_cache(maxsize=2)

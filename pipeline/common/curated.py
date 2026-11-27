@@ -52,7 +52,9 @@ THE ONE EXCEPTION IS THE WHOLE TREE, NEVER A FILE. `CURATED_ROOT=<dir>` moves EV
 rebuild's app (`proposals.side_commands`) and the parity / gate side loads run on such a copy. One root means a
 process reads all real files or all copies — the per-file overrides it replaced (`CURATION_MARKS`,
 `CURATION_SPLITS_JSON`, `CURATION_ENTRIES_DIR`, `CURATION_DFO_DIR`, …) let a test or a side build read a mix
-without noticing, so they are REFUSED when set (`RETIRED_ENV`), never ignored.
+without noticing, so they are REFUSED when set (`RETIRED_ENV`), never ignored. The generated tree has the same
+one exception, `GENERATED_ROOT=<dir>` (`make_generated_root`), and the review tool's per-file `CURATION_*`
+overrides it replaced are refused the same way (`RETIRED_GENERATED_ENV`).
 """
 
 from __future__ import annotations
@@ -1013,14 +1015,52 @@ RETIRED_ENV = {
 }
 
 
+#: THE GENERATED SANDBOX (T1192): the one variable that moves generated data, and it moves ALL of it. Every
+#: `GENERATED.<x>` (and `ROOTS.generated`) is the same name under `<dir>`, laid out as data/generated
+#: (`make_generated_root` copies the parts a test needs). The review app's tests run on such a copy, so the tool reads
+#: all its machine-written inputs from one tree, never a mix. The build products it SERVES (atlas, reach run, bundle,
+#: tiles) move with it unless its vintage is named (`CURATION_BUILD` and the rest, `vintage.Target`). REFUSED inside a
+#: traced build stage (`PIPELINE_TRACE`): a stage's key records `roots.generated` as config.yaml states it, so a stage
+#: under a moved root would be keyed on one tree while it read and wrote another. Side builds name their own
+#: directories (`--side`, `--out`) instead.
+GENERATED_ROOT_ENV = "GENERATED_ROOT"
+
+#: The review tool's per-file overrides `GENERATED_ROOT` replaced (T1192), and the file each one repointed. Set (even
+#: empty) = refused, as `RETIRED_ENV`.
+RETIRED_GENERATED_ENV = {
+    "CURATION_DFO_CLOSED_GEOMETRY": "GENERATED.review / dfo_closed_area_geometry.json",
+    "CURATION_DFO_CLOSURES": "GENERATED.review / dfo_closure_entries.json",
+    "CURATION_DFO_FIXES": "GENERATED.review / dfo_fix_proposals.json",
+    "CURATION_DFO_PREVERIFY": "GENERATED.review / dfo-preverify.json",
+    "CURATION_DFO_SUGGESTIONS": "GENERATED.review / dfo-suggestions.json",
+    "CURATION_DFO_TYPED": "GENERATED.regs.dfo_salmon / typed",
+    "CURATION_ENTRY_SPLIT_SUGGESTIONS": "GENERATED.review / entry-split-suggestions.json",
+    "CURATION_INSEASON_FEED": "GENERATED.inseason / feed/index.json",
+    "CURATION_NAME_CANDIDATES": "GENERATED.review / name-variants/candidates.json",
+    "CURATION_PROPOSALS_DIR": "GENERATED.review / proposals",
+    "CURATION_Q154_SAMPLE": "GENERATED.review / q154/sample.json",
+    "CURATION_ROW_BOXES": "GENERATED.regs.extraction / row_boxes.json",
+    "CURATION_SLOUGH_AUTOMARK": "GENERATED.sloughs / slough-automark.json",
+    "CURATION_SLOUGH_FINDER": "GENERATED.sloughs / candidates_v2.json.gz",
+    "CURATION_T89_AWAITING_WATER": "GENERATED.review / t89-awaiting-water.json",
+    "CURATION_TIDAL_CANDIDATES": "GENERATED.review / tidal/tidal-candidates.json",
+    "CURATION_TIDAL_PASS2": "GENERATED.review / tidal/pass2/proposals.json",
+    "CURATION_TIDAL_PREVERIFY": "GENERATED.review / tidal/tidal-preverify.json",
+    "CURATION_TIDAL_GPKG": "SOURCE.fwa_gpkg, a source file: it has no override",
+}
+
+
 def refuse_retired_env() -> None:
-    """Raise when a retired per-file override is set (`RETIRED_ENV`)."""
-    bad = sorted(k for k in RETIRED_ENV if k in os.environ)
-    if bad:
-        raise RuntimeError(
-            "retired curated-path override(s) set: " + ", ".join(f"{k} (was {RETIRED_ENV[k]})" for k in bad)
-            + f" — unset them; point {ROOT_ENV} at a whole copy of the curated tree instead "
-              "(pipeline.common.curated.make_root, T422)")
+    """Raise when a retired per-file override is set (`RETIRED_ENV`, `RETIRED_GENERATED_ENV`)."""
+    for retired, what, root, how in ((RETIRED_ENV, "curated", ROOT_ENV, "make_root, T422"),
+                                     (RETIRED_GENERATED_ENV, "generated", GENERATED_ROOT_ENV,
+                                      "make_generated_root, T1192")):
+        bad = sorted(k for k in retired if k in os.environ)
+        if bad:
+            raise RuntimeError(
+                f"retired {what}-path override(s) set: " + ", ".join(f"{k} (was {retired[k]})" for k in bad)
+                + f" — unset them; point {root} at a whole copy of the {what} tree instead "
+                  f"(pipeline.common.curated.{how})")
 
 
 def sandbox_root() -> Path | None:
@@ -1115,12 +1155,93 @@ def load_roots(config: Path | None = None) -> Roots:
 
 @functools.lru_cache(maxsize=2)
 def load_generated(config: Path | None = None) -> Generated:
-    """The generated tree: every path a name under `roots.generated`."""
+    """The generated tree config.yaml names: every path a name under `roots.generated`, whatever `GENERATED_ROOT`
+    says (read `GENERATED` / `generated()`, which honour it)."""
     path = config or CONFIG
     blob, cfg = parse_config(path)
     if not _is_config(path):
         return cfg.generated
     return _bind(cfg.generated, "generated", blob["generated"], ("roots.generated", blob["roots"]["generated"]))
+
+
+def generated_root() -> Path | None:
+    """The generated root `GENERATED_ROOT` names, or None for config.yaml's. Refuses a retired override, an empty value,
+    a root that is not a directory, and any moved root inside a traced build stage (`GENERATED_ROOT_ENV`)."""
+    refuse_retired_env()
+    v = os.environ.get(GENERATED_ROOT_ENV)
+    if v is None:
+        return None
+    if os.environ.get("PIPELINE_TRACE") or _trace.directory() is not None:
+        raise RuntimeError(f"{GENERATED_ROOT_ENV}={v} inside a traced build stage: the stage's key records "
+                           "roots.generated from config.yaml, so it would be keyed on one tree while it reads and "
+                           "writes another. Unset it; a side build names its directories (--side, --out)")
+    return _checked_generated_root(v)
+
+
+@functools.lru_cache(maxsize=16)
+def _checked_generated_root(v: str) -> Path | None:
+    if not v.strip():
+        raise RuntimeError(f"{GENERATED_ROOT_ENV} is set but empty — unset it for the live tree, or name a root")
+    p = Path(v).resolve()
+    if not p.is_dir():
+        raise FileNotFoundError(f"{GENERATED_ROOT_ENV}={v}: no such directory (make one with "
+                                "curated.make_generated_root)")
+    return None if p == _roots()[1].generated.resolve() else p
+
+
+def generated(config: Path | None = None) -> Generated:
+    """The generated tree: config.yaml's (`load_generated`), or the same names under the whole copy `GENERATED_ROOT`
+    names. Cached per root."""
+    root = generated_root()
+    if root is None:                              # the no-argument call's cache entry: the tree every reader shares
+        return load_generated() if config is None else load_generated(config)
+    return _load_generated_under(config, root)
+
+
+@functools.lru_cache(maxsize=8)
+def _load_generated_under(config: Path | None, root: Path) -> Generated:
+    """The generated block's names joined to `root` instead of `roots.generated` (no config value: recorded with no
+    root, as `CURATED_ROOT`; a traced stage never gets here, `generated_root`)."""
+    path = config or CONFIG
+    blob, cfg = parse_config(path)
+    tree = _validate(Generated, blob["generated"], path, ("generated",), note=f" (under {GENERATED_ROOT_ENV}={root})",
+                     roots={"generated": root})
+    tree._atlas_build = cfg.atlas_build
+    return _bind(tree, "generated", blob["generated"], None) if _is_config(path) else tree
+
+
+#: what `make_generated_root` never copies: the build products, gigabytes each (one atlas build is 10 GB). A sandbox
+#: that needs one names the build it serves (`CURATION_BUILD`, `vintage.Target`).
+BUILD_PRODUCTS = ("atlas", "reaches", "bundle", "tiles", "side")
+
+
+def make_generated_root(dst: Path, names: tuple[str, ...] = ()) -> Path:
+    """A copy of the named parts of THIS PROCESS'S generated tree at `dst` (created), for `GENERATED_ROOT`: each name a
+    path under the generated root (`"review/tidal"`, `"sloughs"`); no names = an empty tree a test writes its own inputs
+    into. Never a build product (`BUILD_PRODUCTS`). A copy, never links: a write through the sandbox must not reach a
+    real file. Refuses a `dst` that overlaps the live tree or the copied one, and a name that is absent, absolute,
+    climbs out, or holds a build product."""
+    live = _roots()[1].generated.resolve()
+    src = (generated_root() or live).resolve()
+    dst = Path(dst).resolve()
+    for tree, what in ((live, "the live generated tree"), (src, "the generated tree it copies")):
+        if dst == tree or tree in dst.parents or dst in tree.parents:
+            raise ValueError(f"{dst} overlaps {what} ({tree}): a sandbox root goes elsewhere")
+    dst.mkdir(parents=True, exist_ok=True)
+    for name in names:
+        p = PurePosixPath(name)
+        if p.is_absolute() or ".." in p.parts or not p.parts or p.parts[0] in BUILD_PRODUCTS:
+            raise ValueError(f"{name!r}: a part of the generated tree, relative and inside it, never a build product "
+                             f"({', '.join(BUILD_PRODUCTS)})")
+        got = src / p
+        if got.is_dir():
+            shutil.copytree(got, dst / p, dirs_exist_ok=True)
+        elif got.is_file():
+            (dst / p).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(got, dst / p)
+        else:
+            raise FileNotFoundError(f"{got}: not in the generated tree, so nothing to copy")
+    return dst
 
 
 class _Lazy:
@@ -1219,7 +1340,7 @@ SOURCE = _SourceTree(load_roots)
 
 #: `GENERATED.tiles`, `GENERATED.require_build()` — computed data, addressed through config
 #: so a writer and a reader cannot disagree about where a build went.
-GENERATED = _Lazy(load_generated)
+GENERATED = _Lazy(generated)
 
 
 class _RootsView:
@@ -1240,6 +1361,8 @@ class _RootsView:
         if name == "curated":
             raise AttributeError(f"ROOTS.curated is the live root whatever {ROOT_ENV} says: read CURATED.base: it "
                                  f"honours {ROOT_ENV}")
+        if name == "generated" and (moved := generated_root()) is not None:
+            return moved                              # the copy `GENERATED_ROOT` names: one answer, never a mix
         return _root_read(name)
 
     def __repr__(self) -> str:

@@ -138,7 +138,7 @@ def review_closed():
 #: curated final file follows the marks with no command and no lock. On only over the curated marks store (or
 #: `CURATION_WRITE_THROUGH=1`); a refused apply keeps the mark and says why on the item.
 import write_through as _wt                                     # noqa: E402
-WRITE_THROUGH = _wt.from_env(reuse.MARKS_PATH, reuse._ROOT)
+WRITE_THROUGH = _wt.from_env(reuse.MARKS_PATH)
 #: (T520, owner 2026-11-08: publish from the Mac only) a saved input `sync_inputs` stages — an in-season match, or a
 #: DFO places / wording file the write-through wrote — runs deploy/staging/sync-inputs.sh (`inputs_sync`)
 import inputs_sync as _is                                       # noqa: E402
@@ -436,14 +436,14 @@ class MarkPayload(BaseModel):
 #: miss — the terminal is not enough). One JSON line each: when, the item, the status, the reasons
 #: and the payload (so it can be retried). `CURATION_REFUSED_LOG` points it at a copy (tests).
 REFUSED_LOG: Path | None = None
-_REFUSED_DEFAULT = reuse._ROOT / "data" / "generated" / "review" / "refused-saves.jsonl"
 
 
 def refused_log() -> Path:
     """`REFUSED_LOG` when set, else `CURATION_REFUSED_LOG` read NOW (the tests point every app they
-    build at a temp file), else the repo's log."""
+    build at a temp file), else the log under the generated tree (`GENERATED_ROOT`'s copy when one is set)."""
+    from pipeline.common.curated import GENERATED
     env = os.environ.get("CURATION_REFUSED_LOG")
-    return REFUSED_LOG or (Path(env) if env else _REFUSED_DEFAULT)
+    return REFUSED_LOG or (Path(env) if env else Path(GENERATED.review) / "refused-saves.jsonl")
 
 
 def _log_refused(body: "MarkPayload | InSeasonMatchPayload", status: int, detail) -> None:

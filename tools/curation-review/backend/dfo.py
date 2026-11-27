@@ -19,7 +19,6 @@ changes (AGENTS 66/67). The rules are the re-scrape's (`<generated>/regs/dfo_sal
 from __future__ import annotations
 
 import json
-import os
 import re
 from collections import Counter
 from functools import lru_cache
@@ -32,15 +31,14 @@ import reuse
 from pipeline.atlas.reach import dfo_salmon as DS
 from pipeline.regs.review import dfo as D
 
-#: the typed feed the app reads (generated); `CURATION_DFO_TYPED` points it at a copy (tests). The DFO entry files are
-#: curated: `reuse._dfo_dir()` (`CURATED.dfo_salmon.places`, moved only with the whole tree by `CURATED_ROOT`, T422)
-DFO_TYPED = Path(os.environ["CURATION_DFO_TYPED"]) if os.environ.get("CURATION_DFO_TYPED") else None
+#: the typed feed the app reads (generated): None = `D.default_typed_dir()`. Every generated path here moves only with
+#: the whole tree (`GENERATED_ROOT`, T1192). The DFO entry files are curated: `reuse._dfo_dir()`
+#: (`CURATED.dfo_salmon.places`, moved only with the whole tree by `CURATED_ROOT`, T422)
+DFO_TYPED = None
 
 #: THE SUGGESTED EXTENTS (`pipeline.regs.dfo_salmon.suggest`, a frozen, reviewed file): shown on each
-#: location, never applied — "accept suggestion" only pre-fills the editor. `CURATION_DFO_SUGGESTIONS`
-#: points it at a copy (tests).
-SUGGESTIONS_PATH = (Path(os.environ["CURATION_DFO_SUGGESTIONS"]) if os.environ.get("CURATION_DFO_SUGGESTIONS")
-                    else GENERATED.review / "dfo-suggestions.json")
+#: location, never applied — "accept suggestion" only pre-fills the editor.
+SUGGESTIONS_PATH = GENERATED.review / "dfo-suggestions.json"
 
 #: how far (m) a map point may sit from the water it cuts — further is a click on another water
 SNAP_MAX_M = 500.0
@@ -145,11 +143,8 @@ def suggestion(location_id: str) -> dict | None:
 
 #: FIX PROPOSALS (owner 2026-11-02): Claude's proposal per unsure item, from the mark's note — shown on
 #: the item, never applied. Machine-written, so under `GENERATED.review` (T324: was beside the marks in curated);
-#: the owner's save is the decision. `CURATION_DFO_FIXES` points it at a copy (tests).
+#: the owner's save is the decision.
 def _fixes_path() -> Path:
-    if os.environ.get("CURATION_DFO_FIXES"):
-        return Path(os.environ["CURATION_DFO_FIXES"])
-    from pipeline.common.curated import GENERATED
     return Path(GENERATED.review) / "dfo_fix_proposals.json"
 
 
@@ -948,16 +943,11 @@ def _name_look(_registry_id: int):
 
 
 #: ENTRY B PER PLACE (T573): the closure entries derived from the stored rows (`dfo_salmon.closures`), proposals only.
-#: `CURATION_DFO_CLOSURES` points it at a copy (tests).
 def _closures_path() -> Path:
-    if os.environ.get("CURATION_DFO_CLOSURES"):
-        return Path(os.environ["CURATION_DFO_CLOSURES"])
     return Path(GENERATED.review) / "dfo_closure_entries.json"
 
 
 def _closed_geometry_path() -> Path:
-    if os.environ.get("CURATION_DFO_CLOSED_GEOMETRY"):
-        return Path(os.environ["CURATION_DFO_CLOSED_GEOMETRY"])
     return Path(GENERATED.review) / "dfo_closed_area_geometry.json"
 
 

@@ -154,8 +154,9 @@ def _now() -> str:
 
 def from_env(root: Path) -> InputsSync:
     """FAILS CLOSED: on only with `CURATION_SYNC_INPUTS=1` AND the live curated tree (never a `CURATED_ROOT` sandbox)."""
+    from pipeline.common.curated import GENERATED
     flag = os.environ.get("CURATION_SYNC_INPUTS")
     cmd = os.environ.get("CURATION_SYNC_CMD")
     return InputsSync(root, enabled=flag == "1" and not os.environ.get("CURATED_ROOT"),
                       cmd=shlex.split(cmd) if cmd else None,
-                      log_path=root / "data" / "generated" / "review" / "inputs-sync.jsonl")
+                      log_path=Path(GENERATED.review) / "inputs-sync.jsonl")

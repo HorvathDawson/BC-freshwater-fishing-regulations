@@ -29,13 +29,15 @@ def _row(cid="tidal:1", measure=120.0) -> dict:
 
 @pytest.fixture
 def cands(tmp_path, monkeypatch):
-    p = tmp_path / "tidal-candidates.json"
+    from pipeline.tests.conftest import generated_root
+    generated_root(monkeypatch, tmp_path / "generated")  # T1192: this test's inputs, in a whole generated copy
+    p = T.path()
+    p.parent.mkdir(parents=True)
 
     def write(*rows):
         p.write_text(json.dumps({"coverage": {}, "candidates": list(rows)}))
         T._load.cache_clear()
     write(_row())
-    monkeypatch.setenv("CURATION_TIDAL_CANDIDATES", str(p))
     return write
 
 

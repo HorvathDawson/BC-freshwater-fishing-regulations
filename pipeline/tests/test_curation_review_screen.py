@@ -88,14 +88,16 @@ def env(request, tmp_path_factory):
     (root / "generated" / "inseason" / "resolved.json").write_bytes(live_resolved.read_bytes())
     mp.setattr(_inseason, "resolved_path", lambda: root / "generated" / "inseason" / "resolved.json")
     cat = Path(under_test.curated().regulations.synopsis)
-    for k, v in {"CURATION_BACKUP_DIR": root / "backups", "CURATION_ROW_BOXES": sidecar}.items():
-        mp.setenv(k, str(v))
+    mp.setenv("CURATION_BACKUP_DIR", str(root / "backups"))
     mp.syspath_prepend(str(BACKEND))
     for mod in _MODS:
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
+    import evidence                                           # noqa: E402
     import reports                                            # noqa: E402
     import reuse                                              # noqa: E402
+    # T1192: the reader's own accessor at this test's file (it serves the live atlas, which no whole generated copy can hold)
+    mp.setattr(evidence, "ROW_BOXES_PATH", sidecar)
     assert reuse.ENTRIES_DIR == cat
     # (T931 E) the Reports tab asks the STAGING feeds worker (`reports.fetch`, a network call with a 30 s timeout that
     # answered 503 under load); the route sweep gets a stand-in worker at the network edge, so the route's own reading

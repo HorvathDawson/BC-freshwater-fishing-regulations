@@ -14,19 +14,18 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
 from pipeline.common.curated import GENERATED
 
-SAMPLE = GENERATED.review / "q154/sample.json"
 MEANING = ("ha", "avg_width_m", "river_width_m", "ratio", "man_made", "caught")
 
 
 def _path() -> Path:
-    return Path(os.environ.get("CURATION_Q154_SAMPLE") or SAMPLE)
+    """The sample, per call (moved only with the whole tree by `GENERATED_ROOT`)."""
+    return Path(GENERATED.review / "q154/sample.json")
 
 
 def _mtime(p: Path) -> float:
