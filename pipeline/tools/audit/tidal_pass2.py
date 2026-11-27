@@ -1182,7 +1182,7 @@ def main(argv=None) -> None:
     a1.add_argument("--cache", type=Path, default=CACHE)
     a1.add_argument("--out", type=Path, default=OUT)
     a2 = sub.add_parser("propose")
-    a2.add_argument("--gpkg", type=Path, default=SOURCE / "bc_fisheries_data.gpkg")
+    a2.add_argument("--gpkg", type=Path, default=SOURCE.fwa_gpkg)
     a2.add_argument("--basemap", type=Path, default=None)
     a2.add_argument("--out", type=Path, default=OUT)
     a = ap.parse_args(argv)

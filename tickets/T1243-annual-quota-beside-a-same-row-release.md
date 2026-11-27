@@ -1,10 +1,10 @@
 # T1243 — An annual quota beside its own row's dated release (RU-3 covers the daily quota only)
 
-Status: OPEN — waiting on the owner's pick, not to be built before his answer (it changes card words); owner: see ## Owner
+Status: IN PROGRESS — approved (owner 2026-11-27: pick A); being built on branch fix/T1243-annual-quota-under-release
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1243 | An annual quota beside its own row's dated release (RU-3 covers the daily quota only) | OPEN — waiting on the owner's pick; owner: see ## Owner | — | the owner's pick (silence the annual quota on its own release's dates, or keep the book's words); then a reader change with a mutation pin |
+| T1243 | An annual quota beside its own row's dated release (RU-3 covers the daily quota only) | IN PROGRESS — approved (pick A), on branch fix/T1243-annual-quota-under-release | — | the reader change (pick A) with its mutation pin, on fix/T1243-annual-quota-under-release |
 
 Source: T1177 lane C (spring closures, O1), 2026-11-26 night. Found on the Little River (Shuswap Lake row, R3, p.32):
 since `shuswap_lake.r2b` ("rainbow trout and char catch and release, May 15-Mar 14") binds the river, the reader's RU-3
@@ -30,6 +30,6 @@ The Little River's card on Jul 15 (rainbow trout) reads release only (A), or bot
 
 ## Owner
 
-- [ ] 2026-11-26 — Little River (Shuswap Lake row): the annual "5 per licence year" quotas still show beside the river's
+- [x] 2026-11-26 — Little River (Shuswap Lake row): the annual "5 per licence year" quotas still show beside the river's
   own catch and release. A: silence the annual quota on its own release's dates (recommended). B: leave the book's words.
-  Default: nothing is built until he answers.
+  → "Hide the annual quota while release applies (Recommended)" (2026-11-27)

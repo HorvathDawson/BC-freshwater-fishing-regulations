@@ -24,8 +24,8 @@ no file (`read._RULES_BY_PATH`), the established pattern of `test_competition.py
        follow the Hwy 97 bridge at Falkland — none is a note on the whole river
   Li1  licensing never colours a water: a designated section's shipped status is what its rules alone say
   Li10 the West Road keeps its Class II designation (no CW glyph printed), Jun 15-Oct 31
-  E13  the Goat River's catch and release holds on the whole mainstem, and only there; the Fraser night
-       closure covers the river's side channels, not the sloughs joining it
+  E13  the Fraser night closure covers the river's side channels, not the sloughs joining it
+  E29  the Goat River's catch and release holds on the main stem between Leadville and Cameron creeks, and only there
   E14  Hays Creek: the culvert split sits at the mouth; the closure binds upstream of it
   C3   the shipped guide says, in words, that trout includes char
 """
@@ -663,14 +663,28 @@ GOAT, GOAT_ROW = "gnis:11220", ("r4:goat_river@4-6", "goat_river.r1")
 FRASER_NIGHT = ("r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4", "fraser_river_upstream_of_mission.r3")
 
 
-def test_e13_goat_river_catch_and_release_on_the_whole_mainstem_only(db):
-    """"Trout/char catch and release (mainstem only)": every Goat River section, no tributary.
-    MUTATION: the clause read as a stretch (one section left out) — not the whole mainstem."""
+GOAT_CUTS = ("goat_river__leadville_creek_into_goat_river", "goat_river__cameron_creek_into_goat_river")
+
+
+def test_e29_goat_river_catch_and_release_between_leadville_and_cameron_creeks(db):
+    """E13's Goat bullet, SUPERSEDED by E29 (owner 2026-11-26, T1177 O10): "Trout/char catch and release (mainstem
+    only) Leadville Creek Cameron Creek" is the main stem BETWEEN the two confluences, no side channel, no tributary;
+    the rest of the Goat takes the region's quota. MUTATION: the whole main stem (today's reading until O10) fails."""
+    placed = {c: db.execute("SELECT blk, m FROM cut_place WHERE split_id = ?", (c,)).fetchone() for c in GOAT_CUTS}
+    missing = sorted(c for c, at in placed.items() if at is None)
+    assert not missing, (f"the Goat cuts {missing} are not in this atlas: run the atlas build "
+                         f"(python -m pipeline build --atlas), never a reach-only rerun (T1177 O10)")
+    (blk, lo), (blk2, hi) = (placed[c] for c in GOAT_CUTS)
+    assert blk == blk2 and lo < hi
+
     def goat(reach, trib):
-        return {"whole_mainstem": reach == set(_sections(db, GOAT)), "tributaries": sorted(trib)}
+        inside = {s for s in _sections(db, GOAT)
+                  if db.execute("SELECT blk FROM section_measure WHERE sid = ?", (s,)).fetchone() == (blk,)
+                  and lo <= _span(db, s)[0] and _span(db, s)[1] <= hi}
+        return {"between_the_creeks": bool(inside) and reach == inside, "tributaries": sorted(trib)}
     reach, trib = _bound_to(db, *GOAT_ROW, "reach"), _bound_to(db, *GOAT_ROW, "trib")
-    assert goat(reach, trib) == {"whole_mainstem": True, "tributaries": []}
-    assert goat(reach - {min(reach)}, trib)["whole_mainstem"] is False
+    assert goat(reach, trib) == {"between_the_creeks": True, "tributaries": []}
+    assert goat(set(_sections(db, GOAT)), trib)["between_the_creeks"] is False
 
 
 def _night(db, bound=None) -> dict:

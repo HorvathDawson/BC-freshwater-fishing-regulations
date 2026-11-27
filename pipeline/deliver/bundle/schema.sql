@@ -1273,20 +1273,22 @@ CREATE TABLE glossary_source (kind TEXT NOT NULL CHECK (kind IN ('definition', '
 -- placed section's chain. Not provincial regulation: no status reads it; the Salmon card and colouring do.
 CREATE TABLE salmon_doc (k TEXT PRIMARY KEY, j TEXT NOT NULL) WITHOUT ROWID;
 CREATE TABLE salmon_section (sid INTEGER PRIMARY KEY, chain INTEGER NOT NULL) WITHOUT ROWID;
--- (T1140, owner 2026-11-25) a part with NO main stem measured against one cut area of the atlas's catalogue
+-- (T1140, owner 2026-11-25) a part with NO main stem measured against one area of the atlas's catalogue
 -- (`side_channels.inside_rows`: its lines by length, its polygons by area, every section measured). `how` 'inside': at
 -- least 95 % of every shape in it ("<water> inside <area>"); 'at': at least 95 % of its lines in it while a polygon section
--- straddles its edge ("<water> at <area>"). `share`: the lines' share. A part neither has no row.
+-- straddles its edge ("<water> at <area>"). `share`: the lines' share. A part neither has no row. (T1172) `cut`: 1 for an
+-- area the atlas cuts streams at, 0 for a membership-only park, WMA, ecological reserve or national park; every such
+-- area is measured, reviewed or not (the answers step: the subtitle says it always, the name for a reviewed pair).
 CREATE TABLE part_inside (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area TEXT NOT NULL, share REAL NOT NULL,
-                          how TEXT NOT NULL CHECK (how IN ('inside', 'at')),
+                          how TEXT NOT NULL CHECK (how IN ('inside', 'at')), cut INTEGER NOT NULL CHECK (cut IN (0, 1)),
                           PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;
 -- (T1140) WHERE A SIDE CHANNEL JOINS ITS RIVER, measured on the shapes where the flow does not say it
 -- (`side_channels.write`): `m` the main stem's measure from the mouth (both ends of the section, as `section_span` holds a
 -- side channel's), `lo` a named lake its lower end flows into (`lake_inlet:<item>`). Read by the export's runs only
 -- (`export.read.with_joins`); `section_span` keeps the flow's own measures, which number the parts in river order.
 -- `how` 'join' where the channel's end meets the main line (within the snap limit, or touching a water body of the river);
--- 'nearest' (coordinator's proposal 2026-11-25) for one that meets neither: the main line's nearest point, said "N km from
--- the mouth", never "joining". NULL for a lake end alone.
+-- 'nearest' (coordinator's proposal 2026-11-25) for one that meets neither: the main line's nearest point. Every label says
+-- "N km from the mouth", no verb (T1172). NULL for a lake end alone.
 CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT, how TEXT) WITHOUT ROWID;
 -- (T1140 proposal, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is
 -- fixed in hardening") a part made ONLY of added-stream lines (negative blk, `section_measure`) that carry their OWN name,

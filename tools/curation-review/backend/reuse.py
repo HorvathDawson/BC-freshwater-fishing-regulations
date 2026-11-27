@@ -2105,7 +2105,7 @@ def _fwa_lake_poly(wbk: str):
     from contextlib import closing
     from shapely import wkb as _wkb
     from shapely.ops import unary_union
-    src = SOURCE / "bc_fisheries_data.gpkg"
+    src = SOURCE.fwa_gpkg
     if not src.exists():
         raise FileNotFoundError(f"{src} is missing: the lake outlines on the verification map are read from it "
                                 "(fetch it with data/fetch_data.py)")

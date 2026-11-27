@@ -122,7 +122,7 @@ def test_the_committed_sidecar_dates_the_fwa_as_its_pin_does():
     # the live gpkg's sidecar (in git) names the FWA publication pins.json records for the same bytes, and that is the
     # date the release states — not the gpkg's 2026 write day
     from pipeline.common.curated import SOURCE
-    gpkg = SOURCE / "bc_fisheries_data.gpkg"
+    gpkg = SOURCE.fwa_gpkg
     fwa = source_dates.day(gpkg, "streams")
     assert fwa == "2024-03-26"
     pin = json.loads((SOURCE / "pins.json").read_text())["files"]["bc_fisheries_data.gpkg"]

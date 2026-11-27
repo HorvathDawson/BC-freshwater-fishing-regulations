@@ -1058,15 +1058,18 @@ def test_every_case_says_what_to_show(doc):
 
 @pytest.mark.needs_bundle
 def test_the_gotchas_name_the_source_artefacts(doc):
-    """GOAT RIVER 4-6's "Leadville Creek Cameron Creek" is map labels, not a rule (user ruling
-    2026-09-30): the guide says so, and no rule in the export quotes it."""
+    """The guide lists every known source artefact and no rule in the export quotes one. GOAT RIVER 4-6's "Leadville
+    Creek Cameron Creek", read as map labels until 2026-11-26, is no artefact now: it is the release's stretch (owner,
+    T1177 O10), so the guide does not list it and the release quotes it."""
+    from pipeline.regs.parsing import catalogue as C
     g = doc["guide"]["gotchas"]["source_artefacts"]
-    got = {(a["entry"], a["text"]) for a in g["artefacts"]}
-    assert ("r4:goat_river@4-6", "Leadville Creek Cameron Creek") in got
-    assert "map labels" in g["artefacts"][0]["says"]
+    assert [(a["entry"], a["text"]) for a in g["artefacts"]] == [(a["entry_id"], a["text"]) for a in C.SOURCE_ARTEFACTS]
+    assert not any(a["entry"] == "r4:goat_river@4-6" for a in g["artefacts"])
     for x in doc["rules"].values():
         for a in g["artefacts"]:
             assert a["text"].lower() not in (x.get("verbatim") or "").lower(), x["id"]
+    goat = [x for x in doc["rules"].values() if "leadville creek cameron creek" in (x.get("verbatim") or "").lower()]
+    assert goat and all("catch and release (mainstem only)" in x["verbatim"].lower() for x in goat)
 
 
 @pytest.mark.needs_bundle

@@ -337,15 +337,25 @@ def test_lengths_are_refused_off_retention():
 # ---------------------------------------------------------------- known source artefacts
 
 def test_the_prompt_names_every_known_source_artefact():
-    """A reparse must not re-create a rule from map labels (Goat River 4-6, 2026-09-30)."""
+    """A reparse must not re-create a rule from a known artefact; and Goat River 4-6's creek names, read as map labels
+    until 2026-11-26, are now taught as the release's stretch (owner, T1177 O10)."""
     from pipeline.regs.parsing.catalogue import SOURCE_ARTEFACTS
     assert "Known source artefacts" in PROMPT
+    flat = " ".join(PROMPT.split())
     for a in SOURCE_ARTEFACTS:
-        flat = " ".join(PROMPT.split())
         assert a["row"] in flat and a["text"] in flat, a
+    assert "GOAT RIVER 4-6" in flat and "is NOT one" in flat and "BETWEEN the two creeks' confluences" in flat
+    assert not any(a["entry_id"] == "r4:goat_river@4-6" for a in SOURCE_ARTEFACTS)
 
 
-def test_a_rule_quoting_a_source_artefact_is_refused():
+#: A made-up artefact: the guard is tested on a row of its own, since no real one is known (T1177 O10).
+_ARTEFACT = {"entry_id": "r4:goat_river@4-6", "row": "GOAT RIVER 4-6", "text": "Leadville Creek Cameron Creek",
+             "says": "a test artefact"}
+
+
+def test_a_rule_quoting_a_source_artefact_is_refused(monkeypatch):
+    from pipeline.regs.parsing import catalogue as C
+    monkeypatch.setattr(C, "SOURCE_ARTEFACTS", (_ARTEFACT,))
     verb = "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek"
     rel = {"rule_id": "goat_river.r1", "type": "retention_limit",
            "verbatim": "Trout/char catch and release (mainstem only)",
@@ -365,3 +375,13 @@ def test_mutation_without_the_guard_the_artefact_rule_passes(monkeypatch):
     bad = {"rule_id": "goat_river.r2", "type": "advisory",
            "verbatim": "Leadville Creek Cameron Creek", "extents": [{"op": "whole"}]}
     CatalogueEntry.model_validate(_entry("r4:goat_river@4-6", verb, [bad]))
+
+
+def test_goat_rivers_release_quotes_its_two_creeks():
+    """T1177 O10: the real row's release quotes the whole printed line, and the model takes it (no artefact refuses)."""
+    verb = "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek"
+    rel = {"rule_id": "goat_river.r1", "type": "retention_limit", "verbatim": verb,
+           "species": ["TROUT_CHAR"], "take": 0, "may_target": True, "includes_tributaries": False,
+           "extents": [{"op": "between", "splits": ["goat_river__leadville_creek_into_goat_river",
+                                                     "goat_river__cameron_creek_into_goat_river"]}]}
+    _ok(_entry("r4:goat_river@4-6", verb, [rel]))

@@ -217,6 +217,8 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/graph/prune.py", "dangling_ends"): "prune: did the water come in through this end (one level)",
     ("pipeline/atlas/graph/prune.py", "close_dangling_ends"): "prune: a stub's way back upstream, through dropped braid only",
     ("pipeline/deliver/tiles/export.py", "side_channel_run_zooms"): "tiles: a side channel's connected run, one zoom",
+    ("pipeline/deliver/bundle/side_channels.py", "stem_marks"):
+        "T1172: the junctions INTO a main line's lowest piece, one level, their FWA measures to check its drawn order",
     ("pipeline/atlas/graph/leaf_prune.py", "prunable"): "prune: leaf test",
     ("pipeline/atlas/graph/nests.py", "nest_ports"): "a nest's ports, one level",
     ("pipeline/atlas/graph/prune.py", "loop_nodes"): "mainstem loop detection",

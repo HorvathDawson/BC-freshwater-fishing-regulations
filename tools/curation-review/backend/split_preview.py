@@ -37,8 +37,8 @@ OUTLINE_TOL_M = 25.0
 @lru_cache(maxsize=1)
 def _fwa():
     from pipeline.atlas.fwa import FWADataAccessor
-    from project_config import get_config
-    return FWADataAccessor(str(get_config().fwa_data_gpkg))
+    from pipeline.common.curated import SOURCE
+    return FWADataAccessor(str(SOURCE.fwa_gpkg))
 
 
 def _sources():
