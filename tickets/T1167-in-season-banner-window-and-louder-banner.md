@@ -1,10 +1,10 @@
 # T1167 — In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's
 
-Status: IN REVIEW — built (3a58e77c0 3dc579337 01eefbe2a), the owner has seen the pictures and approved; pushed on feat/T1167-inseason-banner-window, PR open without auto-merge until a look; left (Claude): the PR merge, then the first patch after 0.10.0
+Status: IN PROGRESS — built (3a58e77c0 3dc579337 01eefbe2a), the owner has seen the pictures and approved; pushed on feat/T1167-inseason-banner-window, PR open without auto-merge until a look; left (Claude): the PR merge, then the first patch after 0.10.0
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1167 | In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's | IN REVIEW | 3a58e77c0 3dc579337 01eefbe2a b9238d63e | the PR's merge (parked, no auto-merge, until the planning chat has looked); ships in the first patch after 0.10.0 |
+| T1167 | In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's | IN PROGRESS | 3a58e77c0 3dc579337 01eefbe2a b9238d63e | the PR's merge (parked, no auto-merge, until the planning chat has looked); ships in the first patch after 0.10.0 |
 
 Source: T1157's finding and the owner's answers, 2026-11-25 night. Seven provincial in-season closures of
 July 30-Sept 15, 2026 (Salmon River 3-26, Bessette Creek 8-22, Granby River and its tributaries 8-15 from noon to
