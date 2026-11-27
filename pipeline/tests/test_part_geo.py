@@ -364,14 +364,16 @@ def test_the_chilliwack_and_the_cowichan_meet_as_the_prototype_draws_them(reques
     cuts one more place (the DFO salmon chain, inside a run: the prototype draws no salmon cut) and lists no tidal
     piece, so the bundle's parts JOINED by (grp, run), without tidal water, must be the prototype's stretches in the
     same order, and the marks between them say the prototype's boundary words (`_end_short`: sign-post words off)."""
-    from pipeline.deliver.answers.display.part import _SIGN_WORDS
+    from pipeline.deliver.answers.display.part import _SIGN_WORDS, eco_reserve
     from pipeline.deliver.answers.common import cap
     db = _bundle(request)
     wm = _watermap()
     for group, item in (("vedder", "gnis:8634"), ("cowichan", "gnis:12227")):
         proto = [p for p in wm[group]["parts"] if p["item"] == item]
         at = {i for i, p in enumerate(wm[group]["parts"]) if p["item"] == item}
-        want = [cap(_SIGN_WORDS.sub("", m["label"])) for m in wm[group]["marks"] if m["down"] in at and m["up"] in at]
+        # (T1172, owner 2026-11-26: "it should be \"[name] eco reserve\" everywhere") the short form the prototype never said
+        want = [eco_reserve(cap(_SIGN_WORDS.sub("", m["label"]))) for m in wm[group]["marks"]
+                if m["down"] in at and m["up"] in at]
         (o,) = db.execute("SELECT ord FROM item WHERE item_id = ?", (item,)).fetchone()
         parts = db.execute("SELECT part_ix, grp, run, set_id IS NULL FROM part WHERE ord = ? ORDER BY part_ix",
                            (o,)).fetchall()
@@ -405,7 +407,7 @@ def test_the_chilliwack_and_the_cowichan_are_runs_in_river_order_with_a_named_ma
     assert marks == [("Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)", 0, "[1]"),
                      ("Tamihi Rapids Bridge", 1, "[2]"),
                      ("100 m below the Slesse Creek confluence", 2, "[3]"),
-                     ("Chilliwack River Ecological Reserve boundary", 3, "[4]")]
+                     ("Chilliwack River Eco Reserve boundary", 3, "[4]")]                # (T1172) the short form
     parts, marks = rows("gnis:12227")
     # (T931 B; T743, the owner's DFO save of 2026-11-15 "from CNR Trestle at mile 70.2 to Skutz Falls") the Cowichan
     # is six parts: DFO's Skutz Falls cut splits the Mile 66 trestle to CNR bridge stretch (one rule set, two salmon places)
