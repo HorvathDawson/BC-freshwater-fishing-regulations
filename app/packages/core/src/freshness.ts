@@ -38,6 +38,25 @@ export function readingCurrent(observedAt: string | null | undefined, ref: numbe
   return ref - t <= READING_MAX_AGE_MS;
 }
 
+/**
+ * (T1205) A reading is current BY THE CLOCK: `observedAt` no older than `READING_BY_CLOCK_MS` before `now` (`clock.ts`
+ * `now()`, the real instant — never the picked day). `readingCurrent` judges against the feed's own write time, which is
+ * the clock only where the feed is written; a held, kept or never-refreshed index keeps its old stamp and every reading
+ * in it looks current. The line is the publisher's own 6 h plus the 2 h our copy of the feed may run late before it is
+ * called stale: a reading the publisher called current is never turned old before the feed's own stale line speaks.
+ * Unjudgeable stamps stay unjudged, as in `readingCurrent`.
+ */
+export const READING_BY_CLOCK_MS = READING_MAX_AGE_MS + STALE_AFTER_MS;
+export function readingCurrentNow(observedAt: string | null | undefined, now: number): boolean {
+  return readingCurrent(observedAt, now - STALE_AFTER_MS);   // now - t <= 6 h + 2 h; the same stamp rules, said once
+}
+
+/** The last instant `readingCurrentNow` is true for this stamp (epoch ms), or null when it never judges it (no stamp, naive, not a time). */
+export function readingCurrentUntil(observedAt: string | null | undefined): number | null {
+  if (readingCurrent(observedAt, 1e18)) return null;           // judged at a far-off instant and still current: never judged
+  return Date.parse(observedAt as string) + READING_BY_CLOCK_MS;
+}
+
 /** Classify a cached value's age. `unknown` is NOT the same as "nothing to report". */
 export function freshness(
   fetchedAt: number | null,

@@ -16,7 +16,7 @@ import sqlite3
 from pathlib import Path
 
 from pipeline.atlas.graph.drainage import AreaModel, fit_area_model
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, SOURCE
 from pipeline.common.registry_kinds import is_water
 from pipeline.gauges.consume.panels import build as build_panels, through_lake_panels
 from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES, record_years
@@ -364,7 +364,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         raise SystemExit("section_panel: gauge_stats is empty — clim.json carries no record "
                          "lengths")
     else:
-        model = _area_model(Path(data_dir) / "bc_fisheries_data.gpkg")
+        model = _area_model(SOURCE.under(data_dir).fwa_gpkg)
         # REGULATED STATIONS ARE PASSED THROUGH, NOT FILTERED OUT HERE.
         #
         # The regulation flag travels with the donor and `panel.eligible` decides what it
@@ -463,7 +463,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         from pipeline.gauges.consume.basins import gauged_groups, roster
         from pipeline.deliver.tiles.basins import groups as _groups
 
-        _frame = _groups(str(Path(data_dir) / "bc_fisheries_data.gpkg"))
+        _frame = _groups(str(SOURCE.under(data_dir).fwa_gpkg))
         # EVERY station with a coordinate, live or not. Which of them is transmitting is the
         # feed's business and changes every half hour; this file must not encode it.
         #

@@ -45,7 +45,7 @@ import shapely
 ROOT = Path(__file__).resolve().parents[3]
 CANDIDATES = GENERATED.review / "tidal/tidal-candidates.json"
 OUT = GENERATED.review / "tidal/tidal-preverify.json"
-GPKG = SOURCE / "bc_fisheries_data.gpkg"
+GPKG = SOURCE.fwa_gpkg
 
 THRESHOLD_M = 4.0
 THRESHOLD_ERR_M = 1.5          # how wrong the threshold (datum + DEM bias) may be

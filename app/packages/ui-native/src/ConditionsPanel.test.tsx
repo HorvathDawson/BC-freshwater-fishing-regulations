@@ -18,6 +18,11 @@ import { MenuContext } from "./menu/MenuContext";
 import { WaterViewsContext, type WaterViews } from "./ViewSwipe";
 import { LIGHT } from "./theme";
 
+
+// (T1205) a reading is current by the clock: these fixtures read at 2026-09-04T06:00Z, so the clock is 06:05Z that day
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true }); vi.setSystemTime(Date.parse("2026-09-04T06:05:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
+
 afterEach(cleanup);
 beforeEach(clearPanelCache);
 

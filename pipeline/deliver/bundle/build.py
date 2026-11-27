@@ -475,8 +475,8 @@ def edition_valid_until(data_dir: Path) -> str:
     `data_dir` states on its cover (`synopsis_pages.synopsis_period`). The ONE place the release's `valid_until` comes
     from — no date is typed anywhere. A source tree without the book is a hard error: an empty stamp would ship a
     release the app cannot tell has lapsed."""
-    from pipeline.common.synopsis_pages import PDF_NAME, synopsis_period
-    return synopsis_period(Path(data_dir) / PDF_NAME).valid_until
+    from pipeline.common.synopsis_pages import synopsis_period
+    return synopsis_period(SOURCE.under(data_dir).synopsis_pdf).valid_until
 
 
 def _repo_relative(p: Path) -> str:

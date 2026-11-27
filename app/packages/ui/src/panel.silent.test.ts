@@ -163,19 +163,26 @@ describe("a silent panel member", () => {
   });
 });
 
-// (T830) THE ROWS ARE READ AT THE INSTANT ASKED, not the day's midnight: a reading that cannot be ranked (Capilano's level,
-// no band) made after 06:00 was past the age line from midnight, so the line under the table said "Not reporting" while
-// the gauge switch beside it (asked at the clock) said reporting.
+// (T830, T1205) THE ROWS ARE READ AT THE REAL NOW, not the day's midnight: a reading that cannot be ranked (Capilano's
+// level, no band) made after 06:00 was past the age line from midnight, so the line under the table said "Not reporting"
+// while the gauge switch beside it said reporting. Freshness is now `now`'s, whatever instant the day asks about.
 describe("(T830) a live sheet asked at the clock", () => {
+  it("with no `now` given, `ref` (the instant asked) stands in for it", () => {
+    const MID = new Date("2026-10-20T07:00:00Z");
+    const at = (ref: number) => donorView(answer(), { ...opts(), day: MID, ref });
+    const early = at(Date.parse("2026-10-22T21:00:00-08:00")), late = at(Date.parse("2026-10-20T21:00:00-08:00"));
+    if (!early.ok || !late.ok) throw new Error("expected an estimate");
+    expect(early.silent).toMatch(/Rankless Creek/);                 // asked two days on: the reading is past the line
+    expect(late.silent).not.toMatch(/Rankless Creek/);
+  });
   const MIDNIGHT = new Date("2026-10-20T07:00:00Z");     // 2026-10-20 00:00 in Vancouver; RANKLESS spoke at 20:35
   const CLOCK = Date.parse("2026-10-20T21:00:00-08:00");
-  it("keeps an unranked reading of the evening a reporting row, where the day's midnight called it quiet", () => {
-    const at = (ref?: number) => donorView(answer(), { ...opts(), day: MIDNIGHT, ...(ref !== undefined ? { ref } : {}) });
-    const before = at();
-    const after = at(CLOCK);
-    if (!before.ok || !after.ok) throw new Error("expected an estimate");
-    expect(before.silent).toMatch(/Rankless Creek/);
-    expect(after.silent).not.toMatch(/Rankless Creek/);
-    expect(after.rows.find((r) => r.station === "RANKLESS")?.reads).toBe("Reporting, but its reading cannot be ranked today.");
+  it("keeps an unranked reading of the evening a reporting row, whatever instant the day is asked at", () => {
+    const at = (ref: number) => donorView(answer(), { ...opts(), day: MIDNIGHT, ref, now: CLOCK });
+    for (const v of [at(MIDNIGHT.getTime()), at(CLOCK)]) {
+      if (!v.ok) throw new Error("expected an estimate");
+      expect(v.silent).not.toMatch(/Rankless Creek/);
+      expect(v.rows.find((r) => r.station === "RANKLESS")?.reads).toBe("Reporting, but its reading cannot be ranked today.");
+    }
   });
 });

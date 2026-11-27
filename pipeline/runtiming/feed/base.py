@@ -227,7 +227,7 @@ def basin_of(points: Sequence[Tuple[float, float]], gpkg: Optional[Path] = None)
     from pipeline.deliver.tiles.basins import groups
     if gpkg is None:
         from pipeline.common.curated import SOURCE
-        gpkg = SOURCE / "bc_fisheries_data.gpkg"
+        gpkg = SOURCE.fwa_gpkg
     g = groups(str(gpkg))
     ids = list(g["basin_id"])
     tree = STRtree(list(g.geometry))

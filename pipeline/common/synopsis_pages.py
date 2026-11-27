@@ -22,13 +22,9 @@ from typing import NamedTuple, Optional
 
 from pipeline.common.curated import SOURCE
 
-#: The repo copy of the synopsis (`SOURCE / "fishing_synopsis.pdf"`) — the edition the entries
-#: were read from (gov.bc.ca's file is the same edition, but its bytes move day to day).
-PDF_NAME = "fishing_synopsis.pdf"
-
-
 def default_pdf() -> Path:
-    return Path(SOURCE / PDF_NAME)
+    """The repo copy of the synopsis (`SOURCE.synopsis_pdf`)."""
+    return SOURCE.synopsis_pdf
 
 
 #: The running footer every numbered page carries: "40 2025-2027 BC Freshwater Fishing Regulations

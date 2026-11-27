@@ -8,9 +8,13 @@
  * A row in effect with NO match yet is listed app-wide (`inSeasonNotice`), so a reader still learns of it.
  *
  * IN EFFECT on a day: the row is on the page (not `removed`), its `from` (if any) is on or before the day and its `to`
- * (if any) on or after it. `to` is the curated override's, else the feed's — never inferred from a window the change
- * prints (owner 2026-11-11, T548: "Never invent an end date"). A row with only a `from` stays in effect until the page
- * drops it.
+ * (if any) on or after it. (T1167, owner 2026-11-25) A DATED notice — its own text states a range whose year reads
+ * ("No fishing July 30 to September 15", posted July 30, 2026), or its effective cell prints both ends — is in force from
+ * its first day through its last and shown as UPCOMING the 14 days before, then not at all (`inseasonWindow.ts`: the rule,
+ * which the feeds worker also reads to tell the owner of a range it cannot date). Otherwise `to` is the curated
+ * override's, else the feed's — never guessed (owner 2026-11-11, T548: "Never invent an end date"): a row with only a
+ * `from` stays in effect until the page drops it. Banner only: the answer and the map's colour stay the book's
+ * ("Banner only, but louder").
  *
  * WHERE (T520; T673, owner 2026-11-13: ONE file for every release — "Why not just have a single file that does both?"):
  * per water (its durable item id), `all` or FWA RANGES — stream key + metres along it, never a release, part index or
@@ -22,6 +26,7 @@
 import { MONTHS } from "./calendar.generated";
 import { SOURCE_AUTHORITIES } from "./sourceNames";
 import { FEED_FORMATS } from "./feedFormats.generated";
+import { inSeasonOn, inSeasonSpan, type InSeasonPhase } from "./inseasonWindow";
 import { endWords, type EndsTable } from "./ends";
 
 // (T556) generated from the Python writers' one table (pipeline/common/feed_formats.py): never a literal here
@@ -171,18 +176,6 @@ export function isoDayOf(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/**
- * When a row is in force: the curated override, else the feed's own dates — NEVER AN END INFERRED (owner 2026-11-11,
- * T548: "A notice stops showing when the Province drops it. Never invent an end date"). A printed window in the change
- * ("No fishing July 30 to September 15") is the notice's words, shown with it; it does not end the row: the row is in
- * force from its `from` until the page drops it or a printed / curated `to` passes. (The one-off rule of 65df4ce38, an
- * end taken from a window opening on the `from` day, is gone.) One case file pins this rule and
- * `pipeline.regs.inseason.matches.span` (`inseason-span.parity.json`).
- */
-export function inSeasonSpan(row: InSeasonRow, link?: { from?: string; to?: string }): { from: string | null; to: string | null } {
-  return { from: link?.from ?? row.from ?? null, to: link?.to ?? row.to ?? null };
-}
-
 export interface InSeasonChange {
   readonly id: string;
   readonly region: string;
@@ -190,6 +183,10 @@ export interface InSeasonChange {
   readonly text: string;
   readonly from: string | null;
   readonly to: string | null;
+  /** (T1167) dated by the range its own text states (`inSeasonSpan`) */
+  readonly dated: boolean;
+  /** (T1167) on the day joined: in force, or upcoming (`inSeasonOn`) */
+  readonly phase: InSeasonPhase;
   readonly source: string;
   /** where it lands, per water (`InSeasonWater`); null = not matched yet */
   readonly waters: Readonly<Record<string, InSeasonWater>> | null;
@@ -198,6 +195,7 @@ export interface InSeasonChange {
 
 /**
  * Every row of the feed in effect on `day` ("YYYY-MM-DD"), split into matched and not. Removed rows are never in.
+ * (T1167) A dated row is in from `INSEASON_LEAD_DAYS` before its first day, as "upcoming" (`phase`, `inSeasonOn`).
  * (T983) `ended`: the ids of the rows still on the page whose `to` has passed (begun and over). The inbox counts them as
  * met (`inboxMerge`'s `known`), so a row that comes back into force because the in-force rule or a curated date moved
  * (as T548 did to the seven "July 30 to September 15" closures in 0.8.4) is not news.
@@ -217,11 +215,12 @@ export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | n
     if (gone.has(r.id)) continue;
     const link = links?.notices[r.id];
     const span = inSeasonSpan(r, link);
-    if (span.from && span.from > day) continue;
     if (span.to && span.to < day) { ended.push(r.id); continue; }
+    const phase = inSeasonOn(span, day);
+    if (!phase) continue;
     const here = link?.waters ?? null;
     const held = here !== null && !(absent && Object.keys(here).length > 0 && Object.keys(here).every((i) => absent.has(i)));
-    const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span,
+    const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span, phase,
                                 source: feed.source, waters: held ? here : null };
     (c.waters ? matched : unmatched).push(c);
   }
@@ -367,6 +366,21 @@ export const INSEASON_WORDS = {
   noticeClose: "Got it",
   /** (T694) the mark an unread notice carries on its water's page and in the inbox */
   marks: { new: "New", updated: "Updated" },
+  /** (T1167) a dated notice in the lead days before its first day: its banner's head word */
+  upcoming: "Upcoming in-season change",
+  inForce: "In-season change",
+  /** (T1167) the several notices' line counts the upcoming ones: "3 in-season changes (1 upcoming) · see ›" */
+  upcomingCount: (n: number) => `${n} upcoming`,
+  /** (T1167, "Banner only, but louder") the Keep strip's status line while a notice is in force on the page: the answer
+   *  stays the book's, and points at the notice above it */
+  statusSee: (n: number) => (n === 1 ? "See the in-season notice above" : `See the ${n} in-season notices above`),
+  /** (T1167, owner 2026-11-26 "A: warning amber with a mark") the caution mark an in-force notice's banner and the
+   *  status line's pointer wear: the glyph the Keep tab's caveat titles already use ("⚠ At certain times", `regs/words.ts`),
+   *  drawn hidden from a screen reader (the words beside it say it) */
+  warn: "⚠",
+  /** (T1167) the whole-year bars' legend for a dated notice's range */
+  yearMark: (dates: string) => `In-season notice, ${dates}`,
+  yearMarks: "In-season notices",
 } as const;
 
 export interface InSeasonBannerVM {
@@ -382,6 +396,24 @@ export interface InSeasonBannerVM {
   readonly note: string;
   /** (T694) "New" / "Updated": an unread notice on this device; null: none */
   readonly mark: string | null;
+  /** (T1167) in force, or upcoming (the lead days before a dated notice's first day) */
+  readonly phase: InSeasonPhase;
+  /** (T1167) the range its own text states, when it is dated (`inSeasonSpan`): what the whole-year bars mark */
+  readonly window: { readonly from: string; readonly to: string } | null;
+  /** (T1167, owner 2026-11-26 "A: warning amber with a mark") in force: "warn" (the page's warning amber and the caution
+   *  mark); upcoming: "quiet" (grey, owner "A: grey, as pictured") */
+  readonly tone: InSeasonTone;
+  /** the caution mark it wears (`INSEASON_WORDS.warn`), or null (upcoming) */
+  readonly warn: string | null;
+}
+
+/** (T1167) how loud a notice is drawn: in force "warn", upcoming "quiet" */
+export type InSeasonTone = "warn" | "quiet";
+
+/** (T1167) the collapsed line's tone and mark: "warn" when any notice under it is in force */
+export function inSeasonLineTone(banners: readonly InSeasonBannerVM[]): { readonly tone: InSeasonTone; readonly warn: string | null } {
+  const warn = banners.some((b) => b.tone === "warn");
+  return { tone: warn ? "warn" : "quiet", warn: warn ? INSEASON_WORDS.warn : null };
 }
 
 /**
@@ -395,10 +427,12 @@ export function inSeasonSummary(banners: readonly InSeasonBannerVM[]): string | 
     const b = banners[0]!;
     return `${b.mark ? `${b.mark} · ` : ""}${b.head} · ${INSEASON_WORDS.see}`;
   }
-  // (T694) "3 in-season changes (1 new, 1 updated) · see ›"
+  // (T694) "3 in-season changes (1 new, 1 updated) · see ›"; (T1167) "(1 new, 1 upcoming)"
   const n = (m: string) => banners.filter((b) => b.mark === m).length;
   const marks = [[n(INSEASON_WORDS.marks.new), "new"], [n(INSEASON_WORDS.marks.updated), "updated"]] as const;
-  const said = marks.filter(([k]) => k > 0).map(([k, w]) => `${k} ${w}`).join(", ");
+  const soon = banners.filter((b) => b.phase === "upcoming").length;
+  const said = [...marks.filter(([k]) => k > 0).map(([k, w]) => `${k} ${w}`),
+                ...(soon ? [INSEASON_WORDS.upcomingCount(soon)] : [])].join(", ");
   return `${banners.length} in-season changes${said ? ` (${said})` : ""} · ${INSEASON_WORDS.see}`;
 }
 
@@ -406,12 +440,15 @@ export function inSeasonSummary(banners: readonly InSeasonBannerVM[]): string | 
 export function inSeasonBanner(change: InSeasonChange, cover: Pick<InSeasonCover, "where">,
                                mark: "new" | "updated" | null = null): InSeasonBannerVM {
   const dates = inSeasonDates(change.from, change.to);
-  const head = `In-season change${dates ? ` (${dates})` : ""}`;
+  // (T1167) the lead days before a dated notice: "Upcoming in-season change (Jul 30–Sep 15)"
+  const head = `${change.phase === "upcoming" ? INSEASON_WORDS.upcoming : INSEASON_WORDS.inForce}${dates ? ` (${dates})` : ""}`;
   const where = cover.where ? INSEASON_WORDS.where(cover.where) : null;
   const m = mark ? INSEASON_WORDS.marks[mark] : null;
   return { id: change.id, head, text: change.text, source: INSEASON_WORDS.source, url: change.source,
            line: `${m ? `${m} · ` : ""}${head}: ${change.text}${where ? ` ${where}.` : ""} — ${INSEASON_WORDS.source}`,
-           where, note: INSEASON_WORDS.informational, mark: m };
+           where, note: INSEASON_WORDS.informational, mark: m, phase: change.phase,
+           window: change.dated && change.from && change.to ? { from: change.from, to: change.to } : null,
+           tone: change.phase === "upcoming" ? "quiet" : "warn", warn: change.phase === "upcoming" ? null : INSEASON_WORDS.warn };
 }
 
 /** "7a" -> "Region 7A": a region code as every surface names it (T622: the public site's water pages read it too) */

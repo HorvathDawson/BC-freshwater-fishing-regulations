@@ -72,6 +72,9 @@ export interface InboxItem {
   readonly prompted: boolean;
   /** the day it ended; null: in effect */
   readonly ended: string | null;
+  /** (T1167) in the 14 days before a dated notice's first day (`joinInSeason`'s phase at the last read); absent in a
+   *  history written before: false */
+  readonly upcoming?: boolean;
 }
 
 /** (T867) a data release put in use, or an app update: a row of the inbox */
@@ -112,7 +115,8 @@ function isItem(x: unknown): x is InboxItem {
     && isStr(i.effective) && dayOrNull(i.from) && dayOrNull(i.to) && isStr(i.url)
     && (i.arrived === "new" || i.arrived === "updated") && isDay(i.at)
     && (i.waters === null || (Array.isArray(i.waters) && i.waters.every(isStr)))
-    && typeof i.read === "boolean" && typeof i.prompted === "boolean" && dayOrNull(i.ended);
+    && typeof i.read === "boolean" && typeof i.prompted === "boolean" && dayOrNull(i.ended)
+    && (i.upcoming === undefined || typeof i.upcoming === "boolean");
 }
 
 /**
@@ -198,8 +202,10 @@ export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
     const waters = c.waters ? Object.keys(c.waters).sort() : null;
     const effective = r?.effective ?? "";
     const now = { id: c.id, region: c.region, water: c.water, text: c.text, effective, from: c.from, to: c.to,
-                  url: c.source, waters, ended: null };
-    const e = was.get(c.id);
+                  url: c.source, waters, ended: null, ...(c.phase === "upcoming" ? { upcoming: true } : {}) };
+    // (T1167) the phase is today's: an upcoming mark the notice has outgrown is dropped
+    const met = was.get(c.id);
+    const e = met && met.upcoming && c.phase !== "upcoming" ? (({ upcoming: _, ...rest }) => rest)(met) : met;
     if (e) {
       // the same id amended in place (a date change alone keeps a lone row's id): unread again, as updated
       const amended = linked && (e.text !== c.text || e.effective !== effective);
@@ -296,9 +302,10 @@ export const inboxEventKind = (s: InboxState | null, id: string): "data" | "app"
 /** the inbox opened by itself: every notice it opened for is not opened for again */
 export const inboxPrompted = (s: InboxState): InboxState =>
   ({ ...s, items: s.items.map((i) => (i.prompted ? i : { ...i, prompted: true })) });
-/** whether the inbox opens by itself: an unread notice in effect, not on the map yet, it has not opened for */
+/** whether the inbox opens by itself: an unread notice in effect, not on the map yet, it has not opened for (T1167: an
+ *  upcoming one never opens it — it waits in the list, and opens it on its first day if still unread) */
 export const inboxWantsOpen = (s: InboxState | null): boolean =>
-  !!s && s.items.some((i) => !i.read && !i.prompted && i.waters === null && !i.ended);
+  !!s && s.items.some((i) => !i.read && !i.prompted && i.waters === null && !i.ended && !i.upcoming);
 export const inboxUnread = (s: InboxState | null): number => inboxUnreadIds(s).length;
 /** (T694) the mark a notice carries on its water's page: unread and in effect only */
 export function inboxMark(s: InboxState | null, id: string): InboxArrival | null {
@@ -325,6 +332,9 @@ export const INBOX_WORDS = {
   changed: (n: number | null) => (n === null || n === 0 ? "" : `${n} ${n === 1 ? "water" : "waters"} changed`),
   appTitle: (version: string) => `Updated to ${version}`,
   ended: "Ended",
+  /** (T1167) a dated notice in the 14 days before its first day: its tag, and the detail's line */
+  upcoming: "Upcoming",
+  upcomingNote: (day: string) => `This change starts ${day}.`,
   posted: "Posted",
   /** (T983) a notice that prints no date of its own: when it was first seen */
   firstSeen: (day: string) => `first seen ${day}`,
@@ -359,10 +369,13 @@ function dayWords(day: string, today: string): string {
  */
 function rowDate(i: InboxItem, today: string): string {
   if (i.ended) return dayWords(i.ended, today);
+  // (T1167) an upcoming notice says its range ("Jul 30–Sep 15")
+  if (i.upcoming) return inSeasonDates(i.from, i.to) ?? dayWords(i.from ?? i.at, today);
   return i.from ? dayWords(i.from, today) : INBOX_WORDS.firstSeen(dayWords(i.at, today));
 }
 /** a read new notice is "Posted": "New" is only ever an unread one */
-const tagOf = (i: InboxItem, unread: boolean) => (i.ended ? INBOX_WORDS.ended : i.arrived === "new" && !unread ? INBOX_WORDS.posted : INSEASON_WORDS.marks[i.arrived]);
+const tagOf = (i: InboxItem, unread: boolean) => (i.ended ? INBOX_WORDS.ended : i.upcoming ? INBOX_WORDS.upcoming
+  : i.arrived === "new" && !unread ? INBOX_WORDS.posted : INSEASON_WORDS.marks[i.arrived]);
 
 export interface InboxRowVM {
   readonly id: string;
@@ -441,6 +454,7 @@ export function inboxDetail(s: InboxState | null, id: string, today: string): In
   const i = s?.items.find((x) => x.id === id);
   if (!i) return null;
   const note = i.ended ? INBOX_WORDS.endedNote(dayWords(i.ended, today))
+    : i.upcoming && i.from ? `${INBOX_WORDS.upcomingNote(dayWords(i.from, today))}${i.waters === null ? ` ${INBOX_WORDS.notOnMapNote}` : ""}`
     : i.waters === null ? INBOX_WORDS.notOnMapNote
     : i.waters.length > 1 ? INBOX_WORDS.manyWaters(i.waters.length) : null;
   return { id, tag: tagOf(i, !i.read), head: `${i.water} · ${regionWords(i.region)}`, dates: inSeasonDates(i.from, i.to),

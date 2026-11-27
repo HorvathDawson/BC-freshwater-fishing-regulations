@@ -37,3 +37,7 @@ export const FEED_MIN_APP = {
 
 /** (T905) the keys of a DFO region's own bookkeeping: in the private dfo-state file, never the index */
 export const DFO_STATE_KEYS = ["sha256", "changed", "failures", "header", "unresolved", "texts"] as const;
+
+/** (T1167) days before the first day of the range an in-season notice states that its banner shows, as
+ *  upcoming (core `inSeasonOn`, Python `regs.inseason.matches.on`) */
+export const INSEASON_LEAD_DAYS = 14;

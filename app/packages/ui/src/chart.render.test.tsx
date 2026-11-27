@@ -2,7 +2,7 @@
  * The flow chart as a view (owner 2026-10-21): built at the measured width, zoomed and panned by measurements only,
  * read out in core's words. The gestures that feed it are drawn in @app/ui-native; this pins what they cause.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { chartReadoutLine, monthAbbr } from "@app/core";
 import type { WaterSource, Series, StationId } from "@app/data";
@@ -63,6 +63,20 @@ describe("the axis names real times", () => {
     const year = { t0: Date.UTC(2026, 0, 1), t1: Date.UTC(2026, 11, 31) };
     expect(chartTicks(year, "year", 3).map((k) => k.label)).toEqual(["Jan", "Apr", "Jul", "Oct"]);
   });
+});
+
+describe("(T1205) the chart's Today mark is the last point only while it is current by the clock", () => {
+  afterEach(() => { vi.useRealTimers(); });
+  const markAt = async (nowMs: number) => {
+    vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true }); vi.setSystemTime(nowMs);
+    const { result } = renderHook(() => useChartView(source, ST, "72h", undefined, undefined, 600));
+    await waitFor(() => expect(result.current.state).toBe("ready"));
+    const v = result.current.state === "ready" ? result.current.value! : null!;
+    return [v.shape.todayX !== null, v.shape.now !== null];
+  };
+  const LAST = T0 + (N - 1) * H;
+  it("present for a last point an hour old", async () => { expect(await markAt(LAST + H)).toEqual([true, true]); });
+  it("absent for a last point nine hours old (the line and its dates stay)", async () => { expect(await markAt(LAST + 9 * H)).toEqual([false, false]); });
 });
 
 describe("useChartView", () => {

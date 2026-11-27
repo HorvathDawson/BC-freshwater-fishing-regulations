@@ -13,7 +13,7 @@
 import "../render-setup";
 import "./globals";
 import { createElement as h } from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { GAUGE_PAGE_WORDS, figure, noChartSentence, standing, standingLong, STORE_CONTACT } from "@app/core";
 import { httpFeed, stationChartSource, type SectionId, type StationId, type WaterSource } from "@app/data";
@@ -124,6 +124,10 @@ async function settled(html: () => string, drawn = "About this forecast"): Promi
   }, { timeout: 10_000, interval: 100 });
   return last;
 }
+
+// (T1205) a reading is current by the clock: the fixtures are of NOW, so the clock is too
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(NOW); });
+afterEach(() => { vi.useRealTimers(); });
 
 describe("the gauge page shows what the app shows for one station", () => {
   const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
