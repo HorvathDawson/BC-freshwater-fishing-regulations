@@ -79,6 +79,15 @@ no join to say (T1140)" (Old Kootenay River Channel; `part.py`, the side words, 
   the mouth". Then, in order: the WMA name in 0.10.1, exact leave points in `spans.compute`, the binding fixes,
   geometry, the map look. Six picks wait (below).
 
+## 2026-11-26 evening: the label rulings on #312 (planning chat)
+The owner's words (verbatim): Snehumption: "Plain \"2 side channels\" (Recommended)" (the rule: if not every channel in the
+part has a named end, the plain count). Klinaklini and MacMillan "Mouth → Source": "Plain \"Side channel\" / \"3 side
+channels\" (Recommended)" (built after the app change in T1196). Short form: "Shorten Ecological Reserve to \"Eco Reserve\"".
+Then, on the Skeena: "it should be \"[name] eco reserve\" everywhere" (names, ends and subtitles alike, e.g. "Skeena River
+inside Skeena River Eco Reserve"). #312 round 4 built Snehumption "2 side channels" and "Eco Reserve"; round 5 carries "Eco
+Reserve everywhere" (the Skeena p4 "Ecological Reserve boundary" end was the one left unshortened). Rulings page:
+`docs/OWNER-RULINGS.md` batch 3.
+
 ## Work
 1. The owner's picks on the step-back design; then the gnis:2123 fix it names (default: the first-vertex mouth and
    the stem-order check), a clean side deliver and the part diff (only Old Kootenay p1 should change).

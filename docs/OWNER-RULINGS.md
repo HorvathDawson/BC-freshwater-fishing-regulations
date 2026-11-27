@@ -214,6 +214,56 @@ A walk change: needs a reach rerun and a rule-bindings diff (T1177 item 10).
 ### OPEN, not ruled
 - **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
 
+## Audit rulings, batch 3 (2026-11-26, evening; planning chat, relayed)
+
+His words, verbatim. Answers given in the planning chat and relayed verbatim to the chat that builds count as his yes
+(the standing ruling below). Builds ride the same one data build inside the 0.10.0 re-cut unless a line says otherwise.
+
+### Labels (the #312 final table; T1172, T1196, T1191)
+- **Snehumption:** "Plain \"2 side channels\" (Recommended)". The rule: if not every channel in the part has a named end, the part reads the plain count.
+- **Klinaklini and MacMillan, no "Mouth → Source":** "Plain \"Side channel\" / \"3 side channels\" (Recommended)". The app change (T1196) ships first, then the one-line data change.
+- **"Eco Reserve" everywhere:** "Shorten Ecological Reserve to \"Eco Reserve\"", then "it should be \"[name] eco reserve\" everywhere" (names, ends and subtitles alike).
+- **Names inside areas** (the naming model, T1191): see the ticket for his words; a part wholly inside an area says so, every separate side-channel part says why it is separate, and lakes partly in a cut area carry a "partly in" chip.
+
+### Tamihi Creek stands (O15)
+"Our cut is the falls" is unchanged. The book prints two lines (closed all year below the falls; closed May 1-June 30 above); the data matches both and only the distance differs (0.66 km, not "approximately 200 m"). Told to him 2026-11-26; to be re-confirmed in his audit review. Province list entry 9.
+
+### Standing rules: gauges, feedback, storage, how decisions are put
+- **Answers given here count:** "Yes, answers given here count (Recommended)". An answer given in the planning chat and relayed verbatim counts as his yes for another chat's merge. Irreversible deletes still need him directly (the staging-backup release copy, 0.48 GiB, waits for his own yes in that chat).
+- **R2 storage is a soft target:** "Whole account, but a soft target: trim the waste, a few GB over is fine (Recommended)" (replaces the hard 10 GB reading; the account measured about 22 GiB). Clean-up he selected: "Compress the big source files, Delete leftover test uploads and old test app files, Delete the old release copy in the staging backup"; not selected: shortening the staging backups to 14 days (they stay 30). The raw basemap: "maybe we should just have the command to refetch the raw pmtile? then we can pin that one as a backup into r2?"
+- **Design decisions come as whole options:** "also we need to have just a couple proposals with all the info and then i can select how it is right now having all the exampels seperate makes it hard to make a decision i think we need to make like a option A-... wehere each one is different ways we could handle it. make sense? this is just hard for me to interpret." (Said on the cut rule; it holds for every design question: 2-4 complete options A, B, C on one sheet, each combining the parts that belong together.)
+- **The gauge page is one shared piece:** "one shared piece used by both website and app is a yes. ideally we have the colour bar showing current conditions with where it currently is like the condition tab. we want this page to have minimal text all the sources at bottom like all other pages. clean ui etc etc." On the web page: "the web has a big \"live level and flow, nd the weather ...\" at the top this is bloated and can be in sources at bottom. or actually just removed.... the app is much cleaner here. i like app design." Three ranges: "Three ranges: 72 h, 1 week, 1 year (Recommended)".
+- **Gauges with no water card are reachable:** "yes as long as they have up to date data" (the conditions map's tap on a gauge, T1194; lower tidal Fraser gauges).
+- **"Current" is judged against the feed, not the clock:** "A new ticket, in the 0.10.0 re-cut (Recommended)" (T1205).
+- **Tester pictures:** "build A we still will send stuff to reviewwrr after we can send the one proposal to see what they think." The search terms stay: "i like my search terms we should leaves those they are fun." Bigger text: "we just want to make sure bigger text plays nicely in all parts of the app." Towns: "i want you to choose best judgement for users to have the best experience across bc and make it easy to find a location by zooming in from far out". Map key: "Floating \"Map key\" over the map, near the bottom (Recommended)"; legend words: "\"Its own rules / Region rules only\" (picture 21)"; day selector: "One \"Today\" chip that opens the calendar (Recommended)"; phone controls: "definitely drop +/- then we need to maybe rework all the rest of the controls?"; Dease Lake salmon block: "Leave it as it is (Recommended)" (T1202).
+- **T1077:** "Yes, bait after gear is fine (Recommended)". **T1078:** "yes do primary closure. the as built is better then mockup. we could combine the salmon and game fish schedules for year round closures tho if they are both always closed (they could split again if it ever changes)." (Primary closure only; one block "Salmon and game fish" with one year bar: "One block \"Salmon and game fish\" with one year bar".) Top tabs shorten their words when large text makes them too wide.
+- **T1167 banner:** "Yes, ship as pictured (Recommended)". **T1163:** "just test in emulator instead for now".
+
+### Reserve and park cut rule (T1199, T1240-T1242)
+- **Edge water along a reserve or park:** "Closed, like a boundary river (Recommended)".
+- **A stream beside an area that never crosses:** "Never inside (Recommended)". With his design words: "also if a stream never enters a eco area at all then it will never get cut and will not get considered inside. it must cross at least once or be very close. ... we dont want tiny artifacts left because of the 25m or whatever distance rule."
+- **Timing:** "In the 0.10.0 re-cut (Recommended)". The cut rule built is T1199 (real crossings, 50 m band, no piece under 100 m).
+- **The water option:** "D: simplify the water itself"; late folds: "Hold the re-cut for all of them"; loop removal: "Run the loop-removal trial first, then I decide" (T1242). Snehumption's fold: "i need to see on map for how to handle it" (T1240).
+
+### Tributary and place picks of the one-offs batch (data chat)
+- **Healy Lake outlet:** "Yes, open the 5.05 km above the lake (Recommended)".
+- **Goat River:** "Yes, open the 76.8 km to the regional quota (Recommended)" (the rest of the main stem takes the regional quota; entry 11 of the Province list).
+- **Mosquito Creek:** "Yes, move it (Recommended)" (to the Arrow Park creek, gnis:7335: closes about 36 km, opens 1.4 km).
+- **Lake rebinds:** "Yes to all four (Recommended)" (the D6 lake rebinds: Twin Lakes 4-34, Hall Lake, McDonnel Lake, Panther Lake; read from the batch's list, to confirm with the data chat).
+- **Hatton Creek (replaces O4's fly-only dates):** "it is all year and make sure this is also to the mainstem and other tribs that they all get all year". Read as: the fly-only rule of O4 runs all year (not Sep 1-Jul 14) on the main stem and on every tributary; to confirm with the data chat, which relayed it.
+
+### Out-of-unit audit (T1118)
+- The 14 newly examined rows whose printed unit is off: "Keep all 14 and add each to the Province list with its evidence (Recommended)" (entries 25-38 of the Province list).
+- **McLennan Creek 2-8:** "Both creeks closed, ask the Province (Recommended)" (the 2-4 McLennan and the 2-8 McLean creeks both closed).
+- His question that began the full audit: "what ever happen to the audit a long time ago looking at all waterbodies that were matched to items in a different mu you said there were like 50 but we only looked at 7". All 60 pairs are now audited: no new wrong water.
+
+### Lake zones and the naming model: the direction
+- **Lake zones:** the mix is the direction: "i think we do want some to be full cuts because they are big sectiosn liek obvious kooteay lake. however smaller areas should be marks only so i think the mix is the correct way"; every zone bounded by a line becomes a cut: "all line cuts make sense to do" (T1180).
+- **Naming:** P3 (area names plus chips), the full first stage inside the 0.10.0 re-cut (T1191).
+
+### Review domains closed (the repo clean chat's seventh question)
+He selected Tidal, DFO and Sloughs, and added: "dfo might have more if future places come in so jsut make sure that plays nicely." The three domains' names and entries stay open to new places; the DFO one must accept a place that appears later.
+
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".
 - Waters whose rules bind nowhere (Squirrel Lake 6-1, Frog, Redfern) are the known unfound waters.
