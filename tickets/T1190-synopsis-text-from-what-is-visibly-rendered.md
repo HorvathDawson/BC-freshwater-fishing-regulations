@@ -49,10 +49,17 @@ Nanaimo River, PDF p.19 (printed 17), "Oct ~~15~~" (BOOK-ERRORS entry 15), the o
   p.17 2,581, pp.24/25 27 each, pp.65-67 25 each; the Nanaimo mark; p.61's one misplaced glyph). Glyph-level, the module equals the study's prototype on
   all 88 pages (0 verdict differences). Hard pages 17-19, 24, 25, 61, 65-67 re-read against the baseline: 0 unexplained (Heber, the accepted T415 diff).
 - August 2026 book, OLD method (before the swap, a pristine checkout of main): 1,393 rows, 0 page errors (65 s, 2.3 GB).
-- WHOLE-BOOK GATE, current book (2026-11-26 21:59): 1,393 baseline rows, 1,393 read, 0 unexplained; 1 accepted (Heber, T415); one `[struck]`
-  line, Nanaimo River p.19 "Oct ~~15~~", known. p.61 said on stderr (no rows).
-- AUGUST 2026 BOOK, new method: 1,393 rows, identical to the old method's 1,393 on every row (0 differences to classify), 0 pages refused,
-  Nanaimo's struck "15" still printed and known; peak memory 1.07 GB (old 2.34 GB), 52 s (old 65 s).
+- AFTER THE REVIEW OF #323 (rules 1-4 changed; run 2026-11-27 01:37, one heavy.sh job, three whole-book reads):
+  1. Gate, current book: 1,393 baseline rows, 1,393 read, 0 unexplained; 1 accepted (Heber, T415); `[struck]`: Nanaimo p.19 "Oct ~~15~~", known.
+  2. August 2026 book, this code vs the pre-T1190 extractor's reading (`baseline/2026-08/reading.json`, cut from 48fc85d7d's run): 1,393 of
+     1,393 rows identical on the gate's row sha (water, MU, raw_regs, symbols, pages, region, image: the TEXT, not only page + position);
+     0 pages refused; `[struck]`: Nanaimo, known (still struck in that copy). Report: `baseline/2026-08/check-new-method.json`.
+  3. 48fc85d7d's own code against the same reading: 0 unexplained (`check-old-method.json`): the manifest is what the old method reads.
+  Notes the runs printed: only `possible-strike`, on 16 pages (PDF 3, 14, 15, 23, 29, 30, 36, 47, 48, 54, 55, 63, 64, 70, 73, 74), all banner
+  headings ("NOTICE TO ANGLERS", "WARNING", "IMPORTANT NOTICE"): a line painted before the heading runs through its middle; no table row. No
+  fill, image or same-colour note fired on either book. Reproduce 2 and 3: `python -m pipeline.regs.extraction.baseline check --manifest
+  pipeline/regs/extraction/baseline/2026-08/reading.json --accepted pipeline/regs/extraction/baseline/2026-08/accepted_diffs.json --pdf
+  data/source/fishing_synopsis.2026-08.pdf` (heavy: through `scripts/heavy.sh`), here and at 48fc85d7d.
 - Found on the way: `extract_synopsis`'s command could not start since 0399ce248 (T1021): a local `import get_config` in `main()` shadowed the
   module's name (UnboundLocalError). Fixed in 37fdbccdd with a test that runs `main(["--help"])`.
 
