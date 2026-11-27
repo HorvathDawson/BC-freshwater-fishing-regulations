@@ -13,6 +13,7 @@ import { Text } from "../Text";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { GAP, H, RunRect, useBarWidth } from "./YearStrip";
+import { InSeasonBand, InSeasonLegend } from "./InSeasonYear";
 
 /** a run's state as the strip's bits: the same fill as the page's game-fish bar (bit 1 closed, bit 2 release, 0 open) */
 const BITS = { keep: 0, release: 2, closed: 1 } as const;
@@ -38,6 +39,8 @@ export function TroutYearBar({ year, palette, todayAt = null, months = [] }: {
               : <RunRect key={r.i} x={r.at} w={r.rw} bits={BITS[r.state]} palette={palette} />)}
           </Svg>
         )}
+        {/* (T1167) a dated in-season notice's range, over its days */}
+        {w > 0 && <InSeasonBand palette={palette} />}
         {w > 0 && todayAt !== null && (
           <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants"
                 style={{ position: "absolute", top: -5, ...bar.marker(todayAt), width: 2, height: H + 10, backgroundColor: palette.ink }} />
@@ -48,6 +51,7 @@ export function TroutYearBar({ year, palette, todayAt = null, months = [] }: {
           {months.map((m, i) => <Text key={i} style={[TYPE.month, { color: palette.sub }]}>{m}</Text>)}
         </View>
       )}
+      <View style={{ marginTop: 6 }}><InSeasonLegend palette={palette} /></View>
     </View>
   );
 }

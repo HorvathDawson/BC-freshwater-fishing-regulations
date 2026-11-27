@@ -7,7 +7,7 @@ import { compose, deliver, mime, NOTIFY_STATE, readState, type FeedEvent, type N
 import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
 import { rosterDrift, type RosterRow } from "../src/gauges/liveness";
 import { maintenanceNotices } from "../src/gauges/publish";
-import { buildFeed, diff, effectiveDates, undatedEvent, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
+import { buildFeed, diff, effectiveDates, undatedEvent, undatableEvent, NOT_ONE_RANGE, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
 import { repoData } from "../../../conformance/src/repoData";
 import { MemStore } from "./dfo.scenario";
 import { FEED_MIN_APP } from "../../../packages/core/src/feedFormats.generated";
@@ -250,18 +250,27 @@ describe("in-season changes (main's update-in-season.yml, ported)", () => {
   it("a blocked / redesigned page is an error, never an empty snapshot", () => {
     expect(() => parseInSeason("<html><body>Access Denied</body></html>")).toThrow(/no accordion-container/);
   });
+  /** (T1167) the 2026-10-28 page's notices the app cannot date: ranges that do not open on their effective day, or dates
+   *  read as no one range: Heber Creek (Nov 1 to Aug 31 posted Aug 27), Fraser R2 (Aug 15 to Dec 31 posted Sept 16), Fraser
+   *  R3 and Alexander Creek and Lardeau River (two ranges each), Fraser R5 (Jan 1 to Dec 31 posted Sept 16) */
+  const UNDATABLE_ON_PAGE = ["Heber Creek", "Fraser River", "Fraser River", "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
+                             "Lardeau River", "Fraser River"];
   it("first run is the baseline; then only a changed page tells, with the diff", async () => {
     const priv = new MemStore();
     const a = await runInSeason({ fetch: okFetch, priv, html: page, now: T("2026-10-28T12:00:00Z") });
-    expect(a).toMatchObject({ first: true, events: [] });
-    expect((await runInSeason({ fetch: okFetch, priv, html: page, now: T("2026-10-28T18:00:00Z") })).events).toEqual([]);
+    // (T1167) the page's notices whose ranges the app cannot date: told every run under one key (the notifier sends it once)
+    const told = (e: { key: string }) => !e.key.startsWith("inseason-undatable:");
+    expect(a).toMatchObject({ first: true });
+    expect(a.events.filter(told)).toEqual([]);
+    expect((a.events.find((e) => !told(e))!.data as { undatable: { water: string }[] }).undatable.map((r) => r.water)).toEqual(UNDATABLE_ON_PAGE);
+    expect((await runInSeason({ fetch: okFetch, priv, html: page, now: T("2026-10-28T18:00:00Z") })).events.filter(told)).toEqual([]);
     const edited = page
       .replace("July 4, 2025 to August 31, 2025", "July 4, 2025 to September 15, 2025") // changed
       .replace(/<tr>(?:(?!<\/tr>)[\s\S])*?Heber Creek(?:(?!<\/tr>)[\s\S])*?April 1, 2026[\s\S]*?<\/tr>/, ""); // removed
     const c = await runInSeason({ fetch: okFetch, priv, html: edited, now: T("2026-10-29T00:00:00Z") });
     expect(c.diff!.changed.map((x) => x.after.effective)).toEqual(["July 4, 2025 to September 15, 2025"]);
-    expect(c.events).toHaveLength(1);
-    expect(c.events[0]!.text).toMatch(/CHANGED \(1\)[\s\S]*Cowichan River — No fishing \(effective July 4, 2025 to September 15, 2025\)\n\s+was: No fishing \(effective July 4, 2025 to August 31, 2025\)/);
+    expect(c.events.filter(told)).toHaveLength(1);
+    expect(c.events.filter(told)[0]!.text).toMatch(/CHANGED \(1\)[\s\S]*Cowichan River — No fishing \(effective July 4, 2025 to September 15, 2025\)\n\s+was: No fishing \(effective July 4, 2025 to August 31, 2025\)/);
     expect([...priv.m.keys()].filter((k) => k.startsWith("history/"))).toHaveLength(2);
   });
   it("diff pairs a reworded row as changed", () => {
@@ -421,7 +430,8 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     feed.m.set("matches.json", JSON.stringify({ format: INSEASON_LINKS_FORMAT, release: "r-1", notices: {} }));   // (T609 W14)
     const again = await runInSeason({ fetch: okFetch, priv, feed, html: doubled, now: T("2026-10-28T18:00:00Z") });
     // the same duplicate keeps its key: the notifier sends it once
-    expect(again.events.map((e) => e.key)).toEqual(r.events.filter((e) => e.key.startsWith("inseason-duplicate:")).map((e) => e.key));
+    const dup = (e: { key: string }) => e.key.startsWith("inseason-duplicate:");
+    expect(again.events.filter(dup).map((e) => e.key)).toEqual(r.events.filter(dup).map((e) => e.key));
   });
   it("helpers", () => {
     expect(regionOf("Region 7B - Peace")).toBe("7B");
@@ -439,6 +449,38 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
       .toEqual([true, "1 in-season row has an effective date the feed cannot read (shown as in force now)", 1]);
     expect(parseChange("Trout/char daily quota = 1 (none under 30 cm) and bait ban")).toMatchObject({ kinds: ["limit", "bait"], dailyQuota: 1, species: ["trout", "char"] });
     expect(parseChange("Something new")).toBeUndefined();
+    // (T1167) the range a notice states is read whole whatever time of day follows it (core `inSeasonDating` dates it
+    // from this window): "from 12:00 pm to midnight", "from noon to midnight", a dash and a short month
+    const SUMMER = { from_month: 7, from_day: 30, to_month: 9, to_day: 15 };
+    for (const t of ["No fishing July 30 to September 15 from 12:00 pm to midnight.", "No fishing July 30-Sept 15 from 12:00 pm to midnight.",
+                     "No fishing July 30 to September 15 from noon to midnight.", "No fishing July 30 to September 15, 2026, including tributaries."])
+      expect([t, parseChange(t)?.window]).toEqual([t, SUMMER]);
+    // a time of day or a day whose month follows is never a range's last day: no window, never a wrong one (review: these
+    // read Jul 30–Jul 11, dated a year on, and Jul 30–31 for a closure to Aug 31)
+    for (const t of ["No fishing July 30 to 11:59 pm September 15", "No fishing July 30 - 31 August", "No fishing July 30 to 11 p.m."])
+      expect([t, parseChange(t)?.window]).toEqual([t, undefined]);
+    expect(parseChange("No fishing July 1-15 fly fishing only")?.window).toEqual({ from_month: 7, from_day: 1, to_month: 7, to_day: 15 });
+    // two ranges in one text: no window (the app reads it as undated, never one of the two)
+    expect(parseChange("No Fishing September 1 to October 31 Trout/char daily quota = 1 and bait ban, June 15 to August 31")?.window).toBeUndefined();
+    // (T1167) a range the app cannot date (core `inSeasonDating`) or dates read as no one range: told ONCE per set, with why;
+    // a dated range, a notice with no dates, a rescind's quoted range: not
+    const r2 = (water: string, change: string, effective: string) => ({ section: "Region 2", water, change, effective });
+    const fraser = r2("Fraser River", "No fishing for steelhead downstream of Spuzzum Creek confluence with the Fraser River (mainstem) August 15 to December 31.", "September 16, 2025");
+    const quiet = [r2("Okanagan River", "No fishing July 30 to September 15.", "July 30, 2026"), r2("Stave River", "No Fishing in the Northrop Spawning Channel", "November 18, 2025"),
+                   r2("Fraser River", "Rescind the “No Fishing for trout in the Fraser mainstem from September 1 to November 15” closure", "May 16, 2025")];
+    expect(undatableEvent(quiet, "t")).toEqual([]);
+    const lardeau = r2("Lardeau River", "No fishing near Mobbs Creek Exempt from spring closure (April 1 to June 14), exempt from trout/char release (November 1 to March 31)", "April 4, 2025");
+    const late = r2("Granby River", "No fishing July 30 to 11:59 pm September 15", "July 30, 2026");
+    const [e] = undatableEvent([...quiet, fraser, lardeau, late], "t");
+    expect([e!.key.startsWith("inseason-undatable:"), e!.title, e!.text]).toEqual([true,
+      "3 in-season notices print ranges the app cannot date (shown until the page drops them)",
+      "Region 2 · Fraser River — \"No fishing for steelhead downstream of Spuzzum Creek confluence with the Fraser River (mainstem) August 15 to December 31.\" (effective September 16, 2025): its range does not open on its effective day, so its year cannot be read\n"
+      + `Region 2 · Lardeau River — "${lardeau.change}" (effective April 4, 2025): ${NOT_ONE_RANGE}\n`
+      + `Region 2 · Granby River — "No fishing July 30 to 11:59 pm September 15" (effective July 30, 2026): ${NOT_ONE_RANGE}\n\n`
+      + "Give each a curated `effective` in data/curated/inseason/notice_waters.json.\n\nSource: https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations"]);
+    // the same set is the same key (the notifier sends a key once); another set, another key
+    expect(undatableEvent([fraser, lardeau, late], "u")[0]!.key).toBe(e!.key);
+    expect(undatableEvent([fraser], "t")[0]!.key).not.toBe(e!.key);
     const f = buildFeed([{ section: "Region 2 - Lower Mainland", water: "A", change: "No fishing", effective: "" }], null, "2026-10-28T00:00:00Z", "h", true);
     expect(f.rows[0]!.status).toBe("unchanged"); // the first feed has no "new"
   });

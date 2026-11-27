@@ -34,6 +34,7 @@ import { GroupCard } from "./GroupCard";
 import { PlainRow } from "./PlainRow";
 import { TroutCard } from "./TroutCard";
 import { SalmonYearStrip, YearStrip } from "./YearStrip";
+import { InSeasonPointer } from "./InSeasonYear";
 import { CoachSpot } from "../CoachMarks";
 import { TaggedTitle } from "./SourceTag";
 import type { KeepActions } from "./LineText";
@@ -113,6 +114,8 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   );
   return (
     <View testID="keep-tab" style={{ paddingBottom: 24 }}>
+      {/* (T1167) a page with no game-fish strip: the in-season pointer above whatever answers here (core `inSeasonKeepOf`) */}
+      <InSeasonPointer palette={palette} on="tab" />
       {!keep.strip && salmonBar}
       {keep.order.map((b, i) => {
         const before = glance && !home && at < 0 && folds.length > 0 && i === tableAt ? table(-1) : null;

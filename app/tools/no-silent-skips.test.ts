@@ -136,6 +136,7 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "conformance/src/regs/unnamed.sample.release.test.ts": { n: 1, why: `${LIVE} (and its bundle)` },
   "tools/adipose-shots.test.ts": { n: 1, why: `${SHOTS} (T38_SHOTS=1)` },
   "tools/fish-looks-shots.test.ts": { n: 1, why: `${SHOTS} (T46_SHOTS=1)` },
+  "tools/inseason-shots.test.ts": { n: 1, why: `${SHOTS} (T1167_SHOTS=1)` },
   "tools/handover.test.ts": { n: 1, why: PY },
   "tools/one-formula.test.ts": { n: 4, why: PY },
   "tools/overzoom.test.ts": { n: 1, why: `${TIER2} (TILES_DIR)` },

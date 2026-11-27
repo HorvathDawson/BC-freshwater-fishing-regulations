@@ -16,6 +16,8 @@ import { contentHash, readStored } from "./io";
 import type { FeedEvent } from "./events";
 import { parseHtml, Str, Tag } from "./dfo/html";
 import { INSEASON_FEED_FORMAT, INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
+// (T1167) the app's own rule for dating a notice's range, read here (never a copy, AGENTS 40): what it cannot date is told
+import { inSeasonDating } from "../../../packages/core/src/inseasonWindow";
 import { FEED_MIN_APP } from "../../../packages/core/src/feedFormats.generated";
 
 export const SOURCE_URL = "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations";
@@ -185,6 +187,7 @@ export async function runInSeason(deps: {
   }] : [];
   if (collapsed.dups.length) log(`in-season: ${collapsed.dups.length} row(s) printed twice, collapsed`);
   dupEvents.push(...undatedEvent(rows, (deps.now ?? new Date()).toISOString()));
+  dupEvents.push(...undatableEvent(rows, (deps.now ?? new Date()).toISOString()));
   const sha = contentHash(JSON.stringify(rows));
   // (T558) absent = the first run; a failed read fails the run (readStored): read as "no snapshot", the changes since the
   // last one would be taken for a baseline and never told
@@ -375,6 +378,33 @@ export function undatedEvent(rows: readonly Row[], at: string): FeedEvent[] {
   }];
 }
 
+/** (T1167) a date in a notice's text: "July 30", "Sept 15", "31 August" */
+const MONTH_WORD = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?";
+const DATE_IN_TEXT = new RegExp(`\\b${MONTH_WORD}\\s+\\d{1,2}\\b|\\b\\d{1,2}\\s+${MONTH_WORD}(?![a-z])`);
+/** (T1167) why a text that prints dates has no one range the app reads (two ranges, or a form `parseChange` refuses) */
+export const NOT_ONE_RANGE = "its text prints dates the feed does not read as one range";
+
+/** (T1167) the notices whose text prints a range the app cannot date (core `inSeasonDating`, the app's own rule: never a
+ *  copy), or dates the feed reads as no one range: shown until the page drops them, never ended by a guess — said to the
+ *  owner ONCE per set (keyed by them), so each gets a curated `effective`. A rescind's or a clarification's quoted dates
+ *  are not its own. */
+export function undatableEvent(rows: readonly Row[], at: string): FeedEvent[] {
+  const bad = rows.flatMap((r) => {
+    const parsed = parseChange(r.change);
+    if (parsed?.kinds.includes("rescind") || parsed?.kinds.includes("clarification")) return [];
+    const d = inSeasonDating({ ...effectiveDates(r.effective), parsed });
+    const why = d.kind === "unreadable" ? d.why : !parsed?.window && DATE_IN_TEXT.test(r.change) ? NOT_ONE_RANGE : null;
+    return why ? [{ section: r.section, water: r.water, change: r.change, effective: r.effective, why }] : [];
+  });
+  if (!bad.length) return [];
+  return [{
+    key: `inseason-undatable:${contentHash(JSON.stringify(bad))}`, kind: "inseason",
+    title: `${bad.length} in-season ${bad.length === 1 ? "notice prints a range" : "notices print ranges"} the app cannot date (shown until the page drops ${bad.length === 1 ? "it" : "them"})`,
+    text: `${bad.map((r) => `${r.section} · ${r.water} — "${r.change}"${r.effective ? ` (effective ${r.effective})` : ""}: ${r.why}`).join("\n")}\n\nGive each a curated \`effective\` in data/curated/inseason/notice_waters.json.\n\nSource: ${SOURCE_URL}`,
+    at, data: { undatable: bad, source: SOURCE_URL },
+  }];
+}
+
 const SPECIES = ["steelhead", "rainbow trout", "bull trout", "lake trout", "cutthroat trout", "brook trout", "dolly varden", "kokanee", "whitefish", "burbot", "salmon", "trout", "char"];
 /** only what reads confidently; undefined when nothing does */
 export function parseChange(text: string): FeedRow["parsed"] | undefined {
@@ -397,7 +427,9 @@ export function parseChange(text: string): FeedRow["parsed"] | undefined {
   if (found.length) out.species = found;
   const q = /daily quota\s*=\s*(\d+)/.exec(t) ?? /\b(\d+)\s+per day\b/.exec(t);
   if (q && kinds.includes("limit")) out.dailyQuota = Number(q[1]);
-  const ranges = [...text.matchAll(/\b([A-Z][a-z]+\.?\s+\d{1,2})\s*(?:to|-|–)\s*([A-Z][a-z]+\.?\s+\d{1,2}|\d{1,2})\b/g)];
+  // (T1167) a bare day ends a range only when it is a day: never a time of day ("to 11:59 pm September 15", "12 noon")
+  // nor a day whose month follows it ("July 30 - 31 August"): such a text reads as no range, never a wrong one
+  const ranges = [...text.matchAll(/\b([A-Z][a-z]+\.?\s+\d{1,2})\s*(?:to|-|–)\s*([A-Z][a-z]+\.?\s+\d{1,2}|\d{1,2}(?![\d:])(?!\s*(?:[AaPp]\.?[Mm]\b|noon\b|midnight\b))(?!\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*))\b/g)];
   if (ranges.length === 1) {
     const r = readDates(`${ranges[0]![1]} to ${ranges[0]![2]}`);
     if (r.kind === "ok" && r.ranges.length === 1) out.window = r.ranges[0];

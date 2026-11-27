@@ -50,7 +50,7 @@ describe("<RegsScreen>", () => {
 
   it("(T565) an in-season notice is the first thing on the page: above the salmon card and every calendar and species block, below only a lapsed edition's line", () => {
     const change = { id: "is-a", region: "8", water: "Fraser River", from: "2026-10-15", to: "2026-11-30",
-                     text: "No fishing for sturgeon.", source: "https://www2.gov.bc.ca/x", waters: null, words: {} };
+                     text: "No fishing for sturgeon.", dated: false, phase: "in force" as const, source: "https://www2.gov.bc.ca/x", waters: null, words: {} };
     const order = () => [...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"));
     mount({ inSeason: [inSeasonBanner(change, { where: null })], salmon: <Text testID="salmon-card">salmon card</Text>, lapsed: "Out of date." });
     expect(order().slice(0, 4)).toEqual(["regs-lapsed", "inseason-banners", "salmon-card", "keep-tab"]);
@@ -62,6 +62,37 @@ describe("<RegsScreen>", () => {
     cleanup();
     mount({ inSeason: [] });
     expect(screen.queryByTestId("inseason-banners")).toBeNull();
+  });
+
+  it("(T1167) louder: a notice in force points the status line at it and marks the year bar; an upcoming one says so and points nowhere; after, nothing", () => {
+    const dated = { id: "is-2fa458fef3c3", region: "8", water: "Okanagan River", from: "2026-07-30", to: "2026-09-15",
+                    text: "No fishing July 30 to September 15.", dated: true, source: "https://www2.gov.bc.ca/x", waters: null };
+    const strip = () => screen.getByTestId("keep-strip");
+    mount({ inSeason: [inSeasonBanner({ ...dated, phase: "in force" }, { where: null })] });
+    expect(screen.getByTestId("inseason-summary").textContent).toBe("In-season change (Jul 30–Sep 15) · see ›");
+    expect(within(strip()).getByTestId("st:inseason").textContent).toBe("See the in-season notice above");
+    // (T1167, owner 2026-11-26) with the banner's caution mark, hidden from a screen reader
+    expect([within(strip()).getByTestId("st:inseason-warn").textContent, within(strip()).getByTestId("st:inseason-warn").getAttribute("aria-hidden")])
+      .toEqual(["⚠", "true"]);
+    expect(within(strip()).getByTestId("inseason-year-legend").textContent).toBe("In-season notice, Jul 30–Sep 15");
+    // the answer stays the book's: the day's status word is the strip's own
+    expect(within(strip()).getByTestId("st:open").textContent).toBe("✓Open");
+    cleanup();
+    mount({ inSeason: [inSeasonBanner({ ...dated, phase: "upcoming" }, { where: null })] });
+    expect(screen.getByTestId("inseason-summary").textContent).toBe("Upcoming in-season change (Jul 30–Sep 15) · see ›");
+    expect(within(strip()).queryByTestId("st:inseason")).toBeNull();
+    expect(within(strip()).getByTestId("inseason-year-legend").textContent).toBe("In-season notice, Jul 30–Sep 15");
+    cleanup();
+    mount({ inSeason: [] });
+    expect([screen.queryByTestId("inseason-banners"), screen.queryByTestId("st:inseason"), screen.queryByTestId("inseason-year-legend")])
+      .toEqual([null, null, null]);
+    // a page with no game-fish strip (its answer the salmon block, a banner or the trout table): the pointer heads the Keep
+    // tab, once
+    cleanup();
+    const bare = { ...page, keep: { ...page.keep, strip: null, order: page.keep.order.filter((b) => b !== "strip") } };
+    mount({ page: bare, inSeason: [inSeasonBanner({ ...dated, phase: "in force" }, { where: null })] });
+    expect(screen.queryByTestId("keep-strip")).toBeNull();
+    expect(within(screen.getByTestId("keep-tab")).getAllByTestId("st:inseason").map((e) => e.textContent)).toEqual(["See the in-season notice above"]);
   });
 
   it("a lapsed edition: core's sentence leads the page, above Keep; in force (or no stamp) it is not drawn", () => {
