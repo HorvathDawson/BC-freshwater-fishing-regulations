@@ -18,14 +18,25 @@ import { sourceTiles, tileIds } from "./tileIds";
 import { atlasTarget, copyTarget, publicSections } from "./handles";
 import { addImages, isGeneratedImage } from "./images";
 import { followPixelRatio, webPixelRatio } from "./pixelRatio";
+import { glWorkerMissingError, isGlWorkerMissing } from "./glWorker";
 import { devCost, EMPTY_FC, forcePublic, registerPMTiles, styledOnce } from "./ready";
 import type { WebMapRefs } from "./refs";
 
 type Made = Pick<MapProps, "at" | "theme" | "modes" | "gauges" | "initial" | "bare" | "zoomControls" | "onError"
                           | "onImageryError">;
 
-/** (T1005) no WebGL reported once a page by the maps that have no `onError` (the browser does not change) */
-let noWebGLReported = false;
+/**
+ * (T1005, T1252) A failure of the BROWSER or the SITE — no WebGL, GL's worker file missing — meets every map on the page
+ * alike, so a map with no `onError` of its own (MiniMap: the water page, Conditions, the gauge trace, the donor map)
+ * reports it once a page (W46: shown AND reported); a map with one hands it on as any error.
+ */
+const reportedOnce = new Set<string>();
+function reportPageFailure(e: Error, onError: MapProps["onError"]): void {
+  if (onError) { onError(e); return; }
+  if (reportedOnce.has(e.name)) return;
+  reportedOnce.add(e.name);
+  reportFailure(e);
+}
 
 export function useMapInstance(refs: WebMapRefs,
                                { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError }: Made,
@@ -58,6 +69,11 @@ export function useMapInstance(refs: WebMapRefs,
       // its own deepest zoom, which the source declares (runtime-style) — CAMERA_MAX_ZOOM.
       minZoom: MIN_ZOOM,
       maxZoom: CAMERA_MAX_ZOOM,
+      // (T1252) EVERY zoom past a source's own deepest is OVERZOOMED from that tile, as GL 5 and the phone do. GL 6
+      // defaults this to 4: with the camera at 18 and the archives at 13 it SLICES each z13 tile into z14 children from
+      // z14 up (measured on Cultus Lake at z14: its name drawn 3 times, the park's 5, 14 atlas range requests; GL 5 and
+      // this: 2, 4, 8), changing what a tap or a label query finds, on the web only. `undefined` is GL's "never slice".
+      zoomLevelsToOverscale: undefined,
       maxBounds: CAMERA_BOUNDS as unknown as maplibregl.LngLatBoundsLike,
       // (T424) the credits are OURS (`MapCredits`, credits.ts): one chip and card, the phone's component — the renderer's
       // own control is off, so the web and the phone cannot list or look different
@@ -76,10 +92,7 @@ export function useMapInstance(refs: WebMapRefs,
       // message. Anything else the constructor throws is thrown on, as before.
       if (!isNoWebGL(e)) throw e;
       onUnavailable?.(true);
-      // a map with no `onError` of its own (MiniMap: the water page, Conditions, the gauge trace, the donor map) still
-      // reports it (W46: shown AND reported), once a page: every map on it meets the same browser
-      if (onError) onError(noWebGLError(e));
-      else if (!noWebGLReported) { noWebGLReported = true; reportFailure(noWebGLError(e)); }
+      reportPageFailure(noWebGLError(e), onError);
       return;
     }
     onUnavailable?.(false);
@@ -131,7 +144,12 @@ export function useMapInstance(refs: WebMapRefs,
         imageryError.current(typeof ev.error?.status === "number" ? ev.error.status : undefined);
         return;
       }
-      onError?.(e.error instanceof Error ? e.error : new Error(e.error?.message ?? "map error"));
+      const err = e.error instanceof Error ? e.error : new Error(e.error?.message ?? "map error");
+      // (T1252) GL 6 raises its no-WebGL error here too, when a lost context cannot be restored: the browser, as above
+      if (isNoWebGL(err)) { onUnavailable?.(true); reportPageFailure(noWebGLError(err), onError); return; }
+      // (T1252) GL's worker file did not load (`glWorker.ts`): no tile will draw on any map of this page
+      if (isGlWorkerMissing(err)) { reportPageFailure(glWorkerMissingError(err, maplibregl.getVersion()), onError); return; }
+      onError?.(err);
     });
     /**
      * THE GAUGE LABEL'S PILL, as pixels (and the hatches and the "you are here" pin: `images.ts`).

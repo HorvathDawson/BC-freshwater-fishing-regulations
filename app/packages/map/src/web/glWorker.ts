@@ -4,7 +4,18 @@
  * archive's header and never a tile (the "pmtiles fails on 6" of deps.md: the protocol was never the cause). The file
  * is copied from the installed package into the web's `public/` when Metro starts (`apps/mobile/gl-worker.js`), in a
  * folder named by GL's version, so the page and the worker are always the same release and a cached old worker is never
- * paired with a new page. A missing file is GL's own "Worker failed to load" error on the map's `error` event: shown and
- * reported.
+ * paired with a new page. A missing file is GL's own "Worker failed to load" on the map's `error` event; the map then
+ * draws no tile, and `useMapInstance` REPORTS it as `MapWorkerMissing` from every map (through its `onError`, or once a
+ * page where it has none); a web export without the file fails its build (`tools/web-shell.mjs`).
  */
 export const glWorkerUrl = (version: string) => `/maplibre-gl-${version}/maplibre-gl-worker.mjs`;
+
+/** GL's words when its worker file did not load (maplibre-gl `src/util/actor.ts` `createActors`). */
+export const isGlWorkerMissing = (e: Error) => /^Worker failed to load\b/.test(e.message);
+
+/** The failure reported for it: one stable name and message per GL version, GL's error kept as the cause. */
+export function glWorkerMissingError(cause: Error, version: string): Error {
+  const e = new Error(`GL's worker failed to load (${glWorkerUrl(version)})`, { cause });
+  e.name = "MapWorkerMissing";
+  return e;
+}

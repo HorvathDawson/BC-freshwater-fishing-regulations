@@ -52,7 +52,7 @@ two weeks old; the SDK is pinned as a set, never one module alone. Packages with
   phone's faces and the source of the web's lossless WOFF2 (`tools/seo/fonts/`).
 - `expo-splash-screen` — the native splash (config plugin at prebuild); `apps/mobile/src/splash.ts` holds it until the boot spinner draws.
 - `maplibre-gl` — the web map renderer (6.x, T1252), only in `packages/map/src/Map.web.tsx` + `src/web/`. Its worker is its own file (`apps/mobile/gl-worker.js`,
-  `src/web/glWorker.ts`; without it no tile loads, once blamed on pmtiles). A bump re-reads `tools/gl-internals.test.ts` and walks the map in a browser.
+  `src/web/glWorker.ts`; without it no tile loads, once blamed on pmtiles). `zoomLevelsToOverscale: undefined` keeps GL 5's overzoom (6 slices z14+ tiles). A bump re-reads `tools/gl-internals.test.ts` and walks the map in a browser.
 - `@maplibre/maplibre-react-native` — the native map renderer, exact, imported only by its engine folder
   `packages/map/src/native/maplibre/` (T1154: layers.json and check-boundaries' engine rule; the shell `Map.native.tsx`
   reaches it through `native/engine.ts`) (listed in `apps/mobile` too for autolinking; needs a development build, not Expo Go). PATCHED

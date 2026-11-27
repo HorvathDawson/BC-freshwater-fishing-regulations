@@ -23,10 +23,20 @@ causing issues sicne we have patched version". Number from the planning chat.
    no-WebGL error is now `GPUInitializationError` → `isNoWebGL` / `noWebGLError` (T1005's words and crash class kept);
    typed `error` event and paint names (two casts); `dist/maplibre-gl.js` (UMD) is gone → the two shot tools load the
    `.mjs`. Namespace imports, no `map.transform`, no `setData` second argument, no hash, no `instanceof` on events.
+   `zoomLevelsToOverscale` now defaults to 4: with the camera at 18 and the archives at 13 GL 6 SLICES z13 tiles into z14
+   children from z14 up → set to `undefined` (GL 5's overzoom). Measured at Cultus Lake / Cultus Lake Park, z14: sliced,
+   the lake's name 3 times, the park's 5, 14 atlas range requests; unsliced GL 6 and main's GL 5 both 2, 4, 8 (z15 and
+   z17 equal too; the tap opens the same water). GL 6 also raises the no-WebGL error on the `error` event (a lost context
+   it cannot restore) → classed as `MapUnavailable` there too. The no-WebGL crash detail lost GL 5's
+   `webglcontextcreationerror: ` prefix (it is the browser's `statusMessage` alone now), so its crash grouping may shift.
 4. `tools/gl-internals.test.ts` re-read on 6.19: same private names and order; the bundle is `.mjs`, the tile event a
    `MapSourceDataEvent`. A new pair of tests pins the worker's path and its imports.
 5. The colours gate reads everything under `apps/`: it skips the copied worker folder only (GL's minified debug colours),
    pinned by a test with the near misses that are still read.
+6. A worker that fails to load is REPORTED (`MapWorkerMissing`) from every map: through `onError`, or once a page from a
+   map with none (MiniMap), as no WebGL is. `tools/web-shell.mjs` refuses a web export without the worker or with a file
+   not the installed GL's. `_headers` caches `/maplibre-gl-*` a year, immutable (the path carries GL's version). The
+   worker's `.map` is NOT copied: a devtools session asks for it and gets a 404; nothing else reads it.
 
 ## Acceptance
 
