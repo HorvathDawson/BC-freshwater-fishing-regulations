@@ -30,7 +30,7 @@ async function schedule(item: string, partIx: number) {
 
 describe.skipIf(!at.dir)("(T1207) the live release: one status block for both fish, or two", () => {
   it("Nelson Creek: one block, \"Salmon and game fish\", tagged with the rule book", async () => {
-    expect(await schedule("gnis:20408", 0)).toEqual({ title: "Salmon and game fish", tag: "B.C. Synopsis" });
+    expect(await schedule("gnis:20408", 0)).toEqual({ title: "Salmon and game fish", tag: "B.C. Synopsis", label: "Salmon and game fish: closed all year" });
   }, 120_000);
   it("Kirkup Creek (two closures, the salmon's part-year) and Old Kootenay River Channel (game fish open): two blocks", async () => {
     expect(await schedule("gnis:12661", 0)).toBeUndefined();
