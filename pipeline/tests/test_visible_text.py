@@ -14,11 +14,11 @@ from pipeline.regs.extraction.extract_synopsis import FishingSynopsisParser, str
 from pipeline.regs.extraction.models import WaterbodyRow
 
 
-def _pdf(content: str, *, crop=None) -> bytes:
+def _pdf(content: str, *, crop=None, width: int = 200) -> bytes:
     """One page; every resource a test may use: font F1, graphics states (GS0 opacity 0, GH opacity 0.5, GM Multiply),
     layers /on and /off (the off one is OFF in the default view), image /Im (1x1 grey, no mask)."""
     stream = content.encode("latin-1")
-    page = ("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] "
+    page = (f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {width} 100] "
             + (f"/CropBox [{' '.join(map(str, crop))}] " if crop else "")
             + "/Resources << /Font << /F1 7 0 R >> "
               "/ExtGState << /GS0 << /ca 0 /CA 0 >> /GH << /ca 0.5 /CA 0.5 >> /GM << /BM /Multiply >> >> "
@@ -57,13 +57,22 @@ def _text(s: str, x: float = 20, y: float = 50, pre: str = "") -> str:
 
 def _verdict(tmp_path, content: str, **kw):
     """[(char, visible, struck, hidden reasons)] for the page's pdfplumber chars, in content order."""
+    return _judged(tmp_path, content, **kw)[0]
+
+
+def _notes(tmp_path, content: str, **kw):
+    """The page's notes: what the method kept because it could not be sure it is hidden."""
+    return _judged(tmp_path, content, **kw)[1]
+
+
+def _judged(tmp_path, content: str, **kw):
     p = tmp_path / "t.pdf"
     p.write_bytes(_pdf(content, **kw))
     with pdfplumber.open(p) as pdf:
         page = pdf.pages[0]
         v = V.page_verdict(page)
-        return [(c["text"], i in v.visible, i in v.struck, v.hidden_reasons.get(i, []))
-                for i, c in enumerate(page.chars)]
+        return ([(c["text"], i in v.visible, i in v.struck, v.hidden_reasons.get(i, []))
+                 for i, c in enumerate(page.chars)], v.notes)
 
 
 def _seen(rows) -> str:
@@ -156,10 +165,79 @@ def test_a_strike_through_marks_only_the_glyphs_it_crosses(tmp_path):
     assert [t for t, vis, struck, _ in rows if struck] == ["1", "5"] and _seen(rows) == "Oct 15"
 
 
-def test_a_line_drawn_before_the_text_or_under_it_is_no_strike(tmp_path):
-    before = _verdict(tmp_path, "0.14 w 0 G 41.5 53.5 m 54.5 53.5 l S " + _text("Oct 15"))
-    under = _verdict(tmp_path, _text("Oct 15") + "0.14 w 0 G 20 48.5 m 54.5 48.5 l S")      # an underline
-    assert not any(s for _, _, s, _ in before + under)
+def test_a_line_drawn_before_the_text_is_no_strike_but_is_named(tmp_path):
+    """(review of #323) a line through the text's middle painted BEFORE the text lies under it: maybe a strike the text
+    covers, maybe a rule. Not marked either way, and not silent: the page names it as a possible strike."""
+    content = "0.14 w 0 G 41.5 53.5 m 54.5 53.5 l S " + _text("Oct 15")
+    assert not any(s for _, _, s, _ in _verdict(tmp_path, content))
+    assert _notes(tmp_path, content) == ["2 char(s) kept, possible-strike: '15'"]
+
+
+def test_an_underline_is_no_strike(tmp_path):
+    content = _text("Oct 15") + "0.14 w 0 G 20 48.5 m 54.5 48.5 l S"
+    assert not any(s for _, _, s, _ in _verdict(tmp_path, content)) and _notes(tmp_path, content) == []
+
+
+def test_a_long_strike_through_a_sentence_is_found(tmp_path):
+    """No length cap (the 200 pt one missed a struck sentence): a rule across a column is kept out because most of
+    its length does not lie on text, not by its length."""
+    sentence = "No Fishing from the bridge upstream to the signs"
+    rows = _verdict(tmp_path, _text(sentence, x=5) + "0.5 w 0 G 5 53.5 m 260 53.5 l S", width=300)
+    struck = "".join(t for t, _, s, _ in rows if s)
+    assert len(struck.replace(" ", "")) >= 35 and struck.startswith("NoFishing")
+    rule = _verdict(tmp_path, _text("AB") + "0.5 w 0 G 0 53.5 m 199 53.5 l S")         # a rule through two letters
+    assert not any(s for _, _, s, _ in rule)
+
+
+# ---------------------------------------------------------------- what the method cannot be sure of: kept, named
+# (review of #323) a rule may hide a glyph only when it is sure; otherwise the glyph stays and the page says why.
+
+def test_an_image_clipped_away_from_the_text_hides_nothing(tmp_path):
+    content = _text("AB") + "q 100 0 100 100 re W n q 200 0 0 100 0 0 cm /Im Do Q Q"     # image clipped to the right
+    assert _seen(_verdict(tmp_path, content)) == "AB" and _notes(tmp_path, content) == []
+
+
+def test_an_image_clipped_by_a_rectangle_over_the_text_still_hides_it(tmp_path):
+    rows = _verdict(tmp_path, _text("AB") + "q 0 0 100 100 re W n q 200 0 0 100 0 0 cm /Im Do Q Q 0 g " + _text("C", x=150))
+    assert _seen(rows) == "C" and rows[0][3] == ["image"]
+
+
+def test_an_image_under_a_triangle_clip_hides_nothing_and_says_so(tmp_path):
+    content = _text("AB") + "q 0 0 m 200 0 l 200 100 l h W n q 200 0 0 100 0 0 cm /Im Do Q Q"
+    assert _seen(_verdict(tmp_path, content)) == "AB"
+    assert _notes(tmp_path, content) == ["2 char(s) kept, image-under-a-clip-path: 'AB'"]
+
+
+def test_a_fill_under_a_triangle_clip_does_not_hide_text_outside_it(tmp_path):
+    # the triangle (0,0)-(200,0)-(200,100) lies below the text at x 20, y 50: the red fill paints nothing there
+    content = _text("AB") + "q 0 0 m 200 0 l 200 100 l h W n 1 0 0 rg 0 0 200 100 re f Q"
+    assert _seen(_verdict(tmp_path, content)) == "AB"
+    assert _notes(tmp_path, content) == ["2 char(s) kept, fill-under-a-clip-path: 'AB'"]
+
+
+def test_an_even_odd_clip_with_a_hole_over_the_text_does_not_hide_it(tmp_path):
+    content = _text("AB") + "q 0 0 200 100 re 15 40 30 25 re W* n 1 0 0 rg 0 0 200 100 re f Q"
+    assert _seen(_verdict(tmp_path, content)) == "AB"
+    assert _notes(tmp_path, content) == ["2 char(s) kept, fill-under-a-clip-path: 'AB'"]
+
+
+def test_a_fill_under_a_rectangle_clip_still_hides_what_it_covers(tmp_path):
+    rows = _verdict(tmp_path, _text("AB") + "q 0 0 100 100 re W n 1 1 1 rg 0 0 200 100 re f Q 0 g " + _text("C", x=150))
+    assert _seen(rows) == "C" and rows[0][3] == ["covered"]
+
+
+@pytest.mark.parametrize("name,content", [
+    ("black text on a 50 % black fill", "q /GH gs 0 g 0 30 200 40 re f Q " + _text("AB", pre="0 g")),
+    ("0.5 grey text on a Multiply 0.5 fill over 0.5", ".5 g 0 30 200 40 re f q /GM gs .5 g 0 30 200 40 re f Q "
+                                                       + _text("AB", pre=".5 g")),
+    ("white text on a 50 % white fill over black", "0 g 0 30 200 40 re f q /GH gs 1 g 0 30 200 40 re f Q "
+                                                   + _text("AB", pre="1 g")),
+])
+def test_the_colour_of_a_translucent_or_blended_fill_is_no_background(tmp_path, name, content):
+    """Only an opaque Normal fill is its own colour on the page; text of the colour of a translucent or blended
+    one may well be seen (a mix shows under it), so it stays and is named."""
+    assert _seen(_verdict(tmp_path, content)) == "AB", name
+    assert _notes(tmp_path, content) == ["2 char(s) kept, same-colour-as-a-translucent-or-blended-fill: 'AB'"], name
 
 
 def test_two_text_streams_that_differ_refuse_the_page():
