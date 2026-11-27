@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DFO Extent Check</title>
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --ink:#1d1f22; --muted:#6b7077; --line:#e2e0db;
+  --land:#eef0e8; --water:#9bb7cc; --water-ink:#5b7c93; --label:#4a5560;
+  --extent:#c2187a; --extent-soft:rgba(194,24,122,.14);
+  --ok:#1f7a45; --ok-bg:#e3f3e9; --bad:#b3261e; --bad-bg:#fbe5e3; --unk:#9a6200; --unk-bg:#fbf0d9;
+  --focus:#1d4ed8; --btn:#1d1f22; --btn-ink:#fff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171a; --panel:#1d2024; --ink:#e8e9eb; --muted:#9aa0a8; --line:#2e3238;
+    --land:#1b1f1c; --water:#3f5b70; --water-ink:#8fb0c7; --label:#aab4bd;
+    --extent:#ff4fb0; --extent-soft:rgba(255,79,176,.18);
+    --ok:#5fcf8a; --ok-bg:#16301f; --bad:#ff7b72; --bad-bg:#3a1a18; --unk:#e8b04a; --unk-bg:#33270f;
+    --focus:#7aa2ff; --btn:#e8e9eb; --btn-ink:#15171a;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#15171a; --panel:#1d2024; --ink:#e8e9eb; --muted:#9aa0a8; --line:#2e3238;
+    --land:#1b1f1c; --water:#3f5b70; --water-ink:#8fb0c7; --label:#aab4bd;
+    --extent:#ff4fb0; --extent-soft:rgba(255,79,176,.18);
+    --ok:#5fcf8a; --ok-bg:#16301f; --bad:#ff7b72; --bad-bg:#3a1a18; --unk:#e8b04a; --unk-bg:#33270f;
+    --focus:#7aa2ff; --btn:#e8e9eb; --btn-ink:#15171a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:17px;margin:0;font-weight:650;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header h1 small{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
+.nav{display:flex;align-items:center;gap:6px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.nav button{border:1px solid var(--line);background:var(--panel);color:var(--ink);width:32px;height:32px;border-radius:6px;font-size:16px;cursor:pointer}
+.tabs{display:flex;gap:4px;padding:6px 16px;background:var(--bg);border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);align-items:center}
+.tabs button{border:0;background:none;color:var(--muted);padding:4px 8px;border-radius:5px;cursor:pointer;font:inherit}
+.tabs button[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 480px;min-height:0}
+.mapwrap{position:relative;min-height:0;background:var(--land);border-right:1px solid var(--line)}
+.mapwrap svg{width:100%;height:100%;display:block}
+.key{position:absolute;left:12px;top:12px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;display:flex;gap:14px}
+.key i{display:inline-block;width:18px;height:4px;border-radius:2px;background:var(--extent);vertical-align:middle;margin-right:6px}
+.key i.dash{background:none;border-top:3px dashed var(--extent);height:0}
+.sketch{position:absolute;right:12px;bottom:10px;font-size:11px;color:var(--muted)}
+aside{display:flex;flex-direction:column;min-height:0;background:var(--panel)}
+.words{padding:12px 16px 4px;color:var(--muted);font-size:12px}
+.rows{flex:1;overflow:auto;padding:4px 8px 8px}
+.row{display:grid;grid-template-columns:28px 1fr 30px;gap:10px;align-items:start;padding:10px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+.row+.row{border-top-color:var(--line);border-top-left-radius:0;border-top-right-radius:0}
+.row:hover,.row.on{background:var(--extent-soft);border-color:transparent}
+.n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff}
+.ok .n{background:var(--ok)} .bad .n{background:var(--bad)} .unk .n{background:var(--unk)}
+.q{font-size:14px}
+.q b{font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin-right:6px}
+.q q{quotes:"\201C" "\201D"}
+.ours{font-size:13px;margin-top:3px;color:var(--muted)}
+.ours span{font-weight:600}
+.ok .ours span{color:var(--ok)} .bad .ours span{color:var(--bad)} .unk .ours span{color:var(--unk)}
+.tick{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--line);background:var(--panel);display:grid;place-items:center;font-size:15px;cursor:pointer;color:var(--muted)}
+.row.ok .tick{border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
+.row.ticked .tick{border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
+.row.bad:not(.ticked) .tick{border-color:var(--bad);color:var(--bad);background:var(--bad-bg)}
+.row.unk:not(.ticked) .tick{border-color:var(--unk);color:var(--unk);background:var(--unk-bg)}
+.row.wrongpick{outline:2px solid var(--bad);outline-offset:-2px}
+.foot{border-top:1px solid var(--line);padding:12px 16px 14px;display:flex;flex-direction:column;gap:8px}
+.btns{display:flex;gap:8px}
+.btns button{flex:1;height:42px;border-radius:8px;font:600 14px system-ui,sans-serif;cursor:pointer;border:1.5px solid var(--btn);background:var(--btn);color:var(--btn-ink)}
+.btns button.alt{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.btns button:disabled{opacity:.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--muted)}
+.wrongbox{display:none;flex-direction:column;gap:8px}
+.wrongbox.open{display:flex}
+.wrongbox input{height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;background:var(--bg);color:var(--ink);font:inherit}
+.status{font-size:13px;color:var(--muted)}
+.status b{color:var(--ink);font-weight:600}
+/* map */
+.ctx{fill:none;stroke:var(--water);stroke-linecap:round;stroke-linejoin:round}
+.lake{fill:var(--water);stroke:none}
+.ext{fill:none;stroke:var(--extent);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.ext.pending{stroke-dasharray:2 10;stroke-width:6}
+.lbl{font:italic 13px system-ui,sans-serif;fill:var(--water-ink)}
+.lbl.place{font-style:normal;fill:var(--label);font-size:12px}
+.hl{fill:none;stroke:var(--focus);stroke-width:18;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .12s}
+.hl.on{opacity:.45}
+.pin circle{stroke:var(--panel);stroke-width:2.5}
+.pin text{font:700 13px system-ui,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:central}
+.pin .ring{fill:none;stroke:var(--focus);stroke-width:3;opacity:0}
+.pin.on .ring{opacity:1}
+.pin line{stroke:var(--label);stroke-width:1.2}
+.pin.ok circle.dot{fill:var(--ok)} .pin.bad circle.dot{fill:var(--bad)} .pin.unk circle.dot{fill:var(--unk)}
+.mark{stroke:var(--ink);stroke-width:2}
+@media (max-width:820px){
+  header{padding:8px 12px}
+  header h1{font-size:15px}
+  header h1 small{display:none}
+  .tabs{padding:6px 12px}
+  main{grid-template-columns:1fr;grid-template-rows:46vh auto;overflow:auto}
+  .mapwrap{border-right:0;border-bottom:1px solid var(--line);height:46vh;min-height:280px}
+  .sketch{display:none}
+  aside{min-height:auto}
+  .rows{overflow:visible}
+  .foot{position:sticky;bottom:0;background:var(--panel)}
+  .key{font-size:11px;gap:8px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <div class="nav"><button id="prev" aria-label="Previous place">&#8249;</button><span id="pos"></span><button id="next" aria-label="Next place">&#8250;</button></div>
+</header>
+<div class="tabs" role="tablist" id="tabs"><span style="margin-right:6px">mockup places:</span></div>
+<main>
+  <div class="mapwrap">
+    <svg id="map" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" aria-label="Map sketch"></svg>
+    <div class="key" id="key"></div>
+    <div class="sketch">approximate sketch, not to scale</div>
+  </div>
+  <aside>
+    <div class="words" id="words"></div>
+    <div class="rows" id="rows"></div>
+    <div class="foot">
+      <div class="btns">
+        <button id="allok" disabled>All correct</button>
+        <button id="wrong" class="alt">Something's wrong</button>
+      </div>
+      <div class="hint" id="hint"></div>
+      <div class="wrongbox" id="wrongbox">
+        <div class="hint">Tap the row(s) that are wrong.</div>
+        <input id="note" placeholder="note (optional)">
+        <div class="btns"><button id="savewrong">Save: wrong rows</button><button class="alt" id="cancelwrong">Cancel</button></div>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+  </aside>
+</main>
+<script>
+/* Real data: DFO words from data/curated/dfo_salmon/places/region-*.json (source_text),
+   "ours" from each location's binding + cuts.json labels + dfo_fix_proposals.json. Map = hand sketch. */
+const PLACES=[
+{
+  key:'chilliwack', title:'Chilliwack/Vedder River (including Sumas River)', sub:'Region 2', pos:'– of 287',
+  words:'DFO, one sentence → 6 claims',
+  status:'<b>Saved 2026-11-09</b> · 2 pieces + new pump-station cut · lands with the next DFO save',
+  key2:true,
+  rows:[
+    {t:'water', q:'Chilliwack/Vedder River', ours:'Chilliwack + Vedder River', s:'ok', hl:['h_chv']},
+    {t:'from', q:'2 fishing boundary signs … 100 m from the confluence of the Chilliwack River and Slesse Creek', ours:'cut 100 m below Slesse Creek', s:'ok', hl:[]},
+    {t:'to', q:'downstream', ours:'to the Vedder’s end, where it meets the Sumas', s:'ok', hl:['h_vlow']},
+    {t:'also', q:'that portion of the Sumas River from the Barrow Town Pump Station', ours:'saved, not drawn yet', more:' · new cut, medium confidence', s:'unk', hl:['h_sumas']},
+    {t:'to', q:'downstream to fishing boundary signs near the confluence with the Fraser River', ours:'saved, not drawn yet', more:' · runs to the Sumas mouth, no cut at the signs', s:'unk', hl:['h_sumaslow']},
+    {t:'except', q:'with exception of “no fishing for salmon” closure area identified above', ours:'not cut out', more:' · Vedder Crossing ±200 m stays inside', s:'bad', hl:['h_closure']},
+  ],
+  svg:`
+  <path class="ctx" stroke-width="16" d="M0,150 C180,120 340,96 520,76 S820,40 1000,30"/>
+  <text class="lbl" x="560" y="56">Fraser River</text>
+  <ellipse class="lake" cx="965" cy="392" rx="40" ry="16"/>
+  <text class="lbl" x="880" y="430">Chilliwack Lake</text>
+  <path class="ctx" stroke-width="4" d="M745,620 C742,540 738,470 736,404"/>
+  <text class="lbl" x="752" y="560">Slesse Creek</text>
+  <path class="ctx" stroke-width="7" d="M925,392 C880,404 820,420 760,408 C740,404 730,400 718,398"/>
+  <path class="ctx" stroke-width="7" d="M718,398 C640,380 560,350 430,332 C350,300 270,262 200,232"/>
+  <path class="ctx" stroke-width="5" d="M120,560 C150,470 170,400 180,330 C186,290 194,260 200,232 C206,190 210,160 214,140"/>
+  <text class="lbl" x="70" y="470">Sumas River</text>
+  <text class="lbl" x="560" y="330">Chilliwack River</text>
+  <text class="lbl" x="250" y="300" transform="rotate(26 250 300)">Vedder River</text>
+  <text class="lbl place" x="440" y="365">Vedder Crossing</text>
+  <!-- highlight layers -->
+  <path id="h_chv" class="hl" d="M718,398 C640,380 560,350 430,332 C350,300 270,262 200,232"/>
+  <path id="h_vlow" class="hl" d="M300,276 C260,258 230,245 200,232"/>
+  <path id="h_sumas" class="hl" d="M180,330 C186,290 194,260 200,232"/>
+  <path id="h_sumaslow" class="hl" d="M200,232 C206,190 210,160 214,140"/>
+  <path id="h_closure" class="hl" style="stroke:var(--bad)" d="M462,337 C450,335 440,333 430,332 C418,327 408,322 398,318"/>
+  <!-- extent now -->
+  <path class="ext" d="M718,398 C640,380 560,350 430,332 C350,300 270,262 200,232"/>
+  <path class="ext pending" d="M180,330 C186,290 194,260 200,232 C206,190 210,160 214,140"/>
+  <line class="mark" x1="718" y1="386" x2="718" y2="410"/>
+  <line class="mark" x1="170" y1="330" x2="190" y2="330"/>
+  `,
+  pins:[[560,300],[718,360],[290,215],[130,330],[260,140],[430,400]],
+  anchors:[[560,352],[718,398],[230,246],[180,330],[214,150],[430,332]],
+},
+{
+  key:'forks', title:'Bulkley River and Morice River — the Forks', sub:'Region 6 · same words on 2 places, checked together', pos:'249 of 287',
+  words:'DFO, two sentences → 6 claims (row 6: what DFO leaves unsaid)',
+  status:'Not saved yet',
+  rows:[
+    {t:'water', q:'Bulkley River and Morice River waters', ours:'Bulkley place + Morice place', s:'ok', hl:['h_morice','h_upb','h_lowb']},
+    {t:'where', q:'within the four white triangular fishing boundary signs located at the confluence … (“the Forks”)', ours:'3 arms around the confluence', s:'ok', hl:[]},
+    {t:'from', q:'The closure starts 100 meters upstream of the confluence', ours:'Morice: its last 100 m', s:'ok', hl:['h_morice']},
+    {t:'from', q:'(same) 100 meters upstream of the confluence', ours:'upper Bulkley: 100 m up', s:'ok', hl:['h_upb']},
+    {t:'to', q:'and ends approximately 1 kilometre downstream', ours:'Bulkley: 1 km below the Forks', s:'ok', hl:['h_lowb']},
+    {t:'unsaid', q:'(nothing about tributaries)', ours:'Morice arm: tributaries ON', more:' · fix ready: off', s:'bad', hl:['h_trib']},
+  ],
+  svg:`
+  <path class="ctx" stroke-width="12" d="M60,610 C180,560 300,500 400,440 C440,415 470,392 500,370"/>
+  <text class="lbl" x="120" y="545" transform="rotate(-24 120 545)">Morice River</text>
+  <path class="ctx" stroke-width="10" d="M960,600 C860,540 760,480 660,440 C600,415 550,392 500,370"/>
+  <text class="lbl" x="780" y="490" transform="rotate(30 780 490)">Bulkley River (upper)</text>
+  <path class="ctx" stroke-width="14" d="M500,370 C440,300 360,240 300,190 C240,140 170,90 80,40"/>
+  <text class="lbl" x="250" y="110" transform="rotate(36 250 110)">Bulkley River</text>
+  <path class="ctx" stroke-width="3" d="M300,640 C300,600 320,560 345,530"/>
+  <path class="ctx" stroke-width="3" d="M120,470 C150,500 170,540 190,560"/>
+  <text class="lbl place" x="540" y="350">the Forks</text>
+  <text class="lbl place" x="640" y="230">Houston</text>
+  <path id="h_morice" class="hl" d="M420,428 C450,410 475,388 500,370"/>
+  <path id="h_upb" class="hl" d="M590,410 C560,398 530,384 500,370"/>
+  <path id="h_lowb" class="hl" d="M500,370 C440,300 360,240 300,190 C270,165 245,145 215,124"/>
+  <path id="h_trib" class="hl" style="stroke:var(--bad)" d="M420,428 C450,410 475,388 500,370 M60,610 C180,560 300,500 420,428 M300,640 C300,600 320,560 345,530 M120,470 C150,500 170,540 190,560"/>
+  <path class="ext" d="M420,428 C450,410 475,388 500,370"/>
+  <path class="ext" d="M590,410 C560,398 530,384 500,370"/>
+  <path class="ext" d="M500,370 C440,300 360,240 300,190 C270,165 245,145 215,124"/>
+  <text class="lbl place" x="380" y="470">100 m</text>
+  <text class="lbl place" x="575" y="440">100 m</text>
+  <text class="lbl place" x="340" y="270">~1 km</text>
+  `,
+  pins:[[650,300],[500,300],[380,380],[620,370],[200,180],[230,470]],
+  anchors:[[560,400],[500,370],[420,428],[590,410],[215,124],[300,500]],
+},
+{
+  key:'chemainus', title:'Chemainus River', sub:'Region 1', pos:'154 of 287',
+  words:'DFO names the water only → 3 claims',
+  status:'<b>Saved 2026-10-28</b> · the whole water',
+  rows:[
+    {t:'water', q:'Chemainus River', ours:'Chemainus River (exact name)', s:'ok', hl:['h_main']},
+    {t:'where', q:'(no area given: the whole water)', ours:'the whole water, 24 sections', s:'ok', hl:['h_main']},
+    {t:'unsaid', q:'(nothing about tributaries)', ours:'main stem only', s:'ok', hl:['h_tribs']},
+  ],
+  svg:`
+  <path d="M900,0 C880,120 930,220 900,330 C870,440 930,540 910,640 L1000,640 L1000,0 Z" style="fill:var(--water);opacity:.55"/>
+  <text class="lbl" x="930" y="120">Stuart Channel</text>
+  <path class="ctx" stroke-width="3" d="M300,90 C320,160 360,220 380,280"/>
+  <path class="ctx" stroke-width="3" d="M560,560 C580,500 600,450 620,410"/>
+  <path class="ctx" stroke-width="3" d="M720,170 C740,230 760,280 780,330"/>
+  <path class="ctx" stroke-width="7" d="M70,180 C200,220 300,260 380,280 C470,300 540,370 620,410 C700,450 760,380 780,330 C800,300 850,300 905,300"/>
+  <path id="h_main" class="hl" d="M70,180 C200,220 300,260 380,280 C470,300 540,370 620,410 C700,450 760,380 780,330 C800,300 850,300 905,300"/>
+  <path id="h_tribs" class="hl" d="M300,90 C320,160 360,220 380,280 M560,560 C580,500 600,450 620,410 M720,170 C740,230 760,280 780,330"/>
+  <path class="ext" d="M70,180 C200,220 300,260 380,280 C470,300 540,370 620,410 C700,450 760,380 780,330 C800,300 850,300 905,300"/>
+  <text class="lbl" x="400" y="370" transform="rotate(30 400 370)">Chemainus River</text>
+  <text class="lbl place" x="330" y="80">tributaries (not in extent)</text>
+  <text class="lbl place" x="820" y="350">Westholme</text>
+  `,
+  pins:[[470,240],[120,120],[290,40]],
+  anchors:[[470,300],[70,180],[300,90]],
+}];
+
+let cur=0, wrongMode=false;
+const state=PLACES.map(p=>({ticked:new Set(),wrong:new Set(),status:p.status}));
+const $=id=>document.getElementById(id);
+const tabs=$('tabs');
+PLACES.forEach((p,i)=>{const b=document.createElement('button');b.textContent=p.key;b.setAttribute('role','tab');b.onclick=()=>go(i);tabs.appendChild(b);});
+
+function go(i){cur=(i+PLACES.length)%PLACES.length;wrongMode=false;render();}
+$('prev').onclick=()=>go(cur-1);$('next').onclick=()=>go(cur+1);
+
+function render(){
+  const p=PLACES[cur], st=state[cur];
+  $('title').innerHTML=p.title+'<small>'+p.sub+'</small>';
+  $('pos').textContent=p.pos;
+  [...tabs.querySelectorAll('button')].forEach((b,i)=>b.setAttribute('aria-selected',i===cur));
+  $('words').textContent=p.words;
+  $('key').innerHTML='<span><i></i>the extent now</span>'+(p.key2?'<span><i class="dash"></i>saved, not drawn yet</span>':'');
+  let pins='';
+  p.pins.forEach((xy,i)=>{const a=p.anchors[i],s=p.rows[i].s;
+    pins+=`<g class="pin ${s}" data-i="${i}"><line x1="${xy[0]}" y1="${xy[1]}" x2="${a[0]}" y2="${a[1]}"/><circle class="ring" cx="${xy[0]}" cy="${xy[1]}" r="20"/><circle class="dot" cx="${xy[0]}" cy="${xy[1]}" r="14"/><text x="${xy[0]}" y="${xy[1]}">${i+1}</text></g>`;});
+  $('map').innerHTML=p.svg+pins;
+  const m=$('map'),fp=m.querySelector('.pin');m.querySelectorAll('.hl').forEach(e=>m.insertBefore(e,fp));
+  $('map').querySelectorAll('.pin').forEach(g=>{const i=+g.dataset.i;g.style.cursor='pointer';
+    g.onmouseenter=()=>hi(i);g.onmouseleave=()=>hi(-1);g.onclick=()=>{hi(i,true);rowEl(i).scrollIntoView({block:'nearest'});};});
+  const rows=$('rows');rows.innerHTML='';
+  p.rows.forEach((r,i)=>{const d=document.createElement('div');
+    d.className='row '+r.s+(st.ticked.has(i)?' ticked':'')+(st.wrong.has(i)?' wrongpick':'');
+    const tickSym=(r.s==='ok'||st.ticked.has(i))?'✓':(r.s==='bad'?'✗':'?');
+    d.innerHTML=`<div class="n">${i+1}</div><div><div class="q"><b>${r.t}</b><q>${r.q}</q></div><div class="ours">ours: <span>${r.ours}</span>${r.more||''}</div></div><button class="tick" title="${r.s==='ok'?'matches':'tick: I checked it, it is right'}">${tickSym}</button>`;
+    d.onmouseenter=()=>hi(i);d.onmouseleave=()=>hi(-1);
+    d.onclick=e=>{
+      if(wrongMode){st.wrong.has(i)?st.wrong.delete(i):st.wrong.add(i);render();return;}
+      if(e.target.closest('.tick')&&r.s!=='ok'){st.ticked.has(i)?st.ticked.delete(i):st.ticked.add(i);render();return;}
+      hi(i,true);};
+    rows.appendChild(d);});
+  const left=p.rows.filter((r,i)=>r.s!=='ok'&&!st.ticked.has(i)).length;
+  $('allok').disabled=left>0;
+  $('hint').textContent=left?`${left} row${left>1?'s':''} not matching — tick each one you have checked, or report it.`:'Every row matches.';
+  $('hint').style.display=wrongMode?'none':'';
+  $('wrongbox').classList.toggle('open',wrongMode);
+  $('allok').parentElement.style.display=wrongMode?'none':'';
+  $('status').innerHTML=st.status;
+}
+function rowEl(i){return $('rows').children[i];}
+let pinned=-1;
+function hi(i,pin){
+  if(pin)pinned=(pinned===i?-1:i);
+  const k=i>=0?i:pinned, p=PLACES[cur];
+  document.querySelectorAll('.hl').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('.pin').forEach(e=>e.classList.toggle('on',+e.dataset.i===k));
+  [...$('rows').children].forEach((e,j)=>e.classList.toggle('on',j===k));
+  if(k>=0)(p.rows[k].hl||[]).forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('on');});
+}
+$('allok').onclick=()=>{state[cur].status='<b>Saved just now</b> · all correct · '+PLACES[cur].rows.length+' rows';render();};
+$('wrong').onclick=()=>{wrongMode=true;const st=state[cur];PLACES[cur].rows.forEach((r,i)=>{if(r.s!=='ok'&&!st.ticked.has(i))st.wrong.add(i);});render();};
+$('cancelwrong').onclick=()=>{wrongMode=false;state[cur].wrong.clear();render();};
+$('savewrong').onclick=()=>{const st=state[cur];const n=[...st.wrong].sort().map(i=>i+1);const note=$('note').value.trim();
+  st.status='<b>Saved just now</b> · wrong: row'+(n.length>1?'s ':' ')+(n.join(', ')||'—')+(note?' · “'+note.replace(/</g,'&lt;')+'”':'');wrongMode=false;$('note').value='';render();};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowRight')go(cur+1);if(e.key==='ArrowLeft')go(cur-1);});
+addEventListener('hashchange',()=>{const j=PLACES.findIndex(p=>p.key===location.hash.slice(1));if(j>=0)go(j);});
+const h=location.hash.slice(1);const hi0=PLACES.findIndex(p=>p.key===h);go(hi0>=0?hi0:0);
+</script>
+</body>
+</html>

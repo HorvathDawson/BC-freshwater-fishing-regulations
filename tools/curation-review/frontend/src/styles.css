@@ -1132,7 +1132,7 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .dfo-more { font-size: 12px; margin: 4px 0; }
 .dfo-more > summary { cursor: pointer; color: var(--muted); }
 
-/* ---- T532: the checklist (owner-approved round-4 mockup, removed from git 2026-11-27; in history at 9337319f7 as tickets/shots/T532-mockup.html) ---- */
+/* ---- T532: the checklist (owner-approved round-4 mockup, shots/T532-mockup.html) ---- */
 .ck-mode { --ck-extent: #c2187a; --ck-soft: rgba(194, 24, 122, .12); --ck-ok: #1f7a45; --ck-ok-bg: #e3f3e9;
   --ck-bad: #b3261e; --ck-bad-bg: #fbe5e3; --ck-unk: #9a6200; --ck-unk-bg: #fbf0d9; --ck-line: #e2e0db; }
 .ck-head { display: flex; align-items: center; gap: 14px; padding: 8px 16px; border-bottom: 1px solid var(--ck-line); background: var(--panel); }
