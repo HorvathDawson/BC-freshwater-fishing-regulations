@@ -12,6 +12,7 @@ import shlex
 import shutil
 import socket
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -98,9 +99,10 @@ def test_a_missing_prerequisite_stops_naming_its_fix(tmp_path):
     assert out.returncode != 0 and "make setup" in out.stderr, out.stderr
     out = _make("test-app", "ARGS=x", f"APP_MODULES={missing}")
     assert out.returncode != 0 and "make setup" in out.stderr and "pnpm -C app install" in out.stderr, out.stderr
-    out = _make("build", "UNAME=Linux")
+    # a Python that exists (CI's runner has no .venv), so the macOS check, not the Python check, is what stops it
+    out = _make("build", "UNAME=Linux", f"PY={sys.executable}")
     assert out.returncode != 0, out.stdout
-    assert "macOS-only" in out.stderr and ".venv/bin/python -m pipeline build" in out.stderr, out.stderr
+    assert "macOS-only" in out.stderr and f"{sys.executable} -m pipeline build" in out.stderr, out.stderr
     out = _make("test", "ARGS=x")
     assert out.returncode != 0 and "make test-py ARGS=" in out.stderr, out.stderr
 
