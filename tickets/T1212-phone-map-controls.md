@@ -5,7 +5,7 @@ Status: IN PROGRESS — option A (Tidy) being built, lane T1212b (worktree wt-T1
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1212 | The phone map's controls as one set: the Today chip, no + / −, and the rest reworked (pictures first) | IN PROGRESS — 0.10.0 re-cut | — | build option A with © in the bottom-right corner (lane T1212b); pictures of the built app; review; the Zoom buttons switch waits on the owner |
+| T1212 | The phone map's controls as one set: the Today chip, no + / −, and the rest reworked (pictures first) | IN PROGRESS — 0.10.0 re-cut | de0879941 | built on look A's branch; next: an independent review, the full check, the PR after look A lands (pictures in it); the Zoom buttons switch waits on the owner |
 
 Source: the owner, 2026-11-26, relayed by the planning chat, on T1200's round-3 pictures (07-day-selector, 08-other-ideas):
 on the day selector ("still seem clunky") he picked "One \"Today\" chip that opens the calendar (Recommended)"; on the
@@ -93,30 +93,48 @@ What every option costs (decided, said once): without ‹ ›, the next day is t
 kept it one; the owner chose the chip over that. Search hints at text 1.3 on 360: the four drawn fit the field ("Hook a
 water by name" the longest of them); the longest of all, "Any creek worth a cast?", was not drawn there: unchecked.
 
-## Pictures, how they were made
+## The option pictures, how they were made
 
 Real renders of the web app at phone width, no composites: headless Chrome, 412 x 915 and 360 x 740 at 2x, Prince
 George at z6.3, Trout, light unless "dark". The phone's bell and refresh are drawn by the store-shots web build
-(`EXPO_PUBLIC_STORE_SHOTS=1`, as the store pictures are). A, B and C: this branch's switch (`?t1212=a|b|c`, 34a7c7cc6)
+(`EXPO_PUBLIC_STORE_SHOTS=1`, as the store pictures are). A, B and C: the design branch's dev-only switch (`feat/T1212-phone-map-controls`, 34a7c7cc6, never merged)
 on top of T1208's branch, so look A and T1211's key are in them; Today: `origin/main` with no switch. Text 1.3 is the
 switch's `t13`: the app's Text and the search field drawn at 1.3 under each one's own cap, as `system-text-sweep` does;
 the map's own scale and © words are not scaled. On `main` alone, b and c put the old legend bar beside the day chip
 (they are meant for T1211's key).
 
-## Work (after the pick)
+## Built (option A, "Tidy", with © in the corner: owner 2026-11-26)
 
-1. The Today chip and no + / − on phones (decided): `MapDayStrip` one segment; NavigationControl only on wide screens or
-   with the "Zoom buttons" switch; the walkthrough's "days" step re-pointed; Help's day words.
-2. The picked arrangement, from the prototype switch (`?t1212=a|b|c[,t13]`, `controlsLab.*`, a development web build only).
-3. The "Zoom buttons" switch, if the owner takes the proposal (More → Display; the phone gets 44 px + / − in the rail).
-4. Remove the prototype switch.
+1. The day chip (`DayCalendar.tsx` `MapDayStrip`): calendar icon, the day, ▾; a press opens the existing date sheet. The
+   arrows are gone. Another day (picked or from a link) fills the chip and adds a ✕ "Back to today" segment: one tap
+   home. 44 px (`CornerStrip.tsx` `MAP_CELL`), as are the Conditions horizons on the map (`HorizonPicker` `cellHeight`).
+2. No + / − on a phone-wide window (`MapRail.tsx` `zoomButtonsShown`: tablet and desktop keep them; `MapProps.zoomButtons`,
+   hidden by `controls.css` `[data-zoom-buttons="off"]`, keys still zoom). The phone app never drew them. Double tap
+   still zooms in on both (`MAP_GESTURES`, untouched).
+3. One grid: the rail 8 px under the bar and 14 px in, level with the day chip (84 / 10 under a wide window's zoom
+   stack); the key chip 14 px in (`shell/MapKey.tsx` `KEY_EDGE`, its card's width follows); the scale 14 px in
+   (`chrome.ts` `GEOMETRY.scaleLeft`, `controls.css`).
+4. The © in the bottom-right corner (`MapCredits.tsx`, `GEOMETRY.right/bottom/target`): the 28 px chip 14 px in and 10 px
+   up, in a 44 x 44 press, level with the key chip; beside the floating key it takes the map's own corner, over a bar
+   (Conditions, Runs) it stands above it (`shell/mapCorner.ts`, `MapProps.insetCredits`); Esri's badge stands over it.
+   Same component and place on web and phone; the desktop's keys are cards, so its © is in the corner already.
+5. The walkthrough's day step: same target ("days", the chip), words "Tap the day to choose another; …" (`help.ts`).
+   Help had no words about the arrows. The date sheet's back is unchanged (BACK.md untouched).
+
+Tests: `T1212.tidy.test.tsx`, `DayCalendar.test.tsx` (the chip), `MapCredits.render.test.tsx`, `tools/map-credits.test.ts`.
+Built in de0879941. App suite on the branch (2026-11-27): 6 failures, every one also failing on look A's tip without this
+change (`check-boundaries`, `check-colours`, `data-vs-ui`, `one-button`, `one-icon-set`: T1211/T1208 files; and
+`MapDay.shell.test`'s "a day picked on the map…", which waits for a legend word the floating key no longer shows).
+Pictures of the built app against today (412 and 360; Map, calendar, key open, Conditions, dark, text 1.3 emulated as
+in the option pictures; one with another day picked): the lane's `T1212-pictures/built-sheet.png`, for the PR.
+Zoom buttons for those who cannot pinch: not built (## Owner).
 
 ## Acceptance
 
-Pictures of the pick at 412 and 360, text 1 and 1.3, light and dark, Map and Conditions; render tests for the chip, the
-rail's place and the zoom switch; WCAG 2.5.1 met by the switch; no control under another at 320 wide.
+Pictures of the built app at 412 and 360 (Map, calendar open, key open, Conditions, dark, text 1.3) against today; the
+full check; an independent review.
 
-Depends: T1211 (the key). Size: M. Owner: yes (the pick).
+Depends: T1211 (the key; this branch is on look A's). Size: M.
 
 ## Owner
 
