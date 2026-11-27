@@ -1025,10 +1025,12 @@ for (const id of arrows.keys())
  * flow field the view had said it does not draw. A view hides a layer as a THING, so its edge, its name and its arrows
  * are hidden with it; written out here so the generated list is the whole truth and no adapter has to know the suffixes.
  */
+// (T1208) and the companions runtime-style draws for a layer (`$runtimeCompanions`: the region's band and its names)
+const RUNTIME_COMPANIONS = src.$runtimeCompanions ?? {};
 for (const v of src.views ?? [])
   if (v.hide)
     v.hide = [...new Set(v.hide.flatMap((id) => [id, ...["__edge", "__label", "__arrows"]
-      .map((s) => `${id}${s}`).filter((c) => outById.has(c))]))];
+      .map((s) => `${id}${s}`).filter((c) => outById.has(c)), ...(RUNTIME_COMPANIONS[id] ?? [])]))];
 
 /*
  * THE FIELD (`field` on one polygon layer — the Conditions basins): the colour modes in which it is drawn at all, and the
@@ -1123,6 +1125,9 @@ const meta = {
     ...[...labels].map(([id, l]) => [id, l.group]),
     // and an arrow to the line it marks
     ...[...arrows].map(([id, l]) => [id, l.group]),
+    // (T1208) and a runtime companion to the layer it is drawn beside (`$runtimeCompanions`)
+    ...Object.entries(RUNTIME_COMPANIONS).filter(([owner]) => !owner.startsWith("$"))
+      .flatMap(([owner, ids]) => ids.map((id) => [id, srcById.get(owner)?.group])),
   ]),
   follows,
   highlightable: (src.layers ?? []).filter((l) => l.highlightable)

@@ -19,6 +19,7 @@
  * places labels off the main work and a pinch there is smooth.
  */
 
+import { REGION_LABEL_SOURCE, TOWN_SOURCE } from "./look-a";
 import { now as clockNow } from "@app/core";
 
 /** The kinds of name and mark on the map: the per-kind lab switches (`lab.ts`) and what the hold takes. */
@@ -31,7 +32,7 @@ type Layer = { id: string; type?: string; source?: string; layout?: Record<strin
 const BASEMAP_PLACES = new Set(["places_locality", "places_country", "places_region", "places_subplace",
                                 "earth_label_islands", "water_label_ocean"]);
 /** Our water names. */
-const WATER_NAMES = new Set(["lake__label", "stream__label"]);
+const WATER_NAMES = new Set(["lake__label", "stream__label", "lake-names"]);   // (T1210) and the lakes named zoomed out
 /** Marks drawn along or on the water: the selected gauge's route arrows, a stream's flow arrows, obstacles. */
 const MARKS = new Set(["route-arrows", "stream__arrows", "obstacle"]);
 
@@ -43,14 +44,18 @@ export function labelGroup(l: Layer): LabelGroup | null {
   if (l.source === "basemap") return BASEMAP_PLACES.has(l.id) ? "places" : "roads";
   if (WATER_NAMES.has(l.id)) return "water";
   if (l.source === "atlas" || l.source === "mus") return "areas";
+  // (T1208, T1209) the towns are place names; "Region n" an area's (`look-a.ts`, their own GeoJSON sources)
+  if (l.source === TOWN_SOURCE) return "places";
+  if (l.source === REGION_LABEL_SOURCE) return "areas";
   return null;
 }
 
 /** What the hold takes while the zoom moves: every name and mark except the gauge pills (a reading, not a label). */
 export const HELD_WHILE_ZOOMING: readonly LabelGroup[] = ["water", "places", "roads", "areas", "marks"];
 
-/** The sources whose layers the native map can adopt by id (each is a source element `Map.native.tsx` mounts). */
-export const HOLD_SOURCES = ["atlas", "basemap", "mus", "gauges"] as const;
+/** The sources whose layers the native map can adopt by id (each is a source element `Map.native.tsx` mounts); (T1208,
+ *  T1209) the towns' and the region names' own GeoJSON sources too, so those names wait out a zoom like the rest. */
+export const HOLD_SOURCES = ["atlas", "basemap", "mus", "gauges", TOWN_SOURCE, REGION_LABEL_SOURCE] as const;
 export type HoldSource = (typeof HOLD_SOURCES)[number];
 
 export interface HeldLayer { id: string; source: HoldSource; visibility: "visible" | "none" }

@@ -6,7 +6,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MAP_KEY } from "@app/core";
 import { resolveTheme } from "@app/map";
 import { MapLegend } from "./shell/MapLegend";
@@ -19,8 +19,12 @@ const col = (basemap: "map" | "satellite", regsLayer: "standard" | "salmon" = "s
   salmonOffered: true, statusOk: true, salmonFacts: null, setRegsLayer: () => {}, isolated: null, isolate: () => {},
   layers: { water: { drawn }, effective: { groups: { obstacles: false } } },
 }) as never;
-const show = (basemap: "map" | "satellite", palette: Palette, theme: string, regsLayer: "standard" | "salmon" = "standard", drawn = "regulations") =>
-  render(<MapLegend col={col(basemap, regsLayer, drawn)} conditions={false} palette={palette} theme={theme} mapDay={null} />);
+// (T1211) the Map tab's key floats behind its chip: drawn, then opened
+const show = (basemap: "map" | "satellite", palette: Palette, theme: string, regsLayer: "standard" | "salmon" = "standard", drawn = "regulations") => {
+  const r = render(<MapLegend col={col(basemap, regsLayer, drawn)} conditions={false} palette={palette} theme={theme} mapDay={null} />);
+  const chip = screen.queryByTestId("map-key-chip"); if (chip) fireEvent.click(chip);
+  return r;
+};
 const entry = (label: string) => screen.getAllByTestId("legend-entry").find((e) => e.textContent === label)!;
 /** The colour of the status entry's swatch line: its first painted descendant. */
 const swatchColour = (label: string): string => {

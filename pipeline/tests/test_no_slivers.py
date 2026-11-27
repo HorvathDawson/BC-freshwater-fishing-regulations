@@ -160,7 +160,7 @@ def test_a_stream_grazing_a_reserve_is_not_in_it(blk, rng, reserve):
     """Each of these touched the reserve by a few metres, and the overlap test put the whole piece
     — kilometres of creek — under the reserve's closure. A graze is no cut and no membership."""
     want = f"area:ecological_reserves:{reserve}"
-    # under the closure rule (rejoin_m) the straddle along the reserve's edge is inside, and it may
+    # under the closure rule (T1199) edge water along the reserve is inside, and it may
     # end a few metres into the old piece's range; the km-long piece beyond it must not be a member
     hit = [n.node_id for n in _pieces(blk)
            if n.down_m >= rng[0] - 5.0 and n.up_m <= rng[1] + 1.0 and want in n.in_areas]
@@ -183,9 +183,9 @@ def test_ospika_river_is_not_widened():
 
 @pytest.mark.needs_atlas
 def test_a_real_dip_into_a_reserve_is_cut_on_entry_and_exit():
-    """Trematon Creek crosses into Lasqueti Island Ecological Reserve for 80 m and out again —
-    longer than the reserve's 50 m crossing zone, so it is two cuts, and the stretch between them,
-    and only it, is in the reserve."""
+    """Trematon Creek crosses into Lasqueti Island Ecological Reserve for 80 m and out again: two
+    cuts, and the stretch between them, grown to the 100 m floor (T1199), and only it, is in the
+    reserve."""
     want = "area:ecological_reserves:lasqueti_island_ecological_reserve"
     ps = _pieces("354127144")
     inside = [n for n in ps if want in n.in_areas]
@@ -193,7 +193,7 @@ def test_a_real_dip_into_a_reserve_is_cut_on_entry_and_exit():
     n = inside[0]
     cut = lambda b: any(i.startswith("split:area:") for i in _ids(b))
     assert cut(n.lower_bound) and cut(n.upper_bound)
-    assert 50.0 <= n.up_m - n.down_m <= 120.0, (n.down_m, n.up_m)
+    assert 99.0 <= n.up_m - n.down_m <= 120.0, (n.down_m, n.up_m)
 
 
 @pytest.mark.needs_atlas
@@ -244,7 +244,7 @@ def test_two_builds_of_identical_inputs_are_identical():
     assert ga.edges == gb.edges and ga.up_adj == gb.up_adj and ga.down_adj == gb.down_adj
 
 
-# ---- the closure rule on real water: a straddle is inside (rejoin_m = 1,000 m) ----------------------
+# ---- the closure rule on real water (T1199 rule C2: a 50 m edge band, no piece under 100 m) ----------------
 def _member_runs(name: str, area: str):
     """The member pieces of `area` along every blue line named `name`, grouped into runs of
     consecutive member pieces: [(blk, first piece down_m, last piece up_m), …]."""
@@ -276,25 +276,44 @@ def test_krajina_creek_is_inside_from_its_entry():
 
 
 @pytest.mark.needs_atlas
-@pytest.mark.parametrize("name", ["Kicking Horse River", "Beaverfoot River"])
-def test_yoho_straddlers_are_one_inside_run(name):
-    """The Kicking Horse (longest run out 135 m) and the Beaverfoot (968 m) wander along Yoho's
-    edge: under rejoin_m = 1,000 m every straddled stretch is inside — one member run per line."""
-    runs = _member_runs(name, "area:national_parks:yoho_national_park_of_canada")
-    assert runs, name
+def test_kicking_horse_along_yoho_is_one_inside_run():
+    """The Kicking Horse wanders along Yoho's edge without straying past the 50 m band: edge water, one member run
+    per line (T1199 rule C2)."""
+    runs = _member_runs("Kicking Horse River", "area:national_parks:yoho_national_park_of_canada")
+    assert runs
     per_blk = collections.Counter(blk for blk, *_ in runs)
     assert all(v == 1 for v in per_blk.values()), runs
 
 
 @pytest.mark.needs_atlas
+def test_the_beaverfoots_excursion_off_yoho_is_cut_open():
+    """T1199 (owner 2026-11-26): the Beaverfoot leaves Yoho for 968 m, up to 180 m out — an excursion past the band,
+    cut open at its crossings. Before, the 1,000 m rejoin rule closed it with the park."""
+    area = "area:national_parks:yoho_national_park_of_canada"
+    runs = _member_runs("Beaverfoot River", area)
+    per_blk = collections.Counter(blk for blk, *_ in runs)
+    assert any(v >= 2 for v in per_blk.values()), runs
+    gaps = [(a[2], b[1]) for a, b in zip(runs, runs[1:]) if a[0] == b[0]]
+    assert any(900.0 <= hi - lo <= 1000.0 for lo, hi in gaps), gaps
+
+
+@pytest.mark.needs_atlas
+def test_carmanah_creek_hugging_pacific_rim_is_one_inside_run():
+    """Carmanah Creek runs 1.3 km along Pacific Rim's edge, 21 m out at most: edge water, closed like a boundary
+    river (T1199). The 1,000 m rejoin rule cut it open there."""
+    runs = _member_runs("Carmanah Creek", "area:national_parks:pacific_rim_national_park_reserve_of_canada")
+    per_blk = collections.Counter(blk for blk, *_ in runs)
+    assert runs and all(v == 1 for v in per_blk.values()), runs
+
+
+@pytest.mark.needs_atlas
 @pytest.mark.parametrize("name,area", [
     ("Canyon Creek", "area:ecological_reserves:burnt_cabin_bog_ecological_reserve"),
-    ("Carmanah Creek", "area:national_parks:pacific_rim_national_park_reserve_of_canada"),
     ("Cormier Creek", "area:ecological_reserves:blue_dease_rivers_ecological_reserve"),
     ("Hoodas Creek", "area:ecological_reserves:kingcome_river_atlatzi_river_ecological_reserve")])
-def test_a_line_out_longer_than_the_rejoin_distance_exits_and_reenters(name, area):
-    """At rejoin_m = 1,000 m these four leave their area for more than a kilometre and come back:
-    an exit cut and a re-entry cut, so two member runs on one blue line."""
+def test_a_line_that_strays_past_the_band_exits_and_reenters(name, area):
+    """These leave their area and stray past the 50 m band before they come back: an exit cut and a re-entry cut,
+    so two member runs or more on one blue line."""
     runs = _member_runs(name, area)
     per_blk = collections.Counter(blk for blk, *_ in runs)
     assert any(v >= 2 for v in per_blk.values()), runs

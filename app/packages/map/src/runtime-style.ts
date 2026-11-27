@@ -27,6 +27,7 @@ import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
+import { lakeNamesLayer, lookASources, OUR_TOWN_NAMES, quieterGround, regionBandLayer, regionNamesLayer, TOWNS_UNTIL, townDotsLayer, townLayers } from "./look-a";
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
 function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Tokens) {
@@ -59,11 +60,16 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Token
    * sea, and nobody is fishing a regulation on the Strait of Georgia.
    */
   const BASEMAP_NAMES_WATER = new Set(["water_label_lakes", "water_waterway_label"]);
+  /*
+   * (T1208, look A) AND THE PROVINCE'S OWN NAME: "BRITISH COLUMBIA" across the middle of the map names the one place every
+   * reader already knows they are in, and took the room a town or a lake's name needed (T1200).
+   */
+  const BASEMAP_NAMES_DROPPED = new Set(["places_region"]);
   const OURS_NOW = ["national_park", "park", "protected_area", "nature_reserve",
                     "military", "naval_base"];
   const all = (basemapLayers("basemap", flavor, { lang: "en" }) as
                { id: string; type?: string; filter?: unknown[] }[])
-    .filter((l) => !BASEMAP_NAMES_WATER.has(l.id))
+    .filter((l) => !BASEMAP_NAMES_WATER.has(l.id) && !BASEMAP_NAMES_DROPPED.has(l.id))
     .map((l) => (l.id === "landuse_park" && Array.isArray(l.filter)
       ? { ...l, filter: (l.filter as unknown[]).filter(
             (v) => typeof v !== "string" || !OURS_NOW.includes(v)) }
@@ -86,7 +92,14 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Token
     : l));
   const named = ground.map((l) => (BASEMAP_LABELS.includes(l.id)
     ? { ...l, paint: { ...(l as { paint?: Record<string, unknown> }).paint, ...basemapLabelPaint(l.id, tokens, "map") } }
-    : l)).map(placesByImportance);
+    : l)).map(placesByImportance)
+    // (T1208) the light theme's softer ground and one water blue (`look-a.ts`); dark's tokens are its flavour's own
+    .map((l) => quieterGround(l as { id: string; type?: string; paint?: Record<string, unknown> }, tokens) as typeof l)
+    // (T1209) a town of ours is named by ours below z10 (`TOWNS_UNTIL`), never twice
+    .map((l) => (l.id === "places_locality" && Array.isArray(l.filter)
+      ? { ...l, filter: [...l.filter, ["any", [">=", ["zoom"], TOWNS_UNTIL],
+                                       ["!", ["in", ["coalesce", ["get", "name:en"], ["get", "name"]], OUR_TOWN_NAMES]]]] }
+      : l));
   const i = named.findIndex((l) => l.type === "symbol");
   return i < 0 ? { below: named, labels: [] as typeof named }
                : { below: named.slice(0, i), labels: named.slice(i) };
@@ -211,6 +224,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     if (l.id === "lake") return [{
       id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: copyFilter("lake"),
       paint: copyFillPaint((painted as { paint?: Record<string, unknown> }).paint ?? {}) }, painted];
+    // (T1208) the soft band just inside each region's edge, under its dashes; (T1209) the towns' dots over it, under the
+    // water's lines (`townDotsLayer`)
+    if (l.id === "region__edge") return [regionBandLayer(tk), painted, townDotsLayer(tk)];
     if (l.id !== "stream") return [painted];
     const streamPaint = (painted as { paint?: Record<string, unknown> }).paint ?? paintFor("stream", "plain", tk);
     const copyLine = copyLinePaint(streamPaint, tk);
@@ -423,6 +439,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       [COPY_SOURCE]: { type: "geojson" as const, data: EMPTY_COPY },
       // (T235) the credits a mode or an overlay adds, each on an empty source of its own — see credits.ts
       ...creditSources(),
+      // (T1208, T1209) the region label points and the towns, inline (`look-a.ts`)
+      ...lookASources(),
     },
     layers: [
       /**
@@ -544,6 +562,11 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * the mask already cached and took the constructor path instead of the effect.
        */
       ...baseLabels,
+      // (T1209) THE TOWNS TO FIND YOUR WAY BY, over the basemap's names and under the water's: a lake is named first
+      ...townLayers(resolveTheme(theme)),
+      // (T1208) "Region n", once per region, OVER the towns (placed before them: under them, every region's name lost to a
+      // town at province zoom; a town's name has four anchors to move round it)
+      regionNamesLayer(resolveTheme(theme)),
       /*
        * (T299) OUR WATER NAMES, OVER THE BASEMAP'S — and so placed FIRST. MapLibre places symbols from the TOP of the style
        * down (`PauseablePlacement` walks the layer order from the last layer), and a placed label keeps its spot. With
@@ -554,6 +577,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * tidal area's "Tidal water" took Vancouver's place at z9, so the area names stay under the basemap's (above).
        */
       ...ours.filter((l) => WATER_NAMES.includes(l.id)),
+      // (T1210) the lakes named zoomed out, over the rivers' names (placed first): a lake is the bigger landmark
+      lakeNamesLayer(resolveTheme(theme)),
       /**
        * WHICH WAY THE WATER GOES, on a highlighted route only.
        *

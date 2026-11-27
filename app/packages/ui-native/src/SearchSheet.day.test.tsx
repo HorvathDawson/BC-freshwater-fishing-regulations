@@ -30,6 +30,6 @@ describe("the search row's status is the picked day's", () => {
   it("the closed day says Closed, the next day says it has its own regulations, whatever today is", () => {
     expect(rowLabel(new Date(2025, 2, 30))).toMatch(/Closed$/);
     cleanup();
-    expect(rowLabel(new Date(2025, 2, 31))).toMatch(/Has its own regulations$/);
+    expect(rowLabel(new Date(2025, 2, 31))).toMatch(/Its own rules$/);
   });
 });

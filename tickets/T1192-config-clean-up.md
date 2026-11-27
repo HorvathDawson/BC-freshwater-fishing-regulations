@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane: the repo clean chat; PRs 1-5 and 7 merged; PR 8 an
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 6, the review tool's ~25 per-file CURATION_* path overrides become one whole-tree override; PR 8 (plain field notes) and PR 9 (PR 7's review follow-ups) up |
+| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 6, the review tool's ~25 per-file CURATION_* path overrides become one whole-tree override; PR 8 (plain field notes) and PR 9 (PR 7's review follow-ups) up; rule 36 reworded (docs PR) |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "the config.yaml i feel has a lot of stuff in it that is noit
 needed too? like there is a lot of bloat because of the way stuff is formatted could we audit this and maybe use it as
@@ -83,5 +83,6 @@ Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
 
 - [x] 2026-11-26 — Strip the existing notes' ticket ids and dates too: "Yes, strip them too (Recommended)" (PR 8);
   the two stale notes were fixed with the renames (PR 4).
-- [ ] 2026-11-27 — AGENTS rule 36 says "All paths come from config.yaml"; since #358 only the roots, the FWA gpkg name
-  and `atlas_build` do (every other name: `pipeline/common/curated.py`). His wording to change; default: left as it is.
+- [x] 2026-11-27 — AGENTS rule 36 said "All paths come from config.yaml"; since #358 only the roots, the FWA gpkg name
+  and `atlas_build` do (every other name: `pipeline/common/curated.py`) → "Reword as proposed (Recommended)"
+  (2026-11-27); the rule now names `pipeline.common.curated`.

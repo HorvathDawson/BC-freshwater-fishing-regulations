@@ -52,8 +52,9 @@ export const WATER_STATUSES: readonly WaterStatus[] = ["closed", "own", "base", 
 /** What each status is called, and the map token that paints it. */
 export const WATER_STATUS: Readonly<Record<WaterStatus, { label: string; token: string }>> = {
   closed: { label: "Closed", token: "color.status.closed" },
-  own: { label: "Has its own regulations", token: "color.status.own" },
-  base: { label: "Base regulations only", token: "color.status.base" },
+  // (T1211, owner 2026-11-26) one pair of words everywhere the two statuses are named: the map key, the sheets, search, Help
+  own: { label: "Its own rules", token: "color.status.own" },
+  base: { label: "Region rules only", token: "color.status.base" },
   no_access: { label: ACCESS_WORDS.legend, token: "color.status.no_access" },
 };
 

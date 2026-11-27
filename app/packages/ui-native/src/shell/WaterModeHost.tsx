@@ -31,6 +31,16 @@ const WaterMapView = part(() => import("../later").then((m) => m.WaterMapView));
 const WaterScreen = part<React.ComponentProps<typeof WaterScreenType>>(() => import("../later").then((m) => m.WaterScreen), undefined,
                                                                        (p) => <WaterPageLoading palette={p.palette} />);
 
+/**
+ * (T1211 review) A WATER'S OWN MAP VIEW DRAWS EVERY CLASS. A class shown alone on the main map (the key's isolate, T377)
+ * is a way of looking at the browse map, with the chip that says so; a water's Map view has no chip, and greying the
+ * water you opened (a closed water drawn grey because "Its own rules" was isolated) would misstate its rules. So the
+ * day's status goes in whole: `only` is never passed.
+ */
+export function waterMapStatus<S extends { only?: unknown }>(s: S | null): S | null {
+  return s && { ...s, only: null };
+}
+
 export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles, theme, feed, rail, spotLayer, camera,
                                 waterCamera, fishImages, mapDay, onDay, start, onStarted }: {
   frame: NonNullable<ReturnType<typeof waterFrame>>; nav: ShellNav; col: MapColouring; source: WaterSource;
@@ -75,7 +85,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                         // (T1140) opened from a head's "Other parts of this water have different rules": the list open
                         listOpen={frame.parts === true}
                         map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
-                               basemap: mm.basemap, status: mapStatus, spots: spotLayer,
+                               basemap: mm.basemap, status: waterMapStatus(mapStatus), spots: spotLayer,
                                // T145: a tap off every spot clears the selected spot's pin, here as on the browse maps
                                onMapPoint: mapPointTap(rail, null),
                                onMoved: (at) => { waterCamera.current = at; },
