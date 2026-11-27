@@ -200,6 +200,52 @@ def package_versions(dists) -> dict[str, str]:
     return out
 
 
+#: (T1187) how a record SAYS where an unowned module was: relative to the interpreter's prefix or to the repo, never an
+#: absolute path (the record is read on other checkouts and venvs); a file under neither is named by its file name only.
+#: THE PREFIX FIRST (review of the T1187 PR): a venv inside the repo and a worktree with a linked .venv say one place
+PLACES = (("<prefix>", lambda: Path(sys.prefix)), ("<base_prefix>", lambda: Path(sys.base_prefix)),
+          ("<repo>", lambda: REPO_ROOT))
+ELSEWHERE = "<elsewhere>"
+#: entry scripts: their NAME finds no file (every process has its own `__main__`), so the recorded place finds it
+ENTRY_NAMES = ("__main__", "__mp_main__")
+
+
+def portable_where(where: str) -> str:
+    """(T1187) `where` (an absolute file or package directory) as a record says it: `<repo>/rel`, `<prefix>/rel`,
+    `<base_prefix>/rel`, else `<elsewhere>/<name>`; "" stays "" (the import named no file)."""
+    if not where:
+        return ""
+    p = Path(where).resolve()
+    for tag, base in PLACES:
+        try:
+            return f"{tag}/{p.relative_to(base().resolve())}"
+        except ValueError:
+            continue
+    return f"{ELSEWHERE}/{p.name}"
+
+
+def unowned_identity_now(top: str, where: str) -> str:
+    """(T1187) The bytes NOW of a module no distribution owns (`file_identity`), FOUND BY ITS NAME
+    (`importlib.util.find_spec`: the place this interpreter would import it from), so the same bytes in another venv or
+    checkout are the same identity. An entry script (`ENTRY_NAMES`) is found by its recorded place (`portable_where`,
+    or an absolute path in a record from before T1187). "missing" only when no spec is found (the record then says so);
+    a spec with no file is "no file", as `file_identity` records it."""
+    import importlib.util
+    if top in ENTRY_NAMES:
+        tag, _, rel = where.partition("/")
+        bases = dict(PLACES)
+        if tag in bases:
+            return file_identity(str(bases[tag]() / rel))
+        return file_identity(where) if where and Path(where).is_absolute() else "missing"
+    try:
+        spec = importlib.util.find_spec(top)
+    except (ImportError, ValueError):               # ValueError: in sys.modules with no spec
+        spec = None
+    if spec is None:
+        return "missing"
+    return file_identity(_trace._where(spec.origin, spec.submodule_search_locations))
+
+
 def unowned_note(packages) -> str | None:
     """The words a plan or a run prints for the packages it keys by their file (`UNOWNED`), or None for none."""
     tops = sorted(unowned_parts(d)[0] for d in packages or () if d.startswith(UNOWNED))

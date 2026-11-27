@@ -210,7 +210,8 @@ def behind(build_dir: Path, now: dict[str, str] | None = None) -> list[str]:
 #: (T1171) THE CODE AN ATLAS WAS BUILT FROM, beside its inputs in the meta (`CODE`):
 #:     {"modules": {file: sha256 AS IMPORTED}, "reads": {code file it read (`stepcache.is_code_read`): sha256},
 #:      "packages": {distribution: version} (only those owning a package it imported; one no distribution owns is
-#:      `module:<top>=<file>`: its bytes), "config": {config.yaml key it read: digest AS READ}, "python": sys.version,
+#:      `module:<top>=<place>`: its bytes, the place relative to the repo or sys.prefix, T1187), "config": {config.yaml
+#:      key it read: digest AS READ}, "python": sys.version,
 #:      "sqlite": the SQLite library, "git": {"commit": HEAD when the build started, "dirty": whether a recorded file
 #:      differed from that commit}}
 #: or {"unrecorded": why} when the build could not record it at all. The build-record machinery (`_trace`,
@@ -275,13 +276,24 @@ def code_stamp(trace_dir: Path | None, git: dict | None = None) -> dict:
     reads = {k: (MOVED if k in moved else v) for k, v in code["reads"].items()}     # hashed now: only if unmoved
     two = {x.split(" (")[0][len("config "):] for x in trace.moved if x.startswith("config ")}   # read as two values
     config = {k: (MOVED if k in two else v) for k, v in code["config"].items()}
-    out = {"modules": modules, "reads": reads, "packages": stepcache.package_versions(code["packages"]),
+    # (T1187) a module no distribution owns by its name and a portable place (`stepcache.portable_where`), never the
+    # absolute path it was loaded from: `code_behind` finds its file now by name
+    packages = {(_portable(d) if d.startswith(stepcache.UNOWNED) else d): v
+                for d, v in stepcache.package_versions(code["packages"]).items()}
+    out = {"modules": modules, "reads": reads, "packages": packages,
            "config": config, **stepcache.stage_env()}
     if git:
         files = sorted({*modules, *reads, stepcache.CONFIG_FILE})
         changed = _git_changed(git["commit"], files)
         out["git"] = {"commit": git["commit"], "dirty": True if changed is None else bool(changed)}
     return out
+
+
+def _portable(entry: str) -> str:
+    """(T1187) `module:<top>=<absolute where>` as the record keeps it: `module:<top>=<portable place>`."""
+    from pipeline.common import stepcache
+    top, where = stepcache.unowned_parts(entry)
+    return stepcache.unowned_entry(top, stepcache.portable_where(where))
 
 
 def record_code(build_dir: Path, trace_dir: Path | None, git: dict | None = None) -> dict:
@@ -324,7 +336,9 @@ def code_behind(build_dir: Path) -> list[str]:
     for f in files:                     # a MOVED one changed during the build: git cannot say against what
         out.append(f"{f} (code): {MOVED}" if was[f] == MOVED else
                    f"{f} (code): changed since the atlas was built{how.get(f, '')}")
-    pk = stepcache.package_versions(code["packages"])
+    # (T1187) an unowned module is found NOW by its name (`stepcache.unowned_identity_now`), never at the recorded path
+    pk = {d: (stepcache.unowned_identity_now(*stepcache.unowned_parts(d)) if d.startswith(stepcache.UNOWNED)
+              else stepcache.package_versions([d])[d]) for d in code["packages"]}
     for d in sorted(pk):
         if pk[d] != code["packages"][d]:
             if d.startswith(stepcache.UNOWNED):
