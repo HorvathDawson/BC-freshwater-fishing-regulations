@@ -17,6 +17,17 @@ library only.
 | `start-workflow.sh` | start a GitHub workflow and name its run (never a schedule) |
 | `trout-refresh.sh` | the trout fixture refresh chain, one command |
 
+What each `make` verb (the root `Makefile`) calls; `make help` prints the list:
+
+| verb | calls |
+|---|---|
+| `setup` / `fetch-data` | `bootstrap.sh --setup-only` / `bootstrap.sh` (the 16 GB of pins) |
+| `test` = `test-py` + `test-app` | `heavy.sh` + `pytest-chunked.sh -- -q` / `heavy.sh` + `pnpm -C app exec vitest run`; with `ARGS`, pytest / vitest on them |
+| `check` / `test-all` | `before_push.py $ARGS` / `heavy.sh` + `test-full.sh` |
+| `build` / `build-first` | `heavy.sh` + `python -m pipeline build` / the same with `--atlas --promote --jobs 2` |
+| `app` / `review` | `pnpm -C app tiles` beside `pnpm -C app dev:web` / `tools/curation-review/run.sh` |
+| `release` / `prod` | prints `docs/runbooks/release-by-hand.md`'s steps, then `python -m pipeline release --cut --dry-run` / prints only |
+
 Tests: `pipeline/tests/test_before_push.py`, `test_ci_paths.py`, `test_workflow_pins.py` and the other `test_*` named for a script.
 Naming: shell for process orchestration, Python for logic that needs tests; there is a second home for scripts in `deploy/` (uploads and
 builds) and a third in `pipeline/tools/` (audits and emitters).
