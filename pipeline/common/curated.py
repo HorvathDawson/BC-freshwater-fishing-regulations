@@ -821,8 +821,8 @@ def _names(model: type[BaseModel]) -> dict:
 NAMES = _names(Config)
 
 #: Where files are declared now, said wherever config.yaml states a key in a block of the schema's names
-DECLARE_HERE = ("this block's file names are declared in pipeline/common/curated.py: a new file is a field there with "
-                "`At(\"<name>\")` and its note")
+DECLARE_HERE = ("a new file's name is declared in pipeline/common/curated.py: a field there with `At(\"<name>\")` and "
+                "its note")
 
 
 def _schema_only(model: type[BaseModel], at: tuple = ()) -> set[tuple]:
@@ -853,13 +853,28 @@ def _names_block(at: tuple) -> bool:
     return bool(at) and isinstance(node, dict)
 
 
+def _config_side(model: type[BaseModel], at: tuple = ()) -> set[str]:
+    """Every dotted key config.yaml itself states: each field with no `At` that is not a block (the roots, the gpkg's
+    name, `atlas_build`), and each block that holds one (`roots`, `source`)."""
+    out = set()
+    for key, f in model.model_fields.items():
+        if isinstance(f.annotation, type) and issubclass(f.annotation, BaseModel):
+            if sub := _config_side(f.annotation, (*at, key)):
+                out |= sub | {".".join((*at, key))}
+        elif not any(isinstance(m, At) for m in f.metadata):
+            out.add(".".join((*at, key)))
+    return out
+
+
+#: The keys config.yaml states (`_config_side`); every other key, a gone one included, is the schema's
+CONFIG_SIDE = _config_side(Config)
+
+
 def declared_in(key: str) -> str:
-    """Where the dotted config key `key` is stated: `pipeline/common/curated.py` for a name the schema declares
-    (`NAMES`), else `config.yaml` (the roots, the gpkg's name, `atlas_build`)."""
-    node = NAMES
-    for k in key.split("."):
-        node = node.get(k) if isinstance(node, dict) else None
-    return "pipeline/common/curated.py" if isinstance(node, str) else CONFIG.name
+    """Where the dotted config key `key` is stated: `config.yaml` for one it states (`CONFIG_SIDE`, or `*`, the whole
+    file), else `pipeline/common/curated.py`: a name the schema declares, a whole block of them, or a key gone since
+    (config.yaml's keys are the few above; a renamed or deleted file name was the schema's)."""
+    return CONFIG.name if key == "*" or key in CONFIG_SIDE else "pipeline/common/curated.py"
 
 
 def _where(path: Path) -> str:

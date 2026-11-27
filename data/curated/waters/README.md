@@ -25,6 +25,6 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `unmapped_waters.json` | authored | hand (worklist for added lakes) | `check_curated --waters` only |
 | `unplaced_piece_calls.json` | authored | the owner (`accepted`); Claude adds `proposed` rows, read by nothing | reach run (`build.unplaced_gate`, T632: any other unplaced piece stops it) |
 
-Hand-edited files are checked by `python -m pipeline.tools.audit.check_curated --waters` (the build's first step).
-Read as `CURATED.waters.<file stem>`. A new file is a field of `Waters` in `pipeline/common/curated.py`,
-`<stem>: Annotated[FilePath, At("waters/<file>")]` with its note (a name under `roots.curated`; never config.yaml).
+Hand-edited files are checked by `python -m pipeline.tools.audit.check_curated --waters` (the build's first step). Read as `CURATED.waters.<file stem>`.
+A new file needs: the file (its field is a `FilePath`: it must exist); a `Waters` field in `pipeline/common/curated.py`, `<stem>: Annotated[FilePath, At("waters/<file>")]` + its note (never config.yaml);
+a copy in `pipeline/tests/fixtures/mini/curated/waters/` (the mini release loads that whole tree); its `FROZEN_NAMES` row in `pipeline/tests/test_curated_paths.py`; a row in the table above.

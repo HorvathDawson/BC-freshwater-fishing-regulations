@@ -145,8 +145,8 @@ LEAVES = [k for k, block in _keys(_real_blob()) if not block]
 
 
 #: the refusal's hint for a key stated in a block of the schema's names (`C.DECLARE_HERE`, typed out: the pin)
-DECLARE = (" (this block's file names are declared in pipeline/common/curated.py: a new file is a field there with "
-           "`At(\"<name>\")` and its note)")
+DECLARE = (" (a new file's name is declared in pipeline/common/curated.py: a field there with `At(\"<name>\")` and "
+           "its note)")
 
 
 def _edit(tmp_path, keys, fn):
@@ -873,6 +873,19 @@ def test_every_schema_name_is_pinned():
     here too: a file never moves by one keystroke in one place."""
     now = _flat(C.NAMES)
     assert {k.split(".")[0] for k in now} == {"source", "curated", "generated", "cache"}
-    assert sorted(set(now) - set(FROZEN_NAMES)) == [], "a new name: add it to FROZEN_NAMES"
-    assert sorted(set(FROZEN_NAMES) - set(now)) == [], "a name gone: remove it from FROZEN_NAMES"
-    assert {k: v for k, v in now.items() if FROZEN_NAMES[k] != v} == {}, "a renamed file: rename it here too"
+    assert sorted(set(now) - set(FROZEN_NAMES)) == [], "a new name: add it to FROZEN_NAMES on purpose (and its file)"
+    assert sorted(set(FROZEN_NAMES) - set(now)) == [], "a name gone: remove it from FROZEN_NAMES on purpose"
+    assert {k: v for k, v in now.items() if FROZEN_NAMES[k] != v} == {}, (
+        "a renamed file: rename it here too, on purpose, and move the data file too (the live one and the mini copy)")
+
+
+@pytest.mark.parametrize("key, home", [
+    ("source.fwa_gpkg", "config.yaml"), ("roots.curated", "config.yaml"), ("roots", "config.yaml"),
+    ("atlas_build", "config.yaml"), ("*", "config.yaml"), ("source.coast_gpkg", "pipeline/common/curated.py"),
+    ("curated.waters.cuts", "pipeline/common/curated.py"), ("curated.waters", "pipeline/common/curated.py"),
+    ("generated", "pipeline/common/curated.py"), ("generated.atlas.default_build", "pipeline/common/curated.py"),
+    ("curated.waters.t1192_gone", "pipeline/common/curated.py")])
+def test_a_key_is_named_where_it_is_stated(key, home):
+    """`declared_in` (the atlas-behind line's label): config.yaml only for the keys it states (the roots, the gpkg's
+    name, `atlas_build`, the whole file); a schema name, a whole block of them and a key gone since are curated.py's."""
+    assert C.declared_in(key) == home
