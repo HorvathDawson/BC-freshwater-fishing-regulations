@@ -1,13 +1,12 @@
 /**
  * (T1252) WHAT GL 6 CHANGED UNDER THE WEB MAP, pinned on the map `useMapInstance` builds:
  *  - `zoomLevelsToOverscale` is passed as `undefined` (GL 6 defaults it to 4 and slices z13 tiles from z14 up);
- *  - GL's worker file failing to load (its `error` event) is REPORTED from every map — through `onError`, or once a
- *    page from a map with none (MiniMap) — as `MapWorkerMissing`;
+ *  - GL's worker file failing to load (its `error` event) is SAID on the map (reason "worker") and REPORTED once a
+ *    page, from whichever map meets it first — through `onError`, or `reportFailure` without one — as `MapWorkerMissing`;
  *  - the no-WebGL error GL 6 raises on the `error` event (a lost context it cannot restore) is the browser
  *    (`MapUnavailable`, the map says so), never passed on as a defect.
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { setFailureSink } from "@app/core";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, renderHook } from "@testing-library/react";
 import type { MapProps } from "../map-props";
 import type { WebMapRefs } from "./refs";
@@ -35,7 +34,14 @@ class Control { constructor(_o?: unknown) {} }
 vi.mock("maplibre-gl", () => ({ Map: FakeGl, NavigationControl: Control, ScaleControl: Control, addProtocol: () => {},
                                 setWorkerUrl: () => {}, getVersion: () => "6.19.0" }));
 vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
-const { useMapInstance } = await import("./useMapInstance");
+/** a fresh module per test: what was reported "once a page" is per page, and each test is a page */
+let useMapInstance: typeof import("./useMapInstance").useMapInstance;
+let setFailureSink: typeof import("@app/core").setFailureSink;   // the fresh module's own core, where it reports
+beforeEach(async () => {
+  vi.resetModules();
+  ({ useMapInstance } = await import("./useMapInstance"));
+  ({ setFailureSink } = await import("@app/core"));
+});
 
 afterEach(cleanup);
 
@@ -43,7 +49,7 @@ const at = { atlas: "a", basemap: "b", glyphs: "g", sprite: "s", assets: "x" } a
 const refs = () => ({ host: { current: document.createElement("div") }, map: { current: null }, renderer: { current: null },
                       adapter: { current: null }, copy: { current: null }, colouring: { current: null }, pill: { current: null },
                       refit: { current: null } }) as unknown as WebMapRefs;
-const mount = (onError?: (e: Error) => void, said: boolean[] = []) => {
+const mount = (onError?: (e: Error) => void, said: (string | null)[] = []) => {
   renderHook(() => useMapInstance(refs(), { at, theme: "light", modes: undefined, gauges: undefined, bare: true,
                                             initial: { lon: -123, lat: 49, zoom: 6 }, onError } as never, (u) => { said.push(u); }));
   return gl!;
@@ -61,28 +67,36 @@ describe("T1252 the GL 6 map", () => {
     expect(m.opts.zoomLevelsToOverscale).toBeUndefined();
   });
 
-  it("reports GL's worker failing to load through the map's onError, named", () => {
+  it("GL's worker failing to load: the map says so in its own words' reason, reported through onError ONCE (a pool of 3)", () => {
     const errors: Error[] = [];
-    mount((e) => { errors.push(e); }).fire("error", workerMissing);
+    const said: (string | null)[] = [];
+    const m = mount((e) => { errors.push(e); }, said);
+    for (let i = 0; i < 3; i++) m.fire("error", workerMissing);   // GL subscribes each worker of its pool (3 on Safari)
+    expect(said).toEqual([null, "worker", "worker", "worker"]);
     expect(errors.map((e) => `${e.name}: ${e.message}`))
       .toEqual(["MapWorkerMissing: GL's worker failed to load (/maplibre-gl-6.19.0/maplibre-gl-worker.mjs)"]);
     expect(errors[0]!.cause).toBe(workerMissing.error);
   });
 
-  it("a map with no onError (MiniMap) still reports the worker failure, once a page", () => {
+  it("a map with no onError (MiniMap) says so and reports it, once a page with every other map", () => {
     const failures: unknown[] = [];
+    const said: (string | null)[] = [];
     const unsink = setFailureSink((e) => { failures.push(e); });
-    mount().fire("error", workerMissing);
-    mount().fire("error", workerMissing);
+    mount(undefined, said).fire("error", workerMissing);
+    mount(undefined, said).fire("error", workerMissing);
+    const errors: Error[] = [];
+    mount((e) => { errors.push(e); }).fire("error", workerMissing);   // the screen map, on the same page
     unsink();
+    expect(said).toEqual([null, "worker", null, "worker"]);
     expect(failures.map((e) => (e as Error).name)).toEqual(["MapWorkerMissing"]);
+    expect(errors).toEqual([]);
   });
 
   it("a context GL cannot restore is the browser: the map says it is unavailable, reported as MapUnavailable", () => {
     const errors: Error[] = [];
-    const said: boolean[] = [];
+    const said: (string | null)[] = [];
     mount((e) => { errors.push(e); }, said).fire("error", gpuLost);
-    expect(said).toEqual([false, true]);
+    expect(said).toEqual([null, "webgl"]);
     expect(errors.map((e) => `${e.name}: ${e.message}`)).toEqual(["MapUnavailable: Failed to initialize WebGL (context lost)"]);
   });
 

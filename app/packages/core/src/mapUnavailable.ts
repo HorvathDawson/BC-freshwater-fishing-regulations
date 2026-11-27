@@ -12,6 +12,24 @@ export const MAP_UNAVAILABLE_WORDS = {
 } as const;
 
 /**
+ * (T1252) THE SITE'S FAULT, NOT THE BROWSER'S: the web map's GL worker file did not load (a deploy without it, a CDN
+ * error), so no tile can draw. Never the WebGL words above (they send the reader to the browser's settings). The
+ * owner's words (2026-11-27, tickets/T1252 `## Owner`: "that sounds good").
+ */
+export const MAP_WORKER_FAILED_WORDS = {
+  title: "The map could not load",
+  body: "Reload the page; search and the regulations pages still work.",
+} as const;
+
+/** Why a map cannot draw: this browser (no WebGL) or the site (GL's worker did not load). */
+export type MapUnavailableReason = "webgl" | "worker";
+
+/** The words a map that cannot draw says, for its reason. */
+export function mapUnavailableWords(reason: MapUnavailableReason): { readonly title: string; readonly body: string } {
+  return reason === "worker" ? MAP_WORKER_FAILED_WORDS : MAP_UNAVAILABLE_WORDS;
+}
+
+/**
  * Is `e` MapLibre's "no WebGL" error? (T1252) Since GL 6 (WebGL2 required) its constructor throws a
  * `GPUInitializationError` ("WebGL2 is required to display this map…") carrying the browser's reason as `statusMessage`;
  * GL 5's "Failed to initialize WebGL" (bare, or as JSON) is never thrown now.

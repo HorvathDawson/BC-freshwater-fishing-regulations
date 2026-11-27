@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isNoWebGL, noWebGLError } from "./mapUnavailable";
+import { isNoWebGL, mapUnavailableWords, noWebGLError } from "./mapUnavailable";
 
 /**
  * What MapLibre 6's `_setupPainter` throws (src/util/gpu_initialization_error.ts): a `GPUInitializationError` whose
@@ -28,5 +28,19 @@ describe("T1005 no WebGL", () => {
     expect(e.cause).toBe(detailed);
     expect(noWebGLError(bare).message).toBe("Failed to initialize WebGL");
     expect(noWebGLError(gpuError(`it said "no"`)).message).toBe("Failed to initialize WebGL (it said no)");
+  });
+});
+
+describe("T1252 what a map that cannot draw says, by reason (the whole words, rule 33)", () => {
+  it("no WebGL: the browser's settings", () => {
+    const w = mapUnavailableWords("webgl");
+    expect(`${w.title}. ${w.body}`).toBe("This browser cannot draw the map. The map needs WebGL, which is turned off or not available in "
+      + "this browser. Turn on hardware acceleration in the browser's settings, or open the map in another browser. Search and "
+      + "the regulations pages still work.");
+  });
+  it("GL's worker did not load: the site's fault, never the WebGL words", () => {
+    const w = mapUnavailableWords("worker");
+    expect(`${w.title}. ${w.body}`).toBe("The map could not load. Reload the page; search and the regulations pages still work.");
+    expect(w.body).not.toMatch(/WebGL|hardware/);
   });
 });

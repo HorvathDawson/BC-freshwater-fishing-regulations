@@ -33,8 +33,10 @@ causing issues sicne we have patched version". Number from the planning chat.
    `MapSourceDataEvent`. A new pair of tests pins the worker's path and its imports.
 5. The colours gate reads everything under `apps/`: it skips the copied worker folder only (GL's minified debug colours),
    pinned by a test with the near misses that are still read.
-6. A worker that fails to load is REPORTED (`MapWorkerMissing`) from every map: through `onError`, or once a page from a
-   map with none (MiniMap), as no WebGL is. `tools/web-shell.mjs` refuses a web export without the worker or with a file
+6. A worker that fails to load is SAID on every map in its own words (`@app/core` `MAP_WORKER_FAILED_WORDS`, never the
+   WebGL ones) and REPORTED once a page (`MapWorkerMissing`; GL subscribes each worker of its pool, up to 3 on Safari).
+   GL uses the same "Worker failed to load" words for any uncaught error inside the worker, so a worker crash is filed
+   as `MapWorkerMissing` too. `tools/web-shell.mjs` refuses a web export without the worker or with a file
    not the installed GL's. `_headers` caches `/maplibre-gl-*` a year, immutable (the path carries GL's version). The
    worker's `.map` is NOT copied: a devtools session asks for it and gets a 404; nothing else reads it.
 
@@ -45,4 +47,10 @@ header then tile range requests (206) follow, regulation lines draw, the colouri
 events), a tap opens the water, wheel / drag / pinch / double-click move the camera with no rotation, the console holds
 only the errors main has too. Before/after shots of the same three views.
 
-Depends: none. Size: M. Owner: no.
+Depends: none. Size: M. Owner: answered (the worker-failed words below).
+
+## Owner
+
+- [x] 2026-11-27 — worker-failed words: "The map could not load. Reload the page; search and the regulations pages
+  still work." Owner: "that sounds good." (shown when the site's GL worker file is missing; checked true on the Map
+  screen, search 11 hits for "cultus" with no map, and on a water page's Map tab, the regulations tab drawn).

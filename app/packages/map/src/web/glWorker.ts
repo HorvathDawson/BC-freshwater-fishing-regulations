@@ -5,8 +5,10 @@
  * is copied from the installed package into the web's `public/` when Metro starts (`apps/mobile/gl-worker.js`), in a
  * folder named by GL's version, so the page and the worker are always the same release and a cached old worker is never
  * paired with a new page. A missing file is GL's own "Worker failed to load" on the map's `error` event; the map then
- * draws no tile, and `useMapInstance` REPORTS it as `MapWorkerMissing` from every map (through its `onError`, or once a
- * page where it has none); a web export without the file fails its build (`tools/web-shell.mjs`).
+ * draws no tile, so `useMapInstance` SAYS so on every map (`@app/core` `MAP_WORKER_FAILED_WORDS`) and REPORTS it once a
+ * page as `MapWorkerMissing` (through the first map's `onError`, or `reportFailure` without one); a web export without
+ * the file fails its build (`tools/web-shell.mjs`). GL uses the same words for any uncaught error INSIDE its worker, so a
+ * worker crash is filed as `MapWorkerMissing` too.
  */
 export const glWorkerUrl = (version: string) => `/maplibre-gl-${version}/maplibre-gl-worker.mjs`;
 

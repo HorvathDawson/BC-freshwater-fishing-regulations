@@ -5,7 +5,8 @@ declare const __DEV__: boolean | undefined;
  */
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, IMAGERY, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, IMAGERY, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure,
+         type MapUnavailableReason } from "@app/core";
 import { webRenderer } from "../adapters/web";
 import { Colouring, LABEL_SOURCE_LAYERS } from "../colouring";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "../gestures";
@@ -37,11 +38,21 @@ function reportPageFailure(e: Error, onError: MapProps["onError"]): void {
   reportedOnce.add(e.name);
   reportFailure(e);
 }
+/**
+ * (T1252) GL's worker failing is reported ONCE A PAGE from every map, `onError` or not: GL subscribes every worker of its
+ * pool (up to 3 on Safari, worker_pool.ts) and every map of the page meets the same missing file.
+ */
+function reportWorkerOnce(e: Error, onError: MapProps["onError"]): void {
+  if (reportedOnce.has(e.name)) return;
+  reportedOnce.add(e.name);
+  if (onError) onError(e);
+  else reportFailure(e);
+}
 
 export function useMapInstance(refs: WebMapRefs,
                                { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError }: Made,
                                /** (T1005) told when this browser cannot draw a map (no WebGL): the map says so */
-                               onUnavailable?: (unavailable: boolean) => void) {
+                               onUnavailable?: (why: MapUnavailableReason | null) => void) {
   const { host, map, renderer, adapter, copy, colouring, pill, refit } = refs;
   // read by the map's one `error` handler, which is bound once at construction
   const imageryError = useRef(onImageryError);
@@ -91,11 +102,11 @@ export function useMapInstance(refs: WebMapRefs,
       // (T1005) NO WEBGL is the browser, not a defect: said on the map (`onUnavailable`) and reported as one stable
       // message. Anything else the constructor throws is thrown on, as before.
       if (!isNoWebGL(e)) throw e;
-      onUnavailable?.(true);
+      onUnavailable?.("webgl");
       reportPageFailure(noWebGLError(e), onError);
       return;
     }
-    onUnavailable?.(false);
+    onUnavailable?.(null);
     if (!touchRotation()) m.touchZoomRotate.disableRotation();
     if (!keyboardRotation()) m.keyboard.disableRotation();
 
@@ -146,9 +157,14 @@ export function useMapInstance(refs: WebMapRefs,
       }
       const err = e.error instanceof Error ? e.error : new Error(e.error?.message ?? "map error");
       // (T1252) GL 6 raises its no-WebGL error here too, when a lost context cannot be restored: the browser, as above
-      if (isNoWebGL(err)) { onUnavailable?.(true); reportPageFailure(noWebGLError(err), onError); return; }
-      // (T1252) GL's worker file did not load (`glWorker.ts`): no tile will draw on any map of this page
-      if (isGlWorkerMissing(err)) { reportPageFailure(glWorkerMissingError(err, maplibregl.getVersion()), onError); return; }
+      if (isNoWebGL(err)) { onUnavailable?.("webgl"); reportPageFailure(noWebGLError(err), onError); return; }
+      // (T1252) GL's worker file did not load (`glWorker.ts`): no tile will draw on any map of this page; said on the
+      // map in its own words, reported once a page
+      if (isGlWorkerMissing(err)) {
+        onUnavailable?.("worker");
+        reportWorkerOnce(glWorkerMissingError(err, maplibregl.getVersion()), onError);
+        return;
+      }
       onError?.(err);
     });
     /**
