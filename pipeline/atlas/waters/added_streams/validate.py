@@ -129,8 +129,10 @@ def fwa_code_collisions(streams: list[dict], fwa_lines, *, whole_province: bool)
     """Every city line (`klass` "novel") whose code is an FWA line's code, and every tidal root with an FWA line
     under its code: one human-readable violation each (empty == clean). ``fwa_lines`` = (trimmed wsc, blue line key)
     of the FWA lines in the build, read once. Extensions share their FWA line's code by design (`validate_propagation`
-    pins that), and so does a line that joins the very line whose code it carries. ``whole_province``: the FWA lines are all of B.C., so an exemption that no longer collides (or names no
-    added stream) is stale and refused too; a bbox build sees only its own FWA lines and checks no staleness."""
+    pins that), and so does a line that joins the very line whose code it carries. ``whole_province``: the FWA
+    lines are all of B.C., so an exempted line that no longer shares a code is stale and refused too (an exempted blk
+    the file does not hold is not judged: the mini release's invented world; the curated pin test holds them to the
+    file); a bbox build sees only its own FWA lines and checks no staleness."""
     exempt = {**FWA_CODE_CONTINUATIONS, **FWA_CODE_SHARED_PENDING}
     # a line that carries the code of the very line it JOINS is a piece of that water by connection (a braid, a same-
     # name piece pinned to the FWA line it extends): not filed by an estimate. The tidal roots have no receiver code.
@@ -165,7 +167,7 @@ def fwa_code_collisions(streams: list[dict], fwa_lines, *, whole_province: bool)
         present = {str(s["blk"]) for s in streams}
         for blk, why in sorted(exempt.items()):
             if blk not in present:
-                out.append(f"blk {blk} ({why}) is exempted in validate.py but is no added stream: remove the entry")
-            elif blk not in same:
+                continue                            # another file (the mini release's world): not this file's line
+            if blk not in same:
                 out.append(f"blk {blk} ({why}) is exempted in validate.py but shares no FWA code now: remove the entry")
     return out

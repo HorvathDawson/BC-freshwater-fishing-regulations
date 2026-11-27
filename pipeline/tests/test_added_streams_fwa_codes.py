@@ -64,8 +64,8 @@ def test_the_named_exemptions_pass_and_go_stale_by_name():
     assert V.fwa_code_collisions(rows, [("950-016367", "360846083")], whole_province=False) == []
     # the whole province: an exemption that shares nothing, or names no added stream, is refused
     stale = V.fwa_code_collisions(rows, [], whole_province=True)
-    assert any(f"blk {blk}" in m and "shares no FWA code now" in m for m in stale)
-    assert any("is no added stream" in m for m in stale)            # the pending entries absent from `rows`
+    assert len(stale) == 1 and f"blk {blk}" in stale[0] and "shares no FWA code now" in stale[0]
+    # the pending entries absent from `rows` are another file's lines: not judged here (the curated pin below)
     # a bbox build sees only its own FWA lines: no staleness is judged there
     assert V.fwa_code_collisions(rows, [], whole_province=False) == []
 
@@ -87,6 +87,11 @@ OWN_CODES = {
     "-2000000141": ("Capitol Creek", "900-053686", ""),
     "-2000000142": ("Capitol Trib.1", "900-053686-249200", "900-053686"),
 }
+
+
+def test_every_exempted_line_is_in_the_curated_file():
+    streams = {s["blk"] for s in json.loads(under_test.curated().waters.added_streams.read_text("utf-8"))["streams"]}
+    assert set(V.FWA_CODE_CONTINUATIONS) | set(V.FWA_CODE_SHARED_PENDING) <= streams
 
 
 @pytest.mark.parametrize("blk", sorted(OWN_CODES))
