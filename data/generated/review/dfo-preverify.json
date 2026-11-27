@@ -1,0 +1,2328 @@
+{
+ "_about": "DFO suggestion PRE-VERIFY (owner 2026-10-27): every suggestion in dfo-suggestions.json re-checked by a SECOND method independent of the one that produced it (OSM / BC MoTI / BC GNIS / FWA lake polygons / the notice's coordinate / the tidal polygon). pre-verified = every point agrees within tolerance; disagree = a second source places a landmark elsewhere (why says where); unchecked = no second method reaches a point. duplicate_of = the same water and the same points as another location (one decision covers both). Never applied — the owner's mark is the only write. Regenerate: .venv/bin/python -m pipeline.regs.dfo_salmon.preverify",
+ "generated": "2026-10-27",
+ "counts": {
+  "pre-verified": 120,
+  "disagree": 4,
+  "unchecked": 72,
+  "duplicates": 23
+ },
+ "items": {
+  "1:cayeghle-river:including-colonial-river": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "1:cowichan-river:including-tributaries-and-cowichan": {
+   "status": "disagree",
+   "method": "the notice's words read for place names",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "whole water suggested, but cowichan lake is not among its items",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text"
+   ]
+  },
+  "1:cowichan-river:from-the-white-triangle-boundary-s": {
+   "status": "pre-verified",
+   "method": "OSM named place (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 109.9,
+   "tolerance_m": 500.0,
+   "why": "white triangle boundary sign located in Sandy Pool Regional Park: 110 m from the place the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/relation/543934"
+   ]
+  },
+  "1:cowichan-river:downstream-of-the-weir-on-cowichan": {
+   "status": "unchecked",
+   "method": "-; OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "Cowichan Lake: no second source names this structure (first: curated) | CNR Mile 66 Trestle: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/53431426"
+   ]
+  },
+  "1:koksilah-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "1:little-qualicum-river:all-waters-unless-indicated-below": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "1:little-qualicum-river:from-the-hatchery-fence-to-signs-l": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "hatchery fence: no second source names this structure (first: curated) | signs 35 m downstream of hatchery fence: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:little-qualicum-river:from-the-falls-in-little-qualicum": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Little Qualicum Falls: no second source names this falls (first: osm) | hatchery fence: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:nanaimo-river:including-tributaries-except-in-th": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "1:nanaimo-river:from-the-power-line-crossing-at-bo": {
+   "status": "pre-verified",
+   "method": "OSM power line (Overpass); BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 31.8,
+   "tolerance_m": 150.0,
+   "why": "power line at Bore Hole: 0 m from the powerline the second source places | Boulder Creek → Nanaimo River: 32 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/259333820",
+    "BC GNIS Boulder Creek (Creek (1), MOUTH) id 9043"
+   ]
+  },
+  "1:nanaimo-river:cedar-road-bridge-upstream-approx": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "Cedar Road bridge: 0 m from the bridge the second source places | Hwy 19 bridge: 0 m from the bridge the second source places",
+   "duplicate_of": "1:nanaimo-river:from-the-cedar-road-bridge-crossin",
+   "evidence": [
+    "https://www.openstreetmap.org/way/151311977",
+    "https://www.openstreetmap.org/way/1131427048"
+   ]
+  },
+  "1:nanaimo-river:from-the-upstream-side-of-the-ceda": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.1,
+   "tolerance_m": 150.0,
+   "why": "Cedar Road bridge: 0 m from the bridge the second source places | Hwy 1 bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/151311977",
+    "https://www.openstreetmap.org/way/156276943"
+   ]
+  },
+  "1:puntledge-river:from-the-weir-at-the-lower-hatcher": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Puntledge lower hatchery weir: no second source names this structure (first: osm) | signs 75 m below the Puntledge lower hatchery weir: no second source names this structure (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:puntledge-river:downstream-from-a-fishing-boundary": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs 75 m downstream of Puntledge River hatchery fence: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:puntledge-river:morrison-creek-closure-between-fis": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name",
+   "delta_m": 18.0,
+   "tolerance_m": 75.0,
+   "why": "Morrison Creek → Puntledge River (100 m upstream): 118 m from the anchor, the words say 100 m | Morrison Creek → Puntledge River (100 m downstream): 111 m from the anchor, the words say 100 m",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Morrison Creek (Creek (1), MOUTH) id 5751"
+   ]
+  },
+  "1:qualicum-river:those-waters-upstream-of-the-big-q": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "upper hatchery weir (125 m downstream): no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:qualicum-river:downstream-of-the-upper-weir-locat": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "upper hatchery weir (125 m downstream): no second source names this structure (first: curated) | boundary signs = QFN: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:qualicum-river:waters-below-the-qfn-boundary-fenc": {
+   "status": "unchecked",
+   "method": "-; OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "boundary signs = QFN: no second source names this structure (first: curated) | Hwy 19A bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/914045163"
+   ]
+  },
+  "1:qualicum-river:all-open-portions-of-the-qualicum": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "1:quatse-river:100m-upstream-and-downstream-of-th": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "100 m above the Quatse River Hatchery weir: no second source names this structure (first: osm) | 100 m below the Quatse River Hatchery weir: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:san-juan-river:waters-of-the-san-juan-river-and-i": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 19.2,
+   "tolerance_m": 300.0,
+   "why": "Fleet River → San Juan River: 19 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Fleet River (River, MOUTH) id 19856"
+   ]
+  },
+  "1:san-juan-river:that-portion-of-the-san-juan-river": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "San Juan hatchery counting fence: no second source names this structure (first: osm) | signs 150 m below the San Juan hatchery fence: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:sproat-river:sproat-river-from-sproat-lake-to-f": {
+   "status": "unchecked",
+   "method": "FWA lake polygon by name (gpkg); -",
+   "first": "curated cut by name",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Sproat Lake: 0 m from the lake the second source places | fishing boundary signs 300 m downstream of Hwy 4: no second source names this sign (first: curated)",
+   "duplicate_of": "1:sproat-river:from-sproat-lake-to-approx-300m-be",
+   "evidence": [
+    "FWA lake polygon Sproat Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "1:stamp-river:except-in-those-areas-and-times-li": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "1:stamp-river:from-the-confluence-of-the-ash-riv": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary; OSM weir / dam (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 27.2,
+   "tolerance_m": 150.0,
+   "why": "Ash River → Stamp River: 27 m from the confluence the second source places | Great Central Lake dam: 2 m from the structure the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Ash River (River, MOUTH) id 17161",
+    "https://www.openstreetmap.org/node/1652412445"
+   ]
+  },
+  "1:stamp-river:between-fishing-boundary-signs-app": {
+   "status": "unchecked",
+   "method": "OSM waterfall (Overpass) + the offset",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "fishing boundary signs 200 m upstream of Stamp Falls: the anchor is found only as an unnamed / imprecise feature (151 m away; the words say 200 m) | signs 500 m downstream of Stamp Falls: the anchor is found only as an unnamed / imprecise feature (450 m away; the words say 500 m)",
+   "duplicate_of": "1:stamp-river:from-approx-200-m-upstream-of-the",
+   "evidence": [
+    "https://www.openstreetmap.org/way/152425020"
+   ]
+  },
+  "1:stamp-river:hatchery-lagoon-from-boundary-sign": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Robertson Creek Hatchery lagoon inlet: no second source names this structure (first: osm) | Stamp River cable car crossing: a sign named by no public landmark",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:stamp-river:hatchery-lagoon-from-fishing-bound": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Robertson Creek Hatchery lagoon inlet: no second source names this structure (first: osm) | Robertson Creek Hatchery lagoon outlet: no second source names this structure (first: osm)",
+   "duplicate_of": "1:stamp-river:from-the-inlet-upstream-of-roberst",
+   "evidence": []
+  },
+  "1:stamp-river:powerline-crossing-from-boundary-s": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Stamp River powerline crossing (BC Hydro 1L127): no second source names this powerline (first: osm) | Robertson Creek Hatchery lagoon inlet: no second source names this structure (first: osm)",
+   "duplicate_of": "1:stamp-river:from-the-powerline-crossing-downst",
+   "evidence": []
+  },
+  "1:stamp-river:upstream-of-signs-located-at-girl": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name",
+   "delta_m": 49.2,
+   "tolerance_m": 125.0,
+   "why": "Girl Guide Falls signs: 299 m from the anchor, the words say 250 m",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Beaver Creek (Creek (1), MOUTH) id 11116"
+   ]
+  },
+  "1:stamp-river:downstream-of-signs-at-girl-guide": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name",
+   "delta_m": 49.2,
+   "tolerance_m": 125.0,
+   "why": "Girl Guide Falls signs: 299 m from the anchor, the words say 250 m",
+   "duplicate_of": "1:stamp-river:stamp-river-downstream-of-girl-gui",
+   "evidence": [
+    "BC GNIS Beaver Creek (Creek (1), MOUTH) id 11116"
+   ]
+  },
+  "1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass, nearest); BC GNIS falls",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": 27.3,
+   "tolerance_m": 150.0,
+   "why": "CNR Bridge (mile 70.2): 0 m from the bridge the second source places | Skutz Falls: 27 m from the falls the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/54028525",
+    "BC GNIS Skutz Falls (Falls, CENTRE) id 27230"
+   ]
+  },
+  "1:little-qualicum-river:all-open-portions-of-the-little-qu": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "1:nanaimo-river:from-the-cedar-road-bridge-crossin": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "Cedar Road bridge: 0 m from the bridge the second source places | Hwy 19 bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/151311977",
+    "https://www.openstreetmap.org/way/1131427048"
+   ]
+  },
+  "1:sproat-river:from-sproat-lake-to-approx-300m-be": {
+   "status": "pre-verified",
+   "method": "FWA lake polygon by name (gpkg); OSM bridge (Overpass) + the offset",
+   "first": "curated cut by name",
+   "delta_m": 72.6,
+   "tolerance_m": 150.0,
+   "why": "Sproat Lake: 0 m from the lake the second source places | fishing boundary signs 300 m downstream of Hwy 4: 227 m from the anchor, the words say 300 m",
+   "duplicate_of": null,
+   "evidence": [
+    "FWA lake polygon Sproat Lake (bc_fisheries_data.gpkg lakes)",
+    "https://www.openstreetmap.org/way/156725559"
+   ]
+  },
+  "1:stamp-river:from-the-confluence-of-the-ash-riv~2": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary; OSM weir / dam (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 27.2,
+   "tolerance_m": 150.0,
+   "why": "Ash River → Stamp River: 27 m from the confluence the second source places | Great Central Lake dam: 2 m from the structure the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Ash River (River, MOUTH) id 17161",
+    "https://www.openstreetmap.org/node/1652412445"
+   ]
+  },
+  "1:stamp-river:from-approx-200-m-upstream-of-the": {
+   "status": "unchecked",
+   "method": "OSM waterfall (Overpass) + the offset",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "fishing boundary signs 200 m upstream of Stamp Falls: the anchor is found only as an unnamed / imprecise feature (151 m away; the words say 200 m) | signs 500 m downstream of Stamp Falls: the anchor is found only as an unnamed / imprecise feature (450 m away; the words say 500 m)",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/152425020"
+   ]
+  },
+  "1:stamp-river:from-the-inlet-upstream-of-roberst": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Robertson Creek Hatchery lagoon inlet: no second source names this structure (first: osm) | Robertson Creek Hatchery lagoon outlet: no second source names this structure (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:stamp-river:from-the-powerline-crossing-downst": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Stamp River powerline crossing (BC Hydro 1L127): no second source names this powerline (first: osm) | Robertson Creek Hatchery lagoon inlet: no second source names this structure (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:stamp-river:stamp-river-downstream-of-girl-gui": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Girl Guide Falls signs: no second source names this falls (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:puntledge-river:from-signs-located-50m-upstream-of": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace: no second source names this structure (first: curated) | signs 75 m downstream of Puntledge River hatchery fence: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "1:puntledge-river:downstream-from-the-base-of-stotan": {
+   "status": "pre-verified",
+   "method": "OSM waterfall (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 2.3,
+   "tolerance_m": 150.0,
+   "why": "base of Stotan Falls: 2 m from the falls the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/node/2131739501"
+   ]
+  },
+  "1:stamp-river:from-the-southern-portion-of-the-r": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Robertson Creek Hatchery lagoon inlet: no second source names this structure (first: osm) | Robertson Creek Hatchery lagoon outlet: no second source names this structure (first: osm)",
+   "duplicate_of": "1:stamp-river:from-the-inlet-upstream-of-roberst",
+   "evidence": []
+  },
+  "1:nanaimo-river:from-500-m-below-the-lower-power-l": {
+   "status": "pre-verified",
+   "method": "OSM power line (Overpass); BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 31.8,
+   "tolerance_m": 150.0,
+   "why": "500 m below the power line at Bore Hole (= power line at Bore Hole -500 m): 0 m from the powerline the second source places | Boulder Creek → Nanaimo River: 32 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/259333820",
+    "BC GNIS Boulder Creek (Creek (1), MOUTH) id 9043"
+   ]
+  },
+  "2:alouette-river-and-tributaries:above-216th-street-including-the-n": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.6,
+   "tolerance_m": 150.0,
+   "why": "216 Street bridge: 1 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/35456535"
+   ]
+  },
+  "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Allco Park boundary signs (Allco hatchery fence): no second source names this structure (first: osm)",
+   "duplicate_of": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
+   "evidence": []
+  },
+  "2:birkenhead-river:from-the-birkenhead-bridge-located": {
+   "status": "unchecked",
+   "method": "BC MoTI road structure (openmaps WFS); -",
+   "first": "split hunt / OSM",
+   "delta_m": 2.8,
+   "tolerance_m": 150.0,
+   "why": "Birkenhead Bridge (Portage Road): 3 m from the bridge the second source places | Birkenhead canyon (foot): no second source names this place (first: osm)",
+   "duplicate_of": null,
+   "evidence": [
+    "BC MoTI structure BIRKENHEAD #02591"
+   ]
+  },
+  "2:brunette-river:downstream-of-cariboo-road": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Cariboo Road bridge: no second source names this bridge (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:capilano-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "2:chapman-creek:upstream-of-tidal-water-fishing-bo": {
+   "status": "unchecked",
+   "method": "BC MoTI road structure (openmaps WFS); -",
+   "first": "split hunt / OSM",
+   "delta_m": 1.0,
+   "tolerance_m": 150.0,
+   "why": "Chapman Creek Hwy 101 bridge (tidal signs below it): 1 m from the bridge the second source places | 100 m below the Chapman Creek falls (below the power line): no second source names this falls (first: osm)",
+   "duplicate_of": null,
+   "evidence": [
+    "BC MoTI structure CHAPMAN CREEK #01371"
+   ]
+  },
+  "2:chehalis-river:downstream-of-the-logging-bridge-2": {
+   "status": "unchecked",
+   "method": "OSM bridge (Overpass) + the offset",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "main logging road bridge ~2.4km d/s Chehalis Lk: the anchor is found only as an unnamed / imprecise feature (12 m away; the words say 2400 m)",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/1358495592"
+   ]
+  },
+  "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name",
+   "delta_m": 50.9,
+   "tolerance_m": 75.0,
+   "why": "fishing boundary signs 100 m below the Slesse Creek confluence: 151 m from the anchor, the words say 100 m",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Slesse Creek (Creek (1), MOUTH) id 2978"
+   ]
+  },
+  "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name",
+   "delta_m": 50.9,
+   "tolerance_m": 75.0,
+   "why": "fishing boundary signs 100 m below the Slesse Creek confluence: 151 m from the anchor, the words say 100 m",
+   "duplicate_of": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+   "evidence": [
+    "BC GNIS Slesse Creek (Creek (1), MOUTH) id 2978"
+   ]
+  },
+  "2:fraser-river:from-the-downstream-side-of-the-cp": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name, split hunt / MoTI",
+   "delta_m": 16.0,
+   "tolerance_m": 150.0,
+   "why": "the CPR Bridge at Mission: 0 m from the bridge the second source places | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope): 16 m from the bridge the second source places",
+   "duplicate_of": "2:fraser-river:mainstem-waters-from-the-downstrea",
+   "evidence": [
+    "https://www.openstreetmap.org/way/327365721",
+    "https://www.openstreetmap.org/way/30689321"
+   ]
+  },
+  "2:fraser-river:upstream-from-the-highway-1-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 16.0,
+   "tolerance_m": 150.0,
+   "why": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope): 16 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/30689321"
+   ]
+  },
+  "2:harrison-river:from-the-outlet-of-harrison-lake-d": {
+   "status": "pre-verified",
+   "method": "FWA lake polygon by name (gpkg); OSM bridge (Overpass)",
+   "first": "curated cut by name, split hunt / MoTI",
+   "delta_m": 2.0,
+   "tolerance_m": 150.0,
+   "why": "Harrison Lake: 0 m from the lake the second source places | Hwy 7 bridge over the Harrison: 2 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "FWA lake polygon Harrison Lake (bc_fisheries_data.gpkg lakes)",
+    "https://www.openstreetmap.org/way/41535307"
+   ]
+  },
+  "2:harrison-river:from-the-highway-7-bridge-downstre": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 2.0,
+   "tolerance_m": 150.0,
+   "why": "Hwy 7 bridge over the Harrison: 2 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/41535307"
+   ]
+  },
+  "2:inch-creek:from-the-hatchery-outlet-to-the-co": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Inch Creek Hatchery outlet: no second source names this structure (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:kanaka-creek:upstream-of-the-112th-street-bridg": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 1.5,
+   "tolerance_m": 150.0,
+   "why": "112 Avenue bridge: 2 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/35454985"
+   ]
+  },
+  "2:kanaka-creek:downstream-of-the-112th-street-bri": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 1.5,
+   "tolerance_m": 150.0,
+   "why": "112 Avenue bridge: 2 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/35454985"
+   ]
+  },
+  "2:little-campbell-river:downstream-of-12th-avenue-includin": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.2,
+   "tolerance_m": 150.0,
+   "why": "12th Avenue: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/35491856"
+   ]
+  },
+  "2:little-campbell-river:downstream-of-a-line-between-2-fis": {
+   "status": "unchecked",
+   "method": "-; OSM unnamed bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "two white triangular fishing boundary signs (200 m upstream): a sign named by no public landmark | pedestrian bridge at the foot of Stayte Road: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/141728165"
+   ]
+  },
+  "2:nicomekl-river:downstream-of-208th-street": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.1,
+   "tolerance_m": 150.0,
+   "why": "208th Street: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/52054062"
+   ]
+  },
+  "2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "BC GNIS",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Siddle Creek: no second source names this confluence (first: gnis)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn": {
+   "status": "pre-verified",
+   "method": "BC MoTI road structure (openmaps WFS)",
+   "first": "split hunt / OSM",
+   "delta_m": 38.9,
+   "tolerance_m": 150.0,
+   "why": "Hwy 7 Nicomen Slough Bridge at Dewdney: 39 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC MoTI structure DEWDNEY #00596"
+   ]
+  },
+  "2:pitt-river:pitt-river-and-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "2:pitt-river:upper-and-lower-river-including-tr": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "2:pitt-river:upper-river-upstream-of-pitt-lake": {
+   "status": "pre-verified",
+   "method": "FWA lake polygon by name (gpkg)",
+   "first": "curated cut by name",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Pitt Lake: 0 m from the lake the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "FWA lake polygon Pitt Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "2:sakinaw-lake:easterly-of-a-line-drawn-from-a-bo": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: a part of a lake (a line across it): not a cut on a stream line. The notice's own boundary sign is at 49°41.50'N 123°58.45'W (49.69167,-123.97417) — curate as a lake area by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:sakinaw-lake:the-body-of-water-known-as-bear-ba": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: Bear Bay, a part of the lake east of a north–south line from 49°40.05'N 124°02.13'W (49.66750,-124.03550): a lake area, not a line cut — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:serpentine-river:downstream-of-168th-street": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "168th Street at Bothwell Park: 0 m from the bridge the second source places",
+   "duplicate_of": "2:serpentine-river:downstream-of-168th-street-at-both",
+   "evidence": [
+    "https://www.openstreetmap.org/way/96862439"
+   ]
+  },
+  "2:seymour-river:from-the-seymour-river-dam-to-the": {
+   "status": "pre-verified",
+   "method": "FWA lake polygon by name (gpkg)",
+   "first": "curated cut by name",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Seymour Lake: 0 m from the lake the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "FWA lake polygon Seymour Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "2:stave-river:downstream-of-b-c-hydro-dam-to-the": {
+   "status": "unchecked",
+   "method": "FWA lake polygon by name (gpkg); -",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Hayward Lake: 0 m from the lake the second source places | CPR railway bridge over the Stave (Ruskin): no second source names this bridge (first: osm)",
+   "duplicate_of": "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2",
+   "evidence": [
+    "FWA lake polygon Hayward Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "2:stave-river:that-portion-of-the-stave-river-kn": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: the Ruskin Spawning Channel is a side channel on the east bank, not on the FWA Stave line. Mapped (OSM 1485091713 'Ruskin Channel'): inlet near the dam 49.1950,-122.4085, boat-ramp crossing ≈ 49.1921,-122.4070, joins the Stave ≈ 49.1864,-122.4092 — needs an added channel or an area, by hand.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Allco Park boundary signs (Allco hatchery fence): no second source names this structure (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name",
+   "delta_m": 50.9,
+   "tolerance_m": 75.0,
+   "why": "fishing boundary signs 100 m below the Slesse Creek confluence: 151 m from the anchor, the words say 100 m",
+   "duplicate_of": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+   "evidence": [
+    "BC GNIS Slesse Creek (Creek (1), MOUTH) id 2978"
+   ]
+  },
+  "2:fraser-river:from-the-highway-1-bridge-at-hope": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 36.5,
+   "tolerance_m": 150.0,
+   "why": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope): 16 m from the bridge the second source places | Alexandra Bridge (Hwy 1): 36 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/30689321",
+    "https://www.openstreetmap.org/way/30689318"
+   ]
+  },
+  "2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg": {
+   "status": "unchecked",
+   "method": "OSM bridge (Overpass); -",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": 0.6,
+   "tolerance_m": 150.0,
+   "why": "216 Street bridge: 1 m from the bridge the second source places | Allco Park boundary signs (Allco hatchery fence): no second source names this structure (first: osm)",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/35456535"
+   ]
+  },
+  "2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.6,
+   "tolerance_m": 150.0,
+   "why": "216 Street bridge: 1 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/35456535"
+   ]
+  },
+  "2:alouette-river-and-tributaries:north-alouette-and-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name",
+   "delta_m": 50.9,
+   "tolerance_m": 75.0,
+   "why": "fishing boundary signs 100 m below the Slesse Creek confluence: 151 m from the anchor, the words say 100 m",
+   "duplicate_of": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+   "evidence": [
+    "BC GNIS Slesse Creek (Creek (1), MOUTH) id 2978"
+   ]
+  },
+  "2:serpentine-river:downstream-of-168th-street-at-both": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "168th Street at Bothwell Park: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/96862439"
+   ]
+  },
+  "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name",
+   "delta_m": 50.9,
+   "tolerance_m": 75.0,
+   "why": "fishing boundary signs 100 m below the Slesse Creek confluence: 151 m from the anchor, the words say 100 m",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Slesse Creek (Creek (1), MOUTH) id 2978"
+   ]
+  },
+  "2:fraser-river:mainstem-waters-from-the-downstrea": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name, split hunt / MoTI",
+   "delta_m": 16.0,
+   "tolerance_m": 150.0,
+   "why": "the CPR Bridge at Mission: 0 m from the bridge the second source places | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope): 16 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/327365721",
+    "https://www.openstreetmap.org/way/30689321"
+   ]
+  },
+  "2:nicomekl-river:within-23-m-downstream-of-the-floo": {
+   "status": "pre-verified",
+   "method": "OSM weir / dam (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.4,
+   "tolerance_m": 150.0,
+   "why": "dyke gates: 0 m from the structure the second source places | 23 m below the Nicomekl flood dam (= dyke gates -23 m): 0 m from the structure the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/702846377"
+   ]
+  },
+  "2:serpentine-river:within-23-m-downstream-of-the-floo": {
+   "status": "pre-verified",
+   "method": "OSM weir / dam (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 2.6,
+   "tolerance_m": 150.0,
+   "why": "dyke gates: 3 m from the structure the second source places | 23 m below the Serpentine flood dam (= dyke gates -23 m): 3 m from the structure the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/704791015"
+   ]
+  },
+  "2:stave-river:the-ruskin-spawning-channel-on-the": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: same Ruskin Spawning Channel (side channel, not on the FWA Stave): inlet 49.1950,-122.4085, boat-ramp crossing ≈ 49.1921,-122.4070 (OSM 1485091713).",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:fraser-river:mainstem-waters-upstream-of-the-cp": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.4,
+   "tolerance_m": 150.0,
+   "why": "the CPR Bridge at Mission: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/327365721"
+   ]
+  },
+  "2:fraser-river:from-the-downstream-side-of-the-cp~2": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name, split hunt / MoTI",
+   "delta_m": 36.5,
+   "tolerance_m": 150.0,
+   "why": "the CPR Bridge at Mission: 0 m from the bridge the second source places | Alexandra Bridge (Hwy 1): 36 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/327365721",
+    "https://www.openstreetmap.org/way/30689318"
+   ]
+  },
+  "2:harrison-river:from-the-outlet-of-harrison-lake-d~2": {
+   "status": "pre-verified",
+   "method": "FWA lake polygon by name (gpkg)",
+   "first": "curated cut by name",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Harrison Lake: 0 m from the lake the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "FWA lake polygon Harrison Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "2:stave-river:in-that-portion-of-the-stave-river": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: Ruskin + Northrop spawning channels — both side channels off the FWA Stave (Ruskin: OSM 1485091713, inlet 49.1950,-122.4085; Northrop: OSM 72823766, intake 49.1938,-122.4120, joins the mainstem ≈ 49.1892,-122.4121).",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2": {
+   "status": "unchecked",
+   "method": "FWA lake polygon by name (gpkg); -",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Hayward Lake: 0 m from the lake the second source places | CPR railway bridge over the Stave (Ruskin): no second source names this bridge (first: osm)",
+   "duplicate_of": null,
+   "evidence": [
+    "FWA lake polygon Hayward Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "3:fraser-river:mainstem-waters-of-the-fraser-rive": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "3:south-thompson-river:from-the-green-can-buoy-near-outle": {
+   "status": "pre-verified",
+   "method": "FWA lake polygon by name (gpkg); BC GNIS mouth point of the named tributary + the offset",
+   "first": "curated cut by name, FWA tributary mouth",
+   "delta_m": 34.0,
+   "tolerance_m": 75.0,
+   "why": "Little Shuswap Lake: 0 m from the lake the second source places | Campbell Creek: 66 m from the anchor, the words say 100 m",
+   "duplicate_of": null,
+   "evidence": [
+    "FWA lake polygon Little Shuswap Lake (bc_fisheries_data.gpkg lakes)",
+    "BC GNIS Campbell Creek (Creek (1), MOUTH) id 17762"
+   ]
+  },
+  "3:thompson-river:from-kamloops-lake-outlet-downstre": {
+   "status": "unchecked",
+   "method": "FWA lake polygon by name (gpkg); -",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Kamloops Lake: 0 m from the lake the second source places | signs just below Goldpan Provincial Park: no second source names this place (first: osm)",
+   "duplicate_of": "3:thompson-river:from-kamloops-lake-outlet-downstre~2",
+   "evidence": [
+    "FWA lake polygon Kamloops Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "3:thompson-river:from-the-white-triangle-fishing-bo": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "notice coordinate, split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs just below Goldpan Provincial Park: no second source names this place (first: osm) | easterly border of the Skihist Ecological reserve along the Thompson River locat: a sign named by no public landmark",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "3:fraser-river:in-that-portion-of-the-fraser-rive": {
+   "status": "unchecked",
+   "method": "BC GNIS mouth point of the named tributary; -",
+   "first": "FWA tributary mouth, split hunt / OSM",
+   "delta_m": 164.5,
+   "tolerance_m": 300.0,
+   "why": "Seton River: 165 m from the confluence the second source places | signs ~4 km below Lillooet: no second source names this sign (first: osm)",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Seton River (River, MOUTH) id 6291"
+   ]
+  },
+  "3:thompson-river:from-kamloops-lake-outlet-downstre~2": {
+   "status": "unchecked",
+   "method": "FWA lake polygon by name (gpkg); -",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Kamloops Lake: 0 m from the lake the second source places | signs just below Goldpan Provincial Park: no second source names this place (first: osm)",
+   "duplicate_of": null,
+   "evidence": [
+    "FWA lake polygon Kamloops Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: Horsefly Bay inside a line of signs across its entrance: a lake area, not a stream cut — curate by hand (no published coordinate found). Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "5a:quesnel-river:between-the-johnson-subdivision-br": {
+   "status": "unchecked",
+   "method": "OSM unnamed bridge (Overpass); -",
+   "first": "notice coordinate",
+   "delta_m": 9.3,
+   "tolerance_m": 150.0,
+   "why": "Johnson Subdivision Bridge: 9 m from the bridge the second source places | powerlines: no second source names this bridge (first: coord)",
+   "duplicate_of": "5a:quesnel-river:that-portion-of-the-quesnel-river",
+   "evidence": [
+    "https://www.openstreetmap.org/way/1539333380"
+   ]
+  },
+  "5a:quesnel-lake:that-portion-of-quesnel-lake-known": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: Horsefly Bay (lake area) — as above. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "5a:quesnel-river:that-portion-of-the-quesnel-river": {
+   "status": "unchecked",
+   "method": "OSM unnamed bridge (Overpass); -",
+   "first": "notice coordinate",
+   "delta_m": 9.3,
+   "tolerance_m": 150.0,
+   "why": "Johnson Subdivision Bridge: 9 m from the bridge the second source places | powerlines: no second source names this bridge (first: coord)",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/1539333380"
+   ]
+  },
+  "5b:atnarko-river:downstream-of-the-fishing-boundary": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs near Tweedsmuir Park Lodge (Stuie): no second source names this place (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "5b:dean-river:from-the-confluence-with-crag-cree": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 26.7,
+   "tolerance_m": 300.0,
+   "why": "Crag Creek → Dean River: 27 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Crag Creek (Creek (1), MOUTH) id 12809"
+   ]
+  },
+  "5b:dean-river:from-signs-located-approx-500-m-up": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs ~0.5 km above the canyon (500 m upstream): no second source names this place (first: curated) | signs ~100 m below the canyon (100 m downstream): no second source names this place (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "5b:dean-river:upstream-of-the-confluence-with-cr": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 26.7,
+   "tolerance_m": 300.0,
+   "why": "Crag Creek → Dean River: 27 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Crag Creek (Creek (1), MOUTH) id 12809"
+   ]
+  },
+  "5b:long-lake:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:cranberry-river:including-tributaries-note-the-sec": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:ishkheenickh-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:kiteen-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:meziadin-lake:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:meziadin-lake:excluding-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:meziadin-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:nass-river:portions-from-the-canyon-city-brid": {
+   "status": "unchecked",
+   "method": "OSM bridge (Overpass); -",
+   "first": "FWA tributary mouth, split hunt / MoTI",
+   "delta_m": 3.6,
+   "tolerance_m": 150.0,
+   "why": "Canyon City (Gitwinksihlkw) bridge: 4 m from the bridge the second source places | WSC 08DB001 station line (Nass above Shumal Creek): no second source names this place (first: fwa)",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50839283"
+   ]
+  },
+  "6:nass-river:mainstem-waters-downstream-of-the": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 103.5,
+   "tolerance_m": 300.0,
+   "why": "Meziadin River → Nass River: 103 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Meziadin River (River, MOUTH) id 28108"
+   ]
+  },
+  "6:tseax-river:upstream-of-nisga-a-highway-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Nass Road Bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50839404"
+   ]
+  },
+  "6:tseax-river:downstream-of-nisga-a-highway-brid": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.0,
+   "tolerance_m": 150.0,
+   "why": "Nass Road Bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50839404"
+   ]
+  },
+  "6:sheldens-creek:upstream-of-white-triangular-fishi": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: the water is not matched to the registry (FWA has no 'Sheldens Creek'). Best lead: the creek into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677, FWA code 950-016367); Spur 19 (FTEN 'SP 19(1) TO SHELDONS') crosses it ≈ 53.12968,-131.78224, ~3.1 km above the mouth (medium). Match the water first (T164 dossier), then this cut.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:bish-creek:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:brim-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:dala-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:illiance-river:upstream-of-white-triangular-fishi": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the water",
+   "first": "curated cut by name",
+   "delta_m": 9.7,
+   "tolerance_m": 500.0,
+   "why": "signs near the Illiance mouth: 10 m from the water's GNIS mouth ('near the mouth')",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS"
+   ]
+  },
+  "6:khutze:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:khutzeymateen-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:kiltuish-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:kitimat-river:on-west-bank-between-signs-at-kiti": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Kitimat Hatchery outfall — u/s sign: no second source names this structure (first: curated) | Kitimat Hatchery outfall — d/s sign: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:kitimat-river:downstream-of-highway-37-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "Hwy 37 bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50874449"
+   ]
+  },
+  "6:kitimat-river:upstream-of-highway-37-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.3,
+   "tolerance_m": 150.0,
+   "why": "Hwy 37 bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50874449"
+   ]
+  },
+  "6:kitsault-river:upstream-of-white-triangular-fishi": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the water",
+   "first": "curated cut by name",
+   "delta_m": 32.9,
+   "tolerance_m": 500.0,
+   "why": "signs near the Kitsault mouth: 33 m from the water's GNIS mouth ('near the mouth')",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS"
+   ]
+  },
+  "6:kloiya-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:kwinimass-river:upstream-of-lower-bridge-abutments": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "lower bridge abutments: no second source names this bridge (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:kwinimass-river:downstream-of-lower-bridge-abutmen": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "lower bridge abutments: no second source names this bridge (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:quaal-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:stikine-river:including-tributaries-see-the-tahl": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:swift-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:tahltan-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:taku-river:including-tributaries-see-the-naki": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:tatsatua-creek:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:wahoo-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:wilauks-creek:upstream-of-white-triangular-fishi": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the water",
+   "first": "curated cut by name",
+   "delta_m": 23.6,
+   "tolerance_m": 500.0,
+   "why": "signs near the Wilauks mouth: 24 m from the water's GNIS mouth ('near the mouth')",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS"
+   ]
+  },
+  "6:swift-river:including-tributaries-anglers-may": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": "6:swift-river:including-tributaries",
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:babine-lake:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:babine-lake:babine-lake-excluding-tributaries": {
+   "status": "disagree",
+   "method": "the notice's words read for place names",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "whole water suggested, but the notice names 400m",
+   "duplicate_of": "6:babine-lake:babine-lake-excluding-tributaries~3",
+   "evidence": [
+    "DFO notice text"
+   ]
+  },
+  "6:babine-lake:within-a-400-m-radius-of-the-mouth": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: a 400 m radius around the Pinkut Creek mouth on the lake: a lake area — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:bear-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:bulkley-river:downstream-of-the-morice-river-con": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 82.8,
+   "tolerance_m": 300.0,
+   "why": "Morice River → Bulkley River: 83 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Morice River (River, MOUTH) id 14918"
+   ]
+  },
+  "6:bulkley-river:all-tributaries-of-the-bulkley-riv": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:kispiox-river:downstream-of-fishing-boundary-sig": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs near Kispiox River Resort: no second source names this place (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:kitseguecla-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:kitwanga-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:pinkut-creek:downstream-of-fishing-boundary-sig": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "curated cut by name",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs 25 m below the Pinkut fish fence (= fish fence -25 m): no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:shegunia-river:between-fishing-boundary-signs-loc": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs above the Shegunia logging road bridge: no second source names this bridge (first: osm) | signs below the Shegunia logging road bridge: no second source names this bridge (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:skeena-river:from-the-confluence-with-the-babin": {
+   "status": "unchecked",
+   "method": "OSM bridge (Overpass); -",
+   "first": "curated cut by name",
+   "delta_m": 8.3,
+   "tolerance_m": 150.0,
+   "why": "CNR Railway Bridge at Terrace: 8 m from the bridge the second source places | 08EB005: a gauge cut stands in for the notice's place — the owner decides whether the gauge is that place",
+   "duplicate_of": "6:skeena-river:upstream-of-cnr-bridge-at-terrace",
+   "evidence": [
+    "https://www.openstreetmap.org/way/292313823"
+   ]
+  },
+  "6:sustut-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:zymoetz-river:note-section-of-river-from-highway": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 14.0,
+   "tolerance_m": 150.0,
+   "why": "Hwy 16 bridge over the Zymoetz (Copper): 14 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50857887"
+   ]
+  },
+  "6:zymoetz-river:upstream-of-highway-16-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 14.0,
+   "tolerance_m": 150.0,
+   "why": "Hwy 16 bridge over the Zymoetz (Copper): 14 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50857887"
+   ]
+  },
+  "6:ecstall-river:upstream-of-fishing-boundary-signs": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary",
+   "first": "FWA tributary mouth",
+   "delta_m": 34.4,
+   "tolerance_m": 300.0,
+   "why": "Johnston Creek: 34 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Johnston Creek (Creek (1), MOUTH) id 2031"
+   ]
+  },
+  "6:exchamsiks-river:upstream-of-highway-16-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 8.1,
+   "tolerance_m": 150.0,
+   "why": "Hwy 16 bridge over the Exchamsiks: 8 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50799650"
+   ]
+  },
+  "6:exstew-river:upstream-of-highway-16-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 0.8,
+   "tolerance_m": 150.0,
+   "why": "Hwy 16 bridge over the Exstew: 1 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50799655"
+   ]
+  },
+  "6:gitnadoix-river:upstream-of-powerline-crossing-nea": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Gitnadoix powerline crossing near the mouth: no second source names this powerline (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:kasiks-river:upstream-of-fishing-boundary-signs": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: 'the Upper Pool' is named nowhere public (DFO pages, FWA, FISS: no lake or falls in the lower 12 km). Ask DFO Terrace or a local guide.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:kasiks-river:downstream-of-fishing-boundary-sig": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: the Kasiks 'Upper Pool' — not found (as above).",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:kasiks-river:upstream-of-highway-16-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 25.1,
+   "tolerance_m": 150.0,
+   "why": "Hwy 16 bridge over the Kasiks: 25 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50799643"
+   ]
+  },
+  "6:khyex-river:upstream-of-highway-16-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 4.9,
+   "tolerance_m": 150.0,
+   "why": "Hwy 16 bridge over the Khyex: 5 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50799617"
+   ]
+  },
+  "6:kitsumkalum-lake:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:kitsumkalum-river:upstream-of-fishing-boundary-signs": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "FWA tributary mouth",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs below the Kitsumkalum lower canyon: no second source names this place (first: fwa)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:kitsumkalum-river:downstream-of-fishing-boundary-sig": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "FWA tributary mouth",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "signs below the Kitsumkalum lower canyon: no second source names this place (first: fwa)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:kitsumkalum-river:downstream-of-railway-bridge": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "CN railway bridge over the Kitsumkalum: no second source names this bridge (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:lakelse-river:downstream-of-the-cnr-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.2,
+   "tolerance_m": 150.0,
+   "why": "CNR bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/93851985"
+   ]
+  },
+  "6:lakelse-river:below-logging-road-bridge-near-the": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Whitebottom Rd bridge (Lakelse, near the mouth): no second source names this bridge (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:lakelse-river:above-logging-road-bridge-near-the": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "split hunt / OSM",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "Whitebottom Rd bridge (Lakelse, near the mouth): no second source names this bridge (first: osm)",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:redsand-lake:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:scotia-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:skeena-river:from-lakelse-river-mouth-upstream": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary; OSM unnamed bridge (Overpass)",
+   "first": "FWA tributary mouth, split hunt / MoTI",
+   "delta_m": 69.2,
+   "tolerance_m": 150.0,
+   "why": "Lakelse River: 69 m from the confluence the second source places | Skeena River Overpass (Dudley Little Bridge) at Ferry Island: 16 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Lakelse River (River, MOUTH) id 4903",
+    "https://www.openstreetmap.org/way/1333300316"
+   ]
+  },
+  "6:zymagotitz-river:upstream-of-highway-16-bridge": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "split hunt / MoTI",
+   "delta_m": 7.5,
+   "tolerance_m": 150.0,
+   "why": "Hwy 16 bridge over the Zymagotitz: 8 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/50838427"
+   ]
+  },
+  "6:nass-river:mainstem-waters-downstream-of-the~2": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 103.5,
+   "tolerance_m": 300.0,
+   "why": "Meziadin River → Nass River: 103 m from the confluence the second source places",
+   "duplicate_of": "6:nass-river:mainstem-waters-downstream-of-the",
+   "evidence": [
+    "BC GNIS Meziadin River (River, MOUTH) id 28108"
+   ]
+  },
+  "6:babine-lake:babine-lake-excluding-tributaries~2": {
+   "status": "disagree",
+   "method": "the notice's words read for place names",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "whole water suggested, but the notice names 400m",
+   "duplicate_of": "6:babine-lake:babine-lake-excluding-tributaries~3",
+   "evidence": [
+    "DFO notice text"
+   ]
+  },
+  "6:skeena-river:upstream-of-cnr-bridge-at-terrace": {
+   "status": "unchecked",
+   "method": "OSM bridge (Overpass); -",
+   "first": "curated cut by name",
+   "delta_m": 8.3,
+   "tolerance_m": 150.0,
+   "why": "CNR Railway Bridge at Terrace: 8 m from the bridge the second source places | 08EB005: a gauge cut stands in for the notice's place — the owner decides whether the gauge is that place",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/292313823"
+   ]
+  },
+  "6:nass-river:mainstem-waters-near-the-meziadin": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary; OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 103.5,
+   "tolerance_m": 150.0,
+   "why": "Meziadin River → Nass River: 103 m from the confluence the second source places | Hwy 37 bridge: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Meziadin River (River, MOUTH) id 28108",
+    "https://www.openstreetmap.org/way/50945046"
+   ]
+  },
+  "6:nakina-river:that-portion-of-the-nakina-river-f": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary + the offset",
+   "first": "FWA tributary mouth",
+   "delta_m": 170.4,
+   "tolerance_m": 150.0,
+   "why": "Sloko River: 297 m from the anchor, the words say 300 m | Sloko River: 1130 m from the anchor, the words say 1300 m",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Sloko River (River, MOUTH) id 27962"
+   ]
+  },
+  "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:suskwa-river:including-tributaries": {
+   "status": "pre-verified",
+   "method": "the notice's words name no place on the water; named waters = items",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "no landmark, offset or coordinate in the notice; every water it names is an item",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text",
+    "registry items"
+   ]
+  },
+  "6:babine-river:from-the-nilkitkwa-river-confluenc": {
+   "status": "unchecked",
+   "method": "BC GNIS mouth point of the named tributary; -",
+   "first": "curated cut by name",
+   "delta_m": 20.9,
+   "tolerance_m": 300.0,
+   "why": "Nilkitkwa River → Babine River: 21 m from the confluence the second source places | signs 80 m downstream of adult fish counting fence: no second source names this structure (first: curated)",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Nilkitkwa River (River, MOUTH) id 21132"
+   ]
+  },
+  "6:babine-river:from-the-nilkitkwa-river-confluenc~2": {
+   "status": "pre-verified",
+   "method": "BC GNIS mouth point of the named tributary",
+   "first": "curated cut by name",
+   "delta_m": 20.9,
+   "tolerance_m": 300.0,
+   "why": "Nilkitkwa River → Babine River: 21 m from the confluence the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Nilkitkwa River (River, MOUTH) id 21132"
+   ]
+  },
+  "6:babine-lake:within-a-400m-radius-of-the-mouth": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: a 400 m radius around the Pinkut Creek mouth: a lake area — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "6:babine-lake:babine-lake-excluding-tributaries~3": {
+   "status": "disagree",
+   "method": "the notice's words read for place names",
+   "first": "the matcher read the whole water",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "whole water suggested, but the notice names 400m",
+   "duplicate_of": null,
+   "evidence": [
+    "DFO notice text"
+   ]
+  },
+  "7:nechako-river:upstream-from-the-boundary-signs-a": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.2,
+   "tolerance_m": 150.0,
+   "why": "Foothills Boulevard Bridge in Prince George: 0 m from the bridge the second source places",
+   "duplicate_of": "7:nechako-river:from-the-downstream-edge-of-the-fo",
+   "evidence": [
+    "https://www.openstreetmap.org/way/42778664"
+   ]
+  },
+  "7:nechako-river:from-the-downstream-edge-of-the-fo": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass)",
+   "first": "curated cut by name",
+   "delta_m": 0.2,
+   "tolerance_m": 150.0,
+   "why": "Foothills Boulevard Bridge in Prince George: 0 m from the bridge the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/42778664"
+   ]
+  },
+  "8:mabel-lake:northerly-of-a-line-drawn-from-a-w": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: lake areas (a line from Mabel Lake Provincial Park's north edge to a western point; signs ~1 km from Wap Creek) — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "8:osoyoos-lake:in-the-waters-in-the-portion-of-os": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: Osoyoos Lake north of the Hwy 3 bridge (the North Basin): a lake part — the bridge (Hwy 3, Osoyoos narrows) is a line across the lake, curate as a lake split by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "8:shuswap-river:middle-between-shuswap-falls-and-m": {
+   "status": "pre-verified",
+   "method": "BC GNIS falls; FWA lake polygon by name (gpkg)",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": 22.1,
+   "tolerance_m": 150.0,
+   "why": "Shuswap Falls (Wilsey Dam): 22 m from the falls the second source places | Mabel Lake: 0 m from the lake the second source places",
+   "duplicate_of": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
+   "evidence": [
+    "BC GNIS Shuswap Falls (Falls, CENTRE) id 25474",
+    "FWA lake polygon Mabel Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "8:shuswap-river:lower-upstream-from-white-triangul": {
+   "status": "pre-verified",
+   "method": "BC MoTI road structure (openmaps WFS); FWA lake polygon by name (gpkg)",
+   "first": "curated cut by name",
+   "delta_m": 0.2,
+   "tolerance_m": 150.0,
+   "why": "Mara Bridge: 0 m from the bridge the second source places | Mabel Lake: 0 m from the lake the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC MoTI structure MARA #00723",
+    "FWA lake polygon Mabel Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  },
+  "8:shuswap-river:lower-50-m-upstream-of-the-trinity": {
+   "status": "pre-verified",
+   "method": "OSM bridge (Overpass) + the offset",
+   "first": "curated cut by name",
+   "delta_m": 7.7,
+   "tolerance_m": 75.0,
+   "why": "signs 50 m upstream of Trinity Bridge: 54 m from the anchor, the words say 50 m | signs 50 m downstream of Trinity Bridge: 58 m from the anchor, the words say 50 m",
+   "duplicate_of": null,
+   "evidence": [
+    "https://www.openstreetmap.org/way/143921292"
+   ]
+  },
+  "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2": {
+   "status": "unchecked",
+   "method": "-",
+   "first": "none",
+   "delta_m": null,
+   "tolerance_m": null,
+   "why": "unresolvable — no suggestion to check: same North Basin lake part — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
+   "duplicate_of": null,
+   "evidence": []
+  },
+  "8:shuswap-river:middle-between-shuswap-falls-and-m~2": {
+   "status": "pre-verified",
+   "method": "BC GNIS falls; FWA lake polygon by name (gpkg)",
+   "first": "curated cut by name, split hunt / OSM",
+   "delta_m": 22.1,
+   "tolerance_m": 150.0,
+   "why": "Shuswap Falls (Wilsey Dam): 22 m from the falls the second source places | Mabel Lake: 0 m from the lake the second source places",
+   "duplicate_of": null,
+   "evidence": [
+    "BC GNIS Shuswap Falls (Falls, CENTRE) id 25474",
+    "FWA lake polygon Mabel Lake (bc_fisheries_data.gpkg lakes)"
+   ]
+  }
+ }
+}

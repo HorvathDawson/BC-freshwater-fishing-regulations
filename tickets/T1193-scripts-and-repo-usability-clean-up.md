@@ -4,7 +4,7 @@ Status: OPEN — lane: the repo clean chat, after T1192 PR 1; the audit (`repo-u
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | ae94d6546, ed3931146, 2e3d25588, 51acf1842, 6cd6bbd29, 314fe0bcd, 3f2f80a51, 7642317e5 | PRs 1-3 merged (deletes, ledger-hook script, #341 plain `pytest`); index pages (#344), agent pages (PR C); PR 4 Makefile and PRs 5-6 (generated files, `tickets/shots`) in review, Claude |
+| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | ae94d6546, ed3931146, 2e3d25588, 51acf1842, 6cd6bbd29, 314fe0bcd, 3f2f80a51, 7642317e5 | PRs 1-3 merged (deletes, ledger-hook script, #341 plain `pytest`); index pages (#344), agent pages (PR C); PR 4 Makefile and PRs 5-6 (dead generated files, `tickets/shots`) in review, Claude |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "same with scripts too and a few others that feel like they
 have way too many things that it would be hard for a human to use the repo themselves." and "also these scripts feel
@@ -41,4 +41,4 @@ explicit `-m` is untouched; both together is a usage error. Every caller that le
 clean-up the owner mentioned is a later ticket. Task runner (owner, same day): "A Makefile (Recommended)". PR 4 (the root Makefile): `make` lists the verbs; pinned by `pipeline/tests/test_makefile.py`, run by fast-fail; `scripts/ci_paths.py` holds no `Makefile`: proposed after the merge-back.
 
 ## PRs 5-6, owner-approved deletes (owner 2026-11-26)
-PR 5: seven dead or frozen generated files deleted (4.9 MB: proposals index, q154 sample, t981 proposals, tidal pass2 entries, t678 drafts, the two frozen audits) and five re-makeable review inputs out of git (1.2 MB; commands in `data/generated/README.md`). `review/name-variants/candidates.json` (9 MB) stays: `test_review_shrink_guard` reads it through `names.load`; making it a fixture is a later step. PR 6: `tickets/shots` deleted (24 MB); no other picture folder belongs to a closed ticket.
+PR 5: six dead or frozen generated files deleted (1.6 MB: proposals index, q154 sample, t981 proposals, t678 drafts, the two frozen audits). Kept, for the owner to decide: `review/tidal/pass2/entries.json` (3.3 MB; `tidal_pass2 propose` is a documented step that reads it), `review/name-variants/candidates.json` (9 MB; `test_review_shrink_guard` reads it), and the five re-makeable review inputs (they feed open review domains; a pull would delete them from his checkout). PR 6: `tickets/shots` deleted (24 MB); no other picture folder belongs to a closed ticket.
