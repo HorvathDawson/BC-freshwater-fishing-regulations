@@ -107,9 +107,9 @@ def test_the_mini_basin_drains_to_its_invented_area(inputs):
 
 def test_the_atlas_input_flags_default_to_the_configured_files():
     from pipeline.atlas import build
-    from project_config import get_config
+    from pipeline.common.curated import SOURCE
     a = build._parse_args(["--full"])
-    assert a.gpkg == str(get_config().fwa_data_gpkg) and a.coast_gpkg == str(get_config().fwa_coast_gpkg)
+    assert a.gpkg == str(SOURCE.fwa_gpkg) and a.coast_gpkg == str(SOURCE.coast_gpkg)
     b = build._parse_args(["--full", "--gpkg", "/x/fwa.gpkg", "--coast-gpkg", "/x/coast.gpkg"])
     assert (b.gpkg, b.coast_gpkg) == ("/x/fwa.gpkg", "/x/coast.gpkg")
     assert isinstance(b, argparse.Namespace)
@@ -149,7 +149,8 @@ def test_compare_names_the_file_that_differs(capsys):
 def test_the_fed_inputs_are_written_from_the_world_alone(tmp_path):
     """`write_source`: the roster, places, outline, synopsis, HYDAT and the feeds come from `world.json`; the one gauge
     stands where the mini tree's frozen match says it does, and the synopsis states its period."""
-    from pipeline.common.synopsis_pages import PDF_NAME, synopsis_period
+    from pipeline.common.curated import SOURCE
+    from pipeline.common.synopsis_pages import synopsis_period
     from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
     from pipeline.regs.dfo_salmon.typed import FORMAT
     w = M.load_world()
@@ -160,7 +161,7 @@ def test_the_fed_inputs_are_written_from_the_world_alone(tmp_path):
     assert [s["station"] for s in roster] == sorted(match) == ["99MA001"]
     assert (roster[0]["lon"], roster[0]["lat"]) == (match["99MA001"]["lon"], match["99MA001"]["lat"]) \
         == M.lonlat(w, *w["gauges"][0]["at"])
-    assert tuple(synopsis_period(got["source"] / PDF_NAME)) == ("2025-04-01", "2027-03-31")
+    assert tuple(synopsis_period(SOURCE.under(got["source"]).synopsis_pdf)) == ("2025-04-01", "2027-03-31")
     clim = json.loads(got["clim"].read_text())
     assert set(clim["stations"]) == set(clim["stats"]) == {"99MA001"}
     typed = sorted(p.name for p in got["dfo_typed"].glob("region-*.json"))

@@ -34,6 +34,7 @@ import { GroupCard } from "./GroupCard";
 import { PlainRow } from "./PlainRow";
 import { TroutCard } from "./TroutCard";
 import { SalmonYearStrip, YearStrip } from "./YearStrip";
+import { InSeasonPointer } from "./InSeasonYear";
 import { CoachSpot } from "../CoachMarks";
 import { TaggedTitle } from "./SourceTag";
 import type { KeepActions } from "./LineText";
@@ -93,7 +94,10 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   // (T879) ONE list under both blocks: the Salmon fold first (DFO), then the B.C. rows, each tagged
   const oneList = home && (folds.length > 0 || (keep.otherFish ?? []).length > 0) && table(-2);
   const bareStatus = glance?.salmon ? dfoBlockStatus(glance.salmon.row) : null;
-  const salmonBar = (salmonStrip || salmonHome) && (
+  // (T1207) ONE status block for both fish where core says so (`banner.schedule`, `closedWithSalmon`'s gate): the game-fish
+  // block below carries its name and tag, and no Salmon block is drawn; no schedule: the two blocks, as before
+  const sched = keep.banner?.schedule ?? null;
+  const salmonBar = !sched && (salmonStrip || salmonHome) && (
     <View key="salmon-block" testID="salmon-block"
           style={keep.strip && glance ? { paddingBottom: 12, marginBottom: 2, borderBottomWidth: 1, borderBottomColor: palette.line2 } : undefined}>
       {salmonStrip ? (
@@ -110,12 +114,14 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   );
   return (
     <View testID="keep-tab" style={{ paddingBottom: 24 }}>
+      {/* (T1167) a page with no game-fish strip: the in-season pointer above whatever answers here (core `inSeasonKeepOf`) */}
+      <InSeasonPointer palette={palette} on="tab" />
       {!keep.strip && salmonBar}
       {keep.order.map((b, i) => {
         const before = glance && !home && at < 0 && folds.length > 0 && i === tableAt ? table(-1) : null;
         const block = ((): ReactNode => {
         if (glance && (b === "otherFish" || b === "trout" || (typeof b === "object" && "group" in b))) return i === at && !home ? table(i) : null;
-        if (b === "strip") return [salmonBar, <YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={tags ? SOURCE_WORDS.game : glance ? SALMON_WORDS.barGeneral : null} tag={tags ? SOURCE_WORDS.tag.bc : null} hours={hours} />,
+        if (b === "strip") return [salmonBar, <YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={sched ? sched.title : tags ? SOURCE_WORDS.game : glance ? SALMON_WORDS.barGeneral : null} tag={sched ? sched.tag : tags ? SOURCE_WORDS.tag.bc : null} one={sched ? sched.label : null} hours={hours} />,
           timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} daylight={daylight} />, oneList];
         if (b === "inherited") return <InheritedLine key={i} inherited={keep.inherited!} palette={palette} actions={actions} />;
         if (b === "banner") return <ClosedBanner key={i} banner={keep.banner!} palette={palette} actions={actions} />;

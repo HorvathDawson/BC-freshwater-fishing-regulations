@@ -75,7 +75,7 @@ def test_the_bundle_stamps_the_period_end_as_valid_until():
 
 def test_the_bundle_stamp_refuses_a_source_dir_without_the_book(tmp_path):
     from pipeline.deliver.bundle.build import edition_valid_until
-    with pytest.raises(FileNotFoundError, match=SP.PDF_NAME):
+    with pytest.raises(FileNotFoundError, match=SP.default_pdf().name):
         edition_valid_until(tmp_path)
 
 

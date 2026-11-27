@@ -3,7 +3,7 @@
  * rows, are what the phone answers with offline — a measured line on the chart, "as of" its age, never an empty chart.
  * Mutations: `fallback` answering `good` alone fails "a new launch, offline"; dropping `noteObs` fails "never opened".
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GAUGE_FEED_FORMAT, setFailureSink } from "@app/core";
 import { FILES, KEEP_MS, gaugeHistory, withDays } from "./history";
 import { httpFeed, type StationFile } from "./http";
@@ -30,6 +30,10 @@ const server = (files: Record<string, unknown>) =>
       : { ok: false, status: 404, json: async () => ({}) };
   }) as unknown as typeof fetch;
 const dead = (async () => { throw new TypeError("Network request failed"); }) as unknown as typeof fetch;
+
+// (T1205) a reading is current by the clock: these fixtures are of 2026-10-30T20:40:00Z, so the clock is too
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(Date.parse("2026-10-30T20:40:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 describe("(T315) gaugeHistory", () => {
   it("a station file's rows and the feed-wide rows merge into one week, newest wins, older than KEEP_MS dropped", () => {

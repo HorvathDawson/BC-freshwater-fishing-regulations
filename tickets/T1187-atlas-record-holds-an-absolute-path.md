@@ -1,10 +1,10 @@
 # T1187 — The atlas record keeps an unowned module's absolute path
 
-Status: OPEN — a #286 follow-up; scoped 2026-11-26: real on main, latent (no unowned module on the Mac today)
+Status: IN PROGRESS — lane `fix/T1187-atlas-record-unowned-module-by-name`: PR open for an independent review (a #286 follow-up; latent, no unowned module on the Mac today)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1187 | The atlas record keeps an unowned module's absolute path | OPEN — a #286 follow-up; scoped 2026-11-26: real on main, latent | — | a lane: record an unowned module by name (and a path relative to the repo or `sys.prefix`); the check finds its file now by name; a test with two install paths |
+| T1187 | The atlas record keeps an unowned module's absolute path | IN PROGRESS — lane fix/T1187-atlas-record-unowned-module-by-name | — | review + merge; the stage keys' manifest: T1224 |
 
 Source: the planning chat's follow-ups after #286, 2026-11-26 (day notes); the third review's M1 fix keys a module no distribution owns by its file's bytes.
 
@@ -29,3 +29,14 @@ the file now by name (`importlib.util.find_spec`), so only a byte change makes t
 
 ## Acceptance
 The test above; the record holds no absolute path (a test greps the written meta). Severity: low. Model: Sonnet. Size: S.
+
+## Done on the branch (2026-11-26)
+- `code_stamp` records `module:<top>=<place>`, the place `<repo>/…`, `<prefix>/…`, `<base_prefix>/…` or `<elsewhere>/<name>`
+  (`stepcache.portable_where`): no absolute path.
+- `code_behind` finds the file NOW by name (`stepcache.unowned_identity_now`: `importlib.util.find_spec`, the place `_trace._where`
+  takes); an entry script (`__main__`, `__mp_main__`) by its recorded place. Not found: "missing", so the atlas reads behind, naming it.
+- Tests: `pipeline/tests/test_atlas_record_unowned.py` (an old absolute record found by name in another venv; two install paths
+  under `sys.prefix`; the written meta holds no absolute path; an entry script in a copied checkout). All 5 fail on main.
+- Review fixes: a spec with no file reads "no file" (as recorded), never "missing"; `<prefix>` is tried before `<repo>`, so a venv
+  inside the repo and a worktree with a linked `.venv` record one place. Two more tests (7 in all).
+- Not changed: the build manifest's `code_packages` (stage keys) still records the absolute path and `code_key` reads bytes there: T1224.
