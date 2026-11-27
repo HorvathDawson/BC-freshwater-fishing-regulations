@@ -139,12 +139,13 @@ def test_rulings_on_hand_made_cases():
     allow = G.Rule("allow", 3, _x(gear=[{"slot": "bait", "allow": ["fin_fish"]}]))
     d = G.resolve([allow, fin], "stream", [])
     assert d["elements"]["bait:fin_fish"]["verdict"] == "ban"
-    # a clause for the other kind of water drops out; on a key of unknown kind it is a circumstance
+    # a clause for the other kind of water drops out; with no kind the clauses are not read (G3, T1249)
     lake = G.Rule("lake", 3, _x(gear=[{"slot": "bait", "ban": ["any_bait"],
                                        "when": {"water": "lake"}}]))
     assert G.resolve([lake], "stream", [])["elements"] == {}
-    unk = G.resolve([lake], None, [])
-    assert unk["elements"] == {} and unk["circumstantial"][0]["while"] == ["water=lake"]
+    assert G.resolve([lake], "lake", [])["elements"]["bait:roe"]["verdict"] == "ban"
+    with pytest.raises(G.AnswersError, match="no water kind"):
+        G.resolve([lake], None, [])
     # a method nothing answers: lawful or not
     ways = {w["method"]: w["why"] for w in G.resolve([], "lake", ["angling"])["ways"]}
     assert ways["angling"] == "not_allowed_here" and ways["netting"] == "not_lawful"

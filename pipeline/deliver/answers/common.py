@@ -82,7 +82,7 @@ class Bundle:
     rules: dict                                   # (entry, rule) -> rule dict (the reader's)
     index: Dict[Tuple[str, str], int]             # (entry, rule) -> export `rules` index
     sets: Dict[int, List[Tuple[str, str, str]]]   # set_id -> [(entry, rule, via)]
-    set_kind: Dict[int, Optional[str]]            # set_id -> water kind (None: no named water)
+    key_kind: Dict[RuleKey, str]                  # rule key -> its water kind, the bundle's (`water_kind`)
     digest: dict                                  # meta digests
     key_ix: Dict[RuleKey, int]                    # rule key -> the bundle's `rule_key.key_ix`
     _keys: Optional[Dict[RuleKey, int]] = field(default=None, repr=False, compare=False)
@@ -127,28 +127,39 @@ def load(path: Optional[str] = None) -> Bundle:
         for set_id, e, r, via in db.execute("SELECT set_id, entry_id, rule_id, via FROM ruleset "
                                             "ORDER BY set_id, entry_id, rule_id"):
             sets[set_id].append((e, r, via))
-        kinds: Dict[int, set] = defaultdict(set)
-        for set_id, kind in db.execute(
-                "SELECT DISTINCT r.set_id, i.kind FROM section_ruleset r JOIN item_section s "
-                "ON s.sid = r.sid JOIN item i ON i.ord = s.ord"):
-            kinds[set_id].add(kind)
-        mixed = sorted(s for s, v in kinds.items() if len(v) > 1)
-        if mixed:
-            raise AnswersError(f"answers: {len(mixed)} rule set(s) carry sections of two water "
-                               f"kinds (e.g. {mixed[:3]}) — a key needs one kind")
         digest = dict(db.execute("SELECT k, v FROM meta WHERE k IN ('reach_digest', "
                                  "'section_handles', 'version')"))
-        key_ix = {RuleKey(s, bool(sw), bool(sr)): k for k, s, sw, sr in db.execute(
-            "SELECT key_ix, set_id, steelhead_water, steelhead_rules FROM rule_key")}
+        key_ix: Dict[RuleKey, int] = {}
+        key_kind: Dict[RuleKey, str] = {}
+        for k, s, sw, sr, kind in db.execute(
+                "SELECT key_ix, set_id, steelhead_water, steelhead_rules, kind FROM rule_key"):
+            rk = RuleKey(s, bool(sw), bool(sr))
+            key_ix[rk] = k
+            if kind is not None:                  # NULL only in a hand-built bundle with no places
+                key_kind[rk] = kind
     finally:
         db.close()
     rules = every_rule(path)
     ids = sorted(rules, key=rule_id)
     B = Bundle(path=path, rules=rules, index={k: i for i, k in enumerate(ids)}, sets=dict(sets),
-               set_kind={s: next(iter(v)) for s, v in kinds.items()}, digest=digest,
-               key_ix=key_ix)
+               key_kind=key_kind, digest=digest, key_ix=key_ix)
     _LOADED[path] = B
     return B
+
+
+def water_kind(B: Bundle, key: RuleKey) -> str:
+    """THE WATER KIND OF A RULE KEY (T1249; AGENTS 55: decided ONCE, read everywhere): the bundle's
+    `rule_key.kind` — its named water's `item.kind`, else its unnamed sections' (`unnamed_part.kind`,
+    the atlas's node kind, S1), one per key or the bundle build stops (`derived.write`). The answers
+    never recompute it: they read it here. Until T1249 they took a SET's kind from its named items
+    only, so a key no named water carries (132 of the 0.9 bundle's, 6,584 unnamed stream sections)
+    had none, and its lake clauses read as "on a lake" on a stream. A key with no kind (a hand-built
+    bundle with no places) is refused, naming it: never None passed on."""
+    got = B.key_kind.get(key)
+    if got is None:
+        raise AnswersError(f"answers: rule key {key} has no water kind in {B.path} "
+                           f"(`rule_key.kind` is NULL: a bundle built without places)")
+    return got
 
 
 # --------------------------------------------------------------------------------------------
@@ -312,10 +323,11 @@ def part_keys(B: Bundle, data: dict) -> Tuple[List[tuple], Dict[str, List[Option
                 raise AnswersError(f"answers: water {item} part {pi}: the export's "
                                    f"steelhead_rules {flags.get('steelhead_rules')!r} is not the "
                                    f"bundle's {p.steelhead_rules}")
-            if w.get("kind") != p.kind or B.set_kind.get(p.set_id) != p.kind:
+            rk = RuleKey(int(p.set_id), bool(p.steelhead_water), bool(p.steelhead_rules))
+            if w.get("kind") != p.kind or B.key_kind.get(rk) != p.kind:
                 raise AnswersError(f"answers: water {item} part {pi}: kind {w.get('kind')!r} is "
-                                   f"not its part's {p.kind!r} or its rule set's "
-                                   f"{B.set_kind.get(p.set_id)!r}")
+                                   f"not its part's {p.kind!r} or its rule key's "
+                                   f"{B.key_kind.get(rk)!r}")
             key = (p.set_id, p.licensing_set, p.steelhead_water, p.steelhead, p.steelhead_rules,
                    p.province_except, p.home_regions, p.kind, p.tidal)
             if key not in index:
@@ -363,8 +375,12 @@ def unnamed_keys(B: Bundle, keys: List[tuple], ups: Optional[Iterable[int]] = No
         index.setdefault(k, i)
     part_keys: List[int] = []
     for u in U:
-        if B.key_ix.get(RuleKey(u.set_id, u.steelhead_water, u.steelhead_rules)) != u.key:
+        rk = RuleKey(u.set_id, u.steelhead_water, u.steelhead_rules)
+        if B.key_ix.get(rk) != u.key:
             raise AnswersError(f"answers: unnamed part {u.up}'s rule key is not the bundle's")
+        if B.key_kind.get(rk) != u.kind:                 # T1249: gear reads the key's kind
+            raise AnswersError(f"answers: unnamed part {u.up} is {u.kind!r}, its rule key "
+                               f"{B.key_kind.get(rk)!r}")
         k = (u.set_id, u.licensing_set, u.steelhead_water, u.steelhead, u.steelhead_rules,
              u.province_except, u.home_regions, u.kind, u.tidal)
         if k not in index:
