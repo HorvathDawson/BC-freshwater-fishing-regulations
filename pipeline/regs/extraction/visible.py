@@ -602,6 +602,13 @@ def page_verdict(plumber_page) -> PageVerdict:
 def _hits(unsure: Dict[str, List[int]], chars: List[dict]) -> List[Tuple[str, str]]:
     """One hit per run of chars of one kind in content order, the spaces between them included (a banner heading is one
     hit, not one per word), whole: never cut short, so a hit next to another on the page is never lost."""
+    def text(run: List[int]) -> str:
+        t = "".join(chars[k]["text"] for k in range(run[0], run[-1] + 1)).strip()
+        if t:
+            return t
+        c = chars[run[0]]                               # a run of spaces only: named by where it is, never ""
+        return f"[blank at {float(c['x0']):.2f},{float(c['top']):.2f}]"
+
     out: List[Tuple[str, str]] = []
     for kind, idx in sorted(unsure.items()):
         run = [idx[0]]
@@ -609,7 +616,7 @@ def _hits(unsure: Dict[str, List[int]], chars: List[dict]) -> List[Tuple[str, st
             if all(not chars[k]["text"].strip() for k in range(run[-1] + 1, i)):
                 run.append(i)
                 continue
-            out.append((kind, "".join(chars[k]["text"] for k in range(run[0], run[-1] + 1)).strip()))
+            out.append((kind, text(run)))
             run = [i]
-        out.append((kind, "".join(chars[k]["text"] for k in range(run[0], run[-1] + 1)).strip()))
+        out.append((kind, text(run)))
     return out
