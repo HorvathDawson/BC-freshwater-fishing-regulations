@@ -58,7 +58,7 @@ vi.mock("@app/map", async (importOriginal) => {
   const Map = (p: { lookKey?: string; onLookDrawn?: (k: string) => void; onPressFeature?: (l: string, id: number) => void }) => {
     useEffect(() => { if (p.lookKey !== undefined) p.onLookDrawn?.(p.lookKey); }, [p.lookKey, p.onLookDrawn]);
         // a one-pixel press target standing for "a tap on a stream" (no text, so it is no part of what is measured)
-    return h(View, { testID: "map-canvas", style: { flex: 1, backgroundColor: "#dfe5df" } },
+    return h(View, { testID: "map-canvas", style: { flex: 1, backgroundColor: (globalThis as unknown as { __T1203_CANVAS: string }).__T1203_CANVAS } },
              h(Pressable, { accessibilityRole: "button", accessibilityLabel: "tap a stream", onPress: () => { void p.onPressFeature?.("streams", 15); }, style: { width: 1, height: 1 } }));
   };
   return { ...(await importOriginal<typeof import("@app/map")>()), Map };

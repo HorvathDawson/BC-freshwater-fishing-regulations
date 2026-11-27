@@ -50,9 +50,12 @@ const { WATER_VIEW_LABEL, WATER_VIEW_SHORT } = await import("@app/core");
 // layout events: react-native-web observes with a ResizeObserver and then measures with getBoundingClientRect
 const SIZES = { room: 0, need: 0 };
 const NEEDS: Record<string, number> = {};
+const OBSERVED: { cb: (e: { target: Element }[]) => void; el: Element }[] = [];
+/** deliver a layout event to everything observed (a real layout engine does it when a size changes) */
+const fireLayout = () => { for (const o of OBSERVED) o.cb([{ target: o.el }]); };
 class FakeResizeObserver {
   constructor(private cb: (e: { target: Element }[]) => void) {}
-  observe(el: Element) { queueMicrotask(() => this.cb([{ target: el }])); }
+  observe(el: Element) { OBSERVED.push({ cb: this.cb, el }); queueMicrotask(() => this.cb([{ target: el }])); }
   unobserve() {}
   disconnect() {}
 }
@@ -172,4 +175,38 @@ describe("T1203 the first paint and the measure", () => {
       expect(Math.abs(est - real) / real, `${s}x: estimate ${est} vs measured ${real}`).toBeLessThan(0.15);
     }
   }, 120_000);
+});
+
+describe("T1203 the rule: full words unless a real size says they do not fit", () => {
+  it("no layout event and a window of no width (jsdom): full words; a real narrow room: Rules; then a wide room again: full words", async () => {
+    const tabs = () => [...document.querySelectorAll("[role=tab]")].map((t) => t.textContent);
+    const real = window.innerWidth;
+    try {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: 0 });
+      Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 0 });
+      window.dispatchEvent(new Event("resize"));
+      await new Promise((r) => setTimeout(r, 80));
+      SCALE.v = 1.3; OBSERVED.length = 0;
+      // 1. nothing measured (no event delivered: the stub's sizes are 0), the window unknown: whole words
+      SIZES.room = 0; SIZES.need = 0;
+      render(h(View, { style: { paddingHorizontal: GUTTER } }, h(ViewTabs, { palette: LIGHT, views: ["regs", "conditions", "map"], on: "regs", onView() {} })));
+      await act(async () => { await new Promise((r) => setTimeout(r, 30)); });
+      expect(tabs(), "nothing measured").toEqual(FULL);
+      // 2. a real narrow room and the words' real width: Rules
+      SIZES.need = 285; SIZES.room = 250;
+      await act(async () => { fireLayout(); await new Promise((r) => setTimeout(r, 30)); });
+      expect(tabs(), "a narrow room").toEqual(SHORT);
+      // 3. a wide room again: whole words
+      SIZES.room = 380;
+      await act(async () => { fireLayout(); await new Promise((r) => setTimeout(r, 30)); });
+      expect(tabs(), "a wide room again").toEqual(FULL);
+      // 4. the row hidden mid-measure (its size reads 0): not "too narrow"
+      SIZES.room = 0;
+      await act(async () => { fireLayout(); await new Promise((r) => setTimeout(r, 30)); });
+      expect(tabs(), "a row measured at 0").toEqual(FULL);
+    } finally {
+      cleanup(); SCALE.v = 1; OBSERVED.length = 0;
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: real });
+    }
+  });
 });

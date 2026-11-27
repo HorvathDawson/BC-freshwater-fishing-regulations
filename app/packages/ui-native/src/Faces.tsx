@@ -122,7 +122,11 @@ export function ViewTabs({ palette, views, on, onView }: {
   const [room, setRoom] = useState<number | null>(null);
   const [need, setNeed] = useState<number | null>(null);
   const estNeed = shown.reduce((w, v) => w + labelMinWidth(WATER_VIEW_LABEL[v], { fontSize: 14, letterSpacing: TYPE.regsTab.letterSpacing }, scale, 0, 0.56), 22 * (shown.length - 1));
-  const short = (need ?? estNeed) > (room ?? win - 2 * VIEWS_GUTTER);
+  // THE RULE: full words unless a real size says they do not fit. A room that is unknown or zero (no layout yet, a window of no
+  // width as under jsdom, a row hidden or unmounted mid-measure) is "not measured", never "too narrow": the words stay whole.
+  const roomNow = room !== null && room > 0 ? room : win > 0 ? win - 2 * VIEWS_GUTTER : 0;
+  const needNow = need !== null && need > 0 ? need : estNeed;
+  const short = roomNow > 0 && needNow > roomNow;
   const text = { ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6 };
   return (
     <View testID="water-views-room" onLayout={(e) => setRoom(e.nativeEvent.layout.width)}>

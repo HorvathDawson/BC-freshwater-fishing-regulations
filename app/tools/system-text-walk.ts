@@ -22,6 +22,8 @@ const { PixelRatio } = await import("react-native");
 vi.spyOn(PixelRatio, "getFontScale").mockImplementation(() => SCALE.v);
 const { snapshot } = await import("./wide-snapshot");
 const { LIGHT } = await import("../packages/ui-native/src/theme");
+// the map stand-in's tint, from the theme's tokens (the shards' canvas reads it when it draws; no colour literal outside the token files)
+(globalThis as unknown as { __T1203_CANVAS: string }).__T1203_CANVAS = LIGHT.wash;
 const { Shell } = await import("../packages/ui-native/src/Shell");
 const { openRegsFixtureWithLines } = await import("@app/data/release/node");
 const { NotFishingSheet } = await import("../packages/ui-native/src/NotFishingSheet");
