@@ -1,7 +1,7 @@
 # scripts: dev and CI helpers
 
 Small tools for working in the repo and for CI, run from the repo root. Python ones that CI runs on a bare runner use the
-standard library only. Every file in this folder is named below (`pipeline/tests/test_scripts_readme_names_every_file.py`
+standard library only. Every file in this folder is named below (`pipeline/tests/test_readmes_name_every_tool.py`
 fails when one is not).
 
 ## Set up

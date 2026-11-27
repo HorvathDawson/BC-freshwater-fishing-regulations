@@ -1,7 +1,7 @@
 # app/tools: gates, builders, walks and the ticket tools
 
 Node scripts and their tests for the app workspace. Run from `app/` (most through a `package.json` script). Every
-top-level `.mjs` is named below (`tools/readme-lists-every-tool.test.ts` fails when one is not). A tool marked
+top-level `.mjs` is named below (`pipeline/tests/test_readmes_name_every_tool.py` fails when one is not). A tool marked
 "one-off (ran for Tnnn)" has no caller in code, a script or CI; it is kept for the next time that check is wanted.
 
 ## Gates (a `pnpm` name in brackets means `pnpm check` runs it; the rest are named where they run)
