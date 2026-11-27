@@ -1,0 +1,8 @@
+# T1251 — When two inherited closures close one day, the card names the most upstream row
+Status: IN PROGRESS — lane: fix/T1251-most-upstream-closure-cited (based on fix/T1177-tributary-walk-book; its PR goes after #365).
+
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1251 | When two inherited closures close one day, the card names the most upstream row | IN PROGRESS | — | the PR after #365; a bundle rebuild writes `trib_upstream` (no reach rerun) |
+Source: owner 2026-11-27 (planning chat, verbatim): "The most upstream row, in 0.10.0". Found by T1177's review: Lower Campbell Lake's creeks cited John Hart Lake's Apr 15-Jul 15 closure (entry key) over Lower Campbell's own Feb 1-Jul 15. Built: `rows.evaluate.THE_MOST_UPSTREAM_ROW_IS_NAMED` (two inherited closures, same rung: the more upstream row governs, before T206's year-round-before-dated) reading the bundle's new `trib_upstream` (`nearer.WALKS_THAT_NEST_ORDER_THE_ROWS`: `trib_nearer`'s pairs plus rows whose tributary walks nest, which orders two lakes on one river). Words only, measured on both bundles with the answers stage alone: no status, fish, number, day, strip or other section moves; the cited row changes on 504 answers / 78 waters (main) and 1,050 / 109 (main + the walk; laneP/citations-changed.csv). Closures in rows' own extents keep T206's order (Campbell River below Strathcona Dam, North Alouette). RULINGS T14 amended in place; its T20 row waits for room in the docs reading budget.
+Acceptance: `test_t1251_most_upstream_closure_named.py` (two lakes on one river, a lake's row before its river's, a tie that falls to T206, both mutation pins); the v35 port still replays. Depends: T1177 (#365). Size: S. Owner: no. Model: Opus.
