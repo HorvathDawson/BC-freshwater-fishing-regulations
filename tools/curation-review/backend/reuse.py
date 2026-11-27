@@ -296,23 +296,21 @@ def _rowed_waters() -> dict[str, tuple[str, ...]]:
     return rowed_waters([e for _, e in _all_entries()])
 
 
-#: (T1177 review) `_lake_stops`' one cached answer: (key, stops)
-_LAKE_STOPS: list = [None, ()]
-
-
 def _lake_stops() -> tuple:
     """Every lake tributaries row's printed exception (T1177, `build.lake_row_stops`), read from the corpus as it is NOW
     — the same derivation the reach CLI makes, so a walk through a lake stops where it ships. Resolving them walks the
-    carve-outs (the Columbia above Kinbasket, the Kootenay above Kootenay Lake), so the answer is kept for one key: the
-    graph and registry objects and the lake rows' carve-out records as they read now (an edited row re-resolves)."""
-    from pipeline.atlas.reach.build import lake_row_stops
+    carve-outs (the Columbia above Kinbasket, the Kootenay above Kootenay Lake), so the answer is kept per what decides
+    it (`build.lake_row_stop_inputs`: the rows' rules with carve-outs and their `matched`, an edited row re-resolves),
+    and dropped with the build (`_BUILD_CACHES`: a promote reloads the graph and registry)."""
+    from pipeline.atlas.reach.build import lake_row_stop_inputs
     ents = [e for _, e in _all_entries()]
-    rows = [(e["entry_id"], [(r.get("rule_id"), r.get("tributaries_only"), r.get("extents"), r.get("tributary_excludes"))
-                             for r in e.get("rules") or [] if r.get("tributary_excludes")]) for e in ents]
-    key = (id(_graph()), id(_registry()), json.dumps(rows, sort_keys=True, default=str))
-    if _LAKE_STOPS[0] != key:
-        _LAKE_STOPS[:] = [key, lake_row_stops(ents, _registry(), _graph())]
-    return _LAKE_STOPS[1]
+    return _lake_stops_for(json.dumps(lake_row_stop_inputs(ents), sort_keys=True, default=str))
+
+
+@lru_cache(maxsize=1)
+def _lake_stops_for(_key: str) -> tuple:
+    from pipeline.atlas.reach.build import lake_row_stops
+    return lake_row_stops([e for _, e in _all_entries()], _registry(), _graph())
 
 
 def _tidal() -> dict[str, str]:
@@ -3089,7 +3087,7 @@ def check_entry(entry_dict: dict) -> dict:
 
 
 #: Every cache read from the served build — what `invalidate_caches` drops.
-_BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs, _tidal_pieces_for,
+_BUILD_CACHES = (_registry, _place_namer_for, _lake_stops_for, _splits_meta, _split_points_attrs, _tidal_pieces_for,
                  _blk_to_item, _section_owner, _region_rows, region_ends, _graph, _geoms, _wbk_polys,
                  _border_rows, border_end, border_ends,      # T755 follow-up: the BC-border cuts
                  _raw_registry_for,                          # T755 follow-up: registry.json for `applied_keys`

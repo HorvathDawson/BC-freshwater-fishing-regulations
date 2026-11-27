@@ -1382,6 +1382,20 @@ class LakeStop:
     passed: frozenset
 
 
+def _may_be_a_lake_stop(rule) -> bool:
+    """A rule `lake_row_stops` resolves: `tributaries_only`, with carve-outs and extents."""
+    return bool(rule.get("tributaries_only") and rule.get("tributary_excludes") and rule.get("extents"))
+
+
+def lake_row_stop_inputs(ents) -> list:
+    """What decides `lake_row_stops` besides the graph and the registry, as plain data: each row with a rule it resolves,
+    by entry id, with its `matched` items (what `covered_ids` gives its extents: the stop's lakes) and those rules whole
+    (extents and carve-outs). A cache of the stops keys on it (the review app, T1177 review round 2)."""
+    return [(e["entry_id"], list(e.get("matched") or []), rules)
+            for e in sorted(ents, key=lambda x: x["entry_id"])
+            if (rules := [r for r in e.get("rules") or [] if _may_be_a_lake_stop(r)])]
+
+
 def lake_row_stops(ents, registry, graph, covered_fn=None) -> tuple[LakeStop, ...]:
     """Every lake tributaries row's printed exception, for every walk of the run
     (`A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`): a rule with `tributaries_only` and `tributary_excludes`
@@ -1390,7 +1404,7 @@ def lake_row_stops(ents, registry, graph, covered_fn=None) -> tuple[LakeStop, ..
     for e in sorted(ents, key=lambda x: x["entry_id"]):
         covered = covered_fn(e, registry) if covered_fn else _covered_ids(e, registry)
         for rule in e.get("rules") or []:
-            if not (rule.get("tributaries_only") and rule.get("tributary_excludes") and rule.get("extents")):
+            if not _may_be_a_lake_stop(rule):
                 continue
             lakes: set[str] = set()
             for ex in rule["extents"]:
