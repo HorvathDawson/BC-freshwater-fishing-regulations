@@ -3,9 +3,9 @@
 About 559 test files for the whole pipeline, review library and curation-review backend, plus a few that guard the repo itself (`test_workflow_pins.py`,
 `test_before_push.py`, `test_ci_paths.py`). Config: root `pytest.ini` (`--strict-markers`) and `conftest.py`.
 
-- Run: `.venv/bin/python -m pytest -q <file or -k>`: with no `-m`, CI's no-data tier (T1193), its last line counting the data tests it left out;
-  `--with-data` adds them (`-m "not slow"`); `-m slow` for stage agreement and determinism. Tiers (AGENTS 18): `bash scripts/test-smoke.sh` per ticket
-  commit (`pipeline/tests/smoke.py` picks the set), `scripts/test-full.sh` (heavy, through `scripts/heavy.sh`) before a merge. Gating runs go unfiltered (A3).
+- Run: `.venv/bin/python -m pytest -q <file or -k>`: with no `-m`, CI's no-data tier (T1193), its NOT RUN line counting the data tests left out; on a
+  machine with builds add `--with-data` (`-m "not slow"`); rtk's pytest filter hides that line: `rtk proxy` shows it. `-m slow`: stage agreement and
+  determinism. Tiers (AGENTS 18): `scripts/test-smoke.sh` per commit, `scripts/test-full.sh` (via `scripts/heavy.sh`) before a merge; gating runs unfiltered.
 - A test that reads generated or fetched data carries a marker (`needs_bundle`, `needs_atlas`, `needs_reach_run`, `needs_tiles`, `needs_source`,
   `needs_cache`) and FAILS when the data is missing, printing the command that makes it (`conftest.py` `need`; AGENTS 62). CI runs the no-data tier by
   deselecting those markers; a no-data run hides this machine's builds (`ci_no_build.py`, `tiers.py`) so a test that secretly reads one fails here too.

@@ -14,13 +14,18 @@ A PLAIN `pytest` IS THE NO-DATA TIER, LOUDLY (T1193, owner 2026-11-26 "yes with 
 deselects what CI's "Tests" step deselects (`tiers.ci_markers`, read from the workflow: its one home), so a fresh clone
 is green, and its last line names how many data tests it left out and the flag that adds them: `--with-data`
 (`-m "not slow"`, the default before T1193). They are deselected and counted, never skipped (test_no_silent_skips). An
-explicit `-m` (every script and CI pass one) is left exactly as given; `-m` with `--with-data` is a usage error.
+explicit `-m` (every script and CI pass one) is left exactly as given; `-m` with `--with-data` is a usage error. A test
+named by its node id (`file.py::test_x`) runs whatever its markers: naming it is the choice. With TIER_LEFT_OUT_FILE set
+(scripts/pytest-chunked.sh), the counts are also appended there, so a chunked run ends with one total.
 
 TESTS NEVER READ MACHINE STATE (T777, `pipeline/tests/machine_state.py`, registered below for every run): the curated
 tree a run sees is a session sandbox (the tracked files, review empty), a no-data test that touches the real curated
 tree or an untracked generated path fails naming the marker to add, and the run's temp files go in a folder of its own.
 """
 from __future__ import annotations
+
+import os
+from pathlib import Path
 
 import pytest
 
@@ -70,18 +75,34 @@ def pytest_collection_modifyitems(session, config, items):
             item.add_marker(pytest.mark.smoke)
 
 
+def _named(config) -> set[str]:
+    """The node ids the command line names (`path::test`), as pytest writes them: relative to the rootdir."""
+    out = set()
+    for arg in config.args:
+        path, sep, rest = arg.partition("::")
+        if sep:
+            full = (Path(config.invocation_params.dir) / path).resolve()
+            try:
+                out.add(full.relative_to(config.rootpath).as_posix() + "::" + rest)
+            except ValueError:
+                out.add(arg)
+    return out
+
+
 @pytest.hookimpl(trylast=True, specname="pytest_collection_modifyitems")
 def pytest_collection_modifyitems_no_data_default(session, config, items):
     """(T1193) no `-m` given: deselect by CI's no-data expression here (after `-k`, so only what the tier left out is
-    counted), through pytest's own `pytest_deselected` (the summary's "N deselected": never a skip)."""
+    counted), through pytest's own `pytest_deselected` (the summary's "N deselected": never a skip). A test named by
+    its node id is kept."""
     if not _DEFAULT or not _DEFAULT[0]:
         return
     from _pytest.mark.expression import Expression
-    expr, data = Expression.compile(_DEFAULT[0]), set(tiers.data_markers()) - {"slow"}
+    expr, data, named = Expression.compile(_DEFAULT[0]), set(tiers.data_markers()) - {"slow"}, _named(config)
     keep, out = [], []
     for item in items:
         names = {m.name for m in item.iter_markers()}
-        (keep if expr.evaluate(lambda name, /, **kw: name in names) else out).append(item)
+        chosen = any(item.nodeid == n or item.nodeid.startswith((n + "[", n + "::")) for n in named)
+        (keep if chosen or expr.evaluate(lambda name, /, **kw: name in names) else out).append(item)
     if out:
         n_data = sum(1 for i in out if data & {m.name for m in i.iter_markers()})
         _LEFT_OUT[0] += n_data
@@ -94,12 +115,14 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """(T1193) the ONE loud line of a plain run: what the no-data default left out and the flag that adds it."""
     if not _DEFAULT or not _DEFAULT[0]:
         return
-    if config.pluginmanager.has_plugin("dsession"):          # xdist: the workers collect, so the count is theirs
-        terminalreporter.write_sep("!", "data tests NOT RUN (the no-data tier; not counted under -n): add --with-data",
-                                   red=True, bold=True)
+    if config.pluginmanager.has_plugin("dsession"):          # xdist: the workers collect, so no count reaches here
+        terminalreporter.write_sep("!", "the no-data tier (no -m): data tests, if any, NOT RUN and not counted under "
+                                        "-n: add --with-data", red=True, bold=True)
         return
     data, slow = _LEFT_OUT
-    if data or slow:
-        tests = "test" if data == 1 else "tests"
-        terminalreporter.write_sep("!", f"{data} data {tests} NOT RUN (they need built data): add --with-data"
-                                   + (f" (and {slow} slow: -m slow)" if slow else ""), red=True, bold=True)
+    if os.environ.get("TIER_LEFT_OUT_FILE"):
+        with open(os.environ["TIER_LEFT_OUT_FILE"], "a", encoding="utf-8") as f:
+            f.write(f"{data} {slow}\n")
+    line = tiers.left_out_line(data, slow)
+    if line:
+        terminalreporter.write_sep("!", line, red=True, bold=True)

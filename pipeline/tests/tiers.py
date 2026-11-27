@@ -38,17 +38,21 @@ def data_markers(ini: Path = ROOT / "pytest.ini") -> list[str]:
     return ["slow"] + sorted(n for n in names if n.startswith("needs_"))
 
 
-def ci_markers(workflow: Path = WORKFLOW) -> str:
+def ci_markers(workflow: Path = WORKFLOW, steps: list[dict] | None = None) -> str:
     """The no-data tier's marker expression, read from CI's "Tests" step (`-m "<expr>"`), never typed twice: a plain
-    `pytest` runs it (root `conftest.py`) and `scripts/test-env.sh` `no_data_markers` prints it for the runners."""
+    `pytest` runs it (root `conftest.py`), `scripts/test-env.sh` `no_data_markers` prints it for the runners and
+    `scripts/before_push.py` `tier_markers` passes the steps it read already. A job with no `steps` (a reusable
+    workflow) has none to offer; a missing or doubled step, or one with no `-m`, raises naming the file."""
     import re
 
-    import yaml
-    steps = [s for j in yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"].values() for s in j["steps"]
-             if s.get("name") == "Tests"]
-    if len(steps) != 1:
-        raise RuntimeError(f"{workflow}: {len(steps)} steps named \"Tests\", want exactly one (the no-data tier)")
-    m = re.search(r'-m "([^"]+)"', steps[0]["run"])
+    if steps is None:
+        import yaml
+        steps = [s for j in yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"].values()
+                 for s in j.get("steps", [])]
+    got = [s for s in steps if s.get("name") == "Tests"]
+    if len(got) != 1:
+        raise RuntimeError(f"{workflow}: {len(got)} steps named \"Tests\", want exactly one (the no-data tier)")
+    m = re.search(r'-m "([^"]+)"', got[0].get("run", ""))
     if not m:
         raise RuntimeError(f"{workflow}: the \"Tests\" step selects no tier with -m \"...\"")
     return m.group(1)
@@ -61,6 +65,13 @@ def is_no_data(markexpr: str, markers: list[str]) -> bool:
     from _pytest.mark.expression import Expression
     expr = Expression.compile(markexpr)
     return not any(expr.evaluate(lambda name, /, **kw: name == m) for m in markers)
+
+
+def left_out_line(data: int, slow: int) -> str:
+    """The loud line: what the no-data default left out, and only that ("" when it left out nothing)."""
+    parts = ([f"{data} data {'test' if data == 1 else 'tests'} NOT RUN (they need built data): add --with-data"]
+             if data else []) + ([f"{slow} slow {'test' if slow == 1 else 'tests'} NOT RUN: -m slow"] if slow else [])
+    return "; ".join(parts)
 
 
 HIDDEN = "test tier: no-data, this machine's builds hidden (pipeline/tests/tiers.py)"
