@@ -9,6 +9,19 @@ summary.txt. The blue-line chains are built and used in memory only (P21: their 
 """
 
 from __future__ import annotations
+
+# (T1171) THE RECORDER FIRST, before any import below reads a file (importing `pipeline.common.curated` reads
+# config.yaml, `project_config` the .env): the atlas's code record (`graph.pkl.meta.json` `code`, `atlas.inputs.
+# record_code`) is what this process imported, read and took from config.yaml. `_trace` is the standard library only.
+if __name__ == "__main__":
+    from pipeline import _trace as _rec
+    _CODE_TRACE: tuple[str, bool] | None = _rec.start_own("atlas-code-", __file__)
+    if _CODE_TRACE[1]:              # its own trace is scratch: removed at exit (a SIGKILL leaves it in $TMPDIR)
+        import atexit as _atexit
+        import shutil as _sh
+        _atexit.register(_sh.rmtree, _CODE_TRACE[0], True)
+else:
+    _CODE_TRACE = None              # imported, not run: `main` records no code (it says so; the release refuses it)
 from pipeline.common.utils import wsc as _wsc
 
 import argparse
@@ -486,13 +499,14 @@ def main(argv: list[str] | None = None) -> None:
     """THE ORCHESTRATOR: FWA + curated inputs -> graph -> sections -> registry -> sidecars, one
     named phase at a time. The order is load-bearing; each phase says why it sits where it does."""
     args = _parse_args(argv)
+    from pipeline.atlas import inputs as _inputs
     _refuse_promoted(args)
     fwa = FWADataAccessor(args.gpkg)
     b = _Build(args, fwa, _bbox(args, fwa))
     # T547: a digest of every curated input, taken BEFORE any is read (an edit made during the build is not recorded as
     # built); written with graph.pkl (`graph.pkl.meta.json` `input_hashes`), checked by `pipeline release`
-    from pipeline.atlas import inputs as _inputs
     b.input_hashes = _inputs.digests(_inputs.build_paths(args))
+    git_at_start = _inputs.git_state()              # (T1171) the commit it is built from, with the input digests
     _inputs.clear_complete(args.out)                # T547 §4: a build that dies here leaves no marker
     load_fwa(b)
     build_graph(b)
@@ -503,6 +517,14 @@ def main(argv: list[str] | None = None) -> None:
     build_registry(b)
     write_graph(b)          # T678 plan 5: after the registry, so graph.pkl carries the tidal owner on its nodes
     write_sidecars(b)
+    # (T1171) every module, code file and config value is read by now; `pipeline release` refuses an atlas whose code
+    # moved since, as it refuses one behind a curated input
+    rec = _inputs.record_code(b.out, Path(_CODE_TRACE[0]) if _CODE_TRACE else None, git_at_start)
+    git = rec.get("git") or {}
+    at = f", at {git['commit'][:12]}{' (with uncommitted edits)' if git['dirty'] else ''}" if git else ""
+    print(f"  code recorded: {len(rec['modules'])} modules, {len(rec['reads'])} code files, {len(rec['packages'])} "
+          f"packages, {len(rec['config'])} config values{at}" if "modules" in rec
+          else f"  code NOT recorded ({rec['unrecorded']}): `pipeline release` refuses this atlas — rebuild it")
     _inputs.write_complete(b.out, b.input_hashes)   # T547 §4: LAST — promote refuses a candidate without it
 
 

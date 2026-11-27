@@ -61,7 +61,10 @@ already done for this release):
                code and data/curated committed (the review log marks.jsonl
                and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); the atlas is not behind
                a curated input it was built from (T547, `atlas.inputs.behind`: a cut, name, area, added water, tidal
-               limit or slough call edited after the atlas build is named, and the run stops unless
+               limit or slough call edited after the atlas build is named — and (T1171) a module or code file it
+               was built from, a package it imported, a config value it read, Python or SQLite,
+               `atlas.inputs.code_behind`; an atlas built before it records no code and is rebuilt; every reason is
+               printed, as `python -m pipeline.atlas.inputs` prints it — and the run stops unless
                `--ship-stale-atlas REASON`); every review mark in
                force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); no place's
                latest review save is "wrong" / "unsure" with no extent fix (T786, `review.wrong_saves`; only a dated
@@ -98,7 +101,9 @@ already done for this release):
                `notice_waters.json` holds only the owner's matches, and the resolve only reads it). (b) the app's release-backed
                FIXTURES are re-cut (`node app/tools/regs-recut/sync.mjs --release <candidate>`): a change that only
                renumbers (ids, handles, the fixture release) is committed with the release id; a changed GOLDEN PAGE —
-               what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5). (c) the
+               what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5); the
+               same re-cut records the release pins (T1135, row `pins`): a moved `answers: true` pin stops with the
+               pages under the same token, a moved `answers: false` one is committed like a renumber. (c) the
                TESTS THAT ASK FOR THE RELEASE UNDER TEST (found by rule, both suites) run with RELEASE_DIR = the
                candidate, so nothing compares with LATEST before the promote, and (T680) THE WHOLE APP CHECK with
                them — the app suite, the feeds worker suite and each `check:fast` gate on its own — every one runs
@@ -142,7 +147,7 @@ release (its live `release/manifest.json`, read first, also in the dry run — `
 staging serves); otherwise: it re-uploads the SAME release folder that passed this
 command's checks and reached staging (the ledger says so, and its content fingerprint must be unchanged), through
 `deploy/prod/upload.sh <r-id>` (T404: it promotes what staging serves — the same manifest bytes — and keeps the previous
-pointer for deploy/prod/rollback.sh; handoff/PLAN/runbooks/release-by-hand.md, hosts + rollback in handoff/PLAN/release/PRODUCTION.md). It runs ONLY for a human:
+pointer for deploy/prod/rollback.sh; docs/runbooks/release-by-hand.md, hosts + rollback in docs/release/PRODUCTION.md). It runs ONLY for a human:
 CONFIRM_PROD=<r-id> in the environment, an interactive terminal where the id is typed again, and no agent environment
 (CLAUDECODE / AI_AGENT). Otherwise it prints the exact commands and refuses (exit 2).
 
@@ -1228,16 +1233,18 @@ def check_committed(ctx: Ctx) -> Finding:
 def check_atlas(ctx: Ctx) -> Finding:
     try:
         behind = atlas_behind()
-    except (OSError, ValueError) as e:
-        return Finding(False, f"cannot tell whether the atlas is current with its curated inputs: {e}",
+    except Exception as e:                          # noqa: BLE001 — (re-check of #286) any failure: a refusal
+        return Finding(False, f"cannot tell whether the atlas needs rebuilding: {type(e).__name__}: {e}",
                        "run `python -m pipeline.atlas.inputs` and fix what it says")
     if behind and ctx.stale_atlas is None:
-        return Finding(False, f"the atlas is behind {len(behind)} input(s) it was built from (T547):\n    "
-                       + "\n    ".join(behind),
+        return Finding(False, f"the atlas NEEDS REBUILDING: {len(behind)} reason(s), an input or its code moved since "
+                       "it was built (T547, T1171):\n    " + "\n    ".join(behind),
                        "rebuild the atlas (`python -m pipeline build --atlas --promote`); or ship the old atlas with "
                        "--ship-stale-atlas REASON")
     if behind:
-        return Finding(True, f"atlas behind {len(behind)} input(s), SHIPPED ANYWAY (--ship-stale-atlas): {ctx.stale_atlas}")
+        # (third review of #286, M3) every reason it ships behind, not a count: the record of what was shipped stale
+        return Finding(True, f"atlas behind {len(behind)} reason(s), SHIPPED ANYWAY (--ship-stale-atlas): "
+                       f"{ctx.stale_atlas}:\n    " + "\n    ".join(behind))
     return Finding(True, "the atlas is current with its curated inputs")
 
 
@@ -1877,23 +1884,30 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
         f["recut"] = {"release": rid, "at": now(), "kind": "unchanged", "paths": 0}
         save_ledger(ctx.led)
         return f"fixtures re-cut on {rid}: nothing changed"
-    pages = RF.answer_paths(changed)
+    try:
+        pages = RF.answer_paths(changed)
+    except RF.PinsFileError as e:        # (T1135) a broken pins file: a stop naming it, never a pass or an accept
+        raise Stop("follows", f"the re-cut on {rid} left a release-pins file that is not one: {e}; nothing was "
+                   "committed", f"fix the file (re-cut: {RF.REFRESH_PINS} --release {rel(release_root() / rid)}), "
+                   "then rerun") from None
     token = recut_token(changed)
     print(f"    the re-cut changed {len(changed)} path(s): " + ", ".join(
         f"{row.name} {n}" for row in RF.FOLLOWS for n in [sum(RF.row_of(x) is row for x in changed)] if n), flush=True)
-    renumbered, note = recut_renumbered(pages) if pages else (False, "")
+    pins = [x for x in pages if RF.is_pins(x)]      # (T1135) a moved answer pin is never a renumber
+    golden = [x for x in pages if x not in pins]
+    renumbered, note = recut_renumbered(golden) if golden else (False, "")
     if renumbered:
         # (T993 item 8; 0.8.5 stop 8: nine pages whose source indexes only renumbered) the same page, its sources
         # renumbered one for one: nothing an angler reads changed — committed, said, never a stop
         print(f"    golden pages: {note} — AUTO-ACCEPTED as a renumber (T993 item 8)", flush=True)
         f["renumbered"] = note
-        pages = []
+        pages = pins
     if pages and token not in (ctx.accept_fixtures, f.get("accepted")):
         why = "" if ctx.accept_fixtures is None else f" (--accept-fixtures {ctx.accept_fixtures} is not this re-cut)"
         raise Stop("follows", f"the re-cut on {rid} changed {len(pages)} golden page(s) — what an angler is told "
-                   f"changed{why}; nothing was committed:" + "".join(f"\n    {x}" for x in pages[:20])
+                   f"changed{why}; nothing was committed:" + "".join(f"\n    {x}" for x in RF.said(pages[:20]))
                    + ("\n    …" if len(pages) > 20 else ""),
-                   "read `git diff -- " + " ".join(x for row in RF.FOLLOWS if row.answers for x in row.paths)
+                   "read `git diff -- " + " ".join(RF.answer_roots())
                    + "`; if every change is intended, "
                    f"rerun with\n    --accept-fixtures {token}\n  otherwise fix the cause, commit, and rerun")
     kind = "golden pages accepted" if pages else "renumber only (source indexes)" if renumbered else "renumber only"
@@ -1974,9 +1988,18 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
             if rc:
                 return {"recut_rc": rc}
             changed = recut_changed()
-            pages = RF.answer_paths(changed)
-            renumbered, note = recut_renumbered(pages) if pages else (False, "")
-            got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else pages, "renumbered": note,
+            try:
+                pages = RF.answer_paths(changed)
+            except RF.PinsFileError as e:    # (T1135) the real run stops on it: listed as a stop, the tests still run
+                pages, broken = [], [f"a release-pins file that is not one: {e}"]
+            else:
+                broken = []
+            pins = [x for x in pages if RF.is_pins(x)]
+            golden = [x for x in pages if x not in pins]
+            renumbered, note = recut_renumbered(golden) if golden else (False, "")
+            # (T1135) said here, while the re-cut is on disk: a pins file names its moved pins
+            got = {"recut_rc": 0, "changed": changed,
+                   "pages": broken + RF.said(pins if renumbered else pages), "renumbered": note,
                    "token": recut_token(changed) if changed else None}
             got["failures"] = candidate_failures(cand, RF.test_env(release_root() / cand))
             return got
@@ -2810,8 +2833,8 @@ def prod_instructions(rid: str, r: dict) -> str:
             f"    deploy/prod/upload.sh {rid} --bucket bc-fishing-regulations-staging --dry-run     # rehearse, nothing sent\n"
             f"    CONFIRM_PROD={rid} python -m pipeline release --prod {rid}\n"
             f"which runs (after you type the id again): CONFIRM_PROD=canifishthis.ca {' '.join(prod_cmd(rid))}\n"
-            f"The whole release by hand (site, feeds worker, Play) is handoff/PLAN/runbooks/release-by-hand.md; hosts and rollback "
-            f"are handoff/PLAN/release/PRODUCTION.md.")
+            f"The whole release by hand (site, feeds worker, Play) is docs/runbooks/release-by-hand.md; hosts and rollback "
+            f"are docs/release/PRODUCTION.md.")
 
 
 def tag_problems(rid: str, r: dict) -> list[str]:
@@ -3021,7 +3044,7 @@ def prod(rid: str, ask=input, on_battery: str | None = None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline release", description=__doc__.split("\n")[0],
-                                 epilog="Runbook: handoff/PLAN/runbooks/release.md")
+                                 epilog="Runbook: docs/runbooks/release.md")
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--staging", action="store_true", help="build -> checks -> promote LATEST -> upload staging")
     g.add_argument("--prod", metavar="R-ID", help="HUMAN-ONLY: re-upload this checked, staged release to production")

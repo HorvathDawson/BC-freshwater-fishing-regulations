@@ -1,6 +1,6 @@
 """NO SILENT FALLBACK IN THE REVIEW APP'S FRONTEND (T434, audit 2026-11-05 review-deploy #4).
 
-About 47 `.catch(() => …)` in `curation-review/frontend/src` turned a failed read into an empty answer: a failed list
+About 47 `.catch(() => …)` in `tools/curation-review/frontend/src` turned a failed read into an empty answer: a failed list
 became `[]` ("nothing here"), a failed reaches read an invented empty verdict, a failed policy read a copy kept in the
 frontend. Now every `.catch(` handler must SHOW the failure — report it (`reportFailure(...)`, `failed(...)`, the
 notice stack's FailuresBanner), set the screen's own error (`setError`, `setErrors`, ...), or throw it on — unless its
@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SRC = ROOT / "curation-review" / "frontend" / "src"
+SRC = ROOT / "tools" / "curation-review" / "frontend" / "src"
 
 #: a handler that shows or passes the failure on
 HANDLES = re.compile(r"\breportFailure\(|\bfailed\(|\bthrow\b|\bset(?:Error|Errors|IdsError|ViewError|Msg|Pv)\(")

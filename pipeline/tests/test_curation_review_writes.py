@@ -1,6 +1,6 @@
 """THE ONE WRITE of the curation-review app — a mark — backed up, all or nothing, never served stale.
 
-Runs the backend (curation-review/backend) against TEMP COPIES of the curated files it reads (the
+Runs the backend (tools/curation-review/backend) against TEMP COPIES of the curated files it reads (the
 catalogue region files, splits.json) and the marks store it appends to, with backups going to a
 temp dir (`CURATION_BACKUP_DIR`). Never the real files. The editors' writes (entry save, split
 save / delete / rename) are retired (T185): `test_curation_review_api.py` pins that no route
@@ -24,7 +24,7 @@ from pipeline.common.curated import CURATED
 from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes",
                 "review", "evidence")
 

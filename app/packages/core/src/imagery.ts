@@ -1,5 +1,5 @@
 /**
- * SATELLITE IS ONLINE-ONLY (owner 2026-10-21, `handoff/PLAN/app-integration/decisions.md`).
+ * SATELLITE IS ONLINE-ONLY (owner 2026-10-21, `docs/app-integration/decisions.md`).
  *
  * The satellite ground is Esri World Imagery, fetched live and never packaged or drawn offline (its terms forbid
  * exporting tiles for offline use outside Esri's own software; see "Esri terms" below; what the map engine's own
@@ -39,7 +39,7 @@ export interface ImageryReach {
 export type ImageryEvent =
   | { type: "online" }
   | { type: "offline" }
-  /** An imagery tile or the probe failed with an outage (`isImageryOutage`). */
+  /** An imagery tile or the probe failed with an outage (the provider's `outage`). */
   | { type: "failed" }
   /** The probe answered. */
   | { type: "reached" };
@@ -61,30 +61,84 @@ export function imageryReach(s: ImageryReach, e: ImageryEvent): ImageryReach {
 
 export const imageryUp = (s: ImageryReach): boolean => s.online && !s.failed;
 
-/**
- * Is this tile failure an OUTAGE? The source asks Esri with `blankTile=false`, so a place with no imagery at that zoom
- * answers 404 — a hole the renderer fills from the parent tile, which is the imagery working. Everything else (no
- * status: the network; 401/403: a key; 5xx: the service) means the reader is not getting satellite.
- */
-export const isImageryOutage = (status: number | undefined): boolean => status !== 404;
-
-/** The ground actually drawn: the reader's choice, unless that is satellite and it cannot be reached. */
-export const basemapInUse = (chosen: Basemap, up: boolean): Basemap =>
-  chosen === "satellite" && up ? "satellite" : "map";
-
-/** The Layers sheet's line while Satellite is chosen and cannot be shown. */
-export const SATELLITE_OFFLINE =
-  "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself.";
+/** The map engines a provider's imagery may be drawn on (the phone's MapLibre Native, the web's MapLibre GL JS). */
+type MapEngineId = "maplibre-native" | "maplibre-gl";
 
 /**
- * ESRI'S REQUIRED CREDIT while its imagery is on screen: "Powered by Esri" and the World Imagery service's
- * `copyrightText` (read 2026-10-21 from services.arcgisonline.com/.../World_Imagery/MapServer?f=json; Esri says to
- * take it from the service, and it changed from "Maxar" to "Vantor" in 2025). The map's own attribution carries the
- * same words from the style (`layers.source.json`, source `imagery`); `tools/imagery.test.ts` holds the two equal.
+ * (T1154) A SATELLITE IMAGERY PROVIDER, as data: everything the app says or decides about the satellite ground that
+ * depends on whose imagery it is. The readers (the ground drawn, the outage rule, the credits and the badge, the Layers
+ * and Sources words, the tile template, the phone style's credit) read the provider in use, `IMAGERY`, never "Esri".
+ * The tile template is not here: it stays in the style source the provider names (`layers.source.json`), its one home;
+ * `tools/imagery.test.ts` holds the provider's credit equal to that source's.
  */
-export const IMAGERY_ATTRIBUTION =
-  "Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community";
-export const IMAGERY_CREDIT = `Satellite imagery: ${IMAGERY_ATTRIBUTION}`;
+export interface ImageryProvider {
+  readonly id: "esri";
+  /** where its imagery may be drawn */
+  readonly engines: readonly MapEngineId[];
+  /** the style source that draws it (`layers.source.json`) */
+  readonly source: string;
+  /** how its imagery may be kept for offline use: "none" (never: it is drawn only while reached), "file" (regions held as
+   *  files on the device, `OfflineImagery`) */
+  readonly offline: "none" | "file";
+  /** its required credit, as the map's own attribution and the app's credit line carry it */
+  readonly attribution: string;
+  /** what must stay visibly on the map while its imagery is drawn, or null */
+  readonly badge: string | null;
+  /** is this tile failure an OUTAGE (the reader not getting satellite), or the imagery working? */
+  readonly outage: (status: number | undefined) => boolean;
+  readonly words: {
+    /** the Layers sheet's line while Satellite is chosen and cannot be shown */
+    readonly offline: string;
+    /** the Satellite tile's note in the Layers sheet */
+    readonly note: string;
+    /** the Sources page's line after its credit (menu/words.ts) */
+    readonly sources: string;
+  };
+}
+
+/**
+ * ESRI WORLD IMAGERY (the terms are above).
+ *  - outage: the source asks Esri with `blankTile=false`, so a place with no imagery at that zoom answers 404 — a hole
+ *    the renderer fills from the parent tile, which is the imagery working. Everything else (no status: the network;
+ *    401/403: a key; 5xx: the service) means the reader is not getting satellite.
+ *  - attribution: ESRI'S REQUIRED CREDIT while its imagery is on screen: "Powered by Esri" and the World Imagery
+ *    service's `copyrightText` (read 2026-10-21 from services.arcgisonline.com/.../World_Imagery/MapServer?f=json; Esri
+ *    says to take it from the service, and it changed from "Maxar" to "Vantor" in 2025). The map's own attribution
+ *    carries the same words from the style (`layers.source.json`, source `imagery`); `tools/imagery.test.ts` holds the
+ *    two equal.
+ *  - badge: (T275) Esri's required credit kept visibly on the map while its imagery is drawn (the full text is in the
+ *    map's credits card).
+ */
+const ESRI: ImageryProvider = {
+  id: "esri",
+  engines: ["maplibre-native", "maplibre-gl"],
+  source: "imagery",
+  offline: "none",
+  attribution: "Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community",
+  badge: "Powered by Esri",
+  outage: (status) => status !== 404,
+  words: {
+    offline: "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself.",
+    note: "Photo map · needs internet",
+    sources: "Shown only while online.",
+  },
+};
+
+/** THE PROVIDER IN USE: the one every reader names. A second provider is a change here, said at each reader by name. */
+export const IMAGERY: ImageryProvider = ESRI;
+
+/**
+ * The ground actually drawn: the reader's choice, unless that is satellite and its imagery cannot be drawn here. A
+ * provider that keeps nothing offline ("none") is drawn only while reached; one kept as files may also be drawn where a
+ * region of it is held on this device (`heldHere`).
+ */
+export const basemapInUse = (chosen: Basemap, up: boolean, p: ImageryProvider, heldHere: boolean): Basemap =>
+  chosen === "satellite" && (up || (p.offline !== "none" && heldHere)) ? "satellite" : "map";
+
+/** The provider in use's credit and the app's credit line for it. */
+export const IMAGERY_ATTRIBUTION = IMAGERY.attribution;
+const imageryCredit = (p: ImageryProvider) => `Satellite imagery: ${p.attribution}`;
+export const IMAGERY_CREDIT = imageryCredit(IMAGERY);
 
 /**
  * (T1148, owner 2026-11-26) WHAT THE PHONE KEEPS. MapLibre Native keeps the tiles it fetched over http in its own
@@ -97,9 +151,9 @@ export const IMAGERY_KEPT_PRIVACY =
   "Satellite pictures you have looked at may be kept on your device so they load faster; they are not sent anywhere else.";
 export const IMAGERY_KEPT_SOURCES = "Pictures you have viewed may be kept on this device so they load faster.";
 
-/** The app's credit lines for the ground drawn: Esri's added only while satellite is. */
-export const withImageryCredit = (lines: readonly string[], drawn: Basemap): readonly string[] =>
-  drawn === "satellite" ? [...lines, IMAGERY_CREDIT] : lines;
+/** The app's credit lines for the ground drawn: the provider's added only while satellite is. */
+export const withImageryCredit = (lines: readonly string[], drawn: Basemap, p: ImageryProvider): readonly string[] =>
+  drawn === "satellite" ? [...lines, imageryCredit(p)] : lines;
 
 /** The one z0 tile of an `{z}/{y}/{x}` template: the cheapest request that proves the imagery answers. */
 export const imageryProbeUrl = (template: string): string =>

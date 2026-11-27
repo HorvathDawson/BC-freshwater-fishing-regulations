@@ -55,3 +55,21 @@ describe("the rule book (owner 2026-10-29: part of a phone's first download)", (
     expect(offlineVM(PHONE).book).toBeNull();
   });
 });
+
+describe("(T1154) the satellite imagery kept by region", () => {
+  it("none listed (today, always): no heading, no rows, storage unchanged", () => {
+    expect([offlineVM(PHONE).imagery, offlineVM({ ...PHONE, imagery: [] }).imagery, offlineVM({ ...PHONE, imagery: null }).imagery,
+            offlineVM({ ...PHONE, imagery: [] }).total!.value]).toEqual([null, null, null, "500.8 MB"]);
+  });
+
+  it("a listed region: its row whole under the heading; a kept one counted in a phone's storage", () => {
+    const v = offlineVM({ ...PHONE, imagery: [
+      { id: "c1", name: "Cowichan River", bytes: 12_300_000, state: "kept" },
+      { id: "c2", name: "Skeena River", bytes: null, state: "waiting-wifi" }] });
+    expect([v.imagery!.head, v.imagery!.rows.map((r) => [r.k, r.aloud, r.kept]), v.total!.value]).toEqual([
+      "Satellite by area",
+      [["imagery-c1", "Cowichan River: 12.3 MB. Kept on this device.", true],
+       ["imagery-c2", "Skeena River: Waiting for Wi-Fi.", false]],
+      "513.1 MB"]);
+  });
+});

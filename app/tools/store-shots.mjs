@@ -45,7 +45,7 @@ import { needsBuild, NEEDS_STORE_BUILD } from './store-shots/scenes.mjs';
 import { captionProblems, setProblems, hasAlpha, captionShare, captionProblem } from './store-shots/rules.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname), APP = path.resolve(HERE, '..');
-const STORE = process.env.STORE_SHOTS_DIR ? path.resolve(process.env.STORE_SHOTS_DIR) : path.resolve(APP, '../handoff/PLAN/app-integration/store/graphics');   // (T701) run.mjs points it at its own folder
+const STORE = process.env.STORE_SHOTS_DIR ? path.resolve(process.env.STORE_SHOTS_DIR) : path.resolve(APP, '../docs/app-integration/store/graphics');   // (T701) run.mjs points it at its own folder
 const RAW = path.join(STORE, 'raw');
 const args = process.argv.slice(2), flag = (k) => args.includes(k), val = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const THEME = val('--theme', 'light');

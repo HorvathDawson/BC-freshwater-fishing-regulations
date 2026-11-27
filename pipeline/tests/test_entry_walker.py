@@ -214,13 +214,13 @@ CHECKERS = ["pipeline/regs/parsing/validate_catalogue.py",
             "pipeline/regs/parsing/remap_boundaries.py",
             "pipeline/regs/parsing/ingest_catalogue.py",
             "pipeline/atlas/waters/added_lakes/split_parents.py",
-            "curation-review/backend/model_api.py",
-            "curation-review/backend/reuse.py"]
+            "tools/curation-review/backend/model_api.py",
+            "tools/curation-review/backend/reuse.py"]
 
 #: (module, function) that may read `tributary_excludes` by key, and why.
 ALLOWED = {
     # the tributary preview counts ONE rule's authored carve-outs beside the sections they remove
-    ("curation-review/backend/reuse.py", "rule_resolved_reach"),
+    ("tools/curation-review/backend/reuse.py", "rule_resolved_reach"),
 }
 
 #: (module, function) that may read the rules' `extents` itself — each about what ONE RULE's reach
@@ -231,10 +231,10 @@ RULE_READERS = {
     # a lift must share ground with the rule it lifts: compares two rules' places
     ("pipeline/regs/parsing/validate_catalogue.py", "exemptions_stay_inside_what_they_lift"),
     # resolves each rule's reach for the map
-    ("curation-review/backend/reuse.py", "entry_reaches"),
-    ("curation-review/backend/reuse.py", "rule_resolved_reach"),
+    ("tools/curation-review/backend/reuse.py", "entry_reaches"),
+    ("tools/curation-review/backend/reuse.py", "rule_resolved_reach"),
     # T191: read-only resolve; puts a proposed extent on a deepcopy of the entry, writes nothing
-    ("curation-review/backend/reuse.py", "extent_preview"),
+    ("tools/curation-review/backend/reuse.py", "extent_preview"),
 }
 
 

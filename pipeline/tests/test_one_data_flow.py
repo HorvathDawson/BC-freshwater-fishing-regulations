@@ -73,7 +73,7 @@ def test_the_bundle_derives_neither_tidal_nor_outside_nor_homes_nor_stems_twice(
     export = "".join(p.read_text() for p in sorted((DELIVER / "export").glob("*.py")))
     assert "steelhead_known k WHERE" not in export    # the view, not its CASE re-spelled
     assert "STEELHEAD_RULE_MEMBERS" not in export     # no by-content second definition
-    curation = (REPO_ROOT / "curation-review" / "backend")
+    curation = (REPO_ROOT / "tools" / "curation-review" / "backend")
     for name in ("reuse.py",):
         assert "regions.homes(" not in (curation / name).read_text()
     assert "attach_from(" in (REPO_ROOT / "pipeline/atlas/reach/cli.py").read_text()
@@ -84,7 +84,7 @@ def test_the_review_app_neither_builds_nor_promotes_an_atlas():
     """T96: the app's rebuild/promote endpoints are gone — an atlas is built beside the served one
     and promoted only from a terminal (`pipeline.atlas.promote`, through scripts/heavy.sh). The
     whole safety check (no route, no process-spawning import) is `test_curation_review_safety`."""
-    backend = REPO_ROOT / "curation-review" / "backend"
+    backend = REPO_ROOT / "tools" / "curation-review" / "backend"
     assert not (backend / "rebuild.py").exists()
     for p in sorted(backend.glob("*.py")):
         text = p.read_text()

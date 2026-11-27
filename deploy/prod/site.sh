@@ -14,7 +14,7 @@ cd "$(dirname "$0")/../.."
 DRY=; [[ " $* " == *" --dry-run "* ]] && DRY=1
 [[ -n $DRY || "${CONFIRM_PROD:-}" == canifishthis.ca ]] || { echo "site.sh (prod): set CONFIRM_PROD=canifishthis.ca to deploy production" >&2; exit 2; }
 W=app/dist/web-prod; S=app/dist/seo-prod; O=app/dist/prod-site; K=app/dist/prod-site-worker; H=app/dist/prod-host-worker
-# (2026-11-14) PRODUCTION IS BUILT FROM A COMMIT: run this, and the two builds before it (handoff/PLAN/runbooks/release-by-hand.md Step 7 item 5), in a tree
+# (2026-11-14) PRODUCTION IS BUILT FROM A COMMIT: run this, and the two builds before it (docs/runbooks/release-by-hand.md Step 7 item 5), in a tree
 # whose app/ has no uncommitted edits (a clean worktree: `git worktree add --detach <dir> <sha>`). A dirty app/ is refused
 # unless SITE_DIRTY_OK=<reason>, printed. (T788 #4) The commit stamped in /site-release.json is the EXPORT's (read from its
 # bundle), not HEAD at deploy time; the dirty flag is app/ now. One copy with staging: deploy/lib/site-stamp.sh.

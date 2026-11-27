@@ -457,7 +457,7 @@ def real(request):
     from pathlib import Path
     root = Path(__file__).resolve().parents[2]
     need(request, "atlas", under_test.atlas(request) / "graph.pkl", ATLAS_HINT)
-    sys.path.insert(0, str(root / "curation-review/backend"))
+    sys.path.insert(0, str(root / "tools/curation-review/backend"))
     import reuse
     return reuse._graph(), reuse._registry()
 

@@ -14,6 +14,7 @@ import { spanName, type LadderFrameWire, type VerdictWire } from "@app/core";
 import { openRegsStore, type RegsStore } from "@app/data/regs";
 import { liveRelease, openReleaseDir, provinceStoreOf } from "../fixtureRelease";
 import { taps } from "./oracles";
+import { pin } from "../pins";
 
 const LIVE = liveRelease();
 const STORE = provinceStoreOf(LIVE);
@@ -172,7 +173,9 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
       ["guidance", ["non_guided", "guided"]], ["status", ["none", "indian_bc_resident", "metis", "disabled", "aged_65_plus"]]]);
     expect(s.profiles[0]).toBe("resident/16_plus/non_guided/none");
     expect((s.fish as string[]).length).toBe(36);
-    expect({ v: s.glossary.version, n: s.glossary.terms.length }).toEqual({ v: 5, n: 67 });   // (T288, r-ce76b4ed3624) 29 + the 34 p.80 definitions; (2026-11-04) + 4: one per Conservation Surcharge Stamp
+    // (T288) 29 + the 34 p.80 definitions; (2026-11-04) + 4: one per Conservation Surcharge Stamp. (T1135) The count moves
+    // with the release: it is a release pin (app/fixtures/golden/release-pins.json), re-cut with the fixtures
+    pin("reads.glossary", { v: s.glossary.version, n: s.glossary.terms.length });
     expect(s.strip[1]!.label).toBe("closed");
   });
 

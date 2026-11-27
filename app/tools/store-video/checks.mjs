@@ -11,7 +11,7 @@ const INK = UI['color.ui.ink'], CARD = UI['color.ui.card'], SUB = UI['color.ui.s
 for (const [k, v] of Object.entries({ INK, CARD, SUB })) if (!v) throw new Error(`store-video: the light theme has no ${k} colour`);
 
 // ---------- the storyboard (T709 "Proposed 30 s storyboard", as built) ----------
-// Captions say only what the fact sheet (handoff/PLAN/play/listing.md) backs; the line each one rests on is beside it.
+// Captions say only what the fact sheet (docs/play/listing.md) backs; the line each one rests on is beside it.
 // `capY`: the caption's centre as a share of the frame's height, kept inside the stores' safe band (CAPTION_BAND) and off
 // the content the scene is about. `lead`: seconds kept before the scene's first touch; `hold`/`minHold`: seconds kept after
 // its end state was seen (the longest and the shortest the timeline may use).

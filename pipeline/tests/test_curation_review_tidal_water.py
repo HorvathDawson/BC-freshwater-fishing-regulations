@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 
 
 @pytest.fixture()

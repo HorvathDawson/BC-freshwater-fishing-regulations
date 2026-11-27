@@ -2,7 +2,7 @@
 // "All Areas NuSEDS_<YYYYMMDD>.zip") once a week against the date the live feed was built from (`runtiming/index.json`
 // sources.dfo.updated). A newer one starts feeds-runtiming.yml (src/dispatch.ts, the owner's token) and tells the owner;
 // without the token the email names the button. The PSF curves change about yearly with no machine-readable date: their
-// refresh is the yearly run in handoff/PLAN/runbooks (the same workflow, by hand).
+// refresh is the yearly run in docs/runbooks (the same workflow, by hand).
 import { dispatchOnce, dispatchSteps, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import type { FeedEvent } from "./events";
 import type { Store } from "./io";

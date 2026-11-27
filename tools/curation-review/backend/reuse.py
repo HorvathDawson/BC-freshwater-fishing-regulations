@@ -1,0 +1,3159 @@
+"""Data layer for the curation-review app — **reuses pipeline code, reimplements nothing.**
+
+- An entry's water is its `matched` (`pipeline.atlas.reach.covered`, the builder's own reading), so
+  the review tool resolves geometry/boundaries the same way the build does.
+- The gate a mark is refused on is `pipeline.regs.parsing.validate_catalogue.gate` (`check_entry`).
+- "Unused curated splits" counts curated (`ref="split:*"`) boundaries no extent binds, so
+  lake/outlet/headwaters auto-boundaries don't count.
+
+READ ONLY but for one write, a reviewer's mark (`post_mark`, appended to the marks store through
+`writes.commit`). The catalogue region files and splits.json are read, never written: a fix is a
+reviewed change to the curated files (T185), not something this app does.
+"""
+
+from __future__ import annotations
+
+import copy
+import dataclasses
+import json
+import math
+import os
+import re
+import threading
+from functools import lru_cache
+from pathlib import Path
+
+from pipeline.regs.parsing import io
+from pipeline.regs.parsing.catalogue_parts.walk import iter_extents
+from pipeline.atlas.reach.covered import covered_ids as _pipeline_covered_ids
+import answer
+import model_api
+import writes
+from pipeline.regs.parsing.rows import load_synopsis_rows
+from pipeline.atlas.registry import load_registry
+from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carve_outs
+from pipeline.atlas.reach.build import entry_scope as _entry_scope
+from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
+from pipeline.atlas.reach import extent as _resolve
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.atlas.splits.sectionizer import minted_id as _auto_split
+from pipeline.common.models.registry import bare_split_id
+from pipeline.atlas.splits.splits import splits_on
+from pipeline.common.models.splits import confidence_of, confidence_words
+
+_ROOT = Path(__file__).resolve().parents[3]
+#: The catalogue region files the app reads (never writes). EVERY curated path here comes from `CURATED`; a test or
+#: a side rebuild moves them ALL at once with `CURATED_ROOT` (a whole copy, `pipeline.common.curated.make_root`,
+#: T422) — the old per-file overrides are refused (`curated.RETIRED_ENV`).
+ENTRIES_DIR = CURATED.regulations.synopsis
+# The build the app SERVES. `project_config.review_build_dir` is the one name for it — see
+# config.yaml `generated.atlas.default_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
+# reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
+# `CURATION_BUILD` points it at another atlas — a scratch rehearsal of the review (T136), whose printed
+# rebuild then writes that copy (`vintage.Target`), never the live one.
+_BUILD = (Path(os.environ["CURATION_BUILD"]) if os.environ.get("CURATION_BUILD")
+          else GENERATED.build())
+REGISTRY_PATH = _BUILD / "registry.json"
+OVERRIDES_PATH = CURATED.regulations.book_name_links
+SPLITS_RESOLVED_PATH = _BUILD / "splits.resolved.json"
+GRAPH_PKL_PATH = _BUILD / "graph.pkl"
+GEOMS_PKL_PATH = _BUILD / "geometries.pkl"
+WBK_POLYS_PKL_PATH = _BUILD / "waterbody_polys.pkl"
+BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap (web-mercator)
+#: THE hand-curated split source (read here, never written).
+SPLITS_JSON_PATH = CURATED.waters.cuts
+ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
+#: THE REVIEWERS' MARKS (T97): the append-only store `pipeline.regs.review.marks` reads — never a
+#: field of an entry (a sandbox's copy under `CURATED_ROOT`).
+MARKS_PATH = CURATED.review.marks
+#: THE BUILT VINTAGE the tool holds each entry against (T133): the reach run of the served build
+#: and the release root (the bundle is `pipeline.deliver.bundle.read.BUNDLE`). `CURATION_REACH_DIR`
+#: / `CURATION_RELEASE_ROOT` point them at copies (tests).
+REACH_DIR = (Path(os.environ["CURATION_REACH_DIR"]) if os.environ.get("CURATION_REACH_DIR")
+             else GENERATED.reaches / _BUILD.name)
+RELEASE_ROOT = (Path(os.environ["CURATION_RELEASE_ROOT"]) if os.environ.get("CURATION_RELEASE_ROOT")
+                else GENERATED.release)
+#: The tile set a rebuild of THIS target writes (T136): only the printed commands name it — the tool
+#: reads no tile. `CURATION_TILES` points it at a copy.
+TILES_DIR = (Path(os.environ["CURATION_TILES"]) if os.environ.get("CURATION_TILES")
+             else GENERATED.tiles)
+if os.environ.get("CURATION_BUNDLE"):
+    # THE BUNDLE the tool reads (answers, marks' bundle half, the vintage): `pipeline.deliver.bundle.read`
+    # holds the one path every reader of it asks; a scratch review points it at its copy (T136).
+    from pipeline.deliver.bundle import read as _bundle_read
+    _bundle_read.BUNDLE = os.environ["CURATION_BUNDLE"]
+
+
+# --------------------------------------------------------------------------- #
+# Registry (expensive — built once)
+# --------------------------------------------------------------------------- #
+
+#: ONE loader at a time for the big artifacts. FastAPI runs these sync endpoints on a thread pool
+#: and `lru_cache` does not hold a miss: when a page fires its five or six first requests at a cold
+#: backend (startup, or `--reload` after an edit), each thread loaded its own graph (~0.7 GB) and
+#: geometry (~2.9 GB) side by side. Measured: a reach that answers in 1.3 s warm took 7 min 50 s
+#: under that stampede.
+_LOAD_LOCK = threading.RLock()
+
+
+def _single_load(fn):
+    """`lru_cache(maxsize=1)` whose first load is serialised; keeps `cache_clear`."""
+    cached = lru_cache(maxsize=1)(fn)
+
+    def wrapper():
+        # WARM: no lock (owner 2026-10-28) — the registry's readers (queue, progress, health) waited
+        # minutes behind the lock while ANOTHER artifact (the 2.9 GB geometry) loaded under it
+        if cached.cache_info().currsize:
+            return cached()
+        with _LOAD_LOCK:
+            return cached()
+    wrapper.cache_clear = cached.cache_clear
+    wrapper.__doc__, wrapper.__name__ = fn.__doc__, fn.__name__
+    return wrapper
+
+
+@_single_load
+def _registry() -> dict:
+    return load_registry(REGISTRY_PATH)
+
+
+def _place_namer():
+    """The bundle's own place-namer over the registry this app serves — so a label names a rule's
+    place (a cut-point's curated label, an area's name) exactly as the bundle's label does.
+
+    KEYED ON splits.json's stamp: it carries every split's label, and a split edited by hand must
+    name itself by its new label on the next request, not after a restart."""
+    return _place_namer_for(_stamp((SPLITS_JSON_PATH,)))
+
+
+@lru_cache(maxsize=1)
+def _place_namer_for(_key: tuple):
+    from pipeline.deliver.bundle.place_names import PlaceNamer, area_names, split_labels
+    return PlaceNamer(_registry(), split_labels(json.loads(
+        SPLITS_JSON_PATH.read_text(encoding="utf-8"))), area_names(Path(REGISTRY_PATH).parent))
+
+
+@lru_cache(maxsize=1)
+def _splits_meta() -> dict[str, dict]:
+    """split_id -> {label, anchor_type, blk, route_measure, ...} from splits.resolved.json."""
+    if not SPLITS_RESOLVED_PATH.exists():
+        return {}
+    rows = json.loads(SPLITS_RESOLVED_PATH.read_text(encoding="utf-8"))
+    return host_rows(rows)
+
+
+def host_rows(rows) -> dict[str, dict]:
+    """ONE ROW PER CUT: THE HOST'S. A cut that crosses braids has several resolved rows — the cut on its own water (the
+    host) and one per braid / tributary of a braid it is carried across, each of those marked `concern`. Keeping the
+    LAST row drew 29 cuts on a side line (owner 2026-11-10: the Lamprey Creek cut 2.7 km from its mouth, on an unnamed
+    stream 1.9 km off the Morice — the reach itself was bound right). The host row is the last one with no `concern`;
+    a cut whose every row carries one keeps its last row."""
+    out: dict[str, dict] = {}
+    for r in rows:
+        was = out.get(r["split_id"])
+        if was is None or not r.get("concern") or was.get("concern"):
+            out[r["split_id"]] = r
+    return out
+
+
+def _clean_val(v):
+    """None-out pandas NaN so it serializes to JSON null."""
+    try:
+        if v is None or (isinstance(v, float) and v != v):
+            return None
+    except Exception:  # noqa: BLE001
+        pass
+    return v
+
+
+@lru_cache(maxsize=1)
+def _split_points_attrs() -> dict[str, dict]:
+    """split_id -> the extra provenance beyond the anchor itself (concern, picked_up, offset_m) —
+    this is where a mis-anchored split (wrong falls vs bridge) shows up.
+
+    Read from `splits.resolved.json`, which carries all three: 42 splits with `concern`, 40 with
+    `picked_up`, 11 with `offset_m`. It used to come from the `split_points` layer of graph.gpkg,
+    which the build wrote FROM this same file — a 4.7 GB round trip for fields already on disk,
+    and one that returned {} silently once the gpkg stopped being written.
+    """
+    return {sid: {k: _clean_val(v) for k, v in row.items()}
+            for sid, row in _splits_meta().items()}
+
+
+def split_meta(split_id: str) -> dict:
+    """Merged curated-split metadata for one split id (splits.resolved.json + split_points attrs)."""
+    m = dict(_splits_meta().get(split_id, {}))
+    for k, v in _split_points_attrs().get(split_id, {}).items():
+        if v is not None:
+            m[k] = v
+    return m
+
+
+def invalidate_caches() -> None:
+    """Drop EVERY cache derived from the served build (and the bundle), so the next request reads
+    the artifacts on disk now. Called by `ensure_fresh` whenever the build's files change under the
+    app — a promote or a rebuild run from a terminal (the app starts neither).
+    The species list, row-image index, projection and FWA lake outlines come from static source, not
+    the build, so they are left warm.
+
+    `_graph` MUST be in here: a rebuild renumbers the piece nodes (`{blk}:{measure}`), so a reach
+    resolved against the pre-rebuild graph names sections the new registry no longer has — the reach
+    silently comes back empty or wrong, with nothing on screen to say the graph is stale. So must
+    `_geoms` and `_blk_index` (keyed by those same node ids) — they were missing, and a promoted
+    build drew its splits from the old geometry."""
+    for fn in _BUILD_CACHES:
+        fn.cache_clear()
+    answer.bundle_meta.cache_clear()
+    import gc
+    gc.unfreeze()           # (T755 follow-up) the old build's objects may be collected again; re-frozen once reloaded
+
+
+#: The served build's files every build-derived cache is read from. Their (mtime, size) is the
+#: build's stamp: a promote renames a new directory into place, so every one of them changes.
+_BUILD_FILES = (REGISTRY_PATH, SPLITS_RESOLVED_PATH, GRAPH_PKL_PATH, GEOMS_PKL_PATH,
+                WBK_POLYS_PKL_PATH, _BUILD / "region_home.json")
+
+
+def _stamp(paths) -> tuple:
+    out = []
+    for p in paths:
+        try:
+            st = Path(p).stat()
+            out.append((str(p), st.st_mtime_ns, st.st_size))
+        except FileNotFoundError:
+            out.append((str(p), None, None))
+    return tuple(out)
+
+
+_SEEN: dict[str, tuple] = {}
+
+
+def ensure_fresh() -> bool:
+    """Drop the build-derived caches if the served build (or the bundle) changed on disk since
+    they were last checked. Cheap — a handful of `stat`s — and run before every API request
+    (app.py middleware), so a cache can never outlive the files it was read from, whoever rebuilt
+    them. Returns whether anything was dropped."""
+    from pipeline.deliver.bundle import read as _R
+    now = {"build": _stamp(_BUILD_FILES), "bundle": _stamp((_R.BUNDLE,))}
+    with _LOAD_LOCK:
+        changed = [k for k, v in now.items() if k in _SEEN and _SEEN[k] != v]
+        _SEEN.update(now)
+        if "build" in changed:
+            invalidate_caches()
+        elif "bundle" in changed:
+            answer.bundle_meta.cache_clear()
+    return bool(changed)
+
+
+def _ident(e: dict) -> dict:
+    """{name, region, mus} for a catalogue entry.
+
+    A catalogue entry is flat — `name` and `region` at the top, and the MUs the synopsis row was
+    printed under encoded in `entry_id` after the `@` (that is what makes the id stable when
+    matching moves). The app reads the catalogue region files only."""
+    eid = str(e.get("entry_id", ""))
+    mus = eid.split("@", 1)[1].split("+") if "@" in eid else []
+    return {"name": e.get("name", ""), "region": str(e.get("region", "")), "mus": mus}
+
+
+# --------------------------------------------------------------------------- #
+# Entry loading
+# --------------------------------------------------------------------------- #
+
+def regions() -> list[str]:
+    """Region ids that have a catalogue region file (e.g. ['1','2',...])."""
+    return io.region_ids(ENTRIES_DIR)
+
+
+def load_region(region: str) -> dict[str, dict]:
+    """Entries for a region. The region files are the SINGLE SOURCE OF TRUTH. Read through the
+    corpus' one read point, so an id this registry folded into another
+    (`registry.flowing`) names its item here as it does in the reach run and the bundle."""
+    return io.read_entryfile(ENTRIES_DIR / f"region-{region}.json", registry=_registry())
+
+
+def _all_entries() -> list[tuple[str, dict]]:
+    out = []
+    for r in regions():
+        for eid, e in load_region(r).items():
+            out.append((r, e))
+    return out
+
+
+def _shared_waters() -> frozenset[str]:
+    """The waters more than one region prints a row for — read from the corpus as it is NOW, the
+    same derivation the reach CLI makes (`outside.shared_waters`), so a row the curator reviews is
+    held to the same regions as what ships."""
+    from pipeline.atlas.reach.outside import shared_waters
+    return shared_waters([e for _, e in _all_entries()])
+
+
+def _rowed_waters() -> dict[str, tuple[str, ...]]:
+    """The waters the tables print a row of their own for — read from the corpus as it is NOW, the
+    same derivation the reach CLI makes (`outside.rowed_waters`), so a confluence cut's joining
+    water goes with the cut, or stays out, exactly as it ships."""
+    from pipeline.atlas.reach.outside import rowed_waters
+    return rowed_waters([e for _, e in _all_entries()])
+
+
+def _tidal() -> dict[str, str]:
+    """ALL THE TIDAL WATER the reach CLI takes out of every binding (`outside.tidal_water`), `{section: owner}`: the rows
+    marked `tidal` (Nitinat Lake) read from the corpus as it is NOW, then the atlas's tidal water (T678: its one tidal
+    record, `coast.read_tidal`; `split:<id>`, `water:<item_id>`, `inside:<blk>`, `crossing:<section>`). The owners
+    matter: a row marked tidal keeps its own water only (`build.tidal_limit`). It read the rows alone while the owner
+    was still marking (T166 phase 1), so a rule reviewed here kept water below a tidal cut that ships without it."""
+    from pipeline.atlas.reach.outside import tidal_owner
+    out = dict(tidal_owner([e for _, e in _all_entries()], _registry(), strict=False))
+    from pipeline.atlas.splits.coast import TIDAL_RECORD
+    from pipeline.atlas.splits.shore import RECORD
+    for s, o in _tidal_pieces_for(_stamp((Path(_BUILD) / RECORD, Path(_BUILD) / TIDAL_RECORD))).items():
+        out.setdefault(s, o)
+    return out
+
+
+@lru_cache(maxsize=1)
+def _tidal_pieces_for(_key: tuple) -> dict[str, str]:
+    """The atlas's tidal water, keyed on its tidal record's stamp, so a rebuilt atlas is read on the next request. Read
+    as the reach CLI reads it (`coast.read_tidal`: the graph's nodes on an atlas built since T678 plan 5, the record
+    checking them); the review app recomputes nothing, and an atlas cut before the coast rule is refused."""
+    from pipeline.atlas.splits import coast as _coast
+    return dict(_coast.read_tidal(_BUILD, _graph() if _coast.record_on_nodes(_BUILD) else None))
+
+
+@lru_cache(maxsize=1)
+def _row_image_index() -> dict:
+    """raw_regs -> [(water_lower, image)]. Keyed on the verbatim regs (exact, near-unique); the parser
+    title-cases the name so we can't key on it, but regs_verbatim is injected verbatim from the row."""
+    idx: dict[str, list] = {}
+    for r in load_synopsis_rows():
+        if r.get("image") and r.get("raw_regs"):
+            idx.setdefault(r["raw_regs"], []).append((str(r.get("water", "")).lower(), r["image"]))
+    return idx
+
+
+def entry_source_image(e: dict) -> str | None:
+    """The source row-crop image for an entry, found by the row's printed text — or none.
+
+    A catalogue entry records no image (`source.row_image` was the retired prose entry's, and
+    reading it here found nothing on every entry), so the crop is looked up by `regs_verbatim`.
+    When several rows print the same text ("No powered boats" alone is on dozens), the row whose
+    name is this entry's is taken, and when none is, NO crop is shown: the first candidate would be
+    a picture of a different water offered as evidence for this one.
+    """
+    cands = _row_image_index().get(e.get("regs_verbatim", ""), [])
+    if len(cands) == 1:
+        return cands[0][1]
+    name = str(_ident(e)["name"]).lower()
+    named = [img for w, img in cands if w == name]
+    return named[0] if len(named) == 1 else None
+
+
+# --------------------------------------------------------------------------- #
+# Derived views (status, boundaries, unused curated splits)
+# --------------------------------------------------------------------------- #
+
+def _flagged(e: dict) -> bool:
+    """A rule or licensing record carries a `review_reason` (or a rule an unresolved locator) —
+    `tiers.flagged`, the one predicate (the review tiers read it too)."""
+    from pipeline.regs.review.tiers import flagged
+    return flagged(e)
+
+
+def _covered_ids(e: dict) -> list[str]:
+    """Every registry item this entry covers, primary first — `entry.matched`, filtered to the
+    items this build has.
+
+    `matched` IS AUTHORITATIVE AND EMPTY MEANS IT BINDS NOTHING. This used to fall back to a live
+    re-match of the entry's cleaned-up name when `matched` was empty, which let the review app
+    show — and resolve reaches against — a water the entry never recorded, while the bundle
+    (whose own fallback is being removed in `pipeline.atlas.reach.covered`) binds nothing there.
+    The two would disagree about the one thing a curator signs off. The shared implementation is
+    called WITHOUT a matcher, so it reads `matched` and nothing else (AGENTS 16)."""
+    return list(_pipeline_covered_ids(e, _registry()))
+
+
+def _item_for_entry(e: dict):
+    """The primary registry item of an entry: the first of its `matched` this build has, or None."""
+    ids = _covered_ids(e)
+    return _registry()[ids[0]] if ids else None
+
+
+def _also_items(e: dict) -> list[dict]:
+    """The OTHER registry items this entry covers — "CHILLIWACK / VEDDER RIVERS" is one synopsis row
+    over the Chilliwack, the Vedder and the Vedder Canal, so the reviewer needs to see all three."""
+    reg = _registry()
+    return [{"id": i, "name": reg[i].name, "kind": reg[i].kind} for i in _covered_ids(e)[1:]]
+
+
+def _boundaries(item):
+    return list(item.boundaries) if item else []
+
+
+def _boundary_dict(b) -> dict:
+    # `aliases`: other curated split ids this same cut-point answers to (a split that landed inside a
+    # lake run and was recorded on the lake's boundary rather than dropped). Surfaced so the picker can
+    # say what a boundary represents instead of it silently standing for more than its own label.
+    # Each alias as a rule names it (`registry.bare_split_id`: only the graph's `split:` strip — the old
+    # split-at-the-first-colon turned `split:area:5` right but `lake:329016195` into a bare number).
+    # `names`: every other NAME at the place (`SectionBoundary.names`), shown "label (also: …)".
+    return {"id": b.id, "label": b.label, "kind": b.kind, "ref": b.ref, "wbk": b.wbk,
+            "aliases": [bare_split_id(str(a)) for a in (getattr(b, "aliases", ()) or ())],
+            "names": list(getattr(b, "names", ()) or ()),
+            "curated": str(b.ref or "").startswith("split:"),
+            # T207: high | medium | low — "approximate location (low confidence)" beside its label
+            "confidence": split_confidence(b.id, None, b) if str(b.ref or "").startswith("split:") else "high",
+            # a position the pipeline minted (a gauge, a length or area cut), not a split anyone
+            # authored in splits.json — so neither "orphan" when splits.json lacks it, nor an
+            # "unused curated split" when no rule binds it
+            "minted": _auto_split(b.id)}
+
+
+def cut_label(b, meta: dict | None = None, water: str = "") -> str:
+    """What a reviewer should read on a cut the pipeline MINTED (not one anyone authored): its kind and
+    specifics, never the water's name it falls back to ("Iskut River" on seven dots told nothing).
+    The kind is in the id (`sectionizer.minted_id`): `gauge__08HB008`, `length:<blk>:<m>`,
+    `area:<N>` / `area:<park>`, `border:<blk>:<n>`; a lake edge is a `lake` boundary."""
+    sid = str(b.id)
+    base = sid[len("split:"):] if sid.startswith("split:") else sid
+    label = str((meta or {}).get("label") or getattr(b, "label", "") or "").strip()
+    if getattr(b, "kind", "") == "lake" and not _auto_split(sid):
+        lake = label if label and not label.startswith("lake ") else ""
+        return f"lake edge · {lake}" if lake else "lake edge"
+    if base.startswith("gauge__"):
+        stn = base[len("gauge__"):]
+        name = label.split("·", 1)[1].strip() if "·" in label else (label if label != stn else "")
+        return f"gauge {stn} · {name}" if name else f"gauge {stn}"
+    fam, _, rest = base.partition(":")
+    if fam == "length":
+        try:
+            km = f"{float(rest.rsplit(':', 1)[1]) / 1000:.1f} km"
+        except (IndexError, ValueError):
+            km = ""
+        at = label if label and label != water and label != base else ""
+        return " · ".join(x for x in ("length cut", km, at) if x)
+    if fam == "area":
+        if re.fullmatch(r"\d+[A-Za-z]?", rest):
+            return f"Region {rest} line"
+        name = re.sub(r"\s*\[\d+\]$", "", rest).strip()
+        return f"{name} boundary"
+    if fam == "border":
+        # (T755 follow-up) by its own crossing, as every picker names it. (T788 item 7) No catch: a missing served
+        # atlas is the 503 that names it, never the atlas's bare "BC boundary" read as the crossing's name
+        be = border_end(base)
+        return be["label"] if be else (label if label and label != base else "BC border")
+    return label or base
+
+
+def _curated_split_ids(item) -> set[str]:
+    """Boundary ids that are CURATED splits (ref 'split:*') — not lake/outlet/headwaters auto-boundaries."""
+    return {b.id for b in _boundaries(item) if str(b.ref or "").startswith("split:")}
+
+
+def _used_splits() -> frozenset[str]:
+    """Every curated split id something in the corpus uses (`split_use.used_split_ids`) — keyed on
+    the files' stamps, so a curated edit is seen on the next request."""
+    dfo = sorted(Path(CURATED.dfo_salmon.places).glob("region-*.json"))
+    regions_ = sorted(Path(ENTRIES_DIR).glob("region-*.json"))
+    return _used_splits_for(_stamp((SPLITS_JSON_PATH, REGISTRY_PATH, *regions_, *dfo)))
+
+
+@lru_cache(maxsize=1)
+def _used_splits_for(key: tuple) -> frozenset[str]:
+    from pipeline.regs.review.split_use import used_split_ids
+    dfo = [json.loads(Path(p).read_text(encoding="utf-8")) for p, *_ in key
+           if Path(p).parent == Path(CURATED.dfo_salmon.places)]
+    return frozenset(used_split_ids([e for _r, e in _all_entries()],
+                                    json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8")),
+                                    dfo=dfo, registry=_registry()))
+
+
+def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
+    """Curated splits on this item that NO extent of the entry references — surfaced so the curator can see a
+    hand-authored cut that the parse never used (a likely missed reach).
+
+    `entry_models.unused_splits` walked the retired Entry's `.scope`; a CatalogueEntry has plain
+    `extents` on the entry and on each rule, so the walk is local now."""
+    if not e.get("rules"):
+        # a pointer row ("See Atnarko/Bella Coola Rivers") binds nothing by design; every cut on
+        # its water read as "unused" and put it in the unused_splits queue as a finding
+        return []
+    curated = _curated_split_ids(item)
+    if not curated:
+        return []
+    # EVERY extent the entry holds (`walk.iter_extents`, T112) — a cut bound only by a rule's or a
+    # designation's carve-out, or by a licensing record, is used. This walked the scope and the
+    # rules' extents alone, so the two Skeena cuts only its classified-water record binds (the
+    # Kitsumkalum confluence, the Ecological Reserve) were listed "unused" (T119 review).
+    used = {sid for _path, ex, _role in iter_extents(e) for sid in (ex.get("splits") or ())}
+    # T207 (owner 2026-10-26): USED ANYWHERE counts — by id, by the AREA a rule names (Pitt River's
+    # "within Garibaldi Park" binds the park boundary), by a merged place, or by a DFO entry
+    # (`split_use.used_split_ids`, the one answer the unused-splits audit reads too).
+    used |= _used_splits()
+    # A rule naming ANY id a cut-point answers to uses it — a merged place's alias binds it too.
+    for b in _boundaries(item):
+        if used & set(b.answers_to()):
+            used.add(b.id)
+    meta = _splits_meta()
+    out = []
+    for sid in sorted(curated - used):
+        if _auto_split(sid):
+            continue
+        m = meta.get(sid, {})
+        out.append({"id": sid, "label": m.get("label", sid), "anchor_type": m.get("anchor_type", "")})
+    return out
+
+
+def _item_split_source(item) -> list[dict]:
+    """Live splits.json splits on the SAME waterbody as this registry item (applies_to matched to the
+    item's ref_ids). May include splits not yet built into the graph (pending rebuild).
+
+    `pipeline.atlas.splits.splits.splits_on` is the one answer (the review fingerprint reads it
+    too); a split's own `applies_to` counts beside its waterbody's — reading only the waterbody's,
+    the Atnarko/Bella Coola cut-points showed "orphan" while splits.json held them unchanged."""
+    if item is None:
+        return []
+    return splits_on(_load_splits(), set(item.ref_ids))
+
+
+def bindable(item) -> list[dict]:
+    """The UNION a rule may bind: built graph boundaries + live splits.json splits for the item. Each
+    entry is tagged `in_graph` / `in_splits` so the UI shows what's baked vs pending a rebuild, and a
+    rule can bind a split that only exists in splits.json (it validates now, renders after rebuild)."""
+    out: dict[str, dict] = {}
+    for b in _boundaries(item):
+        d = _boundary_dict(b)
+        d["in_graph"], d["in_splits"] = True, False
+        if str(b.ref or "").startswith("split:"):
+            d["meta"] = split_meta(b.id)          # as-built resolved values
+        out[b.id] = d
+    # a curated split that MERGED into another place is that place under another id, not "pending"
+    alias_of = {a: b.id for b in _boundaries(item) for a in b.answers_to()[1:]}
+    for sp in _item_split_source(item):
+        sid = sp.get("id")
+        if not sid:
+            continue
+        live = {"label": sp.get("label"), "kind": sp.get("kind"),
+                "anchor": sp.get("anchor"), "note": sp.get("note"), "review": split_review(sp)}
+        if sid not in out and alias_of.get(sid) in out:
+            out[alias_of[sid]].setdefault("alias_live", {})[sid] = live
+            continue
+        if sid in out:
+            out[sid]["in_splits"] = True
+            out[sid]["live"] = live
+        else:                                     # in splits.json but NOT yet in the graph (pending)
+            out[sid] = {"id": sid, "label": sp.get("label"), "kind": sp.get("kind"),
+                        "ref": f"split:{sid}", "wbk": "", "curated": True,
+                        "in_graph": False, "in_splits": True, "live": live}
+    return list(out.values())
+
+
+def _combined_bindable(item, e: dict) -> list[dict]:
+    """`bindable` over every item this entry covers, each boundary tagged with the `item_id` it came
+    from. The matched item goes first, so its ids win an id collision."""
+    reg = _registry()
+    items = [item] + [reg[i] for i in _covered_ids(e) if i != item.id]
+    # The REGISTRY says which water a built cut-point is actually on; `bindable` also folds in
+    # splits.json splits, which attach to every item their waterbody's `applies_to` names — so
+    # Vedder Crossing Bridge would otherwise be labelled "on the Chilliwack" when the built cut
+    # lives on the Vedder. Registry ownership wins; splits.json-only ids fall back to first seen.
+    built = {b.id: it.id for it in items for b in it.boundaries}
+    out: dict[str, dict] = {}
+    for it in items:
+        for b in bindable(it):
+            out.setdefault(b["id"], {**b, "item_id": built.get(b["id"], it.id)})
+    return list(out.values())
+
+
+@lru_cache(maxsize=1)
+def _section_owner() -> dict[str, str]:
+    """section id -> the registry item that lists it (the last one in registry order, as `item_side_channels` read it);
+    one per build (`_BUILD_CACHES`)."""
+    owner: dict[str, str] = {}
+    for iid, item in _registry().items():
+        for sid in item.section_ids:
+            owner[sid] = iid
+    return owner
+
+
+@lru_cache(maxsize=1)
+def _blk_to_item() -> dict[str, str]:
+    """blk -> owning registry item id (from each item's `blk:` ref_ids). Lets us map a graph node
+    (`<blk>:<measure>`) back to the named stream it belongs to — for graph-based tributary lookup."""
+    out: dict[str, str] = {}
+    for it in _registry().values():
+        for r in it.ref_ids:
+            if r.startswith("blk:"):
+                out[r.split(":", 1)[1]] = it.id
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# Extent -> sections (the REACH a rule actually selects)
+# --------------------------------------------------------------------------- #
+# Nothing in the pipeline resolves an Extent to sections yet; the ops are recorded intent. The review
+# tool needs the answer NOW, because a curator cannot confirm a reach they cannot see — so this is the
+# reference implementation of the contract documented on `pipeline.regs.parsing.entry_models.Op`:
+#
+#   whole            every section of every covered item (or of `item_id`, if scoped)
+#   upstream_of X    follow the WATER up from X, crossing between covered items
+#   downstream_of X  follow the WATER down from X, crossing between covered items
+#   between A,B      the sections below A and above B (order-insensitive)
+#   within(area)     handled by the area catalog, not here -> returns None (unknown)
+#
+# `item_id` narrows the candidate set to that one item, which is how a reach that stops at a
+# junction is expressed (the Chilliwack ENDS at Vedder Crossing).
+
+
+@_single_load
+def _graph():
+    """The built StreamGraph — node bounds + flow adjacency. Big (~0.7 GB) but loaded once per
+    process and only when a reach is actually requested."""
+    from pipeline.common.io.serialize import read_artifact
+    from pipeline.atlas.registry import regions
+    g = read_artifact(str(GRAPH_PKL_PATH))
+    # The region each straddling section lies in, read from the atlas's own `region_home.json`
+    # exactly as the reach CLI reads it — so a zone rule the curator reviews binds what ships
+    # (`registry.regions`), and nothing measures it a second time.
+    regions.attach_from(_BUILD, g, _registry())
+    from pipeline.atlas.reach import position       # the same placement the reach CLI makes
+    position.attach(g, _BUILD)
+    return g
+
+
+def resolve_extent(covered_ids: list[str], ex: dict) -> dict | None:
+    """The app's binding of the shared resolver: same code the builder runs, this app's cached pair.
+
+    The implementation lives in `pipeline.atlas.reach.extent` so the review app and the artifact builder
+    can never drift. Callers here keep the two-argument form they always had."""
+    return _resolve.resolve_extent(_registry(), _graph(), covered_ids, ex)
+
+
+def _waters(section_ids):
+    return _resolve._waters(_graph(), section_ids)
+
+
+
+
+
+
+
+
+
+
+
+
+def item_tributary_geojson(item_id: str, limit: int = 6000) -> dict:
+    """One level of tributaries: the streams that flow DIRECTLY into this item, as map geometry.
+
+    A rule can extend to tributaries (`includes_tributaries`), and a curator cannot confirm that
+    without seeing them. "One level" = the streams whose mouth joins one of this item's sections —
+    each drawn in full, not just the joining piece — so the shape you see is the shape the flag means.
+    Their own tributaries are NOT followed; that is the next level down and would swamp a big river.
+
+    Features carry `properties.kind = 'tributary'` and the tributary's name, so the map can draw them
+    distinctly from the item itself.
+
+    Capped at `limit` SECTIONS, and the cap is reported rather than hidden. At the old cap of 400 the
+    Fraser drew 125 of its 389 tributaries while still answering "389", so two thirds of them were
+    missing from the map with nothing to say so — indistinguishable from a tributary that had lost its
+    connection. Whole tributaries only: a half-drawn stream is worse than an absent one."""
+    reg = _registry()
+    it = reg.get(item_id)
+    if it is None:
+        return {"type": "FeatureCollection", "features": []}
+    from pipeline.atlas.graph.tributaries import joining
+    mouths = set(joining(_graph(), it.section_ids))      # what the walk's first step enters (T117)
+    # expand each joining piece to the whole named stream it belongs to
+    by_node: dict[str, str] = {}
+    for iid, item in reg.items():
+        if item.kind != "stream" or iid == item_id:
+            continue
+        for sid in item.section_ids:
+            if sid in mouths:
+                by_node[sid] = iid
+    trib_ids = {by_node[m] for m in mouths if m in by_node}
+    sections: list[str] = []
+    drawn = 0
+    for tid in sorted(trib_ids, key=lambda t: (len(reg[t].section_ids), t)):   # small ones first
+        ids = reg[tid].section_ids
+        if sections and len(sections) + len(ids) > limit:
+            break                                          # never draw half a stream
+        sections.extend(ids)
+        drawn += 1
+    feats = []
+    for i in range(0, len(sections), 400):
+        feats += _features("streams", sections[i:i + 400], "tributary")
+    return {"type": "FeatureCollection", "features": feats, "n_tributaries": len(trib_ids),
+            "n_drawn": drawn, "truncated": drawn < len(trib_ids)}
+
+
+def _scope_sections(e: dict, covered: list[str]) -> set[str] | None:
+    """The stretch the ENTRY is about, as node ids — or None when it is about the whole water.
+
+    The synopsis qualifies a row in its NAME: "FRASER RIVER (upstream of the CPR Bridge at Mission)",
+    "ADAMS RIVER (downstream of Adams Lake)". The rules inside such a row are written relative to that
+    stretch and almost never restate it, so a rule reading "whole" means the whole of THIS row, not the
+    whole river. Left unapplied, the two Adams rows — one above the lake, one below — resolved to the
+    same river, and so did the Fraser's four regional rows.
+
+    Multiple scope extents are unioned: the row's own idea of where it applies.
+
+    Returns ``(sections, failed)``. A scope that CANNOT be resolved is reported, not swallowed: the
+    old code returned None both for "this row has no scope" and for "this row's scope is broken", and
+    the caller treated None as "do not clip". A Fraser regional row whose boundary stopped resolving
+    would then silently widen from its region to the entire river — fail-open, in the direction that
+    tells someone a rule applies where it does not. All ten scoped entries resolve today, so this is
+    a latent path, which is exactly when it is cheap to close."""
+    # THE BUILDER'S OWN FUNCTION, not a copy of it. This body used to re-implement the scope
+    # (the entry's `extents`, unioned), and when the builder began holding a regional row to its
+    # own region(s) — the Fraser's four regional rows each bound all 251 Fraser sections — a copy
+    # would have left the app clipping one way and the bundle another (AGENTS 16).
+    return _entry_scope(e, covered, _registry(), _graph())
+
+
+def _json_safe(obj):
+    """Strip non-finite floats before they reach `json.dumps`.
+
+    `resolve_extent` reports the measure window an extent resolved to, and `upstream_of` has
+    no upper bound — internally that is `INF`. JSON has no infinity, so serialising the reach
+    payload raised `ValueError: Out of range float values are not JSON compliant` and the
+    endpoint 500'd. `null` says the same thing ("unbounded on that side") and survives the
+    trip. The artifact writer never carries `window`, so this is an app-boundary concern only.
+    """
+    if isinstance(obj, float):
+        return None if (math.isinf(obj) or math.isnan(obj)) else obj
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    return obj
+
+
+def entry_reaches(entry_id: str) -> dict:
+    """What each rule selects, for the review UI — AND what the bundle will actually ship.
+
+    The per-extent geometry comes from `pipeline.atlas.reach.extent`; the OUTCOME of each
+    rule comes from `pipeline.atlas.reach`, the same builder that writes the artifact. That
+    matters: the builder makes decisions the raw resolver does not — a straddling piece is
+    included for a closure and excluded otherwise, an empty reach after the row's scope is
+    a distinct failure from an unresolvable one. If the curator confirmed against the raw
+    resolver instead, they would be signing off on something subtly different from what
+    ships.
+
+    So each rule also carries `outcome`, `reason` and `diagnostics` (doc 10 ㊴).
+    """
+    for _, e in _all_entries():
+        if e["entry_id"] != entry_id:
+            continue
+        covered = _covered_ids(e)
+        clip, scope_failed = _scope_sections(e, covered)
+        shared = _shared_waters()
+        tidal = _tidal()
+        owned = _rowed_waters()
+
+        out: dict = {}
+        per_rule: dict[str, list] = {}
+        for r in e.get("rules") or []:
+            per = [_clip(resolve_extent(covered, ex), clip) for ex in (r.get("extents") or [])]
+            out[r["rule_id"]] = per
+            per_rule[r["rule_id"]] = per
+
+        # ONE call into the builder — the same function the artifact build uses, so the
+        # app cannot resolve, clip, classify or expand differently from what ships.
+        verdict: dict = {}
+        for r in e.get("rules") or []:
+            binding, diags = _build_reach(e, r, _registry(), _graph(), covered=covered, clip=clip,
+                                          shared=shared, tidal=tidal, owned=owned)
+            verdict[r["rule_id"]] = {
+                "outcome": binding.outcome.value,
+                "reason": binding.reason.value if binding.reason else None,
+                "detail": binding.detail,
+                "n_sections": len(binding.sections),
+                "sections": list(binding.sections),
+                "tributaries_pending": binding.tributaries_pending,
+                "diagnostics": [{"kind": d.kind, **d.payload} for d in diags],
+            }
+
+        return _json_safe({"covered": covered, "rules": out, "scope_sections": sorted(clip or ()),
+                           "scope_unresolved": scope_failed, "verdict": verdict})
+    return {}
+
+
+def _clip(got: dict | None, clip: set[str] | None) -> dict | None:
+    """Cut a resolved reach down to the entry's scope, recomputing the waters it lands on.
+
+    An empty result is kept as an empty reach rather than turned into None: "this rule selects nothing
+    inside this row's stretch" is a real answer and a curation signal, whereas None means the extent
+    could not be resolved at all."""
+    if got is None or clip is None:
+        return got
+    sections = [n for n in got["sections"] if n in clip]
+    return {**got, "sections": sections,
+            "unclassified": [n for n in got["unclassified"] if n in clip],
+            "waters": _waters(sections)}
+
+
+def related_entries(entry_id: str) -> list[dict]:
+    """Other entries covering ANY of the same registry items — the ones to review alongside this one.
+
+    The synopsis splits one regulation across several rows: "CHILLIWACK / VEDDER RIVERS …" carries the
+    rules, and a separate "VEDDER RIVER" row just says *See Chilliwack River*. They are different rows
+    (so different entries, faithful to the synopsis), but they regulate the same water, and reviewing
+    one without the other is how a half-linked entry gets confirmed. Overlap is computed on `matched`,
+    so a combined override's extra items count.
+    """
+    reg = _registry()
+    mine: set[str] = set()
+    for _, e in _all_entries():
+        if e["entry_id"] == entry_id:
+            mine = set(_covered_ids(e))
+            break
+    if not mine:
+        return []
+    out: list[dict] = []
+    for reg_id, e in _all_entries():
+        if e["entry_id"] == entry_id:
+            continue
+        shared = mine & set(_covered_ids(e))
+        if not shared:
+            continue
+        out.append({
+            "entry_id": e["entry_id"],
+            "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
+            "name": _ident(e)["name"],
+            "n_rules": len(e.get("rules", [])),
+            # a pointer row ("See Chilliwack River") is the common case worth calling out
+            "pointer": e.get("regs_verbatim", "").strip().lower().startswith("see "),
+            "shared_items": [{"id": i, "name": reg[i].name} for i in sorted(shared) if i in reg],
+        })
+    return sorted(out, key=lambda r: r["name"])
+
+
+def entry_kind(e: dict) -> str:
+    """`zone` or `water` — WHICH PART OF THE BOOK this entry came from.
+
+    A `z`-prefixed entry is a REGIONAL or PROVINCIAL rule, transcribed from a region chapter
+    or the provincial pages: "single barbless hook in all streams of Region 1", the Cutthroat
+    Trout Reward Tagging Program on page 13. It names no water on purpose, and its reach is
+    an AREA carried on the entry (`within area:region:1`).
+
+    Everything else is a row of a water table and names one water.
+
+    They were shown as one list, so a regional notice appeared as a synopsis row that had
+    failed to match an item — correctness rendered as a defect, and the two kinds of
+    regulation mixed in a queue where they need different questions asked of them.
+    """
+    return "zone" if str(e.get("entry_id", "")).startswith("z") else "water"
+
+
+def _area_matched(e: dict) -> list[str]:
+    from pipeline.regs.review.tiers import area_matched
+    return area_matched(e) if entry_kind(e) == "water" else []
+
+
+def matched_areas(e: dict) -> list[dict]:
+    """MATCHED BY AREA (owner 2026-10-26): [{id, name}] of the areas a water row with no registry
+    item binds through (every rule has an area extent, `tiers.area_matched`); [] otherwise. The
+    screen says "matched by area: <name>" instead of NO REGISTRY."""
+    ids = _area_matched(e)
+    if not ids:
+        return []
+    names = _area_name_map()
+    return [{"id": a, "name": names.get(a) or a} for a in ids]
+
+
+def _area_name_map() -> dict[str, str]:
+    """{area id: name} of the served atlas, re-read when its area catalogue changes (a rebuild)."""
+    return _area_name_map_for(_stamp((Path(REGISTRY_PATH).parent / "area_catalog.gpkg",)))
+
+
+@lru_cache(maxsize=1)
+def _area_name_map_for(_key: tuple) -> dict[str, str]:
+    from pipeline.deliver.bundle.place_names import area_names
+    try:
+        return area_names(Path(REGISTRY_PATH).parent)
+    except FileNotFoundError:
+        return {}
+
+
+def search_areas(q: str, limit: int = 30) -> list[dict]:
+    """The atlas's areas (`area_catalog.gpkg`) whose id or name contains `q` (case-folded):
+    [{id, name}] — the "within an area" op's pick list. An empty `q` lists the first `limit`."""
+    want = q.strip().casefold()
+    out = [{"id": a, "name": n} for a, n in _area_name_map().items()
+           if not want or want in f"{a} {n}".casefold()]
+    out.sort(key=lambda x: (not x["name"].casefold().startswith(want), len(x["name"]), x["name"]))
+    return out[:limit]
+
+
+def entry_status(e: dict, item: dict | None) -> str:
+    """One coarse status for the queue's badge and filter — what the PARSE and the build left, not
+    review progress (the reviewer's marks are `verify`). T135 (PLAN §4 phase 4): `parser-uncertain`
+    was "flagged", and `plain` was "unreviewed" — a word that read as review progress when it only
+    meant "nothing the parser or the build flagged"."""
+    # A zone entry has no water to match, so `no_registry` is not a finding about it — it is
+    # the definition of it. Saying otherwise put all 132 at the top of the queue.
+    if entry_kind(e) == "zone":
+        return "parser-uncertain" if _flagged(e) else "zone"
+    if item is None and not _area_matched(e):   # no item and no area on every rule: binds nothing
+        return "no_registry"
+    if _flagged(e):
+        return "parser-uncertain"
+    if unused_curated_splits(e, item):
+        return "unused_splits"
+    return "plain"
+
+
+#: every status `entry_status` gives
+STATUSES = ("no_registry", "parser-uncertain", "unused_splits", "plain", "zone")
+
+
+#: Zone first. A regional rule binds to EVERY stream in its region — one of them is 160,000
+#: section-bindings where a water row is a few dozen — and none of the 132 has ever been
+#: through the parser or the agent review pass: they were transcribed by hand from the region
+#: chapters. Highest leverage, least verified, so they lead. `kind=water` filters them out
+#: when the job is the water tables.
+_KIND_ORDER = {"zone": 0, "water": 1}
+
+
+def queue(region: str | None = None, status: str | None = None,
+          kind: str | None = None, verify: str | None = None,
+          order: str = "risk", tier: str | None = None,
+          severity: str | None = None) -> list[dict]:
+    """Review queue rows — ONE QUEUE ACROSS ALL REGIONS by default (`region` None).
+
+    `order="risk"` (the default) is the review order: by SEVERITY first (`severity.entry_severity`,
+    owner 2026-10-26: high, medium, low, none), then (T135 / PLAN §3, §4 phase 4) by tier (P1 Z P2
+    P3 P4 sweep; entries only, T184), within a tier the most urgent risk factor first, then the most severity-A pre-checks, then the book's order
+    (`tiers.queue_rank`, the one ordering function).
+
+    `order="book"` is the order to go through EVERY entry in: by region, then the page it is
+    printed on, the region chapter's entries before that page's table rows, then the file's
+    order (alphabetical within a table, as the book prints it).
+
+    `verify` filters on the reviewer's mark (`MARK_STATUSES`): unmarked | verified | wrong |
+    unsure | deferred | stale (marked, then changed — `mark_reasons` says why); `todo` is
+    everything not currently verified (human-reviewed); `recheck` the entries human-reviewed once
+    whose fingerprint has moved since (T184: back for a re-check). `tier` filters on the review tier (`tiers.entry_tier`, PLAN §3:
+    P1 Z P2 P3 P4 sweep); `severity` on the entry's severity (`severity.FILTERS`: a level, or
+    `issues` — high and medium)."""
+    from pipeline.regs.review import severity as S
+    if order not in QUEUE_ORDERS:
+        raise ValueError(f"order is one of {', '.join(QUEUE_ORDERS)}, not {order!r}")
+    rows = [r for r in _queue_rows()
+            if (not region or r["region"] == region) and (not status or r["status"] == status)
+            and (not kind or r["kind"] == kind) and (not tier or r["tier"] == tier)
+            and (not verify or r["verify"] == verify or (verify == "todo" and r["verify"] != "verified")
+                 or (verify == "recheck" and r["reviewed"] is not None and not r["reviewed"]["holds"]))
+            and S.matches(r["severity"], severity)]
+
+    def book(r):
+        return (_region_key(r["region"]), r["page"] if r["page"] is not None else 10_000,
+                _KIND_ORDER.get(r["kind"], 9), r["_pos"])
+    rows.sort(key=book if order == "book" else (lambda r: (r["_rank"], book(r))))
+    return [{k: v for k, v in r.items() if k not in ("_pos", "_rank")} for r in rows]
+
+
+#: THE QUEUE IS COMPUTED ONCE PER INPUT (owner 2026-10-28, `_QUEUE_MEMO`): every row, unfiltered,
+#: with its rank — ~2-9 s, and the progress bar, region counts and queue each asked for it on load.
+#: the readers the queue is computed by — a patched one (a test) is a different input
+_QUEUE_READERS = ("_all_entries", "_mark_states", "_entry_mark_state", "_item_for_entry",
+                  "entry_status", "entry_kind", "entry_vintage", "entry_prechecks",
+                  "unused_curated_splits", "splits_to_verify", "matched_areas", "_also_items")
+
+
+def _queue_inputs() -> tuple:
+    """What the queue is computed from: the files' stamps (the marks, splits, overrides, area
+    catalogue, catalogue and DFO region files) and the cached objects read from the rest (the
+    registry, the vintage, the reach run, the fingerprint contexts, the landed marks) — each of
+    those is a new object when its own files change."""
+    return (_stamp((MARKS_PATH, SPLITS_JSON_PATH, OVERRIDES_PATH,
+                    Path(REGISTRY_PATH).parent / "area_catalog.gpkg")),
+            _dir_stamp(ENTRIES_DIR), _dir_stamp(_dfo_dir()),
+            _registry(), built(), run_facts(), _review_context(), _splits_context(), applied_keys(),
+            *(globals()[n] for n in _QUEUE_READERS))
+
+
+def _queue_rows() -> list[dict]:
+    """Every queue row with `_rank` / `_pos` — SHARED: `queue` filters and copies, never mutates."""
+    return _QUEUE_MEMO.get(_queue_inputs(), _compute_queue_rows)
+
+
+def _compute_queue_rows() -> list[dict]:
+    from pipeline.regs.review import severity as S
+    from pipeline.regs.review import tiers as T
+    from pipeline.regs.review.precheck import severe as _severe
+    states = _mark_states()
+    on = built()                      # the vintage on disk, read once for every row (T133)
+    run = run_facts()                 # the reach run's facts, read once (T135)
+    to_verify = splits_to_verify()
+    rows = []
+    for pos, (reg_id, e) in enumerate(_all_entries()):
+        item = _item_for_entry(e)
+        st = entry_status(e, item)
+        tr = T.entry_tier(e, binds=item is not None, run=run)
+        mst = _entry_mark_state(e, states)
+        vst = mst["status"]
+        pages = [p for p in (e.get("source_pages") or []) if isinstance(p, int)]
+        vin = entry_vintage(e, on)
+        found = entry_prechecks(e, run=run, to_verify=to_verify)
+        n_a = _severe(found)
+        rk = T.risks(e, binds=item is not None, run=run)
+        n_unused = len(unused_curated_splits(e, item))
+        sev = S.entry_severity(found, risks=rk, unused_splits=n_unused,
+                               lake=bool(item is not None and item.kind == "lake"))
+        rows.append({
+            "entry_id": e["entry_id"],
+            "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
+            "name": _ident(e)["name"],
+            "mus": _ident(e)["mus"],
+            "status": st,
+            "kind": entry_kind(e),        # zone (regional/provincial) | water (a table row)
+            "n_rules": len(e.get("rules", [])),
+            "matched_item_id": item.id if item else None,
+            "matched_item_name": item.name if item else None,
+            "matched_areas": [] if item else matched_areas(e),   # matched by area (no item)
+            "also_item_ids": [a["id"] for a in _also_items(e)],      # combined-override items
+            "unused_curated_splits": n_unused,
+            "page": min(pages) if pages else None,
+            "pointer": bool(e.get("see")) and not e.get("rules"),
+            "verify": vst,
+            "verify_note": mst["note"],
+            # T184: human-reviewed — by whom, when, and whether it still holds
+            "reviewed": mst["reviewed"],
+            "mark_reasons": mst["reasons"],
+            "vintage": vin["state"],             # current | awaiting build (T133)
+            "vintage_reasons": vin["reasons"],
+            "tier": tr,                           # PLAN §3 (T134: progress and ETA by tier)
+            "risks": rk,                          # T135, most urgent first
+            # owner 2026-10-26: ONE chip — is there a real issue to review — and why
+            "severity": sev["level"],
+            "severity_reasons": sev["reasons"],
+            # an `I` finding (a note, T207: "on parts") is neither a fact nor a hint
+            "prechecks": {"A": n_a, "B": sum(1 for f in found if f["severity"] == "B")},
+            "_rank": (S.rank(sev["level"]),
+                      *T.queue_rank(e, binds=item is not None, run=run, severe=n_a)),
+            "_pos": pos,
+        })
+    return rows
+
+
+#: the queue's orders: the review order (tiers, risk first; the default) and the book's
+QUEUE_ORDERS = ("risk", "book")
+
+
+def _region_key(region: str) -> tuple:
+    """'provincial' first (the book's front pages), then 1, 2, … 7, 7a, 7b, 8."""
+    if region == "provincial":
+        return (0, 0, "")
+    num = "".join(ch for ch in region if ch.isdigit())
+    return (1, int(num) if num else 99, region)
+
+
+# --------------------------------------------------------------------------- #
+# Review marks (T97): `pipeline.regs.review` decides; this only serves and stores
+# --------------------------------------------------------------------------- #
+
+#: what the queue reports for an entry's marks (`pipeline.regs.review.marks.status`)
+MARK_STATUSES = ("unmarked", "verified", "wrong", "unsure", "deferred", "stale")
+
+
+def _canonical(e: dict) -> dict:
+    """An entry read RAW, with absorbed ids folded as `load_region` folds them."""
+    from pipeline.atlas.registry.flowing import canonical_ids
+    return canonical_ids(e, _registry())
+
+
+def _review_context():
+    """The fingerprint context of the vintage on disk NOW: splits.json, the overrides, the served
+    registry and the bundle's facts. Keyed on their stamps, so an edited split or a rebuilt bundle
+    is read on the next request."""
+    from pipeline.deliver.bundle import read as _R
+    return _review_context_for(_stamp((SPLITS_JSON_PATH, OVERRIDES_PATH, Path(_R.BUNDLE),
+                                       REGISTRY_PATH)))
+
+
+@lru_cache(maxsize=1)
+def _review_context_for(_key: tuple):
+    from pipeline.deliver.bundle import read as _R
+    from pipeline.regs.review import fingerprint as F
+    # No bundle yet is a state, not an error: a mark then holds no bundle half (`reach`/`answer`
+    # None) and "awaiting build" cannot arise from it. `Context.on_disk` is the CLIs' context too.
+    ctx = F.Context.on_disk(SPLITS_JSON_PATH, OVERRIDES_PATH, _registry(), _R.BUNDLE)
+    ctx.prints_memo = {}                       # entry content -> prints, for this vintage only
+    return ctx
+
+
+def _prints(e: dict):
+    """The entry's prints now (every record), memoised per vintage on the entry's content."""
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review.marks import Prints
+    ctx = _review_context()
+    key = json.dumps(e, sort_keys=True, ensure_ascii=False)
+    got = ctx.prints_memo.get(key)
+    if got is None:
+        got = ctx.prints_memo[key] = Prints.model_validate(F.entry_fingerprints(e, ctx))
+    return got
+
+
+def _mark_states() -> dict[str, list]:
+    """target -> the marks in force on it (`marks.latest`), read from the store now."""
+    from pipeline.regs.review import marks as M
+    out: dict[str, list] = {}
+    for m in M.latest(M.load(MARKS_PATH)).values():
+        out.setdefault(m.target, []).append(m)
+    return out
+
+
+def _mark_view(m, now) -> dict:
+    from pipeline.regs.review import marks as M
+    return {**json.loads(m.model_dump_json()), **M.status(m, now, applied=applied_keys())}
+
+
+def _dfo_dir() -> Path:
+    from pipeline.regs.review import dfo as D
+    return D.default_dir()
+
+
+def _dir_stamp(d: Path) -> tuple:
+    try:
+        return tuple(sorted((f.name, f.stat().st_mtime_ns, f.stat().st_size)
+                            for f in Path(d).glob("*.json")))
+    except OSError:
+        return ()
+
+
+class _Memo:
+    """ONE VALUE, KEPT WHILE ITS INPUTS HOLD (owner 2026-10-28: the review app's first paint waited
+    on the queue and the DFO rows, recomputed for every badge). `inputs` is a tuple: a stamp tuple
+    compares by value, anything else (a cached object — the registry, `built()`, the review context
+    — or a reader a test patched) by identity, and is held so its id cannot be reused. Concurrent
+    askers wait for the one computation instead of each running it."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._inputs: tuple | None = None
+        self._value = None
+
+    def get(self, inputs: tuple, compute):
+        with self._lock:
+            held = self._inputs
+            if held is None or len(held) != len(inputs) or not all(
+                    (a == b) if isinstance(a, tuple) else (a is b) for a, b in zip(held, inputs)):
+                self._value, self._inputs = compute(), inputs
+            return self._value
+
+    def cache_clear(self) -> None:          # never takes the lock: `invalidate_caches` holds _LOAD_LOCK
+        self._inputs = self._value = None
+
+
+_QUEUE_MEMO = _Memo()
+
+
+# --------------------------------------------------------------------------- T755 follow-up: speed after a save
+# (owner 2026-11-15: "the review app needs to be faster it is SO SO SO slow rn") A save APPENDS one line to the marks
+# store. Every marks-derived cache was keyed on the store's file stamp, so one save rebuilt every DFO row (~1.5 s) and
+# every checklist place (~0.8 s), and re-grouped every proposed cut (~0.9 s). These say WHAT a save changed, so the
+# readers rebuild only the saved place's results: `marks_delta` (the mark keys appended between two stamps) and
+# `proposals_stamp` (the stamp the proposed cuts were last changed at). Anything they cannot prove is a full rebuild.
+
+_MARKS_SEEN: dict[tuple, tuple[int, str]] = {}      # a marks-store stamp -> (its byte length, sha256 of its bytes)
+_MARKS_SEEN_LOCK = threading.Lock()
+
+
+def marks_stamp() -> tuple:
+    """the marks store's file stamp, recorded (length + digest) so a later stamp can be diffed against it"""
+    st = _stamp((MARKS_PATH,))
+    _marks_record(st)
+    return st
+
+
+def _marks_record(st: tuple) -> None:
+    import hashlib
+    with _MARKS_SEEN_LOCK:
+        if st in _MARKS_SEEN:
+            return
+    try:
+        data = Path(MARKS_PATH).read_bytes()
+    except OSError:
+        return
+    if _stamp((MARKS_PATH,)) != st:                  # it moved while read: record nothing (a later read will)
+        return
+    with _MARKS_SEEN_LOCK:
+        if len(_MARKS_SEEN) > 32:
+            _MARKS_SEEN.clear()
+        _MARKS_SEEN[st] = (len(data), hashlib.sha256(data).hexdigest())
+
+
+def marks_delta(old: tuple, new: tuple) -> dict | None:
+    """WHAT THE MARKS STORE GAINED between two of its stamps: {"keys": the (scope, target, rule_id) of every line
+    appended (a several-target line names each), "new_splits": any appended line proposes a cut (its own `new_splits`
+    or a closed area's `piece.new_splits`), "cleared": any is a
+    clear}. None when it cannot be proven a pure append (a stamp never recorded, a shorter file, a changed prefix, a
+    line that does not parse): the caller rebuilds everything. Same stamp: no keys."""
+    import hashlib
+    if old == new:
+        return {"keys": frozenset(), "new_splits": False, "cleared": False}
+    with _MARKS_SEEN_LOCK:
+        was = _MARKS_SEEN.get(old)
+    if was is None:
+        return None
+    try:
+        data = Path(MARKS_PATH).read_bytes()
+    except OSError:
+        return None
+    if _stamp((MARKS_PATH,)) != new:
+        return None
+    n, sha = was
+    if len(data) < n or hashlib.sha256(data[:n]).hexdigest() != sha:
+        return None
+    _marks_record(new)
+    keys, splits, cleared = set(), False, False
+    for line in data[n:].decode("utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            m = json.loads(line)
+        except ValueError:
+            return None
+        for t in [m.get("target"), *(m.get("targets") or [])]:
+            if t:
+                keys.add((m.get("scope"), t, m.get("rule_id")))
+        # a closed area carries its new cuts in `piece.new_splits` (T785; `marks.cut_proposals_of`): counted too, so
+        # a confirmed closed area's cuts reach the proposals list on the save that makes them
+        splits = splits or bool(m.get("new_splits")) or bool((m.get("piece") or {}).get("new_splits"))
+        cleared = cleared or m.get("verdict") == "cleared"
+    return {"keys": frozenset(keys), "new_splits": splits, "cleared": cleared}
+
+
+_PROPOSALS_AT: dict[tuple, tuple] = {}              # marks stamp -> the stamp its proposed cuts were last changed at
+_PROPOSALS_LAST: list = []                           # [the last marks stamp asked]
+
+
+def proposals_stamp() -> tuple:
+    """THE MARKS STAMP THE PROPOSED CUTS WERE LAST CHANGED AT: unchanged by a save that proposes no cut and clears
+    nothing (`marks.proposal_groups` reads only the uncleared marks' `new_splits`), so the proposals, their real ids
+    and the checklist's context (which names proposed cuts) survive such a save. A key for those caches, in place of
+    the marks file's own stamp."""
+    st = marks_stamp()
+    with _MARKS_SEEN_LOCK:
+        got = _PROPOSALS_AT.get(st)
+        prev = _PROPOSALS_LAST[0] if _PROPOSALS_LAST else None
+    if got is not None:
+        return got
+    d = marks_delta(prev, st) if prev is not None else None
+    with _MARKS_SEEN_LOCK:
+        keep = d is not None and not d["new_splits"] and not d["cleared"] and prev in _PROPOSALS_AT
+        val = _PROPOSALS_AT[prev] if keep else st
+        if len(_PROPOSALS_AT) > 32:
+            _PROPOSALS_AT.clear()
+        _PROPOSALS_AT[st] = val
+        _PROPOSALS_LAST[:] = [st]
+    return val
+
+
+def settle_gc() -> None:
+    """(T755 follow-up) MOVE THE LOADED CACHES OUT OF THE GARBAGE COLLECTOR'S SIGHT (`gc.freeze`): the atlas, graph and
+    registry are ~14 million long-lived objects, and every full collection walked them all — 2.1 s, landing in
+    whichever request allocated next (measured: the checklist's queue right after a save, 3.2 s -> 1.3 s). Frozen
+    objects are still freed by reference count; `invalidate_caches` unfreezes so a replaced build can go. Run after
+    the warm and after a full checklist rebuild that follows an invalidation."""
+    import gc
+    gc.collect()
+    gc.freeze()
+
+
+def applied_keys() -> frozenset:
+    """THE MARKS WHOSE OWN FIX HAS LANDED (`proposals.applied_keys`, owner 2026-10-28): applying a
+    mark moves its target's binding, and the mark must still count as done. Keyed on the stamps of
+    the marks store, splits.json and the catalogue / DFO region files."""
+    key = (_stamp((MARKS_PATH, SPLITS_JSON_PATH)), _dir_stamp(ENTRIES_DIR), _dir_stamp(_dfo_dir()))
+    with _MARKS_LOCK:                      # one computation, not one per concurrent badge request
+        return _applied_keys_for(key)
+
+
+#: SERIALISES the marks-derived caches (owner 2026-10-28): `lru_cache` holds no miss, so after a
+#: new mark the app's dozen first requests each recomputed them side by side (GIL-bound: ~5 s each)
+_MARKS_LOCK = threading.RLock()
+
+
+@lru_cache(maxsize=1)
+def _applied_keys_for(_key: tuple) -> frozenset:
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import proposals as P
+    # (T434) NO CATCH: an empty set read every landed fix as "binding moved" (T421's refusal, swallowed). A raise is not
+    # cached (lru_cache keeps no exception); the request fails with the reason (app.py's FileNotFoundError handler).
+    src = P.Sources(entries_dir=Path(ENTRIES_DIR), dfo_dir=_dfo_dir(),
+                    splits_path=Path(SPLITS_JSON_PATH), build=_BUILD)
+    reg = Path(_BUILD) / "registry.json"
+    if reg.exists():                         # (T755 follow-up) read once per build, not once per save (~0.3 s)
+        src = dataclasses.replace(src, _reg=_raw_registry_for(_stamp((reg,))), _has_reg=True)
+    return frozenset(P.applied_keys(M.load(MARKS_PATH), src))
+
+
+@lru_cache(maxsize=1)
+def _raw_registry_for(key: tuple) -> dict:
+    """the served registry.json's items as `proposals.Sources.item` reads them (raw, read only), once per its stamp"""
+    return {i["id"]: i for i in json.loads(Path(key[0][0]).read_text(encoding="utf-8"))["items"]}
+
+
+def marks_health() -> dict:
+    """EVERY MARK IN FORCE ACCOUNTED FOR (owner 2026-10-28, `marks.health`): per scope held /
+    landed / stale / orphan, and the orphaned and stale marks listed with what they said — the
+    review app's startup banner. A mark is never silently shown undone."""
+    key = (_stamp((MARKS_PATH, SPLITS_JSON_PATH)), _dir_stamp(ENTRIES_DIR), _dir_stamp(_dfo_dir()),
+           id(_review_context()))
+    with _MARKS_LOCK:
+        return _marks_health_for(*key)
+
+
+@lru_cache(maxsize=1)
+def _marks_health_for(*_key) -> dict:
+    from pipeline.regs.review import marks as M
+    entries = {e["entry_id"]: e for _r, e in _all_entries()}
+    return M.health(M.load(MARKS_PATH), entries=entries, ctx=_review_context(),
+                    applied=applied_keys())
+
+
+def _entry_mark_state(e: dict, states: dict[str, list]) -> dict:
+    """The queue's one word for an entry's marks: its entry mark's status; for an entry marked
+    per rule (zone entries), stale / wrong / unsure / deferred if any rule mark is, verified when
+    every rule holds a verified mark, else unmarked. `reasons` are the stale reasons.
+
+    `reviewed` is THE HUMAN-REVIEWED STATE (T184): the reviewers and the (latest) date of the
+    verified mark(s) — every check answered y, `marks.verdict_from_answers` — that make the entry
+    reviewed, with `holds`: true while they hold; false once its fingerprint moved (text, rules or
+    extent — T97's `marks.stale_reasons`), when it is back in the queue for a re-check. None when no
+    verified mark ever covered it (a zone entry: one on every rule)."""
+    from pipeline.regs.review import marks as M
+    ms = states.get(e["entry_id"]) or []
+    if not ms:
+        return {"status": "unmarked", "note": "", "reasons": [], "reviewed": None}
+    now = _prints(e)
+
+    def reviewed(verified: list, holds: bool) -> dict:
+        return {"by": sorted({m.reviewer for m in verified}),
+                "on": max(m.date for m in verified), "holds": holds}
+
+    entry_mark = next((m for m in ms if m.scope == "entry"), None)
+    if entry_mark is not None:
+        st = M.status(entry_mark, now, applied=applied_keys())
+        return {"status": st["status"], "note": entry_mark.note, "reasons": st["reasons"],
+                "reviewed": reviewed([entry_mark], st["status"] == "verified")
+                if entry_mark.verdict == "verified" else None}
+    sts = [(m, M.status(m, now, applied=applied_keys())) for m in ms if m.scope == "rule"]
+    every = {r.get("rule_id") for r in e.get("rules") or []}
+    # a zone entry WAS reviewed when every rule's mark in force was a verified one
+    was = ([m for m, _ in sts] if every and all(m.verdict == "verified" for m, _ in sts)
+           and every <= {m.rule_id for m, _ in sts} | {M.held_rule(m, now) for m, _ in sts}
+           else [])
+    for word in ("stale", "wrong", "unsure", "deferred"):
+        hit = [(m, st) for m, st in sts if st["status"] == word]
+        if hit:
+            return {"status": word, "note": hit[0][0].note,
+                    "reasons": sorted({r for _, st in hit for r in st["reasons"]},
+                                      key=[x.value for x in M.STALE_REASONS].index),
+                    "reviewed": reviewed(was, False) if was else None}
+    # the rule each verified mark is on NOW — a renumbered rule keeps its mark (`marks.held_rule`)
+    marked = {M.held_rule(m, now) for m, st in sts if st["status"] == "verified"}
+    done = bool(every) and every <= marked
+    return {"status": "verified" if done else "unmarked", "note": "", "reasons": [],
+            "reviewed": reviewed([m for m, _ in sts], True) if done else None}
+
+
+def entry_marks(entry_id: str) -> list[dict]:
+    """The marks in force on this entry (its entry mark and its rule marks), each with its
+    status and stale reasons NOW."""
+    found = _find(entry_id)
+    if found is None:
+        return []
+    now = _prints(found[1])
+    return [_mark_view(m, now) for m in _mark_states().get(entry_id, [])
+            if m.scope in ("entry", "rule")]
+
+
+def marks_view(target: str | None = None, scope: str | None = None) -> list[dict]:
+    """The marks in force (optionally on one target / of one scope), each with its status and
+    stale reasons against its target as it is NOW."""
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review.marks import Prints
+    ctx = _review_context()
+    entries = {e["entry_id"]: e for _, e in _all_entries()}
+    out = []
+    for tgt, ms in sorted(_mark_states().items()):
+        if target is not None and tgt != target:
+            continue
+        for m in ms:
+            if scope is not None and m.scope != scope:
+                continue
+            if m.scope == "split":
+                try:
+                    now = Prints.model_validate(F.split_fingerprints(tgt, ctx))
+                except KeyError:
+                    now = None
+            elif m.scope == "dfo":                     # T164: a DFO location
+                import dfo
+                got = dfo._locations().get(tgt)
+                now = dfo._now(got[1], got[2]) if got else None
+            elif m.scope == "name":                    # T224: a name-variant candidate
+                from pipeline.regs.review import names as NV
+                got = NV.prints_of(tgt)
+                now = Prints.model_validate(got) if got is not None else None
+            elif m.scope == "q154":                    # Q154: a sample small pond
+                from pipeline.regs.review import q154 as Q
+                got = Q.prints_of(tgt)
+                now = Prints.model_validate(got) if got is not None else None
+            elif m.scope == "slough":                  # T55: a slough / canal candidate
+                from pipeline.regs.review import slough as S
+                got = S.prints_of(tgt)
+                now = Prints.model_validate(got) if got is not None else None
+            elif m.scope == "closed_area":             # T573: one closed area of a DFO row's entry B
+                from pipeline.regs.review import closed_areas as CA
+                got = CA.prints_of(tgt)
+                now = Prints.model_validate(got) if got is not None else None
+            elif m.scope == "tidal":                   # T212: a proposed tidal boundary
+                from pipeline.regs.review import tidal as T
+                got = T.prints_of(tgt)
+                now = Prints.model_validate(got) if got is not None else None
+            else:
+                now = _prints(entries[tgt]) if tgt in entries else None
+            out.append(_mark_view(m, now))
+    return out
+
+
+def split_mark_states() -> dict[str, dict]:
+    """splits.json split id -> its mark status now (`marks.split_states`), and whether the served
+    atlas holds it as authored (`vintage`: a split added by hand reads "awaiting build" until
+    the atlas is rebuilt and promoted)."""
+    from pipeline.regs.review import marks as M
+    ctx = _review_context()
+    states = M.split_states(M.load(MARKS_PATH), ctx)
+    return {sid: dict(st, vintage=split_vintage(sid)) for sid, st in states.items()}
+
+
+# --------------------------------------------------------------------------- #
+# One vintage on screen (T133): `pipeline.regs.review.vintage` decides; this reads the disk
+# --------------------------------------------------------------------------- #
+
+def _vintage_paths():
+    from pipeline.deliver.bundle import read as _R
+    return _BUILD, REACH_DIR, Path(_R.BUNDLE), RELEASE_ROOT
+
+
+def rebuild_target():
+    """WHAT A REBUILD PRINTED HERE REBUILDS (`vintage.Target`, T136): the corpus and splits.json
+    this tool edits, and the atlas, reach run, bundle, release and tiles it serves — read at call
+    time, so a tool pointed at copies prints commands that rebuild the copies."""
+    from pipeline.regs.review import vintage as V
+    from pipeline.deliver.bundle import read as _R
+    return V.Target(entries=ENTRIES_DIR, splits=SPLITS_JSON_PATH, build=_BUILD, reach=REACH_DIR,
+                    bundle=Path(_R.BUNDLE), release=RELEASE_ROOT, tiles=TILES_DIR)
+
+
+def built():
+    """The digests of the vintage on disk NOW (`vintage.Built`): the served atlas, its reach run,
+    the bundle and the newest release. KEYED ON THEIR FILES' STAMPS, so a reach run, a deliver or a
+    promote finished in a terminal is read on the next request — "awaiting build" clears with no
+    restart. The atlas half (its registry digest reads 100 MB) is keyed on the atlas's own files."""
+    from pipeline.regs.review import vintage as V
+    return _built_for(_stamp(V.stamp_paths(*_vintage_paths())))
+
+
+@lru_cache(maxsize=1)
+def _built_atlas(_key: tuple):
+    from pipeline.regs.review import vintage as V
+    return V.read_atlas(_BUILD)
+
+
+@lru_cache(maxsize=1)
+def _built_for(key: tuple):
+    from pipeline.regs.review import vintage as V
+    # the first four stamps are the atlas's own files (`vintage.stamp_paths`)
+    return V.read_built(*_vintage_paths(), atlas=_built_atlas(key[:4]))
+
+
+def _anchors_now(e: dict) -> dict[str, str]:
+    """split id -> its anchor digest in splits.json NOW, for every split the entry's binding reads
+    (`fingerprint.entry_split_ids`). A named id splits.json does not have is the gate's to refuse."""
+    from pipeline.regs.review import pending as _P
+    ctx = _splits_context()
+    # memoised on the context (a new one per splits.json / registry) by the entry's content: the
+    # queue asks for every entry, and `entry_split_ids` scans every split (owner 2026-10-28: ~1 s).
+    # The rule itself is `pending.anchors_now` — one copy (T562)
+    memo = ctx.__dict__.setdefault("anchors_memo", {})
+    key = json.dumps(e, sort_keys=True, ensure_ascii=False, default=str)
+    got = memo.get(key)
+    if got is None:
+        got = memo[key] = _P.anchors_now(e, ctx)
+    return dict(got)
+
+
+def _splits_context():
+    """A fingerprint context of splits.json and the registry only — what `entry_split_ids` reads.
+    The queue asks it for every entry, so it never reads the bundle's facts (`_review_context`
+    does, once, for marks). Keyed on the files' stamps like the rest."""
+    return _splits_context_for(_stamp((SPLITS_JSON_PATH, REGISTRY_PATH)))
+
+
+@lru_cache(maxsize=1)
+def _splits_context_for(_key: tuple):
+    from pipeline.regs.review import fingerprint as F
+    return F.Context(splits=json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8")),
+                     registry=_registry())
+
+
+def entry_vintage(e: dict, on=None) -> dict:
+    """Is this entry built (`vintage.entry_state`)? `e` as `load_region` reads it — the form the
+    reach run and the bundle digest. `on`: a `built()` already read for this request (the queue
+    asks for every entry)."""
+    from pipeline.regs.review import vintage as V
+    return V.entry_state(e["entry_id"], io.entry_digest(e), _anchors_now(e),
+                         on if on is not None else built(), rebuild_target())
+
+
+def split_vintage(split_id: str, on=None) -> dict:
+    """Is this split built as authored now (`vintage.split_state`)?"""
+    from pipeline.atlas.splits.splits import anchor_digest
+    from pipeline.regs.review import vintage as V
+    idx = _splits_context().split_index
+    if split_id not in idx:
+        raise KeyError(split_id)
+    return V.split_state(split_id, anchor_digest(idx[split_id]),
+                         on if on is not None else built(), rebuild_target())
+
+
+def awaiting_build(scope: str, target: str) -> bool:
+    """Whether a mark's target awaits its build NOW (`entry_vintage` / `split_vintage`), so only T
+    and R can be answered — what a refused mark's words depend on (`marks.unanswered_words`). An
+    unknown target is not awaiting (it is refused as unknown)."""
+    from pipeline.regs.review import vintage as V
+    try:
+        if scope == "split":
+            st = split_vintage(target)
+        else:
+            found = _find(target)
+            if found is None:
+                return False
+            st = entry_vintage(found[1])
+    except KeyError:
+        return False
+    return st.get("state") != V.CURRENT
+
+
+# --------------------------------------------------------------------------- #
+# The one queue (T135, PLAN §4 phase 4): `pipeline.regs.review.tiers` orders it, `precheck`
+# finds, `runfacts` reads the run — this only reads the disk for them
+# --------------------------------------------------------------------------- #
+
+def run_facts():
+    """The served reach run's facts (`runfacts.RunFacts`: ambiguous cuts, unresolved rules,
+    unplaced pieces), keyed on its files' stamps — a reach run finished in a terminal is read on
+    the next request. None while there is no COMPLETE run (`report.json` is written last): the
+    run-based risk factors and pre-checks are then not claimed, and `queue_facts` says so."""
+    from pipeline.regs.review.runfacts import DIAGNOSTIC, UNRESOLVED
+    return _run_facts_for(_stamp((REACH_DIR / "report.json", REACH_DIR / f"{DIAGNOSTIC}.jsonl",
+                                  REACH_DIR / f"{UNRESOLVED}.jsonl")))
+
+
+@lru_cache(maxsize=1)
+def _run_facts_for(_key: tuple):
+    from pipeline.regs.review.runfacts import RunFacts
+    try:
+        return RunFacts.read(REACH_DIR)
+    except FileNotFoundError:
+        return None
+
+
+def splits_to_verify() -> frozenset[str]:
+    """The split points still to verify (`tiers.split_needs_verify` with each split's old mark's
+    status now) — what a rule binding through one is pre-checked for (`split_to_verify`)."""
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import tiers as T
+    states = M.split_states(M.load(MARKS_PATH), _review_context())
+    return T.splits_to_verify(_load_splits(), {k: v.get("status") for k, v in states.items()})
+
+
+def entry_prechecks(e: dict, *, run=None, to_verify=None, gate: bool = False) -> list[dict]:
+    """`precheck.prechecks` for one entry against the served build and run. `gate`: also run the
+    gate (`check_entry`; the open entry only — the queue does not run it for every row)."""
+    from pipeline.regs.review.precheck import prechecks
+    errs = check_entry(e)["errors"] if gate else None
+    return prechecks(e, binds=_item_for_entry(e) is not None,
+                     run=run if run is not None else run_facts(),
+                     to_verify=to_verify if to_verify is not None else splits_to_verify(),
+                     gate_errors=errs)
+
+
+def queue_facts() -> dict:
+    """What the queue's order was decided on: the reach run read (its digest), or why none was."""
+    from pipeline.regs.review import vintage as V
+    run = run_facts()
+    return {"run": run.digest if run is not None else None,
+            "why": None if run is not None else
+            f"no complete reach run in {REACH_DIR} — the ambiguous-cut and unresolved factors are "
+            f"not known (run: " + "; then ".join(V.reach_run_commands(rebuild_target())) + ")"}
+
+
+def parse_review_findings() -> dict[str, list[str]]:
+    """entry_id -> the second-pass agent's findings on it (`io.read_review_findings`, every
+    severity), from the parse work dir's `reviews/`. None exist yet: {}."""
+    work = io.default_work_dir()
+    if not (work / "reviews").is_dir():
+        return {}
+    return io.read_review_findings(work, severities=("high", "medium", "low"))
+
+
+def pending_build() -> dict:
+    """THE PENDING BUILD PANEL (PLAN §5): every entry and split awaiting its build, why, and what
+    to run — empty when the vintage on disk is the one on screen. Read by the queue's panel.
+    THE DECISION is `pipeline.regs.review.pending.pending` (T541: `python -m pipeline.regs.review.pending`
+    prints the same with no server); this hands it the app's cached reads and ONE `built()`."""
+    from pipeline.regs.review import pending as P
+    return P.pending(_all_entries(), _splits_context(), built(), rebuild_target(), anchors_for=_anchors_now)
+
+
+def _live_counts(entry_id: str) -> dict[str, int | None]:
+    """rule_id -> the sections the reach builder binds it to NOW on the served atlas (the app's
+    `entry_reaches`, the builder's own function), None where one entry alone cannot say."""
+    got = entry_reaches(entry_id).get("verdict") or {}
+    return {rid: (None if v.get("reason") == "needs_corpus" else v.get("n_sections"))
+            for rid, v in got.items()}
+
+
+_PDF_SHA: dict[tuple, str] = {}
+
+
+def _pdf_sha256() -> str:
+    """The sha256 of the book the reviewer reads (the repo copy, whose bytes are not gov.bc.ca's)."""
+    import hashlib
+    import synopsis_pages
+    key = _stamp((synopsis_pages.PDF_PATH,))
+    if key not in _PDF_SHA:
+        _PDF_SHA.clear()
+        _PDF_SHA[key] = hashlib.sha256(Path(synopsis_pages.PDF_PATH).read_bytes()).hexdigest()
+    return _PDF_SHA[key]
+
+
+def post_mark(body: dict) -> dict:
+    """Record a reviewer's mark: fingerprints taken from the target as it is on disk NOW, the
+    date and the book's sha256 stamped here, appended to the store through the backed-up commit.
+    REFUSED (ValueError) on an entry that fails the gate, and on a target AWAITING BUILD for any
+    answer but T and R (`vintage.refuse_unbuilt`, T133: a verified mark needs the entry's digest
+    the same in the reach run, the bundle and the release); KeyError for an unknown target.
+    ENTRIES ONLY (T184): an entry or one of its rules; a split is checked by proxy, on the map of
+    an entry whose rules name it, and is refused here (ValueError)."""
+    import datetime as _dt
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import vintage as V
+    scope, target = body.get("scope"), str(body.get("target") or "")
+    if scope == "proposal":
+        # T185 (owner 2026-10-27): the marks ARE the decisions — there is no accept step
+        raise ValueError("a proposal is not marked: the marks behind it are the decision "
+                         "(Claude applies them, `apply_proposals`)")
+    if scope not in ("entry", "rule", "dfo", "tidal", "slough", "q154", "name", "closed_area"):
+        raise ValueError(f"a mark is on an entry or one of its rules, not a {scope}")
+    with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
+        batch = None
+        if scope == "slough":
+            # T55: a slough / canal candidate — the owner's stream / not stream call; `targets` (accept
+            # all visible) makes one mark per candidate, all in the same one commit below
+            import sloughs
+            batch = sloughs.marks_for(body, date=_dt.date.today().isoformat(), pdf_sha256=_pdf_sha256())
+            mark, now, reused = batch[-1], None, []
+        elif scope == "name":
+            # T224: a name-variant candidate — the owner's accept / reject; `targets` (all visible) makes one
+            # mark per candidate, all in the same one commit below
+            import variants
+            batch = variants.marks_for(body, date=_dt.date.today().isoformat(), pdf_sha256=_pdf_sha256())
+            mark, now, reused = batch[-1], None, []
+        elif scope == "closed_area":
+            # T573: one closed area of a DFO row's entry B — the owner's confirm (with the placement he confirms: a
+            # stretch or a circle, validated by the mark) or "something's wrong"; its prints are DFO's words for the
+            # item, and there are none unless DFO's LIVE page names it
+            import dfo
+            from pipeline.regs.review import closed_areas as CA
+            prints = CA.prints_of(target)
+            if prints is None:
+                raise ValueError("no stored DFO wording names this closed area: there is nothing to confirm")
+            answers = body.get("answers") or {}
+            mark = M.Mark.model_validate({
+                "scope": scope, "target": target, "answers": answers, "problem": body.get("problem"),
+                "note": body.get("note") or "", "reviewer": body.get("reviewer"), "seconds": body.get("seconds"),
+                "piece": dfo.stamp_piece(target, body.get("piece"), body.get("location_id")),
+                "verdict": body.get("verdict") or M.verdict_from_answers(scope, answers),
+                "date": _dt.date.today().isoformat(), "pdf_sha256": _pdf_sha256(), "pages": [], "prints": prints})
+            now, reused = None, []
+        elif scope == "q154":
+            # Q154: a sample small pond — the owner's pool / real lake call; the same one commit below
+            import ponds
+            batch = ponds.marks_for(body, date=_dt.date.today().isoformat(), pdf_sha256=_pdf_sha256())
+            mark, now, reused = batch[-1], None, []
+        elif scope == "dfo":
+            # T164: a DFO salmon location — its prints from `review.dfo`, each NEW split's anchor
+            # checked and its resolved point stamped (`dfo.mark_for`); the same one commit below
+            # T742 (owner 2026-11-14): ONE PLACE PER MARK — a group save is refused at the route, never written here
+            import dfo
+            if body.get("targets") or body.get("members"):
+                raise ValueError("a DFO mark is saved on one place at a time: open each wording and mark it on its own")
+            mark, now, reused = dfo.mark_for({k: v for k, v in body.items() if k not in ("targets", "members")},
+                                             date=_dt.date.today().isoformat(), pdf_sha256=_pdf_sha256())
+        elif scope == "tidal":
+            # T212: a proposed tidal boundary — its prints from `review.tidal`, each new split
+            # snapped to the stream and stamped (`tidal.mark_for`); the same one commit below
+            import tidal
+            mark, now, reused = tidal.mark_for(body, date=_dt.date.today().isoformat(),
+                                               pdf_sha256=_pdf_sha256())
+        else:
+            reused = []
+            ctx = _review_context()
+            found = _find(target)
+            if found is None:
+                raise KeyError(target)
+            e = found[1]
+            M.refuse_on_gate(target, check_entry(e)["errors"])
+            V.refuse_unbuilt(scope, body.get("answers") or {}, entry_vintage(e))
+            prints = F.entry_fingerprints(e, ctx, rule_id=body.get("rule_id")
+                                          if scope == "rule" else None)
+            pages = body.get("pages") or [p for p in e.get("source_pages") or []
+                                          if isinstance(p, int)]
+            mark = M.Mark.model_validate({**body, "date": _dt.date.today().isoformat(),
+                                          "pdf_sha256": _pdf_sha256(), "pages": pages,
+                                          "prints": prints})
+            now = None
+        marks = batch or [mark]
+        writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, marks))], "mark")
+    if scope in ("slough", "q154", "name", "closed_area"):
+        return {**_mark_view(mark, mark.prints), "n": len(marks)}
+    view = _mark_view(mark, now if scope in ("dfo", "tidal") else _prints(e))
+    if reused:                       # T210: "already proposed — reused", said back to the screen
+        view = {**view, "reused": reused}
+    return view
+
+
+#: what an Undo may require of the mark it clears (`clear_marks`' `if_last`)
+_IF_LAST = ("verdict", "note", "date", "reviewer", "call")
+
+
+def clear_marks(body: dict) -> dict:
+    """CLEAR THE MARK IN FORCE on each target (owner 2026-10-29: an accidental "accept all visible"
+    must be undoable): one `marks.cleared_mark` per target, appended in ONE commit — the store is
+    never edited, the newer line takes the mark back and the target reads unmarked. `targets` (or
+    `target`), `rule_id` for a rule mark, `reviewer` and `note` (why) required. `if_last`: clear only
+    the targets whose mark in force says exactly these fields (an Undo of one batch); the others are
+    skipped and listed. ValueError when nothing would be cleared, or (no `if_last`) any target has
+    no mark in force."""
+    import datetime as _dt
+    from pipeline.regs.review import marks as M
+    scope, rule_id = body.get("scope"), body.get("rule_id")
+    targets = [str(t) for t in (body.get("targets") or [body.get("target")]) if t]
+    if not targets:
+        raise ValueError("a cleared mark names its target")
+    if len(set(targets)) != len(targets):
+        raise ValueError("a target is named twice")
+    want = dict(body.get("if_last") or {})
+    bad = sorted(set(want) - set(_IF_LAST))
+    if bad:
+        raise ValueError(f"if_last names {bad}: it may say only {list(_IF_LAST)}")
+    today = _dt.date.today().isoformat()
+    with writes.LOCK, M.store_lock(MARKS_PATH):
+        inforce = M.latest(M.load(MARKS_PATH))
+        out, skipped, missing = [], [], []
+        for t in targets:
+            m = inforce.get((scope, t, rule_id))
+            if m is None:
+                missing.append(t)
+            elif any(getattr(m, k) != v for k, v in want.items()):
+                skipped.append(t)
+            else:
+                out.append(M.cleared_mark(m, reviewer=str(body.get("reviewer") or ""),
+                                          note=str(body.get("note") or ""), date=today))
+        if missing and not want:
+            raise ValueError(f"nothing to clear: no mark in force on {', '.join(missing[:5])}"
+                             + (f" (+{len(missing) - 5} more)" if len(missing) > 5 else ""))
+        if not out:
+            raise ValueError("nothing to clear: no target's mark in force is the one named")
+        writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, out))], "clear")
+    return {"verdict": "cleared", "status": "unmarked", "n": len(out),
+            "targets": [m.target for m in out], "skipped": skipped + missing}
+
+
+# --------------------------------------------------------------------------- T185: proposals
+# READS ONLY: the proposals `python -m pipeline.regs.review.proposals build` wrote. The owner's
+# marks ARE the decisions (2026-10-27): there is no accept step, the tab is a read-only "waiting
+# to apply" list, and Claude's `apply_proposals` lands each one (binding check, side rebuild where
+# a cut changes, one commit each).
+
+#: where the proposals were written; `CURATION_PROPOSALS_DIR` points it at a copy (tests)
+PROPOSALS_DIR = (Path(os.environ["CURATION_PROPOSALS_DIR"])
+                 if os.environ.get("CURATION_PROPOSALS_DIR") else None)
+
+
+def _proposals_dir() -> Path:
+    from pipeline.regs.review import proposals as P
+    return PROPOSALS_DIR or P.OUT_DIR
+
+
+def entry_answer_context(entry_id: str) -> dict | None:
+    """The bundle's copy of this entry beside the file's: per-rule labels and section counts, and
+    where each licensing record binds (`answer.entry_in_bundle`)."""
+    found = _find(entry_id)
+    if found is None:
+        return None
+    _, e = found
+    from pipeline.regs.review import vintage as V
+    vin = entry_vintage(e)
+    if vin["state"] != V.CURRENT:
+        # THE BUNDLE'S COPY IS NOT SHOWN for an entry awaiting its build (T133): it is another
+        # vintage's, and a reviewer must not sign off on it as this one's
+        return {"vintage": vin, "awaiting": True, "bundle_matches": False}
+    lab = model_api.labels(e, ENTRIES_DIR, _place_namer())
+    now = {r["rule_id"]: lab["rules"][i] for i, r in enumerate(e.get("rules") or [])}
+    return {**answer.entry_in_bundle(entry_id, now, _live_counts(entry_id)), "vintage": vin,
+            "awaiting": False}
+
+
+def entry_detail(entry_id: str) -> dict | None:
+    """Full entry + its item's boundaries/variants + unused curated splits.
+
+    The entry is served with each rule's and each licensing record's GENERATED `label` stamped on
+    it — `catalogue.label` / `catalogue.licensing_label`, the functions the bundle uses, so the
+    curator reads exactly what the reader will."""
+    for reg_id, e in _all_entries():
+        if e["entry_id"] != entry_id:
+            continue
+        item = _item_for_entry(e)
+        vintage = entry_vintage(e)          # of the entry AS READ, before labels are stamped on
+        reviewed = _entry_mark_state(e, _mark_states())["reviewed"]       # likewise
+        lab = model_api.labels(e, ENTRIES_DIR, _place_namer())
+        e = dict(e,
+                 rules=[dict(r, label=lab["rules"][i] or r.get("verbatim", ""))
+                        for i, r in enumerate(e.get("rules") or [])],
+                 licensing=[dict(x, label=lab["licensing"][i] or x.get("verbatim", ""))
+                            for i, x in enumerate(e.get("licensing") or [])])
+        return {
+            "entry": e,
+            "kind": entry_kind(e),
+            "region": reg_id,
+            "item": None if not item else {
+                "id": item.id, "name": item.name, "kind": item.kind,
+                "variants": list(item.variants), "mus": list(item.mus),
+                # built graph ∪ live splits.json, over the primary item AND a combined
+                # override's other items — the same closed set the parser was given, so a
+                # Vedder rule on the Chilliwack/Vedder entry has a Vedder cut-point to bind.
+                # T742 C: a region line is offered as this water's crossings of it, by plain name and km
+                "boundaries": with_region_ends(_combined_bindable(item, e), lambda b: b.get("item_id")),
+            },
+            "also_items": _also_items(e),      # a combined override's other items (Vedder, …)
+            "matched_areas": [] if item else matched_areas(e),   # matched by area (no item)
+            "related_entries": related_entries(entry_id),   # other rows over the same water
+            "unused_curated_splits": unused_curated_splits(e, item),
+            "source_image": entry_source_image(e),
+            "marks": entry_marks(entry_id),
+            # T184: HUMAN-REVIEWED (by whom, when; `holds` false = changed since, re-check)
+            "reviewed": reviewed,
+            # ONE VINTAGE ON SCREEN (T133): "current", or "awaiting build" with why and what to
+            # run — the binding and the answer are this entry's only when current
+            "vintage": vintage,
+        }
+    return None
+
+
+# --------------------------------------------------------------------------- #
+# Save (validated) to the catalogue region files
+# --------------------------------------------------------------------------- #
+
+def _rep_point(geom: dict | None) -> list[float] | None:
+    """A representative lon/lat point INSIDE a GeoJSON geometry (shapely's `representative_point`)
+    — used to drop a clickable, labelled marker at a lake boundary's location. A geometry made by
+    `shapely.geometry.mapping` holds TUPLES: reading it for lists only found nothing, so every lake
+    boundary (and every lake a rule names) had no marker (T184)."""
+    if not geom or not geom.get("coordinates"):
+        return None
+    from shapely.geometry import shape
+    try:
+        p = shape(geom).representative_point()
+    except Exception:  # noqa: BLE001 — a malformed geometry has no point; the caller lists it
+        return None
+    return None if p.is_empty else [p.x, p.y]
+
+
+
+def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
+    """**What this rule actually covers, and what it excepts** — drawn from the reach builder.
+
+    One question, asked once: *what is IN this rule and what is OUT?* The answer is
+    `pipeline.atlas.reach.build.build_reach`, the same call the artifact build makes, so what a
+    curator confirms here is exactly what ships.
+
+    ## Why this cannot come from the item layer
+
+    The map draws the entry's own item geometry and highlights sections within it. That works
+    only while a rule stays inside its own water, and two common shapes do not:
+
+    * **tributaries** — "between A and B, including tributaries" resolves to streams that are
+      other registry items entirely;
+    * **`within(area)`** — "Pitt River within Garibaldi Park" binds **466** sections of which
+      only **18** belong to the Pitt. The other 448 — 96% of the rule — had no geometry loaded
+      and simply could not appear on the map.
+
+    So this returns geometry for every bound section the item layer does not already carry,
+    plus the carve-outs, and lets the map draw both.
+
+    ## What comes back
+
+    * ``direct``   sections the extents resolve to before any expansion
+    * ``added``    what the builder ADDED — the tributary walk, or an area's other waters
+    * ``excluded`` what the EXCEPT carve-outs removed. Drawn separately and in a different
+      colour: "except Hunlen Creek above the falls" should be *visible as an exclusion*, not
+      inferable from a smaller total.
+
+    `sections` is `direct | added` — the exact set the build ships. It is deliberately NOT
+    trimmed to one level of tributaries: showing less than ships is precisely the failure the
+    `build_reach` docstring records, and costs nothing to avoid since the builder has already
+    walked it.
+
+    Capped at ``limit`` sections with the cap REPORTED, never hidden.
+    """
+    entry = next((e for _, e in _all_entries() if e["entry_id"] == entry_id), None)
+    if entry is None:
+        return {"error": f"no entry {entry_id}"}
+    rule = next((r for r in entry.get("rules") or [] if r.get("rule_id") == rule_id), None)
+    if rule is None:
+        return {"error": f"no rule {rule_id} on {entry_id}"}
+
+    reg, graph = _registry(), _graph()
+    covered = _covered_ids(entry)
+    clip, _scope_failed = _scope_sections(entry, covered)
+
+    # DIRECT = resolve + clip, no expansion. Same path entry_reaches uses for the raw view, so
+    # the two panels cannot disagree about where the extent itself ends.
+    direct: set[str] = set()
+    for ex in rule.get("extents") or []:
+        got = _clip(_resolve.resolve_extent(reg, graph, covered, ex), clip)
+        if got:
+            direct |= set(got.get("sections") or ())
+
+    binding, _diags = _build_reach(entry, rule, reg, graph, covered=covered, clip=clip,
+                                   shared=_shared_waters(), tidal=_tidal(),
+                                   owned=_rowed_waters())
+    total = set(binding.sections)
+    if any((ex or {}).get("op") == "rest" for ex in rule.get("extents") or []):
+        # "OTHER PARTS" (op `rest`) resolves only against its siblings, so no extent alone says
+        # its direct reach: it is what the builder bound, less what its own walk added.
+        direct = total - set(binding.via_tributary)
+    added = sorted(total - direct)
+
+    # Carve-outs only bite where the rule actually expands to tributaries — `classify` calls the
+    # expander only then, so on a mainstem-only rule the builder never applies them. Reporting
+    # them anyway said "out 1,466" on rules the EXCEPT does not touch (Atnarko r4/r7, both
+    # "Bella Coola River mainstem only"), which reads as water removed from a reach that never
+    # contained it. `carve_outs_apply` keeps the distinction visible instead of just hiding them.
+    wants = bool(_wants_tributaries(rule, entry))
+    carve_rows, blocked = ([], set())
+    if wants:
+        carve_rows, blocked = resolve_carve_outs(entry, rule, reg, graph, covered)
+        for row in carve_rows:                  # the UI wants counts, not 3,000 ids
+            row["n_sections"] = len(row.pop("sections"))
+    n_authored = len(rule.get("tributary_excludes") or [])
+
+    # Geometry for everything the item layer does NOT already carry, plus the exclusions.
+    own: set[str] = set()
+    for iid in covered:
+        it = reg.get(iid)
+        if it:
+            own |= set(it.section_ids)
+    draw_in = [n for n in sorted(total) if n not in own]
+    draw_out = sorted(blocked)
+    truncated = len(draw_in) + len(draw_out) > limit
+    room = max(limit - len(draw_out), 0)
+
+    feats = _sections_geojson(draw_out[:limit], "reach_excluded")
+    feats += _sections_geojson(draw_in[:room], "reach_extra")
+
+    return _json_safe({
+        "entry_id": entry_id, "rule_id": rule_id,
+        "outcome": binding.outcome.value,
+        "wants_tributaries": wants,
+        # the entry/rule AUTHORS this many carve-outs; they apply only to a tributary rule
+        "n_carve_outs_authored": n_authored,
+        "carve_outs_apply": wants and n_authored > 0,
+        "tributaries_only": bool(rule.get("tributaries_only")),
+        "within_area": any((ex or {}).get("op") == "within" for ex in rule.get("extents") or []),
+        "n_direct": len(direct), "n_added": len(added), "n_total": len(total),
+        "n_excluded": len(blocked),
+        "n_offitem": len(draw_in),          # bound sections the item layer never had
+        "carve_outs": carve_rows,
+        "sections": sorted(total),
+        "truncated": truncated, "limit": limit,
+        "geojson": {"type": "FeatureCollection", "features": feats},
+    })
+
+
+def _sections_geojson(section_ids: list[str], kind: str) -> list[dict]:
+    """Geometry for an arbitrary set of section ids, streams and waterbodies alike.
+
+    Sections are `{blk}:{measure}` (the `streams` layer) or `lake:{wbk}` (the `lakes` layer);
+    a rule's reach routinely contains both, and a lake dropped silently would leave a hole in
+    the middle of a drawn reach."""
+    feats: list[dict] = []
+    streams = [n for n in section_ids if not str(n).startswith("lake:")]
+    for i in range(0, len(streams), 400):                       # chunk long IN lists
+        feats += _features("streams", streams[i:i + 400], kind)
+    wbks = [str(n).split(":", 1)[1] for n in section_ids if str(n).startswith("lake:")]
+    for i in range(0, len(wbks), 400):
+        for lf in _features("lakes", wbks[i:i + 400], kind):
+            wbk = str(lf["properties"].get("wbk") or "")
+            if wbk:
+                lf["properties"]["node_id"] = f"lake:{wbk}"     # highlight matches on node_id
+            feats.append(lf)
+    return feats
+
+
+
+# --------------------------------------------------------------------------- #
+# MAP GEOMETRY, from the build's own artifacts.
+#
+# This read `graph.gpkg` until that artifact was turned off. It was 742 of the build's 1,810
+# seconds — 41%, more than the splits and the graph construction together — and the commit that
+# made it `--write-gpkg` (off by default) recorded that "nothing downstream read it". The DFO
+# dossier, its other consumer, had already moved to `item_points.json`. This file had not, so the
+# map went blank for every item: streams, lakes, splits, the lot. Nothing raised, because
+# `_read_gpkg_features` returned [] for a missing file rather than 500 — the endpoints kept
+# answering 200 with an empty FeatureCollection, which on a map is indistinguishable from a water
+# that has no geometry.
+#
+# The geometry was never actually gone. `geometries.pkl` holds all 2,056,634 sections, streams and
+# `lake:{wbk}` nodes alike, and `waterbody_polys.pkl` holds the polygon for an isolated waterbody
+# no stream runs through — which is exactly the pair `export_graph_gpkg` itself consumed to write
+# the gpkg in the first place. So this reads the source the gpkg was derived FROM, one step earlier
+# in the same chain, and the 4.7 GB intermediate stays off.
+#
+# Loaded once per process and then dict lookups, so it is faster than the driver-level WHERE it
+# replaces; the cost is ~2.9 GB resident, which is the right trade for a local single-curator tool.
+# --------------------------------------------------------------------------- #
+
+@_single_load
+def _geoms() -> dict:
+    """node_id -> geometry (EPSG:3005), for `{blk}:{measure}` sections AND `lake:{wbk}` nodes."""
+    if not GEOMS_PKL_PATH.exists():
+        return {}
+    from pipeline.common.io.serialize import read_artifact
+    return read_artifact(str(GEOMS_PKL_PATH))
+
+
+@lru_cache(maxsize=1)
+def _wbk_polys() -> dict:
+    """wbk -> its own FWA polygon (EPSG:3005). The fallback for a MINTED waterbody: a lake no
+    stream passes through has no section geometry, so its own polygon stands in — the same
+    substitution `export_graph_gpkg` made."""
+    if not WBK_POLYS_PKL_PATH.exists():
+        return {}
+    from pipeline.common.io.serialize import read_artifact
+    return read_artifact(str(WBK_POLYS_PKL_PATH))
+
+
+@lru_cache(maxsize=1)
+def _to_lonlat():
+    """BC Albers -> lon/lat, so features overlay the web-mercator PMTiles basemap in MapLibre."""
+    from pyproj import Transformer
+    return Transformer.from_crs(3005, 4326, always_xy=True).transform
+
+
+@lru_cache(maxsize=1)
+def _blk_index() -> dict:
+    """blk -> [(down_m, up_m, node_id)], sorted. Used to place a split, which `splits.resolved.json`
+    records as a blue-line key and a route measure and NOT as a coordinate — the gpkg carried the
+    interpolated point, so it has to be recomputed here."""
+    idx: dict[str, list] = {}
+    for n in _graph().nodes.values():
+        if getattr(n, "blk", None) is None:
+            continue
+        idx.setdefault(str(n.blk), []).append(
+            (getattr(n, "down_m", 0.0) or 0.0, getattr(n, "up_m", 0.0) or 0.0, n.node_id))
+    for v in idx.values():
+        v.sort()
+    return idx
+
+
+
+@lru_cache(maxsize=4096)
+def _fwa_lake_poly(wbk: str):
+    """A lake's REAL outline (EPSG:3005) from the FWA source, by WATERBODY_KEY.
+
+    THE LINE UNDER A LAKE IS NOT THE LAKE. A lake is a graph node because stream fids run THROUGH
+    it, so its `geometries.pkl` entry is that through-line — Kootenay Lake came back as a
+    MultiLineString, which on a map is a river with a name the curator does not recognise, drawn
+    across water whose shape they are trying to verify. The gpkg had the same defect, because
+    `export_graph_gpkg` read the same sidecar.
+
+    And some waterbodies have no sidecar geometry at all: BLUEY 1 is a registry item, is named, is
+    inside a **No Fishing** closure, and drew NOTHING — the layer it needed was never written for
+    it. Its polygon is in the source data the whole time, one lookup away on the key the item is
+    already named by.
+
+    Read straight from the fisheries geopackage on the same WATERBODY_KEY the `wbk:` item id
+    carries, so this is a lookup rather than a guess; cached per key. Returns None when the key is
+    not a lake (no row for the key: the caller then draws the through-line, which IS that water).
+
+    (T994 #14) ONLY "no row" is None. A missing geopackage raises FileNotFoundError (the 503 that names it), and a
+    sqlite / WKB failure raises too: they were caught into None, cached for the life of the process, and the map drew
+    the through-line instead of the lake — the very defect this function exists to fix. The connection is closed on
+    every path.
+    """
+    import sqlite3
+    from contextlib import closing
+    from shapely import wkb as _wkb
+    from shapely.ops import unary_union
+    src = SOURCE / "bc_fisheries_data.gpkg"
+    if not src.exists():
+        raise FileNotFoundError(f"{src} is missing: the lake outlines on the verification map are read from it "
+                                "(fetch it with data/fetch_data.py)")
+    with closing(sqlite3.connect(f"file:{src}?mode=ro", uri=True)) as db:
+        rows = db.execute("SELECT geom FROM lakes WHERE WATERBODY_KEY = ?", (int(wbk),)).fetchall()
+    parts = []
+    for (blob,) in rows:
+        if not blob:
+            continue
+        # GeoPackage binary: "GP", version, flags, srs_id, an envelope whose size the flags
+        # encode, then the WKB proper.
+        env = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}.get((blob[3] >> 1) & 0x07, 0)
+        g = _wkb.loads(bytes(blob[8 + env:]))
+        if g is not None and not g.is_empty:
+            parts.append(g)
+    if not parts:
+        return None
+    return parts[0] if len(parts) == 1 else unary_union(parts)
+
+
+def _geo(geom, kind: str, props: dict) -> dict | None:
+    """One reprojected GeoJSON feature, or None when the geometry is missing/empty."""
+    if geom is None or getattr(geom, "is_empty", True):
+        return None
+    from shapely.geometry import mapping
+    from shapely.ops import transform
+    props = {k: _clean_val(v) for k, v in props.items()}
+    props["kind"] = kind
+    return {"type": "Feature", "geometry": mapping(transform(_to_lonlat(), geom)),
+            "properties": props}
+
+
+def _split_point(split_id: str):
+    """A split's coordinate, interpolated along the section that contains its route measure."""
+    from shapely.geometry import Point
+    meta = _splits_meta().get(split_id)
+    if (not meta or not meta.get("blk")) and BORDER_CUT.match(str(split_id)):
+        # (T755 follow-up) a BC-border cut has no splits.resolved.json row: its point is its section bound's measure
+        meta = _border_rows().get(str(split_id))
+        meta = {"blk": meta["blk"], "route_measure": meta["measure"]} if meta else None
+    if not meta or not meta.get("blk"):
+        return None
+    m = float(meta.get("route_measure") or 0.0)
+    for down, up, nid in _blk_index().get(str(meta["blk"]), []):
+        if down <= m <= up:
+            g = _geoms().get(nid)
+            if g is None or g.is_empty:
+                return None
+            # `route_measure` is chainage along the blue line; the section starts at `down`.
+            d = min(max(m - down, 0.0), g.length)
+            return Point(g.interpolate(d))
+    return None
+
+
+def _point_at(blk: str, m: float):
+    """The point at route measure `m` on blue line `blk` (the section that holds it), or None."""
+    from shapely.geometry import Point
+    for down, up, nid in _blk_index().get(str(blk), []):
+        if down <= m <= up:
+            g = _geoms().get(nid)
+            if g is None or g.is_empty:
+                return None
+            return Point(g.interpolate(min(max(m - down, 0.0), g.length)))
+    return None
+
+
+# --------------------------------------------------------------------------- region ends (T742 C)
+
+#: a region line's cut id: `area:<code>`, and the crossing an alias names (`sectionizer._name_the_crossings`)
+REGION_CUT = re.compile(r"^area:([1-8]|7A|7B)(?:@(down|up))?$")
+
+
+def region_words(sid: str) -> str | None:
+    """THE PLAIN NAME OF A REGION-LINE CUT, as the app says it (`inseason.resolve.interim_words`, the release's
+    `display.ends`): "Region 5 boundary"; a named crossing says which ("lowest crossing" / "highest crossing"). The
+    atlas label ("Region 3 – Region 5 boundary") names a neighbour that differs per water and was shared by two cuts on
+    the Fraser, so it is never what a picker says. None for any other cut."""
+    m = REGION_CUT.match(str(sid))
+    if not m:
+        return None
+    which = {"down": " (its lowest crossing of this water)", "up": " (its highest crossing of this water)"}
+    return f"Region {m.group(1)} boundary{which.get(m.group(2) or '', '')}"
+
+
+@lru_cache(maxsize=1)
+def _region_rows() -> dict[str, list[tuple[str, float]]]:
+    """blk -> [(region cut id, route measure)] from splits.resolved.json, every crossing (one id has a row per water
+    and per crossing: `_splits_meta` keeps ONE row per id, so it put the Fraser's Region 5 cut on Antler Creek).
+    (T788 item 7) A build without the file raises (the 503 naming it): `{}` read as "this water crosses no region line"."""
+    if not SPLITS_RESOLVED_PATH.exists():
+        raise FileNotFoundError(f"no {SPLITS_RESOLVED_PATH}: the region-line crossings are read from it "
+                                "(the atlas build writes it: python -m pipeline build)")
+    out: dict[str, list[tuple[str, float]]] = {}
+    for r in json.loads(SPLITS_RESOLVED_PATH.read_text(encoding="utf-8")):
+        if REGION_CUT.match(str(r.get("split_id"))) and r.get("blk") is not None and not r.get("concern"):
+            out.setdefault(str(r["blk"]), []).append((str(r["split_id"]), float(r.get("route_measure") or 0.0)))
+    return out
+
+
+def _section_regions() -> dict:
+    """section -> the regions it is a member of (the atlas's one membership; a straddler is in both)"""
+    from pipeline.atlas.registry.regions import section_regions
+    return section_regions(_registry(), _graph())
+
+
+@lru_cache(maxsize=512)
+def region_ends(item_id: str) -> tuple[dict, ...]:
+    """T742 C: EVERY PLACE THIS WATER CROSSES A REGION LINE, as a picker offers it — in measure order, each with the
+    id that BINDS that crossing (`area:5`; when the line is crossed more than once on one blue line, `area:5@down` /
+    `area:5@up`, the aliases the build cuts at the lowest / highest one — a middle crossing has no id and says so),
+    its plain name (`region_words` + "km N"), the regions on each side by the atlas's own membership, and the stretch
+    where two regions MEET (the river is the line: both regions'), named so the owner can include it (pick its far
+    end) or exclude it (pick its near end). -> ({id, base, region, blk, measure, km, coord, below, above, label,
+    bindable, why}, …)."""
+    it = _registry().get(item_id)
+    if it is None:
+        return ()
+    blks = [r[len("blk:"):] for r in it.ref_ids if str(r).startswith("blk:")]
+    rows = _region_rows()
+    answers = {sid: set(b.answers_to()) for b in it.boundaries for sid in [b.id] if REGION_CUT.match(b.id)}
+    sreg = _section_regions()
+    idx = _blk_index()
+
+    def regions_at(blk: str, m: float) -> list[str]:
+        nid = next((n for d, u, n in idx.get(blk, []) if d <= m < u), None)
+        return sorted(r.upper() for r in sreg.get(nid, ())) if nid else []
+
+    def both(rs: list[str]) -> str:
+        return " and ".join(f"Region {r}" for r in rs)
+    out: list[dict] = []
+    for blk in blks:
+        here = sorted(rows.get(blk, ()), key=lambda x: x[1])
+        if not here:
+            continue
+        by_base: dict[str, list[float]] = {}
+        for sid, m in here:
+            by_base.setdefault(sid.split("@")[0], []).append(m)
+        for sid, m in here:
+            base = sid.split("@")[0]
+            ms = sorted(by_base[base])
+            code = REGION_CUT.match(base).group(1)
+            if len(ms) == 1:
+                bid, bindable, why = base, base in answers, ""
+            elif m == ms[0] or m == ms[-1]:
+                bid = f"{base}@{'down' if m == ms[0] else 'up'}"
+                bindable = bid in answers.get(base, set())
+                why = ""
+            else:
+                bid, bindable, why = base, False, (f"a middle crossing of Region {code}'s line: no id binds it (only "
+                                                    "the lowest and the highest crossing have one)")
+            if not why and not bindable:
+                why = f"this water's cut-points do not answer to {bid}"
+            below, above = regions_at(blk, m - 1.0), regions_at(blk, m + 1.0)
+            km = round(m / 1000)
+            label = f"Region {code} boundary · km {km}"
+            if len(above) > 1 and len(below) <= 1:
+                top = next((x for _s, x in here if x > m and len(regions_at(blk, x + 1.0)) <= 1), None)
+                label += (f" — where {both(above)} meet starts here, upstream"
+                          + (f" to km {round(top / 1000)}" if top is not None else ""))
+            elif len(below) > 1 and len(above) <= 1:
+                bot = next((x for _s, x in reversed(here) if x < m and len(regions_at(blk, x - 1.0)) <= 1), None)
+                label += (f" — where {both(below)} meet ends here"
+                          + (f" (it runs down to km {round(bot / 1000)})" if bot is not None else ""))
+            pt = _point_at(blk, m)
+            ll = _geo(pt, "region_end", {}) if pt is not None else None        # the atlas is BC Albers: to lon/lat
+            out.append({"id": bid, "base": base, "region": code, "blk": blk, "measure": m, "km": km,
+                        "coord": list(ll["geometry"]["coordinates"])[:2] if ll else None, "below": below, "above": above,
+                        "label": label, "bindable": bindable, "why": why})
+    return tuple(out)
+
+
+def region_end_on(sid: str, items=()) -> dict | None:
+    """THE ONE CROSSING a region-line cut id names on these waters (`region_ends`), or None: the crossing whose bound id
+    it is, else (a bare `area:N`) the one crossing of that line when the waters cross it exactly once."""
+    if not REGION_CUT.match(str(sid)):
+        return None
+    ends = [e for i in dict.fromkeys(items or ()) for e in region_ends(i)]
+    exact = [e for e in ends if e["id"] == sid]
+    if len(exact) == 1:
+        return exact[0]
+    base = [e for e in ends if e["base"] == sid]
+    return base[0] if len(base) == 1 else None
+
+
+# --------------------------------------------------------------------------- BC border ends (T755 follow-up 1)
+
+#: a province-border cut the atlas mints where a blue line crosses BC's outline (`splits/border.py`): `border:<blk>:<n>`
+BORDER_CUT = re.compile(r"^border:(\d+):(\d+)$")
+
+
+def border_neighbour(lon: float, lat: float) -> str | None:
+    """Who is on the other side of BC's outline at this point, read from where the line runs (BC's outline is four
+    straight-ish lines and the continental divide): the 60th parallel (Yukon west of 124° W, the Northwest Territories
+    east), the 49th (Washington / Idaho / Montana by the state lines at 117.03° and 116.05° W), the 120th meridian and
+    the divide south of it (Alberta), the Alaska panhandle. None where the point is on none of these clearly — the cut
+    is then said as "BC border", never guessed."""
+    if abs(lat - 60.0) <= 0.05:
+        return "Yukon" if lon < -124.0 else "Northwest Territories"
+    if abs(lat - 49.0) <= 0.05:
+        return "Washington" if lon < -117.03 else ("Idaho" if lon < -116.05 else "Montana")
+    # the 120th meridian north of 53.8° N; south of it the divide, about (49° N, 114.07° W) to (53.8° N, 120° W)
+    if 49.0 < lat < 60.0 and (lon > -120.05 if lat >= 53.8 else lon > -114.07 - 1.235 * (lat - 49.0) - 0.6):
+        return "Alberta"
+    if lon < -129.5 and 54.6 < lat < 60.0:
+        return "Alaska"
+    return None
+
+
+@lru_cache(maxsize=1)
+def _border_rows() -> dict[str, dict]:
+    """border cut id -> {blk, measure, below_out, above_out}: the atlas's border cuts as its graph holds them — the
+    section bounds `split:border:<blk>:<n>` with their route measure, and whether the section below / above the cut is
+    outside BC (`out_of_bc`). The atlas writes no `border:` row into `splits.resolved.json`, so this is where they are
+    read (no rebuild); one pass over the graph per build (`_BUILD_CACHES`)."""
+    out: dict[str, dict] = {}
+    for n in _graph().nodes.values():
+        for side, b in (("above", getattr(n, "lower_bound", None)), ("below", getattr(n, "upper_bound", None))):
+            bid = str(getattr(b, "boundary_id", "") or "")
+            if not bid.startswith("split:border:"):
+                continue
+            sid = bid[len("split:"):]
+            m = BORDER_CUT.match(sid)
+            if not m or str(getattr(n, "blk", "")) != m.group(1):
+                continue
+            row = out.setdefault(sid, {"blk": m.group(1), "measure": float(b.route_measure or 0.0)})
+            row[f"{side}_out"] = bool(getattr(n, "out_of_bc", False))
+    return out
+
+
+@lru_cache(maxsize=4096)
+def border_end(sid: str) -> dict | None:
+    """ONE BC-BORDER CUT AS A PICKER OFFERS IT (the way `region_ends` offers a region line): {id, base, blk, measure,
+    km, coord, neighbour, outside, label, bindable, why}. `outside` is "upstream" / "downstream" / None (which side of
+    the cut leaves BC, by the atlas's `out_of_bc`); `label` is "BC–Yukon border · km 102 — outside BC upstream (to km
+    146)" — the neighbour where the point says it (`border_neighbour`), else "BC border". None for any other id, or a
+    border id the served atlas has no section for."""
+    sid = str(sid)
+    if not BORDER_CUT.match(sid):
+        return None
+    row = _border_rows().get(sid)
+    if row is None:
+        return None
+    blk, m = row["blk"], row["measure"]
+    pt = _point_at(blk, m)
+    ll = _geo(pt, "border_end", {}) if pt is not None else None
+    coord = list(ll["geometry"]["coordinates"])[:2] if ll else None
+    nb = border_neighbour(*coord) if coord else None
+    outside = ("upstream" if row.get("above_out") and not row.get("below_out")
+               else "downstream" if row.get("below_out") and not row.get("above_out") else None)
+    km = round(m / 1000)
+    label = f"BC–{nb} border · km {km}" if nb else f"BC border · km {km}"
+    if outside:
+        # the far end of the stretch outside BC: the next border cut on this line on that side
+        others = sorted(r["measure"] for k, r in _border_rows().items() if r["blk"] == blk and k != sid)
+        far = (next((x for x in others if x > m), None) if outside == "upstream"
+               else next((x for x in reversed(others) if x < m), None))
+        label += f" — outside BC {outside}" + (f" (to km {round(far / 1000)})" if far is not None else "")
+    return {"id": sid, "base": sid, "blk": blk, "measure": m, "km": km, "coord": coord, "neighbour": nb,
+            "outside": outside, "label": label, "bindable": True, "why": ""}
+
+
+@lru_cache(maxsize=512)
+def border_ends(item_id: str) -> tuple[dict, ...]:
+    """Every BC-border cut on this water (its registry boundaries `border:…`), as `border_end`s in measure order."""
+    it = _registry().get(item_id)
+    if it is None:
+        return ()
+    got = [e for b in it.boundaries if BORDER_CUT.match(b.id) for e in [border_end(b.id)] if e is not None]
+    return tuple(sorted(got, key=lambda e: (e["blk"], e["measure"])))
+
+
+def cut_name(sid: str, items=()) -> str | None:
+    """THE ONE NAME OF A CUT, read on the waters it is named for (owner 2026-11-15, mark 2578: the Fraser's checklist read
+    "from Region 3 – Region 8 boundary", another water's atlas row). A REGION-LINE cut is named by this water's
+    crossing of it (`region_ends`: "Region 3 boundary · km 453 …"); a line these waters cross more than once, named
+    without saying which crossing, says so; a region line read on no water of its own is "Region N boundary"
+    (`region_words`). Never the atlas row's label, which names a neighbour that differs per water. Any other cut: the
+    resolved label, else the cuts file's, else the registry boundary's; None when it has none."""
+    sid = str(sid)
+    if REGION_CUT.match(sid):
+        e = region_end_on(sid, items)
+        if e is not None:
+            return e["label"]
+        many = [e for i in dict.fromkeys(items or ()) for e in region_ends(i) if e["base"] == sid.split("@")[0]]
+        if len(many) > 1 and "@" not in sid:
+            return (f"{region_words(sid)} — this water crosses it {len(many)} times "
+                    f"({', '.join(f'km {x['km']}' for x in many)}): the extent does not say which")
+        return region_words(sid)
+    if BORDER_CUT.match(sid):
+        # (T755 follow-up) a BC-border cut by its own crossing: both of the Tatshenshini's read "BC boundary" before
+        be = border_end(sid)
+        if be is not None:
+            return be["label"]
+    m = _splits_meta().get(sid) or {}
+    if m.get("source") == "shore" or sid.startswith("shore:"):
+        # (owner 2026-11-15) a coast crossing IS the stream's tidal boundary (T678 coast/2), never just "shore"
+        return "tidal boundary (coast crossing)"
+    meta = m.get("label")
+    if meta:
+        return meta
+    rec = _split_records().get(sid, ("", {}))[1].get("label")
+    if rec:
+        return rec
+    b = _boundary_index().get(sid, (None, None))[1]
+    return getattr(b, "label", None) or None
+
+
+def cut_point_on(sid: str, items=()) -> tuple[float, float] | None:
+    """A region-line cut's pin on THESE waters (its crossing's point); None for any other cut (it has one point)."""
+    e = region_end_on(sid, items) or border_end(sid)
+    return tuple(e["coord"][:2]) if e and e.get("coord") else None
+
+
+def with_region_ends(boundaries: list[dict], item_of=lambda b: None) -> list[dict]:
+    """A picker's boundary list with each REGION-LINE cut replaced by this water's crossings of it (`region_ends`):
+    one row per crossing, named plainly and by its km, carrying the id that binds it; a crossing no id binds is kept,
+    said with why, and marked not pickable (`pickable: false`). Every other boundary is unchanged."""
+    out: list[dict] = []
+    for b in boundaries:
+        item = item_of(b)
+        ends = [e for e in region_ends(item) if e["base"] == b["id"]] if item and REGION_CUT.match(b["id"]) else []
+        be = border_end(b["id"]) if BORDER_CUT.match(str(b.get("id"))) else None
+        if be is not None:
+            # (T755 follow-up) a BC-border cut by its own crossing's name and km (both read "BC boundary" before)
+            out.append({**b, "label": be["label"], "border_end": be, "pickable": True})
+            continue
+        if not ends:
+            out.append(b)
+            continue
+        for e in ends:
+            out.append({**b, "id": e["id"], "label": e["label"] if e["bindable"] else f"{e['label']} — {e['why']}",
+                        "aliases": [], "names": [], "region_end": e, "pickable": e["bindable"]})
+    return out
+
+
+def _features(layer: str, ids, kind: str) -> list[dict]:
+    """The `graph.gpkg` layers, served from the artifacts they were built from.
+
+    Same three layer names and the same feature shape the client already styles on, so this is a
+    swap of the source, not of the contract."""
+    feats: list[dict] = []
+    nodes = _graph().nodes
+    if layer == "streams":
+        for nid in ids:
+            n = nodes.get(nid)
+            f = _geo(_geoms().get(nid), kind,
+                     {"node_id": nid,
+                      "display_name": getattr(n, "display_name", None) if n else None,
+                      "location_identifier": getattr(n, "location_identifier", None) if n else None})
+            if f: feats.append(f)
+    elif layer == "lakes":
+        for wbk in ids:
+            wbk = str(wbk)
+            nid = f"lake:{wbk}"
+            # The real outline first — a lake drawn as the river through it is not a lake.
+            g = _fwa_lake_poly(wbk)
+            if g is None or getattr(g, "is_empty", True):
+                g = _geoms().get(nid)             # fall back to the through-line
+            if g is None or getattr(g, "is_empty", True):
+                g = _wbk_polys().get(wbk)         # minted/isolated: its own polygon stands in
+            n = nodes.get(nid)
+            f = _geo(g, kind, {"wbk": wbk,
+                               "display_name": getattr(n, "display_name", None) if n else None})
+            if f: feats.append(f)
+    elif layer == "split_points":
+        for sid in ids:
+            meta = _splits_meta().get(sid) or {}
+            f = _geo(_split_point(sid), kind,
+                     {"split_id": sid, "label": meta.get("label"),
+                      "anchor_type": meta.get("anchor_type"), "picked_up": meta.get("picked_up")})
+            if f: feats.append(f)
+    return feats
+
+
+def item_side_channels(item_id: str) -> list[str]:
+    """Registry items that are ANABRANCHES of this one — a channel that leaves the river and rejoins it.
+
+    A named side channel is split into its own item on purpose: folded in, its name became the river's
+    (the Fraser displayed as "Seabird Island North Side Channel") and a rule about the slough resolved
+    to the whole mainstem. But splitting it out then dropped it off the river's map, so the Fraser drew
+    its dozens of ANONYMOUS side channels — those are still its own sections — while Seabird Island
+    North Side Channel, Herrling Island Side Channel and Maria Slough silently vanished.
+
+    Told apart from a tributary by direction, not by name: a side channel both TAKES water from this
+    item and RETURNS it, while a tributary only ever flows in."""
+    reg = _registry()
+    it = reg.get(item_id)
+    if it is None:
+        return []
+    g = _graph()
+    own = set(it.section_ids)
+    takes_from, gives_to = set(), set()
+    for nid in own:
+        for i in g.down_adj.get(nid, []):
+            if (t := g.edges[i].to_node) not in own:
+                takes_from.add(t)                          # water leaves us and enters them
+        for i in g.up_adj.get(nid, []):
+            if (f := g.edges[i].from_node) not in own:
+                gives_to.add(f)                            # water comes back from them
+    # T742 E2 (perf): the section -> item map is the build's, read once (it was rebuilt over the whole registry on
+    # every request: ~0.55 s per item, 7.5 s for the 13 items of a Fraser place's map). The nodes asked about are
+    # never this item's own, so the one map answers exactly as the per-request one (which skipped this item) did.
+    owner = _section_owner()
+    a = {owner[n] for n in takes_from if n in owner}
+    b = {owner[n] for n in gives_to if n in owner}
+
+    # An anabranch is the MINOR channel, and "leaves and rejoins" is symmetric: Maria Slough takes
+    # from the Fraser and gives back to it, so without this the Fraser is Maria Slough's side channel
+    # too. Every covered side-channel item then dragged the whole river in behind it and the Fraser
+    # was drawn thirteen times over — 1,996 features for one river. Length breaks the tie: the small
+    # one is the channel.
+    def _len(iid: str) -> float:
+        item = reg.get(iid)
+        if item is None:
+            return 0.0
+        return sum((n.length_m or 0.0) for sid in item.section_ids
+                   if (n := g.nodes.get(sid)) is not None)
+
+    mine = _len(item_id)
+    return sorted(i for i in (a & b) if _len(i) < mine)
+
+
+def item_geojson(item_id: str) -> dict:
+    """Stream sections + curated split points for a registry item, as a GeoJSON FeatureCollection in
+    EPSG:4326 (lon/lat) so it overlays the web-mercator PMTiles basemap. Streams selected by the item's
+    own `section_ids`; splits by its curated `split:*` boundary ids. Features carry `properties.kind` =
+    'stream' | 'split' for styling (colouring is done client-side)."""
+    item = _registry().get(item_id)
+    if item is None:
+        return {"type": "FeatureCollection", "features": []}
+
+    feats: list[dict] = []
+    section_ids = [n for n in item.section_ids if not str(n).startswith("lake:")]
+    for i in range(0, len(section_ids), 400):                      # chunk long IN lists
+        chunk = section_ids[i:i + 400]
+        feats += _features("streams", chunk, "stream")
+
+    # Named side channels draw WITH the river. They are separate items so their names and their rules
+    # stay their own, but on the map a river missing its named channels while showing every anonymous
+    # one is just wrong. Tagged `side_channel` so the client can style them apart from the mainstem.
+    reg = _registry()
+    side_ids = [n for sid in item_side_channels(item_id)
+                for n in reg[sid].section_ids if not str(n).startswith("lake:")]
+    for i in range(0, len(side_ids), 400):
+        feats += _features("streams", side_ids[i:i + 400], "side_channel")
+
+    # A LAKE/wetland item's sections are `lake:{wbk}` nodes, which live in the `lakes` layer, not
+    # `streams` — without this a lake item draws nothing at all (the Vedder Canal on the combined
+    # Chilliwack/Vedder entry). Its own wbk is included so an isolated lake with no graph node
+    # (minted by add_waterbody_items) still gets its polygon.
+    lake_wbks = {str(n).split(":", 1)[1] for n in item.section_ids if str(n).startswith("lake:")}
+    if item.id.startswith("wbk:"):
+        lake_wbks.add(item.id.split(":", 1)[1])
+    if lake_wbks:
+        lake_feats = _features("lakes", sorted(lake_wbks), "waterbody")
+        # Stamp the graph node id the same way a stream feature carries it. The reach highlight matches
+        # features on `node_id`, so without this a lake or canal in a rule's reach draws nothing — the
+        # Vedder Canal is `lake:329707189` and is the WHOLE extent of three Chilliwack/Vedder rules.
+        for lf in lake_feats:
+            wbk = str(lf["properties"].get("wbk") or "")
+            if wbk:
+                lf["properties"]["node_id"] = f"lake:{wbk}"
+        feats += lake_feats
+
+    split_ids = list(_curated_split_ids(item))
+    if split_ids:
+        feats += _features("split_points", split_ids, "split")
+        # a pipeline-minted cut (gauge / length / area / border) is labelled by its kind, and flagged so
+        # the client draws it small and muted with a hover label (only rule-named splits are labelled)
+        by_id = {b.id: b for b in _boundaries(item)}
+        for f in feats:
+            pr = f["properties"]
+            b = by_id.get(pr.get("split_id")) if pr.get("kind") == "split" else None
+            if b is not None and _auto_split(b.id):
+                pr["label"] = cut_label(b, _splits_meta().get(b.id), item.name)
+                pr["minted"] = True
+
+    # Auto (non-curated) LAKE boundaries have no split_point; surface each as a clickable point at the
+    # lake's location so a curator can "see where it is" — same select/fly machinery as curated splits.
+    lake_by_wbk = {b.wbk: b for b in _boundaries(item)
+                   if b.wbk and not str(b.ref or "").startswith("split:")}
+    if lake_by_wbk:
+        for lf in _features("lakes", list(lake_by_wbk), "split"):
+            b = lake_by_wbk.get(str(lf["properties"].get("wbk")))
+            pt = _rep_point(lf.get("geometry"))
+            if b and pt:
+                feats.append({"type": "Feature",
+                              "geometry": {"type": "Point", "coordinates": pt},
+                              "properties": {"kind": "split", "split_id": b.id,
+                                             "label": cut_label(b), "anchor_type": "lake",
+                                             "auto": True, "minted": True}})
+
+    return {"type": "FeatureCollection", "features": feats}
+
+
+@lru_cache(maxsize=1)
+def _boundary_index() -> dict[str, tuple[str, object]]:
+    """Every cut-point id of the served registry — each boundary's own id AND every alias it answers
+    to (`answers_to`) — -> (the item it is on, the boundary). First item (sorted) wins a collision."""
+    out: dict[str, tuple[str, object]] = {}
+    reg = _registry()
+    for iid in sorted(reg):
+        for b in reg[iid].boundaries:
+            for sid in b.answers_to():
+                out.setdefault(sid, (iid, b))
+    return out
+
+
+def entry_scope_words(e: dict) -> dict:
+    """THE ENTRY'S EXTENT AND EVERY RULE'S, IN PLAIN WORDS (T189, `scope_words`): named by the
+    bundle's own place-namer, a cut it cannot name by its built or splits.json label."""
+    from pipeline.regs.review import scope_words as S
+    labels = {sid: sp.get("label") for sid, (_, sp) in _split_records().items() if sp.get("label")}
+    labels.update({sid: m["label"] for sid, m in _splits_meta().items() if m.get("label")})
+    # a region line by THIS entry's waters' crossing (`cut_name`), never its one atlas row on another water
+    on = list(e.get("matched") or [])
+    labels.update({sid: cut_name(sid, on) for sid in list(labels) if REGION_CUT.match(sid)})
+    names = S.namer_names(_place_namer(), labels)
+    return {"entry": S.entry_scope(e, names),
+            "rules": {r.get("rule_id"): S.rule_scope(r, e, names)
+                      for r in e.get("rules") or [] if isinstance(r, dict)}}
+
+
+def _split_records() -> dict[str, tuple[str, dict]]:
+    """splits.json split id -> (its waterbody's name, the split record)."""
+    return {sp["id"]: (str(wb.get("name") or ""), sp)
+            for wb in _load_splits().get("waterbodies", []) for sp in wb.get("splits", [])
+            if sp.get("id")}
+
+
+def split_confidence(sid: str, sp: dict | None = None, b=None) -> str:
+    """(T207) A cut's confidence: splits.json's authored value now (`SplitDef.confidence`), else the
+    built boundary's, else high."""
+    if sp is None:
+        authored = _confidences_for(_stamp((SPLITS_JSON_PATH,))).get(sid)
+    else:
+        authored = sp.get("confidence")
+    if authored:
+        return confidence_of(authored)
+    return str(getattr(b, "confidence", "") or "high")
+
+
+@lru_cache(maxsize=1)
+def _confidences_for(_key: tuple) -> dict[str, str]:
+    """splits.json split id -> its authored `confidence` (only the splits that carry one)."""
+    return {sid: sp["confidence"] for sid, (_w, sp) in _split_records().items() if sp.get("confidence")}
+
+
+def entry_split_points(entry_id: str) -> dict | None:
+    """EVERY SPLIT THE ENTRY'S RULES NAME, as map points labelled with their names (T184): the
+    proxy check of a split. No split is a review target of its own; the reviewer sees each cut an
+    entry's rules (its scope, its licensing records) bind, where the served atlas put it, under its
+    own name — a wrong one is that entry's "Place: wrong".
+
+    A FeatureCollection of Points, one per split id, each with `split_id`, `label` (the built label,
+    else splits.json's, else the boundary's), `water` (its splits.json waterbody; a lake boundary,
+    the item it is on), `name` ("WATER: label"), `rules` (the rule ids that name it, in rule order) and `parts` (any other part that
+    does: "entry scope", a licensing record's id), `to_verify` (`"verify": true` or a stale mark; a
+    note never counts — `tiers.split_needs_verify`) and `grade`. Where the built atlas has no point
+    for an id (not built yet, or a cut with no location of its own) it is listed in `unplaced`
+    with why, never dropped. None: no such entry."""
+    from pipeline.regs.review.tiers import split_grade, split_needs_verify
+    found = _find(entry_id)
+    if found is None:
+        return None
+    e = found[1]
+    named: dict[str, dict] = {}
+    rules = e.get("rules") or []
+    for path, ex, _role in iter_extents(e):
+        if path[0] == "rules":
+            who, key = rules[path[1]].get("rule_id"), "rules"
+        elif path[0] == "licensing":
+            who, key = (e.get("licensing") or [])[path[1]].get("id"), "parts"
+        else:
+            who, key = "entry scope", "parts"
+        for sid in ex.get("splits") or ():
+            got = named.setdefault(sid, {"rules": [], "parts": []})
+            if who and who not in got[key]:
+                got[key].append(who)
+    meta, records, bounds = _splits_meta(), _split_records(), _boundary_index()
+    feats, unplaced = [], []
+    for sid, by in named.items():
+        water, sp = records.get(sid, ("", {}))
+        on_item, b = bounds.get(sid, (None, None))
+        if not water and on_item in _registry():          # a lake boundary: the water it is on
+            water = _registry()[on_item].name
+        label = ((meta.get(sid) or {}).get("label") or sp.get("label")
+                 or (getattr(b, "label", None) if b is not None else None) or sid)
+        # T742 C: a region-line cut by its plain name, at THIS water's crossing (the one row `meta` keeps is often
+        # on another water); one the water crosses more than once, unqualified, is said so and left unplaced
+        rend = None
+        if REGION_CUT.match(sid):
+            ends = [x for x in (region_ends(on_item) if on_item else ()) if x["id"] == sid or x["base"] == sid]
+            rend = ends[0] if len(ends) == 1 else None
+            label = (rend["label"] if rend else region_words(sid) + (
+                f" — this water crosses it {len(ends)} times ({', '.join(f'km {x['km']}' for x in ends)}): the rule "
+                "does not say which" if len(ends) > 1 else ""))
+        bend = border_end(sid) if BORDER_CUT.match(sid) else None
+        if bend is not None:                          # T755 follow-up: a BC-border cut by its own crossing
+            label = bend["label"]
+        # T207: a cut placed approximately says so on its map label and wherever it is named (splits.json's
+        # own value, so it shows before the rebuild; else the built boundary's)
+        conf = split_confidence(sid, sp, b)
+        cw = confidence_words(conf)
+        label = f"{label}, {cw}" if cw else label
+        props = {"split_id": sid, "label": label, "water": water, "confidence": conf,
+                 "name": f"{water}: {label}" if water else label, **by,
+                 "to_verify": split_needs_verify(sp) if sp else False,
+                 "grade": split_grade(sp) if sp else None, "item_id": on_item}
+        if conf == LOW_CUT and sp.get("_note"):      # owner 2026-10-28: why the cut is a guess, on screen
+            props["note"] = sp["_note"]
+        geom = None
+        if REGION_CUT.match(sid):
+            geom = {"type": "Point", "coordinates": rend["coord"]} if rend and rend["coord"] else None
+        elif sid in meta or bend is not None:         # a cut on a line: its point on the section
+            f = _geo(_split_point(sid), "named_split", {})
+            geom = f["geometry"] if f else None
+        # a lake boundary: the lake's own point — also a curated cut whose point stood on the LAKE side of the
+        # edge it took (T179: Aberfeldie Dam; its measure is in no section, the lake rides as a `lake:` alias)
+        wbk = None if b is None else (getattr(b, "wbk", None) or next(
+            (a[len("lake:"):] for a in (getattr(b, "aliases", None) or ()) if a.startswith("lake:")), None))
+        if geom is None and wbk:
+            lake = _features("lakes", [str(wbk)], "split")
+            pt = _rep_point(lake[0].get("geometry")) if lake else None
+            geom = {"type": "Point", "coordinates": pt} if pt else None
+        if geom is None:
+            unplaced.append({**props, "why": "not in the served atlas yet — awaiting its build"
+                             if sp and sid not in meta else "the served atlas has no point for it"})
+            continue
+        feats.append({"type": "Feature", "geometry": geom, "properties": props})
+    return {"type": "FeatureCollection", "features": feats, "unplaced": unplaced}
+
+
+#: THE LOW-CONFIDENCE CUTS QUEUE (owner 2026-10-28): the owner cannot open links, so a cut placed by a
+#: guess (Chapman lower falls, Deena "second bridge", Mamin "third bridge", the Cranberry canyon bottom)
+#: is checked where Cranberry's is: on the map of each entry whose rules name it. Place y confirms it;
+#: Place n + "split misplaced" with the extent fix's map pick moves it (in the mark, as ever).
+LOW_CUT = "low"
+
+
+def low_cuts_of(entry_id: str) -> list[str]:
+    """The low-confidence cuts (splits.json `confidence: low`) the entry's extents name, in order."""
+    return _low_cut_index(_stamp((SPLITS_JSON_PATH, *sorted(ENTRIES_DIR.glob("region-*.json"))))) \
+        .get(entry_id, [])
+
+
+@lru_cache(maxsize=1)
+def _low_cut_index(_key: tuple) -> dict[str, list[str]]:
+    low = {sid for sid, (_w, sp) in _split_records().items() if sp.get("confidence") == LOW_CUT}
+    out: dict[str, list[str]] = {}
+    if not low:
+        return out
+    for _r, e in _all_entries():
+        got: list[str] = []
+        for _path, ex, _role in iter_extents(e):
+            for sid in ex.get("splits") or ():
+                if sid in low and sid not in got:
+                    got.append(sid)
+        if got:
+            out[e["entry_id"]] = got
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# splits.json (the hand-curated split source of truth) — read only
+# --------------------------------------------------------------------------- #
+# A split edited by hand takes effect only after an atlas rebuild the owner runs from a terminal
+# (`python -m pipeline build --atlas`, through scripts/heavy.sh — the app starts no process), because
+# splits are baked into the graph's section boundaries; `GET /api/build` lists it until then.
+
+def _load_splits() -> dict:
+    return json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8"))
+
+
+# --------------------------------------------------------------------------- T191: extent fix
+# READS ONLY. The reviewer's proposed extent lives in the mark (`marks.ExtentFix`); these find the
+# points it names and resolve it for a preview on an IN-MEMORY copy of the entry.
+
+def search_splits(q: str, limit: int = 30, first: "list[str] | tuple[str, ...]" = ()) -> list[dict]:
+    """Curated splits whose id, label or water contains `q` (case-folded): {id, label, water, kind, own}. `first`
+    (T590): the names of the waters the asker is on — THEIR cuts come before any other water's (`own`: true), each
+    group in file order, and the limit is applied after the ordering (a wording that names a tributary no longer
+    lists the tributary's cuts above the place's own)."""
+    want = q.strip().casefold()
+    if len(want) < 2:
+        return []
+    mine = {w.strip().casefold() for w in first if w and w.strip()}
+    out = []
+    for sid, (water, sp) in _split_records().items():
+        hay = f"{sid} {sp.get('label') or ''} {water}".casefold()
+        if want in hay:
+            out.append({"id": sid, "label": sp.get("label") or sid, "water": water,
+                        "kind": (sp.get("anchor") or {}).get("type"), "own": water.strip().casefold() in mine})
+    # T742 C: the asker's waters' REGION-LINE crossings are cuts too (not in splits.json): each by its plain name and
+    # km, with the id that binds it, before any other water's cuts; a crossing no id binds is never offered
+    if mine:
+        for e in (e for iid, it in _registry().items() if it.name and it.name.strip().casefold() in mine
+                  for e in region_ends(iid) if e["bindable"]):
+            if want in f"{e['id']} {e['label']} region boundary".casefold() and not any(h["id"] == e["id"] for h in out):
+                out.append({"id": e["id"], "label": e["label"], "water": "", "kind": "region line", "own": True})
+    # T755 follow-up: and their BC-border cuts (not in splits.json either), by the same namer
+    if mine:
+        for e in (e for iid, it in _registry().items() if it.name and it.name.strip().casefold() in mine
+                  for e in border_ends(iid)):
+            if (want in f"{e['id']} {e['label']} bc border boundary province".casefold()
+                    and not any(h["id"] == e["id"] for h in out)):
+                out.append({"id": e["id"], "label": e["label"], "water": "", "kind": "BC border", "own": True})
+    out.sort(key=lambda h: not h["own"])                 # stable: file order inside each group
+    return out[:limit]
+
+
+def search_items(q: str, kind: str | None = None, limit: int = 30) -> list[dict]:
+    """Registry items whose name (or a variant) contains `q`: {id, name, kind, mus}. `kind`
+    narrows to stream / lake / wetland."""
+    want = q.strip().casefold()
+    if len(want) < 2:
+        return []
+    out = []
+    for iid, it in _registry().items():
+        if kind and it.kind != kind:
+            continue
+        if want in it.name.casefold() or any(want in v.casefold() for v in it.variants or ()):
+            out.append({"id": iid, "name": it.name, "kind": it.kind, "mus": list(it.mus)[:4]})
+    out.sort(key=lambda x: (not x["name"].casefold().startswith(want), len(x["name"]), x["name"]))
+    return out[:limit]
+
+
+def extent_preview(entry_id: str, fix, limit: int = 6000) -> dict | None:
+    """WHAT A PROPOSED EXTENT (`marks.ExtentFix`) WOULD BIND, by the builder's own `build_reach`
+    on a COPY of the entry with that extent in place (rule scope: the rule's `extents` and
+    `includes_tributaries`; entry scope: the entry's `extents` and `includes_tributaries`, every
+    rule then bound under it). Nothing is written. A NEW point (confluence, lake inlet/outlet, a
+    map point) is not a split yet, so the extent cannot be resolved: `resolvable: false` and why —
+    T185 builds the split, and the review continues on that build. None: no such entry."""
+    import copy
+    found = _find(entry_id)
+    if found is None:
+        return None
+    e = copy.deepcopy(found[1])
+    new = [p for p in fix.points if p.kind != "split"]
+    if new:
+        return {"resolvable": False, "why": "a NEW point (" + ", ".join(p.kind for p in new)
+                + ") is not a split yet: it is resolved once T185 builds it — the fix is kept "
+                "in the mark as proposed", "n_sections": None}
+    if fix.op in ("rest", "steelhead_waters", "other_places"):
+        return {"resolvable": False, "why": f"op {fix.op} resolves against its siblings / the "
+                "whole corpus, not on its own", "n_sections": None}
+    ex: dict = {"op": fix.op, "splits": [p.split_id for p in fix.points]}
+    if len(fix.items) == 1:
+        ex["item_id"] = fix.items[0]
+    elif fix.items:
+        ex["item_ids"] = list(fix.items)
+    if fix.op == "within":
+        area = str(fix.area)
+        ex["area_id"] = area if area.startswith("area:") else None
+        if ex["area_id"] is None:
+            return {"resolvable": False, "why": "within needs an area id (area:…) to preview",
+                    "n_sections": None}
+    rules = e.get("rules") or []
+    if fix.scope == "entry":
+        e["extents"] = [ex]
+        if fix.tributaries is not None:
+            e["includes_tributaries"] = fix.tributaries
+        targets = rules
+    else:
+        rule = next((r for r in rules if r.get("rule_id") == fix.scope), None)
+        if rule is None:
+            return {"resolvable": False, "why": f"no rule {fix.scope} on {entry_id}",
+                    "n_sections": None}
+        rule["extents"] = [ex]
+        if fix.tributaries is not None:
+            rule["includes_tributaries"] = fix.tributaries
+        targets = [rule]
+    reg, graph = _registry(), _graph()
+    covered = _covered_ids(e)
+    reasons: list = []
+    got = _resolve.resolve_extent(reg, graph, covered, ex, reasons=reasons)
+    if got is None:
+        return {"resolvable": False, "why": "the extent does not resolve: " + "; ".join(
+            f"{c}{': ' + d if d else ''}" for c, d in reasons) if reasons
+            else "the extent does not resolve", "n_sections": 0}
+    clip, _failed = _scope_sections(e, covered)
+    # the ENTRY's scope is drawn as itself (the stretch every rule is clipped to); a RULE's as the
+    # builder binds it (clipped, its tributaries walked)
+    total: set[str] = set(got.get("sections") or ()) if fix.scope == "entry" else set()
+    outcomes = {}
+    for r in targets:
+        binding, _d = _build_reach(e, r, reg, graph, covered=covered, clip=clip,
+                                   shared=_shared_waters(), tidal=_tidal(), owned=_rowed_waters())
+        outcomes[r.get("rule_id")] = binding.outcome.value
+        if fix.scope != "entry":
+            total |= set(binding.sections)
+    ids = sorted(total)
+    return _json_safe({"resolvable": True, "why": None, "n_sections": len(ids),
+                       "outcomes": outcomes, "truncated": len(ids) > limit,
+                       "geojson": {"type": "FeatureCollection",
+                                   "features": _sections_geojson(ids[:limit], "preview")}})
+
+
+# --------------------------------------------------------------------------- T185: binding change
+# READS ONLY. A proposed edit (`pipeline.regs.review.proposals`) bound in memory before and after,
+# by the same `build_reach` path the extent preview uses — nothing is written.
+
+_ABSENT = "__absent__"
+
+
+def _set_fields(target: dict, field: str, value) -> None:
+    if value == _ABSENT:
+        target.pop(field, None)
+    else:
+        target[field] = copy.deepcopy(value)
+
+
+def _binding_rows(before: dict[str, tuple], after: dict[str, tuple]) -> dict:
+    graph = _graph()
+
+    def km(ids) -> float:
+        return round(sum(getattr(graph.nodes.get(s), "length_m", 0.0) or 0.0 for s in ids) / 1000, 2)
+    rows = {}
+    for rid in sorted(set(before) | set(after)):
+        b, ob = before.get(rid, (set(), None))
+        a, oa = after.get(rid, (set(), None))
+        rows[rid] = {"n_before": len(b), "n_after": len(a), "gained": len(a - b),
+                     "lost": len(b - a), "km_before": km(b), "km_after": km(a),
+                     "outcome_before": ob, "outcome_after": oa,
+                     "sample_gained": sorted(a - b)[:5], "sample_lost": sorted(b - a)[:5]}
+    return {"cheap": True, "why": None, "rules": rows,
+            "changed": sorted(r for r, x in rows.items()
+                              if x["gained"] or x["lost"] or x["outcome_before"] != x["outcome_after"])}
+
+
+def binding_change(entry_id: str, changes: list[dict]) -> dict | None:
+    """WHAT A PROPOSED EDIT DOES TO AN ENTRY'S BINDINGS (T185): every rule bound by the builder's
+    own `build_reach` on the entry as it is and on a COPY with `changes` made ({scope: "entry" |
+    rule_id, field, after}), as the extent preview binds (T191). Per rule: sections before / after,
+    gained / lost, km, outcome. None: no such entry. Writes nothing."""
+    found = _find(entry_id)
+    if found is None:
+        return None
+    before = found[1]
+    after = copy.deepcopy(before)
+    for c in changes:
+        t = after if c["scope"] == "entry" else next(
+            (r for r in after.get("rules") or [] if r.get("rule_id") == c["scope"]), None)
+        if t is None:
+            return {"cheap": False, "why": f"no rule {c['scope']} on {entry_id}"}
+        _set_fields(t, c["field"], c["after"])
+    reg, graph = _registry(), _graph()
+
+    def bind(e: dict) -> dict[str, tuple]:
+        covered = _covered_ids(e)
+        clip, _failed = _scope_sections(e, covered)
+        out = {}
+        for r in e.get("rules") or []:
+            b, _d = _build_reach(e, r, reg, graph, covered=covered, clip=clip,
+                                 shared=_shared_waters(), tidal=_tidal(), owned=_rowed_waters())
+            out[r.get("rule_id")] = (set(b.sections), b.outcome.value)
+        return out
+    return _json_safe(_binding_rows(bind(before), bind(after)))
+
+
+def dfo_binding_change(location_id: str, changes: list[dict]) -> dict | None:
+    """`binding_change` for a DFO location (T164): its binding before and after `changes`
+    ({field: extents | tributaries, after}), bound as the DFO mode's reach binds it. Writes nothing."""
+    import dfo
+    got = dfo._locations().get(location_id)
+    if got is None:
+        return None
+    _slug, loc, water = got
+    after = copy.deepcopy(loc)
+    for c in changes:
+        _set_fields(after.setdefault("binding", {}), c["field"], c["after"])
+    reg = _registry()
+    from pipeline.regs.review import withheld as W
+    gone = W.missing_cuts(after.get("binding"), reg)
+    if gone:
+        # T779: this atlas has not got the cut: the place would bind nothing here and the check would pass with nothing
+        # withheld — the binding is unknown on this atlas, and unknown never passes
+        return {"cheap": False, "missing_cuts": gone,
+                "why": f"the atlas {_BUILD} has no cut {', '.join(gone)}: the place cannot be bound on it"}
+    graph = _graph()
+
+    held: list[dict] = []                                  # T779: what the AFTER binding withholds
+
+    def bind(lc: dict, keep: bool = False) -> dict[str, tuple]:
+        entry, rule = dfo._reach_input(lc, water)
+        if not rule["extents"]:
+            return {rule["rule_id"]: (set(), "no extent")}
+        b, _d = _build_reach(entry, rule, reg, graph,                    # T779: the run's own limits
+                             **dfo.as_the_run_binds(location_id, lc))
+        if keep:
+            from pipeline.regs.review import withheld as W
+            held.extend(W.rows(location_id, _d))
+        return {rule["rule_id"]: (set(b.sections), b.outcome.value)}
+    out = _binding_rows(bind(loc), bind(after, keep=True))
+    # T779: every piece the place withholds, which of them the reach gate would stop on (not in
+    # `unplaced_piece_calls.json` `accepted`) and the place's stale acceptances: `apply_proposals` refuses a mark with any
+    from pipeline.regs.review import withheld as W
+    out.update(W.check(location_id, held))
+    return _json_safe(out)
+
+
+def split_review(sp: dict) -> dict:
+    """WHAT THE CURATOR LEFT ON A CUT-POINT: its `_note` (the history of how it was placed; history,
+    never a request to verify) and the auto-proposal GRADE that note opens with — `[auto-proposal L]`
+    is a low-confidence machine placement nobody has confirmed. The tool used to send neither, so a
+    reviewer saw a confident cut where the file said "Verify: …" (T96). `grade` is None for a cut
+    that is not an open auto-proposal; only a LEADING tag counts (a later one is history) —
+    `tiers.split_grade`, the one reading of it (`tiers.split_needs_verify` asks it too)."""
+    from pipeline.regs.review.tiers import split_grade
+    return {"note": str(sp.get("_note") or ""), "grade": split_grade(sp)}
+
+
+def _cut_points(iid: str):
+    """`cut_points` for `validate_catalogue.cut_point_menu`: what a rule may bind on one item in the
+    app — the built boundaries AND the splits.json splits pending a rebuild (`bindable`), each with
+    its aliases. None for an item this build does not have.
+
+    THE ALIASES BIND. An alias is a curated split that could not be cut because its measure landed
+    inside a lake run (a dam at the outlet), recorded as another name for the boundary standing at
+    that place. It is a real, resolvable cut-point, so binding it must validate (the gate stores
+    the boundary's own id in its place); without it the id resolves on the map but is refused.
+
+    SPELLED AS THE PARSE MENU SPELLS THEM (`parse_context.cut_points`: `split:` stripped, `lake:`
+    kept — the form `extent.py` resolves). This read the picker's display spelling, which strips
+    every prefix, so the app accepted a bare `329069968` that ingest refuses and refused the
+    `lake:329069968` ingest accepts (T119 review). A pending split has no aliases."""
+    from pipeline.regs.parsing.parse_context import cut_points
+    it = _registry().get(iid)
+    if it is None:
+        return None
+    built = dict(cut_points(it))
+    return [(b["id"], built.get(b["id"], ())) for b in bindable(it)]
+
+
+def _find(entry_id: str) -> tuple[str, dict] | None:
+    for region, e in _all_entries():
+        if e["entry_id"] == entry_id:
+            return region, e
+    return None
+
+
+def _gate(data: dict):
+    """THE GATE (`validate_catalogue.gate`, through `model_api.check`) with the build this app
+    serves: its registry, and the cut-points of every item the entry matches or an extent is scoped
+    to (`cut_point_menu` over `_cut_points`). Returns (model or None, addressed errors)."""
+    from pipeline.regs.parsing.validate_catalogue import cut_point_menu
+    return model_api.check(data, menu=cut_point_menu(data, _cut_points), registry=_registry())
+
+
+def check_entry(entry_dict: dict) -> dict:
+    """THE GATE AN ENTRY IS MARKED AGAINST (PLAN §4 phase 1): `validate_catalogue.gate` — the
+    model, the checks after it, absorbed ids, split parents, every split id against the cut-points
+    it may bind — with the build this app serves. A mark on an entry that fails it is refused
+    (`marks.refuse_on_gate`), and the open entry's pre-checks show it. `{ok, errors}`; each error is
+    `{path, msg}` with `path` in the entry's own JSON keys (`rules.2.gear.0.max`). Writes nothing."""
+    _, errs = _gate(model_api.strip_served(entry_dict))
+    return {"ok": not errs, "errors": errs}
+
+
+#: Every cache read from the served build — what `invalidate_caches` drops.
+_BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs, _tidal_pieces_for,
+                 _blk_to_item, _section_owner, _region_rows, region_ends, _graph, _geoms, _wbk_polys,
+                 _border_rows, border_end, border_ends,      # T755 follow-up: the BC-border cuts
+                 _raw_registry_for,                          # T755 follow-up: registry.json for `applied_keys`
+                 _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
+                 _run_facts_for, _boundary_index,
+                 # T207: corpus-wide split use (reads the registry) and the authored confidences
+                 _used_splits_for, _confidences_for,
+                 # owner 2026-10-26: the atlas's area names (matched by area, the within-op list)
+                 _area_name_map_for,
+                 # owner 2026-10-28: the marks whose own fix landed, and every mark accounted for
+                 _applied_keys_for, _marks_health_for,
+                 _low_cut_index)
+
+
+# --------------------------------------------------------------------------- #
+# Warm before the reviewer sits down (T136, PLAN §4 phase 5)
+# --------------------------------------------------------------------------- #
+
+#: What a cold backend loads before its first entry answers quickly, in the order a first entry
+#: needs it: the registry (the queue), the bundle's facts (marks), the vintage and the reach run's
+#: facts (awaiting build, risk factors), the graph (reaches) and the section geometry (the map). The
+#: queue itself is computed last, once, so every one of its readers is warm.
+WARM_STEPS: tuple[tuple[str, str], ...] = (
+    ("registry", "_registry"), ("bundle facts", "_review_context"),
+    ("vintage", "built"), ("reach run facts", "run_facts"), ("graph", "_graph"),
+    ("geometry", "_geoms"), ("queue", "queue"), ("DFO places", "_warm_dfo"),
+)
+#: T742 E8 (perf): warmed AFTER the app says ready — the 60 s rule section counts serve a regulation ZONE entry, never
+#: a DFO place, so the owner's DFO labelling no longer waits for them (`todo` lists them until they are done)
+LATE_WARM_STEPS: tuple[tuple[str, str], ...] = (("rule section counts", "_warm_rule_counts"),)
+
+
+def _warm_dfo() -> None:
+    """T742 E8: what a first DFO place reads — the DFO rows and the checklist's places (the queue the DFO tab opens on)"""
+    import checks
+    import dfo
+    dfo._rows()
+    checks._places()
+    _section_regions()            # the region membership the pickers' region ends read (`region_ends`), ~8 s cold
+
+
+def _warm_rule_counts() -> None:
+    """Every rule's bound-section count, counted once per bundle (`fingerprint.rule_section_counts`):
+    ~50 s on a zone-heavy bundle, so a reviewer never waits for it on a zone entry."""
+    import answer
+    from pipeline.regs.review.fingerprint import rule_section_counts
+    db = answer._db()
+    try:
+        rule_section_counts(db, "")
+    finally:
+        db.close()
+
+
+_READY: dict = {"ready": False, "warming": False, "done": [], "seconds": None, "error": None, "late": False}
+
+
+def warm(steps=WARM_STEPS, late=None) -> dict:
+    """Load every cache a first entry reads (`WARM_STEPS`), recording each step as it finishes —
+    what `readiness` reports and `GET /api/ready` serves. Run once at startup in a thread when
+    `CURATION_WARM=1` (`run.sh` sets it), so a reviewer is never the one who waits."""
+    import time as _t
+    t0 = _t.time()
+    _READY.update(ready=False, warming=True, done=[], seconds=None, error=None)
+    try:
+        for name, fn in steps:
+            globals()[fn]()
+            _READY["done"].append({"step": name, "at_s": round(_t.time() - t0, 1)})
+        _READY["ready"] = True
+        _READY["late"] = bool(late)
+        settle_gc()                          # T755 follow-up: the loaded caches out of the collector's sight
+        for name, fn in late or ():          # after ready (the app passes `LATE_WARM_STEPS`)
+            globals()[fn]()
+            _READY["done"].append({"step": name, "at_s": round(_t.time() - t0, 1)})
+        if late:
+            settle_gc()
+    except Exception as ex:  # noqa: BLE001 — reported by /api/ready, never swallowed silently
+        _READY["error"] = f"{type(ex).__name__}: {ex}"
+    finally:
+        _READY.update(warming=False, seconds=round(_t.time() - t0, 1))
+    return readiness()
+
+
+def readiness() -> dict:
+    """THE READY SIGNAL: {ready, warming, done: [{step, at_s}], todo: [step], seconds, error}."""
+    done = [d["step"] for d in _READY["done"]]
+    return {**{k: _READY[k] for k in ("ready", "warming", "seconds", "error")},
+            "done": list(_READY["done"]),
+            "todo": [n for n, _ in WARM_STEPS if n not in done]
+            + [n for n, _ in LATE_WARM_STEPS if _READY.get("late") and n not in done]}

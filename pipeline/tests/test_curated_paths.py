@@ -155,7 +155,7 @@ class TestGeneratedTree:
 
     def test_every_generated_path_is_absolute(self, gen):
         # A relative path resolves against the process's cwd: the review backend runs from
-        # curation-review/backend, so `sloughs` (left out of the validator) 404'd its tab.
+        # tools/curation-review/backend, so `sloughs` (left out of the validator) 404'd its tab.
         def walk(m):
             for name in type(m).model_fields:
                 v = getattr(m, name)

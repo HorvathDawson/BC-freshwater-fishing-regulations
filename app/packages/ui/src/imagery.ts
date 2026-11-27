@@ -7,7 +7,7 @@
  *     NetInfo (owner 2026-10-21 late). Where NetInfo's module is not linked the phone has no source: `watches` is
  *     false and it never says;
  *   - an imagery tile failing on the web map (`tileFailed`, from `MapProps.onImageryError`): a 404 is a hole Esri has
- *     no imagery for, not an outage (`isImageryOutage`);
+ *     no imagery for, not an outage (the provider's `outage`: `IMAGERY`, @app/core);
  *   - a PROBE of one z0 tile, run when satellite is chosen and then every `recheckMs` while it is down — which is how
  *     it comes back by itself where nothing would say so. On a phone, whose map reports no failed tile
  *     (`probeWhileUp`), the probe also rechecks (4× slower) while it is up: the fallback for what NetInfo cannot see.
@@ -15,7 +15,7 @@
  * brings satellite back.
  */
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { IMAGERY_START, imageryReach, imageryUp, isImageryOutage } from "@app/core";
+import { IMAGERY, IMAGERY_START, imageryReach, imageryUp } from "@app/core";
 import type { NetHints } from "@app/data";
 
 export interface Connectivity {
@@ -90,7 +90,7 @@ export function useImageryReach({ wanted, connectivity, probe, recheckMs = 30_00
   }, [asks, s.failed, connectivity.probeWhileUp, recheckMs, check]);
 
   const tileFailed = useCallback((status: number | undefined) => {
-    if (isImageryOutage(status)) dispatch({ type: "failed" });
+    if (IMAGERY.outage(status)) dispatch({ type: "failed" });
   }, []);
   return { up: imageryUp(s), tileFailed };
 }

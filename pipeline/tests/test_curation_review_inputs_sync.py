@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO / "curation-review" / "backend"))
+sys.path.insert(0, str(REPO / "tools" / "curation-review" / "backend"))
 
 import inputs_sync as IS  # noqa: E402
 from pipeline.tests import under_test

@@ -53,8 +53,9 @@ two weeks old; the SDK is pinned as a set, never one module alone. Packages with
 - `expo-splash-screen` — the native splash (config plugin at prebuild); `apps/mobile/src/splash.ts` holds it until the boot spinner draws.
 - `maplibre-gl` — the web map renderer, PINNED TO v5: `pmtiles@4` is written against its `addProtocol`, and on v6 it fails
   silently (header fetched, no tile requested, empty map). Bump the two together. Imported by `packages/map/src/Map.web.tsx` only.
-- `@maplibre/maplibre-react-native` — the native map renderer, exact, imported by `packages/map/src/Map.native.tsx` only
-  (listed in `apps/mobile` too for autolinking; needs a development build, not Expo Go). PATCHED
+- `@maplibre/maplibre-react-native` — the native map renderer, exact, imported only by its engine folder
+  `packages/map/src/native/maplibre/` (T1154: layers.json and check-boundaries' engine rule; the shell `Map.native.tsx`
+  reaches it through `native/engine.ts`) (listed in `apps/mobile` too for autolinking; needs a development build, not Expo Go). PATCHED
   (`patches/@maplibre__maplibre-react-native@11.5.0.patch`): per-tile feature-id events for the colouring engine, batched
   feature-states, stretchable images, a still-tap event, safe rejection of calls before the map is ready. Android builds
   use a local MapLibre Native build of one pinned upstream commit (`tools/maplibre-android/pin.env`). Bump the binding

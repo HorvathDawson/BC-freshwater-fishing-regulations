@@ -1,6 +1,6 @@
 """T224: THE NAME-VARIANT CANDIDATES as a review target — a mark of scope "name" is held against these.
 
-The candidates are mined read-only from local sources (`handoff/PLAN/curation-review/name-variants/mine.py` →
+The candidates are mined read-only from local sources (`docs/curation-review/name-variants/mine.py` →
 `candidates.json`): one row per (FWA target, proposed name), every source with its own evidence.
 
 OWNER RULINGS (2026-10-28):

@@ -555,7 +555,7 @@ def same_answer(a: Mapping, b: Mapping) -> bool:
 
 def rides_on_others(locs: Iterable) -> frozenset:
     """(T611) the location ids whose extent is `other_places` — the union of their siblings' sections. A place is an
-    `EntryLocation` (the bundle) or its stored dict (the review app's cascade view, `curation-review/backend/cascade.py`),
+    `EntryLocation` (the bundle) or its stored dict (the review app's cascade view, `tools/curation-review/backend/cascade.py`),
     so both order a chain with the one key."""
     def field(x, k):
         return x.get(k) if isinstance(x, Mapping) else getattr(x, k, None)

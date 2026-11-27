@@ -1,4 +1,4 @@
-"""THE TROUT TABLE (trout table plan, T810; `handoff/PLAN/design/trout-table-contract.md`). Modules, not yet wired into
+"""THE TROUT TABLE (trout table plan, T810; `docs/design/trout-table-contract.md`). Modules, not yet wired into
 a release (the `--trout-table` flag and `compose_key` are ticket I):
 
   down      T892: a row another water's tributary rule sets says so (`TRow.down`), from the row's `src` and the stored

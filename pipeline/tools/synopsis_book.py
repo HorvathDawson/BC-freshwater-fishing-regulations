@@ -3,7 +3,7 @@
     python -m pipeline.tools.synopsis_book carry  --batches ALL/batches  --catalogue OLD --out NEW
     python -m pipeline.tools.synopsis_book replay --batches CHANGED/batches --catalogue OLD --out RESP
 
-`carry` (a real step of the annual update, `handoff/PLAN/runbooks/annual-synopsis.md`): writes into NEW
+`carry` (a real step of the annual update, `docs/runbooks/annual-synopsis.md`): writes into NEW
 every entry of OLD the new book still prints UNCHANGED — the same `entry_id` in a full export of the new
 extraction (`batch_exporter --force`) whose `raw_regs` equal the entry's `regs_verbatim` — copied as it
 is, curator work and all (display names, matched items, binds to other waters' cut-points, which a

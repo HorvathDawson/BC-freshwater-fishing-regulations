@@ -480,7 +480,7 @@ def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
     (`["rules", 2, "take"]`), so the review app can address each one to its field.
 
     ONE implementation, called by `gate` — so by ingest and by the review app's check and save
-    (`curation-review/backend`). A curator saved `take: 15` on a rule whose sentence says 20, and
+    (`tools/curation-review/backend`). A curator saved `take: 15` on a rule whose sentence says 20, and
     the app accepted it, because only ingest ran this gate; the next re-ingest would have refused
     the entry it had just signed off on."""
     out: list[tuple[list, str]] = []

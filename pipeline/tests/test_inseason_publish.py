@@ -391,3 +391,132 @@ def test_fresh_regions_leaves_out_tidal_and_outside_bc(monkeypatch, tmp_path):
     assert R.fresh_regions(tmp_path, "h") == {1: frozenset({"1"}), 3: frozenset({"2", "7a"})}
     with pytest.raises(SystemExit, match="section handles"):
         R.fresh_regions(tmp_path, "other")
+
+
+# --------------------------------------------------------------------------- T1120: a first build (no release yet)
+
+def _first_build(monkeypatch, tmp_path, *, ran_on: str = "h"):
+    """The Fraser above as a FIRST BUILD sees it: its atlas (handles "h") and a reach run made from it (`ran_on`) —
+    every Fraser piece bound (in B.C.), piece 1 tidal water (the run's `tidal.jsonl`), each piece's region set the
+    bundle's (`_water_places`) — plus (T1120 review) handle 6, a one-piece stream OUTSIDE B.C.: the run binds it to
+    nothing, yet the atlas gives it a place, and its line ends OPEN (one section on its stream). A loader that forgot
+    the in-B.C. filter or the tidal one places a section the release does not.
+    -> (atlas, the release a deliver makes of it, the reach run's directory, the registry items)."""
+    from pipeline.deliver.release import lines as L
+    atlas, rel = _fraser(monkeypatch, named=set())
+    out = SimpleNamespace(node_id="8:0", blk=8, kind="stream", down_m=0.0, up_m=100.0)
+    atlas.g.nodes[out.node_id] = out
+    atlas.handle = {**atlas.handle, out.node_id: 6}
+    atlas.ids = (*atlas.ids, out.node_id)
+    rel.ord_of, rel.kind_of = {**rel.ord_of, "gnis:2": 2}, {**rel.kind_of, "gnis:2": "stream"}
+    rel.members, rel.lines = {**rel.members, 2: frozenset({6})}, {**rel.lines, 6: (8, 0, L.OPEN)}
+    from pipeline.atlas.reach import io as RIO
+    import importlib
+    from pipeline.common import section_handles as H
+    BB = importlib.import_module("pipeline.deliver.bundle.build")      # the package re-exports a `build` function
+    monkeypatch.setattr(H, "digest_for", lambda b: "h")
+    monkeypatch.setattr(H, "registry_digest_for", lambda b: "reg")
+    reaches = tmp_path / "reaches"
+    reaches.mkdir()
+    (reaches / "report.json").write_text(json.dumps({"handles": ran_on, "registry_digest": "reg"}))
+    monkeypatch.setattr(RIO, "rule_section_file", lambda d: d / "rule_section.jsonl.gz")
+    monkeypatch.setattr(RIO, "iter_rule_sections",
+                        lambda p: iter([("e", "r", f"7:{h}", "own") for h in FRASER]))
+    monkeypatch.setattr(RIO, "read_table",
+                        lambda d, name: [{"section_id": "7:1", "entry_id": "split:mission"}] if name == RIO.TIDAL_TABLE
+                        else pytest.fail(f"unexpected reach table {name}"))
+    # the region sets the bundle places each piece in (the tidal piece too: it is the reach run that takes it out)
+    places = {h: ("stream", tuple(sorted(r or {"2"})), ()) for h, r in FRASER.items()} | {6: ("stream", ("8",), ())}
+    monkeypatch.setattr(BB, "_water_places", lambda b, g, items: places)
+    items = [{"id": "gnis:39325", "kind": "stream", "section_ids": [f"7:{h}" for h in FRASER]},
+             {"id": "area:region:2", "kind": "area", "section_ids": []},
+             {"id": "gnis:2", "kind": "stream", "section_ids": ["8:0"]}]
+    return atlas, rel, reaches, items
+
+
+def test_a_first_build_reads_the_same_release_off_the_atlas_and_its_reach_run(monkeypatch, tmp_path):
+    """(T1120) `release_from_atlas` builds the `Release` the first deliver will ship from what that deliver reads, and
+    it is the release's own, field by field — only its name says what it is (first-build:<atlas handles>)."""
+    atlas, rel, reaches, items = _first_build(monkeypatch, tmp_path)
+    got = R.release_from_atlas(atlas, tmp_path, reaches, items)
+    assert got.name == "first-build:h" and R.is_first_build(got.name) and not R.is_first_build(rel.name)
+    for f in ("handles", "kind_of", "lines", "regions"):
+        assert getattr(got, f) == getattr(rel, f), f
+    # `ord` is the bundle's numbering (first seen, from 0; equal on the real release, T1120 PR): the items and their
+    # sections are what resolve reads
+    assert {i: got.item_sections(i) for i in got.ord_of} == {i: rel.item_sections(i) for i in rel.ord_of}
+    assert got.ord_of == {"gnis:39325": 0, "gnis:2": 1}                 # an area item is no water (`is_water`)
+    assert 1 not in got.regions and 6 not in got.regions and got.lines[6][2] == 0xFFFFFFFF   # tidal, outside, OPEN
+
+
+def test_a_first_build_resolves_byte_for_byte_as_the_release_does_but_for_its_stamp(monkeypatch, tmp_path):
+    """(T1120) The same matches resolved on the release and on the first build: the same ranges, ends, words and
+    end tokens (so the same deliver key, `build.inseason_ends_digest`); only `release` and each match's `stamp`
+    (a hash that names the release) differ."""
+    atlas, rel, reaches, items = _first_build(monkeypatch, tmp_path)
+    first = R.release_from_atlas(atlas, tmp_path, reaches, items)
+    monkeypatch.setattr(M, "split_labels", lambda: {})
+    cases = {"is-aaaaaaaaaaa1": ({3, 4, 5}, _match("3", "upstream_of", ["hells_gate"])),
+             "is-aaaaaaaaaaa2": ({1, 2}, _match("2", "downstream_of", ["spuzzum"]))}
+    out = {}
+    for name, on in (("release", rel), ("first", first)):
+        texts = {}
+        for rid, (named, match) in cases.items():
+            monkeypatch.setattr(P, "resolve", lambda reg, g, ext, named=named: {"sections": sorted(f"7:{h}"
+                                                                                           for h in named)})
+            doc = M.Matches.model_validate({"format": M.FORMAT, "matches": {rid: match.model_dump()}})
+            new, bad = R.resolve_doc(doc, atlas, on, log=lambda *_: None)
+            assert bad == []
+            texts[rid] = json.loads(M.dumps_resolved(new))
+        out[name] = texts
+    for rid in cases:
+        a, b = out["release"][rid], out["first"][rid]
+        assert a["release"] == "r-1" and b["release"] == "first-build:h"
+        assert a["words"] == b["words"]
+        ma, mb = a["matches"][rid], b["matches"][rid]
+        assert ma["waters"] == mb["waters"] and ma["waters"]
+        assert ma["stamp"] != mb["stamp"]                               # it hashes the release's name
+        assert set(ma) == set(mb) == {"waters", "stamp"}
+
+
+def test_a_first_build_refuses_a_reach_run_of_another_atlas(monkeypatch, tmp_path):
+    """(T1120) The first build's own vintage check: its sections are the atlas's, so a reach run made from another
+    atlas (or registry) is refused, never read — the release's `section_handles` check (`resolve_match`) cannot see
+    it, because a first build's release IS the atlas."""
+    atlas, _rel, reaches, items = _first_build(monkeypatch, tmp_path, ran_on="other")
+    with pytest.raises(SystemExit, match="made from atlas handles 'other'"):
+        R.release_from_atlas(atlas, tmp_path, reaches, items)
+    (reaches / "report.json").write_text(json.dumps({"handles": "h", "registry_digest": "old"}))
+    with pytest.raises(SystemExit, match="against registry 'old'"):
+        R.release_from_atlas(atlas, tmp_path, reaches, items)
+
+
+def test_publish_refuses_a_first_builds_resolution():
+    """(T1120) a first build's resolution names an atlas, never a release: it can never ship as one."""
+    doc = _doc({"is-aaaaaaaaaaaa": _m(waters={"gnis:1": {"all": True}})}, release="first-build:h")
+    with pytest.raises(PUB.Refused, match="first build's \\(first-build:h\\), resolved on no release"):
+        PUB.compile_links(doc, "d")
+
+
+def test_the_first_build_flag_is_refused_while_a_release_is_live(monkeypatch, tmp_path):
+    """(T1120) chosen explicitly, and only where no release is live: with one, resolve on it."""
+    cur = tmp_path / "notice_waters.json"
+    cur.write_text(json.dumps({"format": M.CURATED_FORMAT, "matches": {}}))
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: True)
+    monkeypatch.setattr(R, "release_dir", lambda arg=None: tmp_path / "r-live")
+    with pytest.raises(SystemExit, match="--first-build refused — a release is live \\(r-live\\)"):
+        R.main(["--first-build", "--matches", str(cur), "--out", str(tmp_path / "resolved.json")])
+    assert not (tmp_path / "resolved.json").exists()
+
+
+def test_resolving_with_no_release_live_names_the_first_build(monkeypatch, tmp_path):
+    """(T1120 review) not `manifest.live`'s "promote one with `pipeline release`", which needs this very file."""
+    cur = tmp_path / "notice_waters.json"
+    cur.write_text(json.dumps({"format": M.CURATED_FORMAT, "matches": {}}))
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: False)
+    with pytest.raises(SystemExit) as ex:
+        R.main(["--matches", str(cur), "--out", str(tmp_path / "resolved.json")])
+    assert str(ex.value) == ("inseason.resolve: no release is live here, so there is none to resolve on. A fresh "
+                             "machine's `python -m pipeline build` makes this resolution itself; by hand: "
+                             "`python -m pipeline.regs.inseason.resolve --first-build`")
+    assert not (tmp_path / "resolved.json").exists()

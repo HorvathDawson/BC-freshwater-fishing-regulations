@@ -1,6 +1,6 @@
 """THE CURATED INPUTS AN ATLAS WAS BUILT FROM (T547, T599 step 1 "curated guard").
 
-    python -m pipeline.atlas.inputs                     # is the promoted atlas behind its curated inputs? (rc 1 = yes)
+    python -m pipeline.atlas.inputs                     # does the promoted atlas need rebuilding, and why? (rc 1 = yes)
     python -m pipeline.atlas.inputs --build DIR         # ... of another atlas
     python -m pipeline.atlas.inputs --backfill          # record them for an atlas built before T547 (proof required)
 
@@ -200,6 +200,147 @@ def behind(build_dir: Path, now: dict[str, str] | None = None) -> list[str]:
             out.append(f"{name} ({key}): the atlas was built without it, {have} — rebuild: {how}")
         else:
             out.append(f"{name} ({key}): changed since the atlas was built — rebuild: {how}")
+    return out + code_behind(build_dir)
+
+
+# -------------------------------------------------------------------------------------------------------------- code
+
+#: (T1171) THE CODE AN ATLAS WAS BUILT FROM, beside its inputs in the meta (`CODE`):
+#:     {"modules": {file: sha256 AS IMPORTED}, "reads": {code file it read (`stepcache.is_code_read`): sha256},
+#:      "packages": {distribution: version} (only those owning a package it imported; one no distribution owns is
+#:      `module:<top>=<file>`: its bytes), "config": {config.yaml key it read: digest AS READ}, "python": sys.version,
+#:      "sqlite": the SQLite library, "git": {"commit": HEAD when the build started, "dirty": whether a recorded file
+#:      differed from that commit}}
+#: or {"unrecorded": why} when the build could not record it at all. The build-record machinery (`_trace`,
+#: `stepcache`, this module: `RECORD_MACHINERY = True`) is left out: it decides what is recorded, never what the atlas
+#: holds. The atlas is never rebuilt by a key (a person starts it), so a moved part is a line of `behind`: `pipeline
+#: build` warns and `pipeline release` refuses, as for a curated input. An atlas built before T1171 records no code: it
+#: is rebuilt (owner 2026-11-26: "yes to rebuild"; no backfill).
+CODE = "code"
+#: (owner 2026-11-26: "a way to know if the atlas needs rebuilding programatically") THE CHECK: every reason, one per
+#: line; rc 0 current, 1 needs rebuilding, 2 cannot tell. `pipeline build --status` prints its count, `--dry-run` and
+#: `pipeline release` the same lines (`behind`).
+CHECK = "python -m pipeline.atlas.inputs"
+#: (third review of #286, L2) the value a module, code file or config value takes in the record when it CHANGED WHILE
+#: the atlas was built: the build is kept (32 minutes), and the record says the atlas is behind it
+MOVED = "changed while the atlas was built"
+RECORD_MACHINERY = True
+
+
+def git_state() -> dict | None:
+    """The commit the build starts from (`git rev-parse HEAD`), or None outside a git checkout. Taken when the build
+    STARTS, as the input digests are."""
+    try:
+        return {"commit": _git("rev-parse", "HEAD").strip()}
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def _git_changed(commit: str, files: list[str], against: str | None = None) -> set[str] | None:
+    """The recorded `files` that differ between `commit` and `against` (a commit), or the working tree when None
+    (untracked ones too); None when git cannot tell (the commit is not in this clone)."""
+    if not files:
+        return set()
+    try:
+        _git("cat-file", "-e", f"{commit}^{{commit}}")
+        names = set(_git("diff", "--name-only", commit, *([against] if against else []), "--", *files).split())
+        if against is None:
+            names |= set(_git("ls-files", "--others", "--", *files).split())
+        return names & set(files)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def code_stamp(trace_dir: Path | None, git: dict | None = None) -> dict:
+    """The `CODE` record of a build whose recorder wrote to `trace_dir` (`stepcache.traced_code`); None: it ran with no
+    recorder (its `main` was called in-process), so its code cannot be told. (Third review of #286, L2) A module, code
+    file or config value edited WHILE the atlas was built does not unrecord it: modules and config values are kept as
+    imported / as read, a moved code file as `MOVED`, and `code_behind` names each. `git`: `git_state()` at the start."""
+    from pipeline.common import stepcache
+    if trace_dir is None:
+        return {"unrecorded": "the build ran without its recorder (main() called in-process, not "
+                              "`python -m pipeline.atlas.build`)"}
+    trace = stepcache.Trace(Path(trace_dir))
+    try:
+        code = stepcache.traced_code(trace, "the atlas build")
+    except stepcache.Untraceable as e:
+        return {"unrecorded": str(e)}
+    moved = {x.split(" (")[0] for x in code["moved"]}
+    modules = {k: (MOVED if k in trace.conflicts else v) for k, v in code["modules"].items()
+               if not stepcache.is_machinery(k)}
+    if not modules:
+        return {"unrecorded": "the recorder saw no module of this repo"}
+    reads = {k: (MOVED if k in moved else v) for k, v in code["reads"].items()}     # hashed now: only if unmoved
+    two = {x.split(" (")[0][len("config "):] for x in trace.moved if x.startswith("config ")}   # read as two values
+    config = {k: (MOVED if k in two else v) for k, v in code["config"].items()}
+    out = {"modules": modules, "reads": reads, "packages": stepcache.package_versions(code["packages"]),
+           "config": config, **stepcache.stage_env()}
+    if git:
+        files = sorted({*modules, *reads, stepcache.CONFIG_FILE})
+        changed = _git_changed(git["commit"], files)
+        out["git"] = {"commit": git["commit"], "dirty": True if changed is None else bool(changed)}
+    return out
+
+
+def record_code(build_dir: Path, trace_dir: Path | None, git: dict | None = None) -> dict:
+    """Write the build's `CODE` record into its meta (atomically, beside `input_hashes`); returns it."""
+    meta = read_meta(build_dir)
+    meta[CODE] = code_stamp(trace_dir, git)
+    write_meta(build_dir, meta)
+    return meta[CODE]
+
+
+def code_behind(build_dir: Path) -> list[str]:
+    """The atlas's code lines of `behind`, ONE PER REASON (every file named): none when every module and code file it
+    recorded has the same bytes now, every package the same version, every config value read the same value, and the
+    same Python and SQLite. An atlas built before T1171 records no code: one line, rebuild it. When the record names
+    the commit it was built from (clean), each moved file says whether it was committed since or is an uncommitted edit
+    (`git diff <commit> HEAD -- <file>`). Owner pick A: a routine package bump is a reason too, naming the package."""
+    from pipeline.common import stepcache
+    build_dir = Path(build_dir)
+    code = read_meta(build_dir).get(CODE)
+    where = f"{build_dir.name}/{META} ({CODE})"
+    if code is None:
+        return [f"{where}: records no code (an atlas built before T1171): rebuild it"]
+    if "unrecorded" in code:
+        return [f"{where}: its code was not recorded ({code['unrecorded']})"]
+    # (second review of #286) an empty package or config set is a recorder miss, never "none": refused, not current
+    if gone := stepcache.empty_parts(code.get("packages"), code.get("config")):
+        return [f"{where}: its code record names {' and '.join(gone)} ({stepcache.EMPTY_IS_A_MISS})"]
+    out = []
+    now = {**stepcache.code_now(code["modules"]), **stepcache.code_reads_now(code["reads"])}
+    was = {**code["modules"], **code["reads"]}
+    files = sorted(k for k in was if now[k] != was[k])
+    git = code.get("git") or {}
+    how: dict[str, str] = {}
+    if files and git.get("commit") and not git.get("dirty"):
+        short = git["commit"][:12]
+        committed = _git_changed(git["commit"], files, "HEAD")
+        for f in files:
+            how[f] = (f"; git: commit {short} is not in this clone" if committed is None else
+                      f"; git: committed since {short}" if f in committed else f"; git: an uncommitted edit since {short}")
+    for f in files:                     # a MOVED one changed during the build: git cannot say against what
+        out.append(f"{f} (code): {MOVED}" if was[f] == MOVED else
+                   f"{f} (code): changed since the atlas was built{how.get(f, '')}")
+    pk = stepcache.package_versions(code["packages"])
+    for d in sorted(pk):
+        if pk[d] != code["packages"][d]:
+            if d.startswith(stepcache.UNOWNED):
+                top, file = stepcache.unowned_parts(d)
+                out.append(f"module {top} ({file}) (code: packages): its bytes changed since the atlas was built "
+                           "(no distribution owns it)")
+            else:
+                out.append(f"package {d} {code['packages'][d]} -> {pk[d]} (code: packages): the atlas was built with "
+                           f"{d} {code['packages'][d]} (owner pick A: a routine bump of a package it imports counts)")
+    cf = stepcache.config_now(code["config"])
+    for k in sorted(cf):
+        if cf[k] != code["config"][k]:
+            out.append(f"config.yaml {k} (code: config): "
+                       + (MOVED if code["config"][k] == MOVED else "changed since the atlas was built"))
+    env = stepcache.stage_env()
+    for k in sorted(env):
+        if code.get(k) != env[k]:
+            out.append(f"{k} {code.get(k)} -> {env[k]} (code: env): the atlas was built under another {k}")
     return out
 
 
@@ -306,17 +447,39 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--backfill", action="store_true",
                     help="record the inputs of an atlas built before T547 (only those proven unchanged)")
     a = ap.parse_args(argv)
-    build = a.build or GENERATED.require_build()
+    try:
+        build = a.build or GENERATED.require_build()
+    except FileNotFoundError as e:                  # no atlas: the check cannot tell (rc 2, never "needs rebuilding")
+        print(f"inputs: {e}")
+        return 2
     if a.backfill:
         _got, unproven = backfill(build)
         return 1 if unproven else 0
-    bad = behind(build)
+    return check(build)
+
+
+def check(build: Path, *, log=print) -> int:
+    """(T1171, owner 2026-11-26) THE CHECK (`CHECK`): does the atlas need rebuilding, and why — every reason on its own
+    line (an input behind, a code file behind by name, a package or Python / SQLite behind, no code record). Returns
+    0 when current, 1 when it needs rebuilding, 2 when it cannot tell. Read only: it writes nothing.
+    (Re-check of #286) ANY failure to answer is rc 2 with its reason — no meta, a malformed meta (KeyError /
+    TypeError), a broken config.yaml (`yaml.YAMLError`) — never a traceback, whose exit 1 would read as "needs
+    rebuilding"."""
+    try:
+        bad = behind(build)
+        code = {} if bad else (read_meta(build).get(CODE) or {})
+    except Exception as e:                          # noqa: BLE001 — said, then rc 2 ("cannot tell")
+        log(f"inputs: cannot tell whether the atlas {build} needs rebuilding: {type(e).__name__}: {e}")
+        return 2
     if bad:
-        print(f"inputs: the atlas {build} is behind {len(bad)} input(s):")
+        log(f"inputs: the atlas {build} NEEDS REBUILDING — {len(bad)} reason(s):")
         for b in bad:
-            print("  " + b)
+            log("  " + b)
+        log(f"inputs: rebuild: {REBUILD}")
         return 1
-    print(f"inputs: the atlas {build} is current with its {len(ATLAS_INPUTS)} inputs")
+    log(f"inputs: the atlas {build} is current: its {len(ATLAS_INPUTS)} inputs, {len(code.get('modules', {}))} modules, "
+        f"{len(code.get('reads', {}))} code files, {len(code.get('packages', {}))} packages, "
+        f"{len(code.get('config', {}))} config values, Python and SQLite as built")
     return 0
 
 

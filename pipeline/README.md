@@ -14,7 +14,7 @@ python -m pipeline release --prod <r-id>         # HUMAN-ONLY: the same release 
 python -m pipeline release --cut [X.Y.Z]         # version and branch (release_version.py; --data-only for data-<date>)
 ```
 
-`pipeline/release.py`; the runbook is `handoff/PLAN/runbooks/release.md`. The build runs with `--hold-latest`:
+`pipeline/release.py`; the runbook is `docs/runbooks/release.md`. The build runs with `--hold-latest`:
 the new release waits in `data/release/CANDIDATE` and LATEST moves only after the checks pass.
 
 ## The rebuild
@@ -31,8 +31,14 @@ python -m pipeline build --side DIR       # every stage into DIR; nothing live (
 `pipeline/build.py`, AGENTS 62. It is heavy: run it through `scripts/heavy.sh` (one heavy job at a time).
 A stage is skipped while its inputs' digests (atlas, corpus, curated tree, source stamps, its own code) match its
 last successful run (`data/generated/build-manifest.json`). Two caches, both keyed on content
-(`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`): a stage keys on the modules it really imported,
-and each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
+(`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`): every stage keys on the modules it really imported,
+the code files it read (`schema.sql`, `tile-contract.json`), the versions of the packages it imported (not every
+installed one; a module no distribution owns by its file's bytes), the config.yaml values it read (not the whole
+file), Python and SQLite, and the tiles also on tippecanoe's version, tile-join's and pmtiles' binaries and the map style
+(T1171); config reads that cannot be traced stop the build. The atlas records the same code stamp in its meta (and the
+commit it was built from), and `pipeline release` refuses an atlas whose code moved. **Does the atlas need
+rebuilding?** `python -m pipeline.atlas.inputs` prints every reason (an input, a code file by name, a package, Python /
+SQLite, no code record) and exits 1, or 0 when current; `pipeline build --status` says which. And each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
 (`data/generated/deliver-cache/`). So a rule edit reruns reach and deliver; an answers or wording edit reruns
 answers onward, not the bundle. `build --force deliver` runs every delivery step afresh.
 
@@ -63,7 +69,7 @@ bash pipeline/regs/parsing/run_parse.sh parse-dry         # export batches only 
 ```bash
 python -m pipeline.regs.review.apply [--dry-run]   # every open domain: marks.jsonl to its final curated file
 python -m pipeline.regs.review.export              # the decisions in force per domain, in memory
-bash curation-review/run.sh                        # the review app (curation-review/README.md)
+bash tools/curation-review/run.sh                        # the review app (tools/curation-review/README.md)
 python -m pipeline.tools.audit.check_curated       # are the committed match artifacts fresh?
 ```
 

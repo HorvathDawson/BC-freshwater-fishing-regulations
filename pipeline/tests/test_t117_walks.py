@@ -164,7 +164,7 @@ WALKS = {
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "step_refusal"): "may_enter",
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "_subtree"): "may_enter",
     ("pipeline/atlas/waters/added_streams/harness.py", "run"): "subtree",
-    ("curation-review/backend/reuse.py", "item_tributary_geojson"): "joining",
+    ("tools/curation-review/backend/reuse.py", "item_tributary_geojson"): "joining",
 }
 
 
@@ -190,7 +190,7 @@ def test_no_production_walk_climbs_by_its_own_rules():
     reads = {k: sorted(_names(_fn(*k)) & rules) for k in WALKS if k[0] != owner}
     assert {k: v for k, v in reads.items() if v} == {}
     callers = []
-    for top in ("pipeline", "curation-review"):
+    for top in ("pipeline", "tools/curation-review"):
         for p in sorted((ROOT / top).rglob("*.py")):
             rel = p.relative_to(ROOT).as_posix()
             if "/tests/" in rel or "/archive/" in rel or rel == "pipeline/atlas/graph/graph.py":
@@ -260,7 +260,7 @@ UP_ADJ_READERS = {
         "T493: the drawn water either side of a lake, looking through lakes only — a drawing zoom, binds nothing",
     ("pipeline/deliver/tiles/export.py", "fill_zooms"):
         "T493: a hidden piece's drawn water of its OWN item up and down — a drawing zoom, binds nothing",
-    ("curation-review/backend/reuse.py", "item_side_channels"): "leaves-and-rejoins test, one level",
+    ("tools/curation-review/backend/reuse.py", "item_side_channels"): "leaves-and-rejoins test, one level",
     # owner 2026-11-15 (mark 2578): a DFO place's named water's own side channels — the same one-level test, binds the
     # water's own items only (`reach.channels`)
     ("pipeline/atlas/reach/channels.py", "side_channels"): "leaves-and-rejoins test, one level",
@@ -291,7 +291,7 @@ UP_ADJ_READERS = {
 
 def _up_adj_readers() -> set:
     out = set()
-    for top in ("pipeline", "curation-review"):
+    for top in ("pipeline", "tools/curation-review"):
         for p in sorted((ROOT / top).rglob("*.py")):
             rel = p.relative_to(ROOT).as_posix()
             if "/tests/" in rel or "/archive/" in rel or "node_modules" in rel \

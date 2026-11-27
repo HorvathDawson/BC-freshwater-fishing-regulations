@@ -103,7 +103,7 @@ ALLOWED = {
 
 
 def _sources():
-    for top in ("pipeline", "curation-review"):
+    for top in ("pipeline", "tools/curation-review"):
         for p in sorted((ROOT / top).rglob("*.py")):
             rel = p.relative_to(ROOT).as_posix()
             if "/tests/" in rel or "/archive/" in rel or rel in OWNERS or "node_modules" in rel:

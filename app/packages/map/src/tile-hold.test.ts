@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { NATIVE_SENT_MAX, TileHold } from "./tile-hold";
+import { TileHold } from "./tile-hold";
+import { NATIVE_SENT_MAX } from "./native/maplibre/tiles";
 
 /** The binding's half (MLRNVectorSource.kt `sent`): an access-ordered LRU of the tiles whose ids went to JS. */
 class NativeSent {
@@ -15,7 +16,7 @@ class NativeSent {
 
 describe("TileHold (T420: a tile's ids once per watch)", () => {
   it("a repeat moves its tile to the end; a tile never put is not held", () => {
-    const h = new TileHold();
+    const h = new TileHold(NATIVE_SENT_MAX);
     h.put({ tag: 1, z: 1, x: 0, y: 0, layers: { stream: [1] } });
     h.put({ tag: 1, z: 1, x: 1, y: 0, layers: { stream: [2] } });
     expect(h.touch({ z: 1, x: 0, y: 0 })).toBe(true);
@@ -24,11 +25,11 @@ describe("TileHold (T420: a tile's ids once per watch)", () => {
   });
 
   it("refuses a hold too small to cover what the binding remembers sending", () => {
-    expect(() => new TileHold(NATIVE_SENT_MAX)).toThrow();
+    expect(() => new TileHold(NATIVE_SENT_MAX, NATIVE_SENT_MAX)).toThrow();
   });
 
   it("every repeat the binding sends finds its tile, over a long random pan", () => {
-    const h = new TileHold();
+    const h = new TileHold(NATIVE_SENT_MAX);
     const n = new NativeSent();
     let seed = 7;
     const rnd = () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;

@@ -23,7 +23,7 @@ import {
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const SCRIPT = fileURLToPath(new URL("./ledger.mjs", import.meta.url));
-const T = "handoff/PLAN/app-integration/tickets";
+const T = "tickets";
 const cleanEnv = () => Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")));
 
 const row = (id: string, status: string, commits = "—", title = `title of ${id}`) => `| ${id} | ${title} | ${status} | ${commits} | — |`;
@@ -148,7 +148,7 @@ describe("the owner blocks (T1081)", () => {
     const run = (...a: string[]) => spawnSync(process.execPath, [SCRIPT, ...a], { cwd: dir, env: cleanEnv(), encoding: "utf8" });
     expect(run("--check").status).toBe(1);                                              // no views yet
     expect(run().status).toBe(0);
-    const view = readFileSync(join(dir, "handoff/PLAN/views/OWNER.md"), "utf8");
+    const view = readFileSync(join(dir, "docs/views/OWNER.md"), "utf8");
     expect(view).toMatch(/1 open asks in 1 places/);
     expect(view).toMatch(/## T7 — title of T7\n- 2026-11-25 — please look/);
     expect(run("--check").status).toBe(0);
@@ -164,11 +164,11 @@ describe("the number claims (T1041 review)", () => {
   it("every ticket file has its claim naming it, every claim a ticket of its number", () => {
     expect(claimProblems(t, [{ name: "T5", text: "T5-a.md\n" }, { name: "T6", text: "T6-b.md\n" }])).toEqual([]);
     expect(claimProblems(t, [{ name: "T5", text: "T5-a.md\n" }])).toEqual([
-      "T6: no number claim handoff/PLAN/app-integration/tickets/ids/T6 (node app/tools/ledger.mjs --claim writes it): two PRs that take one number must collide there"]);
+      "T6: no number claim tickets/ids/T6 (node app/tools/ledger.mjs --claim writes it): two PRs that take one number must collide there"]);
     expect(claimProblems(t, [{ name: "T5", text: "T5-other.md\n" }, { name: "T6", text: "T6-b.md\n" }, { name: "T7", text: "T7-gone.md\n" }])).toEqual([
-      'T5: handoff/PLAN/app-integration/tickets/ids/T5 claims "T5-other.md", but the ticket file is T5-a.md: one number, one ticket',
-      'handoff/PLAN/app-integration/tickets/ids/T5: claims "T5-other.md", which is not a ticket file of that number',
-      'handoff/PLAN/app-integration/tickets/ids/T7: claims "T7-gone.md", which is not a ticket file of that number']);
+      'T5: tickets/ids/T5 claims "T5-other.md", but the ticket file is T5-a.md: one number, one ticket',
+      'tickets/ids/T5: claims "T5-other.md", which is not a ticket file of that number',
+      'tickets/ids/T7: claims "T7-gone.md", which is not a ticket file of that number']);
   });
 });
 
@@ -246,12 +246,12 @@ describe("T1081 the closed index and the archive", () => {
   });
   it("claimProblems: a claim or a file of an archived number fails, so a number is never used twice", () => {
     expect(claimProblems([], [{ name: "T9", text: "T9-a.md\n" }], new Set(["T9"]))).toEqual([
-      "handoff/PLAN/app-integration/tickets/ids/T9: T9 is in handoff/PLAN/app-integration/tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
+      "tickets/ids/T9: T9 is in tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
     expect(claimProblems([{ name: "T9-a.md", text: "" }], [{ name: "T9", text: "T9-a.md\n" }], new Set(["T9"]))).toHaveLength(2);
     expect(claimProblems([], [], new Set(["T9"]))).toEqual([]);
   });
   it("nextNumber is one past the highest number anywhere (closed ids, claims, files, other branches' claims)", () => {
-    expect(nextNumber(["T3", "T10-x.md", "T1141", "handoff/PLAN/app-integration/tickets/ids/T1150", "T15b-y.md"])).toBe(1151);
+    expect(nextNumber(["T3", "T10-x.md", "T1141", "tickets/ids/T1150", "T15b-y.md"])).toBe(1151);
     expect(nextNumber([])).toBe(1);
   });
   it("assetIds: picture and data folders of a ticket, a range, never a ticket file", () => {
@@ -281,7 +281,7 @@ describe("T1081 the closed index and the archive", () => {
     for (const [id, n, text] of [["T3", names.T3, done("T3")], ["T4", names.T4, insertRow(ticket("T4", "OPEN."), row("T4", "OPEN"))], ["T10", names.T10, done("T10")]] as const) {
       writeFileSync(join(td, n), text); writeFileSync(join(td, "ids", id), `${n}\n`);
     }
-    for (const d of ["T3-shots", "T4-shots", "T10-files", "T11-shots"]) { mkdirSync(join(dir, "handoff/PLAN/app-integration", d), { recursive: true }); writeFileSync(join(dir, "handoff/PLAN/app-integration", d, "a.png"), "x"); }
+    for (const d of ["T3-shots", "T4-shots", "T10-files", "T11-shots"]) { mkdirSync(join(dir, "docs/app-integration", d), { recursive: true }); writeFileSync(join(dir, "docs/app-integration", d, "a.png"), "x"); }
     const run = (...a: string[]) => spawnSync(process.execPath, [SCRIPT, ...a], { cwd: dir, env: cleanEnv(), encoding: "utf8" });
     const dry = run("--archive", "--dry");
     expect([dry.status, dry.stdout]).toEqual([0, expect.stringMatching(/2 ticket files, 2 claims, 2 picture\/data folders/)]);
@@ -290,7 +290,7 @@ describe("T1081 the closed index and the archive", () => {
     expect([r.status, r.stderr]).toEqual([0, ""]);
     expect(readdirSync(td).sort()).toEqual(["T4-b.md", "archive", "closed.tsv", "ids"]);
     expect(readdirSync(join(td, "ids"))).toEqual(["T4"]);
-    expect(readdirSync(join(dir, "handoff/PLAN/app-integration")).sort()).toEqual(["T11-shots", "T4-shots", "tickets"]);
+    expect(readdirSync(join(dir, "docs/app-integration")).sort()).toEqual(["T11-shots", "T4-shots"]);
     const year = new Date().getFullYear();
     expect(gunzipTar(readFileSync(join(dir, archivePath(`closed-${year}`)))).map((f: { name: string }) => f.name)).toEqual(["T10-c.md", "T3-a.md"]);
     expect(readFileSync(join(td, "closed.tsv"), "utf8").split("\n").map((l) => l.split("\t")[0])).toEqual(["T3", "T10", ""]);
@@ -314,10 +314,10 @@ describe("T1081 the closed index and the archive", () => {
     expect(existsSync(join(td, "T281-files", "sub_lake_areas.json"))).toBe(true);
     // (review B1) every closed ticket's folder a surviving file still cites is in KEPT_ASSETS, so a real --archive spares it
     for (const k of Object.keys(KEPT_ASSETS)) expect(KEPT_READERS[k]?.length, k).toBeGreaterThan(0);
-    mkdirSync(join(dir, "handoff/PLAN/app-integration/T244-shots"), { recursive: true }); writeFileSync(join(dir, "handoff/PLAN/app-integration/T244-shots/icons-preview.png"), "x");
+    mkdirSync(join(dir, "docs/app-integration/T244-shots"), { recursive: true }); writeFileSync(join(dir, "docs/app-integration/T244-shots/icons-preview.png"), "x");
     writeFileSync(join(td, "T244-icon.md"), done("T244"));
     const spared = run("--archive");
     expect(spared.stdout).toMatch(/0 picture\/data folders; kept: 2/);
-    expect(existsSync(join(dir, "handoff/PLAN/app-integration/T244-shots/icons-preview.png"))).toBe(true);
+    expect(existsSync(join(dir, "docs/app-integration/T244-shots/icons-preview.png"))).toBe(true);
   });
 });

@@ -65,6 +65,9 @@ DERIVED_DOC = ("release", "words")
 DERIVED_MATCH = ("waters", "unresolved", "stamp")
 #: the command that writes the resolution (named by every refusal of a missing one)
 RESOLVE_CMD = "python -m pipeline.regs.inseason.resolve"
+#: (T1120) the `release` of a FIRST BUILD's resolution (`resolve --first-build`: no release existed yet) is this +
+#: the atlas's section-handles digest — never a release id; publish refuses it (`resolve.FIRST_BUILD` says why)
+FIRST_BUILD = "first-build:"
 ID_RE = re.compile(r"^is-[0-9a-f]{12}$")
 ITEM_RE = re.compile(r"^(gnis|wbk|blk|wsc):[\w.\-]+$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
