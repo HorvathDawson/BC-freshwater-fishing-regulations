@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane: the repo clean chat; PR 1 (comments into the schem
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 1 (comments into curated.py), PR 2 (one strict `Config` schema, dead keys deleted), PR 3 (one `source:` block) and PR 4 (one `roots:` block, two keys renamed, unlisted files declared) in review; then PRs 5-7 of the plan below, in order |
+| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 3 (one `source:` block) and PR 4 (one `roots:` block, two keys renamed, unlisted files declared) in review; then PRs 5-7 below, in order |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "the config.yaml i feel has a lot of stuff in it that is noit
 needed too? like there is a lot of bloat because of the way stuff is formatted could we audit this and maybe use it as
