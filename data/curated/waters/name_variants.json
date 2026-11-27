@@ -3152,19 +3152,19 @@
  {
   "target": {
    "gnis_ids": [
-    "14970"
+    "7335"
    ]
   },
   "names": [
    {
     "name": "ARROW PARK CREEK",
     "source": "regulation",
-    "note": "GNIS name: Mosquito Creek. MU 4-18 near Arrow Park community. GNIS 7335 (also Mosquito Creek) is in MU 4-32.; REGION 4 - Kootenay; MU 4-32"
+    "note": "ARROW PARK (Mosquito) CREEK 4-32 is this creek (owner 2026-11-26, T1118 D6); moved here from gnis 14970 by Kootenay Lake with the row's binding; REGION 4 - Kootenay; MU 4-32"
    },
    {
     "name": "MOSQUITO CREEK",
     "source": "regulation",
-    "note": "GNIS name: Mosquito Creek. MU 4-18 near Arrow Park community. GNIS 7335 (also Mosquito Creek) is in MU 4-32.; REGION 4 - Kootenay; MU 4-32"
+    "note": "ARROW PARK (Mosquito) CREEK 4-32 is this creek (owner 2026-11-26, T1118 D6); moved here from gnis 14970 by Kootenay Lake with the row's binding; REGION 4 - Kootenay; MU 4-32"
    }
   ]
  },

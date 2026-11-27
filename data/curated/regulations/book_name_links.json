@@ -2224,9 +2224,9 @@
     "4-32"
    ]
   },
-  "note": "GNIS name: Mosquito Creek. MU 4-18 near Arrow Park community. GNIS 7335 (also Mosquito Creek) is in MU 4-32.",
+  "note": "REBOUND to the Arrow Park creek (owner 2026-11-26, T1118 D6: \"miquot creek yes should be the arrow park one\"): Mosquito Creek gnis 7335 (MU 4-32/4-15, 35.8 km, mouth at East Arrow Park). BC Geographical Names keeps \"Arrow Park (Mosquito) Creek\" (id 49591, rescinded 1990) at the same point as the official Mosquito Creek (id 40182), and Mosquito Lake (stocked as ARROW PARK LAKE) sits on the same FWA code 300-687655. The old binding, gnis 14970, is a 1.4 km Mosquito Creek by Kootenay Lake in MU 4-18, 76 km from the printed unit.",
   "gnis_ids": [
-   "14970"
+   "7335"
   ]
  },
  {
