@@ -3,11 +3,11 @@
  * `ui-native/GaugeReading.tsx`) say of a station — hooks and a pure VM, so the words are decided here and drawn there (AGENTS 25).
  *
  *   `gaugeReadingVM`   the reading line, its standing and colour-bar position, from the feed's reading; or, with no CURRENT
- *                      reading (core `readingCurrent`, which this file only calls), the plain line saying when it last reported.
+ *                      reading (core `readingCurrentNow`, T1205: by the clock; this file only calls it), the plain line saying when it last reported.
  *   `useGaugePage`     the release's facts for one station (`readGaugePage`): name, flags, the waters it serves.
  */
 import { CONDITIONS_WORDS, GAUGE_PAGE_WORDS, donorLastReport, gaugeTrend, figureIn, freshness, now as clockNow, readingAgeLine,
-         readingCurrent, readingStanding, type Standing } from "@app/core";
+         readingCurrentNow, readingStanding, type Standing } from "@app/core";
 import type { Parameter, Series } from "@app/data";
 import { readGaugePage, type GaugePageFacts, type ReleaseLoader } from "@app/data/release";
 import type { Conditions } from "./hooks";
@@ -30,14 +30,19 @@ export interface GaugeReadingVM {
   noReading: string | null;
 }
 
-/** The reading as the page says it. `ref`: the instant it is judged against (the feed's own write time, `Conditions.fetchedAt`). */
-export function gaugeReadingVM(c: Conditions | null, ref: number | null = c?.fetchedAt ?? null,
-                               measured: Pick<Series, "at" | "values"> | null = null): GaugeReadingVM {
+/**
+ * The reading as the page says it, JUDGED BY THE CLOCK (T1205, core `readingCurrentNow`: older than 8 h before `at`, the reading is not
+ * today's — the very rule the Conditions card, the map's dots and the feed's index use, so the page cannot disagree with them). `at`:
+ * the instant judged against, `clock.ts` `now()`: the page re-renders on the gauge feed's beat (`useFeedVersion`), so an open page
+ * goes old as time passes with no fetch.
+ */
+export function gaugeReadingVM(c: Conditions | null, measured: Pick<Series, "at" | "values"> | null = null,
+                               at: number = clockNow()): GaugeReadingVM {
   const none = (last: string): GaugeReadingVM => ({ figure: null, quantity: null, standing: null, percentile: null, trend: null, age: null,
                                                     noReading: GAUGE_PAGE_WORDS.noReading(last) });
   if (!c) return none("The live feed has no report from this gauge.");
   const rq = readingQuantityOf(c);
-  if (!rq || !readingCurrent(c.observedAt, ref)) return none(donorLastReport(c.observedAt));
+  if (!rq || !readingCurrentNow(c.observedAt, at)) return none(donorLastReport(c.observedAt));
   const ranked = c.percentile !== null && c.percentile !== undefined;
   return {
     figure: `${figureIn(rq.figure, rq.quantity)} ${CONDITIONS_WORDS.unit[rq.quantity]}`,
@@ -46,7 +51,7 @@ export function gaugeReadingVM(c: Conditions | null, ref: number | null = c?.fet
                                         ...(c.rankedAt !== undefined ? { rankedAt: c.rankedAt } : {}), observedAt: c.observedAt }) : null,
     percentile: ranked ? c.percentile! : null,
     trend: rq.quantity === "discharge" && measured ? (() => { const t = gaugeTrend(measured.at, measured.values); return t ? GAUGE_PAGE_WORDS.trend[t] : null; })() : null,
-    age: readingAgeLine(freshness(c.fetchedAt, clockNow()), c.observedAt, undefined, !!c.kept),
+    age: readingAgeLine(freshness(c.fetchedAt, at), c.observedAt, undefined, !!c.kept),
     noReading: null,
   };
 }

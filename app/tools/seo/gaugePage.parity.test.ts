@@ -146,6 +146,15 @@ describe("the gauge page shows what the app shows for one station", () => {
     cleanup();
   });
 
+  it("(T1194, T1205) the site's mount judges the reading by the clock too: 9 h on, the same piece says when it last reported, with no figure, bar or trend", async () => {
+    vi.setSystemTime(NOW + 9 * H - H);       // the reading is of NOW - 1 h: now 9 h old
+    const view = render(h(GaugeChartRoot, { source: stationChartSource(ST, httpFeed(BASE, feedFetch()), CLIM), station: ST }));
+    await waitFor(() => expect(view.getByTestId("gauge-no-reading").textContent).toBe("No current reading. Last reported 2026-11-08 at 04:00 PT."));
+    for (const id of ["gauge-figure", "gauge-trend", "gauge-standing"]) expect(view.queryByTestId(id), id).toBeNull();
+    expect(view.container.querySelector('[data-testid="legend-ramp"]')).toBeNull();
+    cleanup();
+  });
+
   it("(T1039) the page's source answers the chart exactly as the app's release source: every span, quantity and model", async () => {
     const feed = httpFeed(BASE, feedFetch());
     const page = stationChartSource(ST, feed, CLIM), app = appSource(feed);

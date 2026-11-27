@@ -44,7 +44,7 @@ export function GaugeReading({ source, station, palette, theme, feed, notes }: {
                                                ...(rq ? { reports: c!.reports ?? null, readingQuantity: rq.quantity } : {}) });
   // the last day's measured flow, for the trend word (the 72 h series, shared with the chart's own asks)
   const day = useSeries(source, station, "72h", "discharge", undefined, rq?.quantity === "discharge");
-  const r = got.state === "ready" ? gaugeReadingVM(c, c?.fetchedAt ?? null, day.state === "ready" ? day.value ?? null : null) : null;
+  const r = got.state === "ready" ? gaugeReadingVM(c, day.state === "ready" ? day.value ?? null : null) : null;
   const noRecord = noRecordLine(vm.shown, vm.banded, vm.known, rq ? c!.reports : null, c?.offRecord ?? null);
   const failed = got.state === "failed" || vm.chart.state === "failed" || vm.series.state === "failed";
   return (

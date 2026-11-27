@@ -2,15 +2,17 @@
  * (T1194, acceptance 7) THE SHARED READING PIECE, failure and quiet cases: a reading that cannot be loaded is SHOWN as a failure
  * and REPORTED, with no figure, standing or colour-bar mark; a gauge with no current reading says when it last reported.
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { GAUGE_PAGE_WORDS, setFailureSink } from "@app/core";
-import type { StationId } from "@app/data";
+import { FEED_TTL_MS, type StationId } from "@app/data";
 import { LIGHT } from "./theme";
 import { GaugeReading, type GaugeReadingSource } from "./GaugeReading";
 
 vi.mock("./StationChart", () => ({ StationChart: () => null }));
-afterEach(() => { cleanup(); setFailureSink(null); });
+// (T1205) a reading is current BY THE CLOCK: the clock is pinned at the fixture's own time (20 minutes after its feed was written)
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"], shouldAdvanceTime: true }); vi.setSystemTime(FED + 20 * 60_000); });
+afterEach(() => { cleanup(); setFailureSink(null); vi.useRealTimers(); });
 
 const FED = Date.parse("2026-10-28T05:01:28Z");
 const H = 3_600_000;
@@ -41,12 +43,13 @@ describe("(T1194) the shared gauge reading", () => {
     expect(screen.queryByTestId("gauge-no-reading")).toBeNull();
   });
 
-  it("a reading too old to be current: when it last reported, no figure and no bar", async () => {
+  it("(T1205) 9 h old by the clock, whatever the feed was written at: when it last reported, no figure, no bar, no trend", async () => {
+    vi.setSystemTime(FED + 9 * 3_600_000);
     const now = async () => ({ fetchedAt: FED, value: { discharge: 8.01, level: null, parameter: "discharge", percentile: 0.02,
-                                                       standing: null, at: "2026-10-25T10:00:00-08:00" } });
+                                                       standing: null, at: "2026-10-27T20:05:00-08:00" } });
     render(<GaugeReading source={source(now)} station={ST} palette={LIGHT} theme="light" />);
     await waitFor(() => expect(screen.getByTestId("gauge-no-reading").textContent)
-      .toBe("No current reading. Last reported 2026-10-25 at 11:00 PT."));
+      .toBe("No current reading. Last reported 2026-10-27 at 21:05 PT."));
     expect(screen.queryByTestId("gauge-figure")).toBeNull();
     expect(screen.queryByTestId("legend-ramp")).toBeNull();
   });
@@ -63,5 +66,19 @@ describe("(T1194) the trend word beside the reading", () => {
     render(<GaugeReading source={source(now, [8.01])} station={ST} palette={LIGHT} theme="light" />);
     await waitFor(() => expect(screen.getByTestId("gauge-figure").textContent).toBe("8.01 m³/s"));
     expect(screen.queryByTestId("gauge-trend")).toBeNull();
+  });
+});
+
+describe("(T1205) the open page goes old as time passes, with no new feed", () => {
+  it("current at 20 minutes; the clock passes the 8 h line and the feed's beat comes: the figure, bar and trend give way to the last-reported line", async () => {
+    const now = async () => ({ fetchedAt: FED, value: { discharge: 8.01, level: null, parameter: "discharge", percentile: 0.02,
+                                                       standing: null, at: "2026-10-27T20:05:00-08:00" } });
+    render(<GaugeReading source={source(now, [20, 14, 12, 9, 8.01])} station={ST} palette={LIGHT} theme="light" />);
+    await waitFor(() => expect(screen.getByTestId("gauge-figure").textContent).toBe("8.01 m³/s"));
+    expect(screen.getByTestId("legend-ramp")).toBeTruthy();
+    vi.setSystemTime(FED + 9 * 3_600_000);
+    act(() => { vi.advanceTimersByTime(FEED_TTL_MS + 1000); });
+    await waitFor(() => expect(screen.getByTestId("gauge-no-reading").textContent).toBe("No current reading. Last reported 2026-10-27 at 21:05 PT."));
+    for (const id of ["gauge-figure", "gauge-trend", "gauge-standing", "legend-ramp"]) expect(screen.queryByTestId(id), id).toBeNull();
   });
 });
