@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane: the repo clean chat; PR 1 (comments into the schem
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 1 (comments into curated.py), PR 2 (one strict `Config` schema, dead keys deleted) and PR 3 (one `source:` block) in review; then PRs 4-7 of the plan below, in order |
+| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 1 (comments into curated.py), PR 2 (one strict `Config` schema, dead keys deleted), PR 3 (one `source:` block) and PR 4 (one `roots:` block, two keys renamed, unlisted files declared) in review; then PRs 5-7 of the plan below, in order |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "the config.yaml i feel has a lot of stuff in it that is noit
 needed too? like there is a lot of bloat because of the way stuff is formatted could we audit this and maybe use it as
@@ -37,9 +37,23 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
    refuses the two gpkg file names typed in code. A read records `source.<name>` + `data_tree.source`, per leaf.
 4. Relative paths under `roots`; rename `waters.areas` → `area_closures`, `waters.tidal` → `tidal_limits`; declare the
    unlisted curated files (`closed_areas.json`, `owner_carries.json`, `recheck.json`, bathymetry, stocking) and the
-   generated folders; `release` becomes a root. (From PR 2's review) Point `check_curated`'s stocking / bathymetry
+   generated folders; `release` becomes a root. [x] (From PR 2's review) Point `check_curated`'s stocking / bathymetry
    entries at `pipeline/bathymetry/accept.py`'s frozen paths (`frozen_path`), not `None`: today's report says "not
    declared in config.yaml", which is awkward once they are declared.
+   PR 4 (done on its branch): one `roots:` block (source, curated, generated, release, cache); every other path is a
+   name under the root of its block (`curated.TREES`), refused when absolute or climbing out; `data_tree`,
+   `curated.base`, `generated.base`, `generated.release` and their cross-check gone; `CURATED_ROOT` moves the one
+   curated root. `waters.areas` -> `area_closures`, `waters.tidal` -> `tidal_limits`; the atlas record keeps its input
+   names (`atlas.inputs.RECORD_NAME_OF`). Declared: curated `dfo_salmon.closed_areas`, `review.owner_carries`,
+   `review.recheck`, `bathymetry.{matches,contour_matches}`, `stocking.matches` (each "may be absent"); generated
+   `bathymetry`, `stocking`, `debug`, `synopsis`, `steelhead`, `curated_writes`, `regs.export`, `gauges.hydat_daily`.
+   Left (found, not moved): `GENERATED.bundle.parent / …` (build-manifest.json, build-logs/, deliver-cache/,
+   generated `release/` + `release/checks`: `pipeline/build.py`, `pipeline/deliver/__main__.py`, `pipeline/release.py`)
+   and `GENERATED.regs.extraction.parent` (`passage_boxes.py`) still find a generated folder beside another key.
+   - [ ] Gap (spin-off 3): `dfo_salmon.closed_areas` is declared but kept out of `build.curated_digest`
+     (`NOT_DELIVER_INPUTS`), as before: deliver reads it but is covered only because deliver depends on reach.
+   - [ ] `check_curated`'s stocking / bathymetry `frozen_ids` (`waterbodies.waterbody_id`, `sheets.waterbody_identifier`)
+     do not match the shape `bathymetry.accept` writes (`matches[].chart_id`): the check raises once the file exists.
 5. Per-leaf C lines (a stage keys on the config leaves it reads, not the whole block).
 6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused.
 7. Option A: the file list moves into the schema; config.yaml about 12 lines. The file names live as schema-side names
@@ -58,7 +72,7 @@ Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
 - [ ] 2026-11-26 — The existing `curated.py` field notes still carry ticket ids and dates (T226, T322, T1021, P08/P18,
   "owner 2026-11-13", …). Strip them too, git keeping the record (A), or leave them (B)? Default: B; PR 1 moved
   config.yaml's facts without them and left the existing notes alone.
-- [ ] 2026-11-26 — Two existing notes are stale: the `Waters` docstring's reason for keeping `tidal` / `areas`
+- [x] 2026-11-26 — Two existing notes are stale: the `Waters` docstring's reason for keeping `tidal` / `areas`
   (also in `data/curated/waters/README.md`), and the `Domain` docstring "Stocking and bathymetry are named before they exist"
   (`pipeline/bathymetry/accept.py` writes their files beside these keys). Fix them in PR 2 (A) or leave them (B)?
   Default: A, with the renames (PR 4) and the null placeholders (PR 2).
