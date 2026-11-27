@@ -20,7 +20,9 @@ stops the build on any of:
   G6  an OPEN run (consecutive non-member pieces on one blue line) lying within the edge band for more than the floor
       (`MIN_PIECE_M`) with `GRAZES_TO_LOOK_AT` or more grazes into the polygon on that stretch: a boundary river DRAWN
       wiggling across the edge, every crossing under the dip, so the cutter leaves it open although the owner's rule is
-      "edge water stays closed". The builder does not decide it (AGENTS rule 12); the build stops and names it.
+      "edge water stays closed". The builder does not decide it (AGENTS rule 12); the build stops and names it,
+      unless an accepted row of `waters/area_edge_calls.json` covers it (`open`; a `closed` call makes the cutter close
+      it). An accepted row matching nothing is STALE and stops the build too (`G6_stale`).
 
 Lakes and wetlands are never cut and keep the outline test (`border.mark_inside_areas`); they are not checked here.
 Every number is written to `area_cut_gate.json` (pass or fail), so a build's log says what the rule did.
@@ -34,6 +36,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from pipeline.atlas.splits import area_edge_calls as _ec
 from pipeline.atlas.splits import clean_cut as _cc
 from pipeline.common import tolerances as _tol
 from pipeline.common.models import NodeKind, StreamGraph
@@ -85,7 +88,7 @@ def _line(run, geoms):
 
 
 def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]],
-            edge_m: float = _cc.EDGE_M, min_piece_m: float = _cc.MIN_PIECE_M) -> dict:
+            edge_m: float = _cc.EDGE_M, min_piece_m: float = _cc.MIN_PIECE_M, calls=()) -> dict:
     """The checks over every closure area: `areas` is [(area id, the name its cuts carry, polygon)]. Returns
     {"checks": {G1..G6: [offender, …]}, "areas": {area id: counts}, "worst": {…}}."""
     import shapely
@@ -107,7 +110,8 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
             gs.append(g)
     tree = STRtree(gs) if gs else None
     by_area_cut: dict[str, str] = {f"split:area:{name}": aid for aid, name, _ in areas}
-    checks: dict[str, list] = {"G1": [], "G2": [], "G3": [], "G4": [], "G5": [], "G6": []}
+    checks: dict[str, list] = {"G1": [], "G2": [], "G3": [], "G4": [], "G5": [], "G6": [], "G6_stale": []}
+    used: set = set()                          # the accepted calls that matched a stretch
     per: dict[str, dict] = {}
     worst = {"G1_beyond_band_m": 0.0, "G2_deep_m": 0.0, "shortest_area_piece_m": None}
     for aid, name, poly in sorted(areas, key=lambda x: x[0]):
@@ -148,7 +152,13 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
                 part = shapely.line_merge(part) if part.geom_type == "MultiLineString" else part
                 longest = max((p.length for p in _parts(part) if not p.is_empty), default=0.0)
                 wholly_inside = longest >= line.length - RUN_WHOLLY_INSIDE_M
-                if longest < DEEP_M - _RUN_NOISE_M and not wholly_inside:
+                # an accepted `closed` call is APPLIED when this member run holds its whole range (it may have joined
+                # the inside beside it), and a run it reaches is the owner's edge water, not a line made inside by error
+                called = [c for c in calls if c.call == "closed" and c.area == aid and c.blk == blk
+                          and c.from_m < run[-1].up_m and c.to_m > run[0].down_m]
+                used.update(c for c in called if run[0].down_m - _ec.MATCH_M <= c.from_m
+                            and c.to_m <= run[-1].up_m + _ec.MATCH_M)
+                if longest < DEEP_M - _RUN_NOISE_M and not wholly_inside and not called:
                     checks["G5"].append({"area": aid, "blk": blk, "from_m": round(run[0].down_m, 1),
                                          "to_m": round(run[-1].up_m, 1), "longest_inside_run_m": round(longest, 2)})
         if tree is None:
@@ -169,10 +179,16 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
                     if hug.is_empty or hug.length <= min_piece_m:
                         continue
                     grazes = [p for p in _parts(hug.intersection(poly)) if not p.is_empty and p.length > _RUN_NOISE_M]
-                    if len(grazes) >= GRAZES_TO_LOOK_AT:
-                        checks["G6"].append({"area": aid, "blk": blk, "from_m": round(run[0].down_m, 1),
-                                             "to_m": round(run[-1].up_m, 1), "hugging_m": round(hug.length, 1),
-                                             "grazes": len(grazes),
+                    if len(grazes) < GRAZES_TO_LOOK_AT:
+                        continue
+                    ends = [line.project(shapely.Point(xy)) for xy in (hug.coords[0], hug.coords[-1])]
+                    lo, hi = run[0].down_m + min(ends), run[0].down_m + max(ends)
+                    called = [c for c in calls if c.call == "open" and c.covers(aid, blk, lo, hi)]
+                    used.update(called)
+                    if not called:
+                        checks["G6"].append({"area": aid, "blk": blk, "water": run[0].display_name or "",
+                                             "from_m": round(lo, 1), "to_m": round(hi, 1),
+                                             "hugging_m": round(hug.length, 1), "grazes": len(grazes),
                                              "longest_graze_m": round(max(p.length for p in grazes), 2)})
         for i in sorted(tree.query(poly, predicate="intersects")):
             nid = nids[i]
@@ -207,18 +223,22 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
             checks["G3"].append({"area": sorted(set(hit)), "node": nid, "length_m": round(ln, 2),
                                  "lower": str(getattr(n.lower_bound, "boundary_id", None)),
                                  "upper": str(getattr(n.upper_bound, "boundary_id", None))})
+    # an accepted call that matched no stretch is stale: reported, and it stops the build (never silently kept)
+    for c in calls:
+        if c not in used:
+            checks["G6_stale"].append({**c.key(), "why": "no stretch of the build matches this accepted call"})
     for aid, c in per.items():
         c["member_m"] = round(c["member_m"], 1)
         c["member_beyond_band_m"] = round(c["member_beyond_band_m"], 1)
     return {"edge_m": edge_m, "min_piece_m": min_piece_m, "allowed_beyond_band_m": allowed_beyond,
             "deep_m": DEEP_M, "share": SHARE, "counts": {k: len(v) for k, v in checks.items()},
-            "worst": worst, "checks": checks, "areas": per}
+            "worst": worst, "checks": checks, "areas": per, "calls_used": [c.key() for c in sorted(used, key=str)]}
 
 
 def check(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]], out_dir: Path | None = None,
-          edge_m: float = _cc.EDGE_M, min_piece_m: float = _cc.MIN_PIECE_M) -> dict:
+          edge_m: float = _cc.EDGE_M, min_piece_m: float = _cc.MIN_PIECE_M, calls=()) -> dict:
     """Stop the build if any closure area fails G1-G6; always write `area_cut_gate.json` to `out_dir`."""
-    res = measure(graph, geoms, areas, edge_m, min_piece_m)
+    res = measure(graph, geoms, areas, edge_m, min_piece_m, calls)
     if out_dir is not None:
         Path(out_dir).mkdir(parents=True, exist_ok=True)
         (Path(out_dir) / FILENAME).write_text(json.dumps(res, indent=1, sort_keys=True) + "\n")
@@ -232,8 +252,9 @@ def check(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]],
     for k, rows in res["checks"].items():
         for r in rows[:_PRINT]:
             print(f"  AREA-CUT {k} {r}")
-    raise SystemExit(f"atlas build: area-cut gate — G1 {n['G1']}, G2 {n['G2']}, G3 {n['G3']}, G4 {n['G4']}, G5 {n['G5']}, G6 {n['G6']} "
-                     f"piece(s) (see {FILENAME}). Fix the cut rule (clean_cut.decide_area); the gate never repairs")
+    raise SystemExit(f"atlas build: area-cut gate — G1 {n['G1']}, G2 {n['G2']}, G3 {n['G3']}, G4 {n['G4']}, G5 {n['G5']}, G6 {n['G6']}, stale calls {n['G6_stale']} "
+                     f"(see {FILENAME}). Fix the cut rule (clean_cut.decide_area); a G6 stretch is the owner's "
+                     f"call (waters/area_edge_calls.json: a `proposed` row is no acceptance); the gate never repairs")
 
 
 def closure_areas(area_defs: list[dict], catalog_polys: dict) -> list[tuple[str, str, object]]:
@@ -268,7 +289,8 @@ def main(argv: list[str] | None = None) -> None:
     geoms = read_artifact(str(atlas / "geometries.pkl"))
     defs = load_area_split_defs()
     polys = {ad["id"]: load_area_polys(None, ad) for ad in defs if ad.get("cut") == "clean"}
-    res = measure(graph, geoms, closure_areas(defs, polys))
+    from pipeline.atlas.splits import area_edge_calls
+    res = measure(graph, geoms, closure_areas(defs, polys), calls=area_edge_calls.load())
     Path(a.out).write_text(json.dumps(res, indent=1, sort_keys=True) + "\n")
     print(json.dumps({"counts": res["counts"], "worst": res["worst"]}, indent=1))
 

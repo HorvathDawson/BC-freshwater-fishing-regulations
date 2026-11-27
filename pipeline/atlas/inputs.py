@@ -63,6 +63,8 @@ ATLAS_INPUTS: dict[str, str] = {
     # T678 (recorded from the promotion of the first coast-cut atlas, full_t678b, 2026-11-12, by `--backfill`)
     "curated:waters.tidal_split_authority": "cut_shores (`splits.coast.load_authority`: which splits are DFO-written)",
     "curated:waters.shore_held": "cut_shores (`splits.coast_held.load`: the owner's rulings on single lines)",
+    # T1199 review: the owner's calls on edge water the closure cutter leaves open (cutter + area-cut gate G6)
+    "curated:waters.area_edge_calls": "cut_closure_areas + mark_membership (`splits.area_edge_calls.load`)",
     "source:fwa_coast": "cut_shores (`splits.coast.CoastGeometry`: FWA river polygons + land mass)",
 }
 

@@ -1246,9 +1246,15 @@ def cut_closure_areas(b: _Build) -> None:
     #: pass stamps their stream pieces from these and runs no overlap test on them; first_last areas
     #: keep the overlap test (both sides) — areas.json _cut_policy.
     clean_inside: dict[str, dict] = {}
+    from pipeline.atlas.splits import area_edge_calls as _edge_calls
+    # the stretches the owner called edge water (`waters/area_edge_calls.json` accepted `closed`): inside, whatever
+    # the crossings say (the area-cut gate's G6 names the ones the cutter would leave open)
+    _closed = _edge_calls.closed_by_area(_edge_calls.load())
     for ad, polys, scope in getattr(b, "clean_pending", ()):
+        _forced = {_nm: _closed[_aid] for _nm in polys
+                   if (_aid := _area_id(ad.get("kind", ad["id"]), _nm)) in _closed}
         _cc = resolve_clean_cuts(polys, b.chains, scope=scope, existing=_standing(b.graph),
-                                 bc_inside=b.border_inside)
+                                 bc_inside=b.border_inside, forced=_forced)
         for _nm, _spans in _cc.inside.items():
             clean_inside[_area_id(ad.get("kind", ad["id"]), _nm)] = _spans
         _st = ", ".join(f"{k} {v}" for k, v in sorted(_cc.stats.items())) or "nothing joined, grown or moved"
@@ -1544,7 +1550,9 @@ def mark_membership(b: _Build) -> None:
     # than 5 m inside, no piece under the floor an area cut made (area_cut_gate.json, written pass or fail).
     if catalog_polys:
         from pipeline.atlas.splits import area_cut_gate as _area_gate
-        _area_gate.check(graph, geoms, _area_gate.closure_areas(area_defs, catalog_polys), Path(args.out))
+        from pipeline.atlas.splits import area_edge_calls as _edge_calls
+        _area_gate.check(graph, geoms, _area_gate.closure_areas(area_defs, catalog_polys), Path(args.out),
+                         calls=_edge_calls.load())
         _tick("area-cut gate")
     # THE CLOSE-PAIR REPORT (T179, owner 2026-10-25): every curated cut 5-25 m from any other boundary
     # (curated, gauge, area, border, length, lake edge, line end) -> close_pairs.json. A report, not a gate.

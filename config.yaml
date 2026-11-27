@@ -67,6 +67,7 @@ curated:
     added_stream_calls: "data/curated/waters/added_stream_calls.json"
     unmapped_waters: "data/curated/waters/unmapped_waters.json"
     unplaced_piece_calls: "data/curated/waters/unplaced_piece_calls.json"
+    area_edge_calls: "data/curated/waters/area_edge_calls.json"
   dfo_salmon:
     places: "data/curated/dfo_salmon/places"
     wording: "data/curated/dfo_salmon/wording.json"

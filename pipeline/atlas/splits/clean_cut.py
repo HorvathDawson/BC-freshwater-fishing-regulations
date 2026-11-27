@@ -319,8 +319,8 @@ def _count(stats: dict | None, key: str) -> None:
 
 
 def decide_area(g, poly, boundary, band=None, others=(), edge_m: float = EDGE_M,
-                min_piece_m: float = MIN_PIECE_M, dip_m: float = DIP_M, stats: dict | None = None
-                ) -> tuple[list[float], list[tuple[float, float]], list[tuple[float, float]]]:
+                min_piece_m: float = MIN_PIECE_M, dip_m: float = DIP_M, stats: dict | None = None,
+                forced_in=()) -> tuple[list[float], list[tuple[float, float]], list[tuple[float, float]]]:
     """THE CLEAN-CUT RULE FOR A CLOSURE AREA (T1199, owner 2026-11-26: option D, rule C2): (cuts, inside intervals,
     ignored dips), relative to the line's mouth (0 .. g.length). `band` is `edge_band(poly, edge_m)` (made here when
     not given); `others` the other boundaries on this stretch, relative.
@@ -338,12 +338,20 @@ def decide_area(g, poly, boundary, band=None, others=(), edge_m: float = EDGE_M,
       * NO PIECE UNDER `min_piece_m` (`floor_pieces`), and none against another boundary (`onto_others`). The inside
         never shrinks.
       * A line that never crosses the edge is inside exactly when it lies inside: a river beside the edge is never
-        inside (owner 2026-11-26, "Never inside")."""
+        inside (owner 2026-11-26, "Never inside").
+      * `forced_in` (relative intervals): stretches the OWNER called edge water of this area
+        (`area_edge_calls.json` `closed`), inside whatever the crossings say; the floor and the move apply to them."""
     L = g.length
+    forced = [(max(0.0, a), min(L, b)) for a, b in forced_in if min(L, b) > max(0.0, a)]
     ms = crossings(g, boundary)
-    if not ms:
+    if not ms and not forced:
         mid = g.interpolate(0.5, normalized=True)
         return [], ([(0.0, L)] if poly.contains(mid) else []), []
+    if not ms:
+        ms_inside = [(0.0, L)] if poly.contains(g.interpolate(0.5, normalized=True)) else []
+        inside = floor_pieces(_merge(ms_inside + forced), L, min_piece_m, stats)
+        cuts = sorted([lo for lo, _ in inside if lo > 0.0] + [hi for _, hi in inside if hi < L])
+        return cuts, inside, []
     band = edge_band(poly, edge_m) if band is None else band
     sides = _sides(g, poly, boundary, ms)
     edges = [0.0] + ms + [L]
@@ -374,6 +382,9 @@ def decide_area(g, poly, boundary, band=None, others=(), edge_m: float = EDGE_M,
         _count(stats, "tails_joined_by_the_band")
     dips += [(lo, hi) for lo, hi in ins if hi - lo < dip_m]
     inside = [(lo, hi) for lo, hi in ins if hi - lo >= dip_m]
+    if forced:
+        inside = _merge(inside + forced)
+        _count(stats, "stretches_called_edge_water")
     if NO_PIECE_UNDER_THE_FLOOR:
         inside = floor_pieces(inside, L, min_piece_m, stats)
     if A_CUT_NEAR_A_BOUNDARY_MOVES_ONTO_IT:
@@ -418,7 +429,7 @@ def stretches(chain, gaps=()) -> list[tuple[float, float, float | None, float | 
 
 
 def decide_chain(chain, poly, boundary, zone_m: float, gaps=(), band=None, existing=(),
-                 stats: dict | None = None):
+                 stats: dict | None = None, forced=()):
     """`decide` (the border's zone rule) or, with `band` (`edge_band`), `decide_area` (a closure area's rule) over
     each stretch of `chain` (`stretches`). `existing`: the ABSOLUTE measures of the other boundaries on this blue line
     (`decide_area`'s `others`). Returns (cuts, inside, grazes) in ABSOLUTE route measures: cuts as (measure, "enter" |
@@ -438,7 +449,8 @@ def decide_chain(chain, poly, boundary, zone_m: float, gaps=(), band=None, exist
         zx: dict = {}
         if band is not None:
             rel = [e - M0 - lo for e in existing if M0 + lo < e < M0 + lo + sub.length]
-            c, ins, gz = decide_area(sub, poly, boundary, band, others=rel, stats=stats)
+            frel = [(a - M0 - lo, b - M0 - lo) for a, b in forced if b > M0 + lo and a < M0 + lo + sub.length]
+            c, ins, gz = decide_area(sub, poly, boundary, band, others=rel, stats=stats, forced_in=frel)
         else:
             c, ins, gz = decide(sub, poly, boundary, zone_m, zx)
         lo_abs = lo_end if lo_end is not None else -math.inf
@@ -487,7 +499,7 @@ def onto_existing(M: float, existing, zone_m: float) -> float:
 
 def resolve_clean_cuts(polys_by_name: dict, chains: list[BlkChain], label_of=None,
                        scope: dict | None = None, existing: dict | None = None,
-                       bc_inside: dict | None = None, edge_m: float = EDGE_M) -> CleanCut:
+                       bc_inside: dict | None = None, edge_m: float = EDGE_M, forced: dict | None = None) -> CleanCut:
     """Clean-cut every chain meeting each polygon (`decide_area`). `label_of(name, chain, measure)` labels a cut
     (default: the area's own name). `scope` narrows an area to one water, as in
     `area_splits.resolve_area_splits`.
@@ -499,6 +511,9 @@ def resolve_clean_cuts(polys_by_name: dict, chains: list[BlkChain], label_of=Non
     ({blk: [inside-B.C. intervals]} from the border pass): an area is clipped to B.C., so it is cut only along what
     lies inside B.C. — Liumchen Creek's route measure runs 1.6 km into Washington past the end of its geometry, and
     an inside interval left open there gave that stretch the reserve's membership.
+
+    `forced` ({name: {blk: [(from_m, to_m)]}}, absolute measures): the stretches the owner called edge water of that
+    area (`area_edge_calls.closed_by_area`), inside whatever the crossings say.
 
     Interval ends at a chain's mouth or source are open (±inf): a chain's geometric length and its
     route-measure span differ by millimetres, and the inside reaches the water's end either way."""
@@ -531,7 +546,7 @@ def resolve_clean_cuts(polys_by_name: dict, chains: list[BlkChain], label_of=Non
             gaps = outside_gaps(bc_inside[c.blk]) if bc_inside and c.blk in bc_inside else ()
             ex = ex_all.get(c.blk, ())
             cuts, inside, grazes = decide_chain(c, poly, boundary, 0.0, gaps, band=band, existing=ex,
-                                                stats=res.stats)
+                                                stats=res.stats, forced=((forced or {}).get(name) or {}).get(c.blk, ()))
             cut_at = {M for M, *_ in cuts}
 
             def at(M: float) -> float:

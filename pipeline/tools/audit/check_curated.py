@@ -319,6 +319,13 @@ def check_waters(waters=None, registry: Path | None = None) -> tuple[list[str], 
             warn.append(f"name_variants: {len(unbuilt)} target(s) not in the current atlas registry (new since the "
                         "last atlas, or a typo): " + "; ".join(unbuilt[:12]) + (" …" if len(unbuilt) > 12 else ""))
 
+    # area_edge_calls (T1199 review): the owner's calls on edge water the closure cutter leaves open
+    if getattr(w, "area_edge_calls", None) is not None:
+        aec = load("area_edge_calls")
+        if aec is not None:
+            from pipeline.atlas.splits.area_edge_calls import problems as _aec_problems
+            err += _aec_problems(aec)
+
     # area_closures: {areas: [{id, cut, tile_layer, layer | file …}]}
     ac = load("areas")
     if ac is not None:

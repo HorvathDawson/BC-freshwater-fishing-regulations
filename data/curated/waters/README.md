@@ -24,6 +24,7 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `steelhead_waters.json` | accepted | `python -m pipeline.regs.steelhead.accept --write` | reach run |
 | `unmapped_waters.json` | authored | hand (worklist for added lakes) | `check_curated --waters` only |
 | `unplaced_piece_calls.json` | authored | the owner (`accepted`); Claude adds `proposed` rows, read by nothing | reach run (`build.unplaced_gate`, T632: any other unplaced piece stops it) |
+| `area_edge_calls.json` | authored | the owner (`accepted`: `closed` / `open`); Claude adds `proposed` rows, read by nothing | atlas (closure cutter; area-cut gate G6 stops on an uncalled stretch or a stale row, T1199) |
 
 Hand-edited files are checked by `python -m pipeline.tools.audit.check_curated --waters` (the build's first step).
 Config keys: `CURATED.waters.<file stem>`, except `tidal` (tidal_limits.json) and `areas` (area_closures.json), which

@@ -169,6 +169,11 @@ class Waters(BaseModel):
     #: unplaced, one row per (entry or DFO place, rule, piece, reason). Any other unplaced piece stops the reach run
     #: (`pipeline.atlas.reach.build.unplaced_gate`); `proposed` rows are not accepted and stop it too.
     unplaced_piece_calls: FilePath
+    #: AUTHORED (T1199 review, owner): the owner's calls on edge water the closure-area cutter leaves open (a boundary
+    #: river drawn wiggling across the edge): `closed` (the cutter treats it as inside) or `open`, keyed by area +
+    #: blue line + measure range. Only `accepted` rows are read (`splits.area_edge_calls`); the area-cut gate's G6
+    #: stops the build on any such stretch no accepted row covers, and on a stale row.
+    area_edge_calls: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 
