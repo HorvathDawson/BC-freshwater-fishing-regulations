@@ -12,7 +12,7 @@
 // (one hop, never a chain), so one manifest still describes the whole store. Each one is copied afresh at most every
 // REFRESH_DAYS days (spread over the days by its key), because the backup bucket's lifecycle expires a copy 30 days after
 // it was written whoever names it: a snapshot is then whole for at least DAILY_KEEP_DAYS - REFRESH_DAYS days, and
-// a restore fails naming any link that is gone. The state (non-personal) is copied
+// a restore would fail naming any link that is gone. The state (non-personal) is copied
 // whole every day as before. A copy the prune deletes is taken out of EVERY manifest that names it.
 //
 // Retention is the backup bucket's lifecycle rules (daily/ 30 days, monthly/ 400 days; set by wrangler, see T246). The

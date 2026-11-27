@@ -28,6 +28,5 @@ Depends: the usability audit. Size: M-L. Owner: yes (which places, after the aud
 Deleted: `data/process_tidal_boundary.py`, `deploy/staging/{play-listing-images.py,flood-test.mjs}`, `app/tools/perfetto/q1-q3.py`,
 `app/tools/testbed/{lab-shots,tap-glide}.mjs`, `app/tools/polish-shots.mjs` (their stray doc/comment references fixed).
 Kept: `deploy/prod/drop-v1.sh` (docs/release/PRODUCTION.md, upload.sh and test_prod_prune.py name it; the doc is a
-release page), `deploy/prod/feeds-placeholder*` (feeds.sh tells a person to run it, app/tools/seo/build.ts and
-deploy/lib/input-formats.sh name it, a test pins its worker.js), `app/tools/perfetto/pinch.py` (the zoom-pinch scenario's reader).
+release page), `deploy/prod/feeds-placeholder*` (feeds.sh tells a person to run it, deploy/lib/input-formats.sh names it, a test pins its worker.js), `app/tools/perfetto/pinch.py` (the zoom-pinch scenario's reader).
 Also deleted (owner: "I do not run them; delete"): `deploy/staging/backup.sh`, `restore-test.sh` and the one test that only read restore-test.sh; the feeds worker's own backup.ts stays (its comments no longer name them).
