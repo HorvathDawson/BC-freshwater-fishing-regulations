@@ -232,16 +232,16 @@ def load_barriers(path: Path | None = None) -> list[Barrier]:
 
 
 def barrier_sections(graph, row: Barrier) -> frozenset[str]:
-    """The STREAM sections a barrier row holds out. `basin`: every stream node whose trimmed FWA code is at or below
-    the selector's code. `upstream_of`: the pieces of `blk` wholly above `measure` (`down_m >= measure`; the piece the
-    point falls in is partly below it and stays) and everything that flows into them, through lakes."""
+    """The sections a barrier row holds out — every graph node, a lake-typed node too (a polygon the registry makes a
+    stream, `water_kind.flows`, is a "possible" stream all the same). `basin`: every node whose trimmed FWA code is at
+    or below the selector's code. `upstream_of`: the pieces of `blk` wholly above `measure` (`down_m >= measure`; the
+    piece the point falls in is partly below it and stays) and everything that flows into them, through lakes."""
     from pipeline.common.utils import wsc as W
     nodes = getattr(graph, "nodes", {})
-    stream = lambda n: str(getattr(getattr(n, "kind", ""), "value", getattr(n, "kind", ""))).lower() == "stream"  # noqa: E731
     if row.kind == "basin":
         code = str(row.selector["basin"])
-        return frozenset(s for s, n in nodes.items() if stream(n)
-                         and W.is_at_or_below(W.trim_wsc(str(getattr(n, "wsc", "") or "")), code))
+        return frozenset(s for s, n in nodes.items()
+                         if W.is_at_or_below(W.trim_wsc(str(getattr(n, "wsc", "") or "")), code))
     blk, m = str(int(row.selector["blk"])), float(row.selector["measure"])
     todo = [s for s, n in nodes.items() if str(getattr(n, "blk", "")) == blk and float(n.down_m) >= m]
     seen = set(todo)
@@ -252,7 +252,7 @@ def barrier_sections(graph, row: Barrier) -> frozenset[str]:
             if f not in seen:
                 seen.add(f)
                 todo.append(f)
-    return frozenset(s for s in seen if s in nodes and stream(nodes[s]))
+    return frozenset(s for s in seen if s in nodes)
 
 
 #: A STEELHEAD ROW'S OWN WATER: its matched waters within its own scope, as its rules are held (its
@@ -501,13 +501,13 @@ class Presence:
 
     def add_barriers(self, rows) -> None:
         """THE CURATED BARRIER LIST (`load_barriers`): each row's stream sections (`barrier_sections`) stay out of
-        `PACIFIC_STREAMS_ARE_STEELHEAD_WATER`. A row that holds no stream of this graph is REFUSED by name: a stale
+        `PACIFIC_STREAMS_ARE_STEELHEAD_WATER`. A row that holds nothing of this graph is REFUSED by name: a stale
         or mistyped selector never passes as "nothing to hold"."""
         for r in rows:
             secs = barrier_sections(self.graph, r)
             if not secs:
                 raise ValueError(f"steelhead barrier {r.id} ({r.what}): its {r.kind} selector {r.selector} "
-                                 f"holds no stream of this graph — fix data/curated/waters/steelhead_barriers.json")
+                                 f"holds nothing of this graph — fix data/curated/waters/steelhead_barriers.json")
             for x in sorted(secs):
                 self.held.setdefault(x, r.id)
             self.barriers.append({"id": r.id, "kind": r.kind, "sections": len(secs)})

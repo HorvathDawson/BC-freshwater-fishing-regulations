@@ -1074,7 +1074,7 @@ def test_the_barrier_file_refuses_an_id_twice_and_a_row_that_holds_nothing(tmp_p
         SH.load_barriers(p)
     p.write_text(json.dumps({"barriers": [row]}))
     pr, _, _ = _presence_fixture(SH, NS)
-    with pytest.raises(ValueError, match="barrier x .*holds no stream"):
+    with pytest.raises(ValueError, match="barrier x .*holds nothing"):
         pr.add_barriers(SH.load_barriers(p))
     with pytest.raises(FileNotFoundError):
         SH.load_barriers(tmp_path / "missing.json")
@@ -1112,7 +1112,24 @@ def test_an_upstream_of_row_holds_everything_above_its_point():
         g.up_adj.setdefault(e.to_node, []).append(i)
         g.down_adj.setdefault(e.from_node, []).append(i)
     got = SH.barrier_sections(g, _barrier(SH, "falls", blk=1, measure=1500.0))
-    assert got == frozenset({"1:2000", "2:0", "3:0"})
+    assert got == frozenset({"1:2000", "2:0", "3:0", "lake:9"})
+
+
+def test_a_lake_typed_stream_of_a_held_basin_stays_possible():
+    """A polygon the registry makes a stream (`water_kind.flows`: a lake-typed graph node) in a held basin is a
+    "possible" stream like any other: the basin row holds it (the first full run stopped on 1,230 of them in the
+    Mackenzie and Yukon basins)."""
+    from types import SimpleNamespace as NS
+    from pipeline.atlas.reach import steelhead as SH
+    pr, binds, twins = _presence_fixture(SH, NS)
+    pr.graph.nodes["fl"] = NS(kind=NS(value="lake"), wsc="200-948755-1")
+    pr.registry["wbk:fl"] = NS(kind="stream", name="Flowing Lake", section_ids=("fl",))
+    pr.add_barriers([_barrier(SH, "mackenzie", "200")])
+    binds = [NS(entry_id=b.entry_id, rule_id=b.rule_id, sections=b.sections + ("fl",))
+             if b.entry_id == SH.PROVINCE_STEELHEAD and not b.rule_id.endswith("b") else b for b in binds]
+    rows, rep = pr.finish(binds, twins=twins)
+    got = {r["section_id"]: r for r in rows}
+    assert got["fl"]["steelhead"] == "possible" and rep["possible_held"] == {"mackenzie": 1}
 
 
 @pytest.mark.parametrize("gone", ["steelhead.r1", "steelhead.r2", "steelhead.r4"])
