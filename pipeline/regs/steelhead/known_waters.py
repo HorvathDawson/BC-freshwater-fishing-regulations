@@ -591,7 +591,7 @@ class Atlas:
             v.sort()
         still = {s for it in self.items.values() if it["kind"] in ("lake", "wetland")
                  for s in it["section_ids"] if s.startswith("lake:")}
-        fwa = sqlite3.connect(SOURCE / "bc_fisheries_data.gpkg")
+        fwa = sqlite3.connect(SOURCE.fwa_gpkg)
         self.lf_wbk = {int(a): int(b) for a, b in fwa.execute(
             "select LINEAR_FEATURE_ID, WATERBODY_KEY from streams "
             "where WATERBODY_KEY is not null and WATERBODY_KEY != 0") if f"lake:{int(b)}" in still}

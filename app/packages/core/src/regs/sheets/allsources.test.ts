@@ -70,7 +70,14 @@ describe("the every-source sheet lists what the drawn screen cites (T1036)", () 
     const p = page({ status: "closed", gear: gear(["h::1"], "Closed to fishing for game fish"), methods: null });
     const tabs = gearTabsFor(p as never, { gear: gear(["g::1"]) as never, methods: null }, { status: "open" } as never, null);
     const sheet = withDrawnSources({ ...p, sheet: () => null } as unknown as RegsPage, drawnRegsOf(p as never, tabs, null, []), INDEX);
-    expect(keysOf(sheet(ALL_SOURCES_KEY)!)).toEqual(["a::1", "g::1"]);
+    expect(keysOf(sheet(ALL_SOURCES_KEY)!)).toEqual(["g::1"]);
+  });
+  it("(T1077) the bait list draws no Source line (T900: the Gear section's one line carries its rules): a rule only its own line names is not listed, nor is its sheet one tap away", () => {
+    const drawn = [{ bait: { src: src(["a::1"], "srcs:bait") }, src: src(["g::1"]) }];
+    expect([drawnCitations(drawn, INDEX).rules.map((r) => r.key), reachableSheets(drawn)]).toEqual([["g::1"], ["srcs:gear"]]);
+    // the Gear section's line lists the bait rules: they are listed in its order
+    const merged = [{ bait: { src: src(["a::1"], "srcs:bait") }, src: src(["g::1", "a::1"]) }];
+    expect(drawnCitations(merged, INDEX).rules.map((r) => r.key)).toEqual(["g::1", "a::1"]);
   });
   it("a drawn line's own rule is listed where it shows the rule's page; a row that only opens a sheet, and a per-row gear line, are not", () => {
     const keep = { trout: null,

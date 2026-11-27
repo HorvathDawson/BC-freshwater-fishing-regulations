@@ -1510,11 +1510,6 @@
    "matched": [
     "gnis:11710"
    ],
-   "extents": [
-    {
-     "op": "whole"
-    }
-   ],
    "rules": [
     {
      "rule_id": "caycuse_river.r1",
@@ -1559,6 +1554,10 @@
        "splits": [
         "caycuse_river__hatton_creek_into_caycuse_river"
        ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:16117"
       }
      ]
     }
@@ -5250,7 +5249,10 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "downstream_of",
+     "splits": [
+      "south_englishman_river__healy_lake"
+     ]
     }
    ],
    "rules": [
@@ -9356,7 +9358,7 @@
     17
    ],
    "matched": [
-    "wbk:328966275"
+    "wbk:329467599"
    ],
    "extents": [
     {

@@ -8890,14 +8890,37 @@
       {
        "op": "whole",
        "item_id": "wbk:329534136"
-      },
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): map A (p28) — west of the Henstridge Road/Wharf Road sign line to the Little Shuswap Lake sign line — is not a polygon in the atlas. Needs a curated part (added_lakes.geojson + sub_lake_areas.json) drawn from the book's map.",
+     "undrawn_part": "waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A)"
+    },
+    {
+     "rule_id": "shuswap_lake.r1b",
+     "type": "retention_limit",
+     "verbatim": "No Fishing Mar 15-May 14",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 15,
+        "to_month": 5,
+        "to_day": 14
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "extents": [
       {
        "op": "whole",
        "item_id": "gnis:33426"
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): map A (p28) — west of the Henstridge Road/Wharf Road sign line to the Little Shuswap Lake sign line — is not a polygon in the atlas. Needs a curated part (added_lakes.geojson + sub_lake_areas.json) drawn from the book's map.",
-     "undrawn_part": "waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A)"
+     "review_reason": "Map A (p.28) shades the WHOLE Little River (gnis:33426, the book's 'that part of South Thompson River between Shuswap Lake and Little Shuswap Lake'), so on it the zone needs no drawing: this rule binds the whole river (owner ruling O1, 2026-11-26, T1177). The lake parts of map A stay an undrawn part on shuswap_lake.r1."
     },
     {
      "rule_id": "shuswap_lake.r2",
@@ -8927,14 +8950,70 @@
       {
        "op": "whole",
        "item_id": "wbk:329534136"
-      },
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): map A (p28) — west of the Henstridge Road/Wharf Road sign line to the Little Shuswap Lake sign line — is not a polygon in the atlas. Needs a curated part (added_lakes.geojson + sub_lake_areas.json) drawn from the book's map.",
+     "undrawn_part": "waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A)"
+    },
+    {
+     "rule_id": "shuswap_lake.r2b",
+     "type": "retention_limit",
+     "verbatim": "rainbow trout and char catch and release, May 15-Mar 14",
+     "species": [
+      "RB",
+      "CHAR"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 3,
+        "to_day": 14
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": true,
+     "extents": [
       {
        "op": "whole",
        "item_id": "gnis:33426"
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): map A (p28) — west of the Henstridge Road/Wharf Road sign line to the Little Shuswap Lake sign line — is not a polygon in the atlas. Needs a curated part (added_lakes.geojson + sub_lake_areas.json) drawn from the book's map.",
-     "undrawn_part": "waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A)"
+     "review_reason": "Map A (p.28) shades the WHOLE Little River (gnis:33426, the book's 'that part of South Thompson River between Shuswap Lake and Little Shuswap Lake'), so on it the zone needs no drawing: this rule binds the whole river (owner ruling O1, 2026-11-26, T1177). The lake parts of map A stay an undrawn part on shuswap_lake.r2."
+    },
+    {
+     "rule_id": "shuswap_lake.r2x",
+     "type": "retention_limit",
+     "verbatim": "rainbow trout and char catch and release, May 15-Mar 14",
+     "species": [
+      "RB",
+      "CHAR"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 3,
+        "to_day": 14
+       }
+      ]
+     },
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "gnis:33426"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 3's spring closure (p.28): 'No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)'. On the Little River map A's dates replace it (owner ruling O1, 2026-11-26, T1177: 'Row dates replace the spring closure'): its dated 'rainbow trout and char catch and release, May 15-Mar 14' lifts the closure on exactly those dates and for rainbow trout and char only, as the Nicola's does (strict lift ruling 2026-10-05, (b)); every other fish stays closed Jan 1-June 30, and map A's own 'No Fishing Mar 15-May 14' holds for every fish"
+      }
+     ]
     },
     {
      "rule_id": "shuswap_lake.r3",

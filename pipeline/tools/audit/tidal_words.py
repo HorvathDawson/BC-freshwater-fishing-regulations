@@ -52,7 +52,7 @@ from pipeline.tools.audit.tidal_preverify import geoms_of, load_lines
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = GENERATED.review / "tidal"
-GPKG = SOURCE / "bc_fisheries_data.gpkg"
+GPKG = SOURCE.fwa_gpkg
 OSM_CACHE = "tidal-osm-landmarks.json"
 OVERPASS = "https://overpass-api.de/api/interpreter"
 #: how far above the furthest point of interest the line is read (m)
