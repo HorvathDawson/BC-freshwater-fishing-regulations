@@ -220,3 +220,12 @@ def test_one_warning_line_names_every_strike_and_flags_only_new_ones():
     assert re.search(r"NANAIMO RIVER PDF p\.19 'Oct ~~15~~'(;|$)", line)          # known: not flagged
     assert "B CREEK PDF p.30 '~~Bait ban~~' NEW" in line and [n["water"] for n in new] == ["B CREEK"]
     assert strike_report([rows[2]], []) == (None, [])
+
+
+def test_the_extractor_command_starts():
+    """T1190: a local import of get_config inside main() made main()'s first line raise UnboundLocalError, so
+    `python -m pipeline.regs.extraction.extract_synopsis` (and its --check-against gate) could not start at all."""
+    from pipeline.regs.extraction.extract_synopsis import main
+    with pytest.raises(SystemExit) as e:
+        main(["--help"])
+    assert e.value.code == 0

@@ -1310,7 +1310,8 @@ def main(argv: Optional[List[str]] = None) -> None:
     elif args.page:
         # Single page extraction (for testing)
         p = FishingSynopsisParser()
-        from project_config import get_config
+        # (T1190) no local `from project_config import get_config` here: it made get_config local to main(), so
+        # main()'s first line raised UnboundLocalError and the CLI (--check-against included) could not start
         PDF_PATH = get_config().synopsis_pdf_path      # (T1021) was os.path.join("data", "source", …): the cwd's
 
         with pdfplumber.open(PDF_PATH) as pdf:
