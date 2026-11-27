@@ -7,7 +7,7 @@
  * reads in full and is allowed). The map renderer is stubbed (no WebGL in jsdom); everything else is the app's, on the
  * fixture. Each rule is pinned by a planted violation at the foot.
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Pressable, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -19,6 +19,11 @@ import { LIGHT } from "./theme";
 import { drawPhoneScreensOnWeb } from "./storeShots";
 import { labelAudit, shellPressAudit } from "./regs/testing/a11yAudit";
 import { hitProps } from "./regs/hit";
+
+
+// (T1205) a reading is current by the clock: these fixtures read at 2026-09-04T06:00Z, so the clock is 06:05Z that day
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true }); vi.setSystemTime(Date.parse("2026-09-04T06:05:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));

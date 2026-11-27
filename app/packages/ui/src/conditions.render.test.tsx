@@ -6,14 +6,14 @@
  * components used to make inline — which row is the lead station, which sentences appear,
  * the chosen day rather than the clock — and that every string arrives finished.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { donorBecause, donorFacts, donorLastReport, donorPinTitle, donorReads, donorReason,
          donorRowLabel, donorWeightLine, estimateHeadline, estimateRange, estimateSentence,
-         freshness, HORIZONS, HORIZON_LABELS, horizonChipLabel, horizonDateChip, bcNow, localStamp, noGaugeSentence,
+         freshness, GAUGE_FEED_FORMAT, HORIZONS, HORIZON_LABELS, horizonChipLabel, horizonDateChip, bcNow, localStamp, noGaugeSentence,
          readingAgeLine, readingHeading,
          standingLong, stageLine, unplacedNote } from "@app/core";
-import type { Panel, WaterSource, SectionId } from "@app/data";
+import { httpFeed, type Panel, type WaterSource, type SectionId } from "@app/data";
 import { clearPanelCache, donorView, horizonChips, lakeQuietHead, useConditionsView, usePanelStandings, type DonorRow,
          type PanelAnswer } from "./panel";
 
@@ -238,7 +238,9 @@ const source = {
 const feed = { index: async () => ({ stations: {
   LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 } } }) };
 
-beforeEach(clearPanelCache);
+// (T1205) a reading is current by the clock: these fixtures read at 2026-09-04T06:00Z, so the clock is 06:05Z that day
+beforeEach(() => { clearPanelCache(); vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(Date.parse("2026-09-04T06:05:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 describe("useConditionsView", () => {
   it("leads with the heaviest reporting donor and finishes its reading", async () => {
@@ -261,6 +263,21 @@ describe("useConditionsView", () => {
     expect(vm.reading?.age).toContain(`observed ${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · `);
     expect(vm.noGauge).toBe(noGaugeSentence());
     expect(vm.trace).toBeNull();          // the panel answered, so no single-station fallback
+  });
+
+  it("(T1205) a phone offline a day, on its kept index and kept station file: the card does not show the old figure as the reading; it says when the gauge last reported", async () => {
+    const at = "2026-09-04T06:00:00Z";
+    const files: Record<string, unknown> = {
+      "index.json": { format: GAUGE_FEED_FORMAT, fetchedAt: at, stations: { LEAD: { percentile: 0.15, parameter: "discharge", discharge: 0.15, observedAt: at } } },
+      "LEAD.json": { format: GAUGE_FEED_FORMAT, fetchedAt: at, station: "LEAD", now: { discharge: 12.5, level: 1.2, at, percentile: 0.15, parameter: "discharge" } },
+    };
+    const gfeed = httpFeed("http://x/g", (async (u: string) => ({ ok: true, json: async () => files[u.split("/").pop()!] })) as never);
+    const src = { ...source, gaugeNow: (st: string) => gfeed.now(st as never) } as unknown as WaterSource;
+    vi.setSystemTime(Date.parse(at) + 24 * 3_600_000);
+    const { result } = renderHook(() => useConditionsView(src, SEC, DAY, 0, { feed: gfeed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.quiet).not.toBeNull());
+    expect(result.current.reading).toBeNull();
+    expect(result.current.quiet).toMatchObject({ reads: "Not reporting today.", lastReport: expect.stringMatching(/^Last reported /) });
   });
 
   it("on a forecast day the figure is labelled today's, the day asked has its own line and the chart its mark (T567)", async () => {
