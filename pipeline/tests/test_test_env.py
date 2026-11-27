@@ -71,8 +71,8 @@ def test_ci_s_tier_is_a_no_data_run():
 
 @pytest.mark.smoke
 def test_the_tier_not_the_runner_decides_whether_builds_are_hidden():
-    """Real pytest runs (collection only): CI's tier and the smoke tier hide the builds with no plugin flag; the default
-    run sees them. The header line is what the root conftest decided."""
+    """Real pytest runs (collection only): CI's tier, the smoke tier and (T1193) a plain run with no `-m` hide the builds
+    with no plugin flag; `--with-data` sees them. The header line is what the root conftest decided."""
     me = Path(__file__).relative_to(ROOT).as_posix()
 
     def header(*m):
@@ -83,7 +83,8 @@ def test_the_tier_not_the_runner_decides_whether_builds_are_hidden():
 
     assert header("-m", _ci_markers()) == [tiers.HIDDEN]
     assert header("-m", "smoke") == [tiers.HIDDEN]
-    assert header() == [tiers.VISIBLE]
+    assert header() == [tiers.HIDDEN]
+    assert header("--with-data") == [tiers.VISIBLE]
 
 
 def test_every_runner_takes_its_environment_from_the_one_script():
