@@ -66,18 +66,23 @@ const ACCESS: readonly [Status, Status][] = [["no_access", "closed"], ["no_acces
 const TEMPERATURE: readonly [TempBand, TempBand][] = [["cool", "warm"], ["warm", "critical"], ["cool", "critical"]];
 
 /**
- * The grounds a LINE is drawn on, sampled from the T47 baseline screenshots (scripts/colour-math.mjs GROUNDS): light land,
- * forest, river, meadow; dark land, hollow, river; satellite conifer, olive, shadow, scrub, water, snow. The colour-blind
- * palette rides on the light basemap. No status-coloured pixel is a ground.
+ * The grounds a LINE is drawn on. The basemap's OWN GROUND AND WATER are what the theme paints (`color.ui.basemap.ground`,
+ * `color.ui.basemap.water`: look A, T1208), read from the theme here, never sampled, so a change to them is measured; the
+ * LAND COVER the flavour draws over that ground (its forest, park and land tints, under `opacity.ground.cover`) was sampled
+ * from the T47 baseline screenshots (scripts/colour-math.mjs GROUNDS) and is kept as sampled: light land, forest; dark land,
+ * hollow, river. The colour-blind palette rides on the light basemap. No status-coloured pixel is a ground.
+ * (Before T1208 review: light and cvd measured a cyan river ~82cdd9 and an old earth ~e9e7e1 the map no longer paints.)
  */
-const GROUND: Record<Theme, string[]> = de({
-  light: ["~d9cecc", "~b0caa8", "~82cdd9", "~e9e7e1"],
+const COVER: Record<Theme, string[]> = de({
+  light: ["~d9cecc", "~b0caa8"],
   dark: ["~372e2f", "~221e1e", "~31353f"],
-  cvd: ["~d9cecc", "~b0caa8", "~82cdd9", "~e9e7e1"],
+  cvd: ["~d9cecc", "~b0caa8"],
 });
+const basemap = (th: Theme, k: "ground" | "water") => resolveTheme(th)[`color.ui.basemap.${k}`] as string;
+const GROUND = Object.fromEntries(THEMES.map((th) => [th, [...COVER[th], basemap(th, "ground"), basemap(th, "water")]])) as Record<Theme, string[]>;
 const SATELLITE = de(["~28290d", "~353b1a", "~1c1a0b", "~61512c", "~2A333B", "~e6e8ea"]);
-/** The ground under a status LAKE: the basemap's own water, which the status lake layer is drawn on top of. */
-const LAKE_GROUND: Record<Theme, string> = de({ light: "~82cdd9", dark: "~31353f", cvd: "~82cdd9" });
+/** The ground under a status LAKE: the basemap's own water as the theme paints it, which the status lake layer is drawn on. */
+const LAKE_GROUND = Object.fromEntries(THEMES.map((th) => [th, basemap(th, "water")])) as Record<Theme, string>;
 /** Mean coverage of a thin status line's pixels; a boundary is wider (3 / 1.2 px), so it covers more. */
 const LINE = 0.6, EDGE = 0.8;
 /**
@@ -330,10 +335,11 @@ describe("status colours, as drawn (T47)", () => {
     }
   });
 
+  // (T1208 review) the grounds named below are the theme's painted ground and water (`color.ui.basemap.*`), not samples
   it("fails today's palette on the owner's pair, as drawn (mutation pin)", () => {
     const light = failures("light", resolveTheme("light", warmWasRestricted(TODAY.light)));
     expect(light).toContain(de("light: closed ~940018 vs own ~B37B00 as thin lines 18.9 < 21 (deutan (vienot) on ~d9cecc)"));
-    expect(light).toContain(de("light: closed ~940018 vs own ~B37B00 as lake fills 17.0 < 25 (tritan (vienot) on ~82cdd9)"));
+    expect(light).toContain(de("light: closed ~940018 vs own ~B37B00 as lake fills 17.0 < 25 (tritan (vienot) on ~82CDD6)"));
     expect(light).toContain(de("light: color.region.edge ~8E2F52 is a hue, not a neutral (RGB spread 95)"));
     expect(failures("cvd", resolveTheme("cvd", warmWasRestricted(TODAY.cvd))))
       .toContain(de("cvd: closed ~C80D00 vs own ~B37B00 as tokens 8.6 < 29 (deutan (vienot))"));
@@ -354,15 +360,15 @@ describe("status colours, as drawn (T47)", () => {
   it("fails candidate B, which fixed the boundaries but left restricted and open beside closed (mutation pin)", () => {
     const b = failures("light", resolveTheme("light", warmWasRestricted(B_LIGHT)));
     // B's owner's pair is what D has to beat, and does
-    expect(b).toContain(de("light: closed ~940018 vs own ~D68100 as thin lines 20.3 < 21 (tritan (vienot) on ~e9e7e1)"));
-    expect(b).toContain(de("light: closed ~940018 vs own ~D68100 as lake fills 23.6 < 25 (tritan (vienot) on ~82cdd9)"));
+    expect(b).toContain(de("light: closed ~940018 vs own ~D68100 as thin lines 20.5 < 21 (tritan (vienot) on ~E5E2DB)"));
+    expect(b).toContain(de("light: closed ~940018 vs own ~D68100 as lake fills 23.6 < 25 (tritan (vienot) on ~82CDD6)"));
     expect(b).toContain(de("light: restricted ~8f5c00 vs closed ~940018 as tokens 9.0 < 22 (deutan (vienot))"));
     expect(b).toContain(de("light: cool ~1D7741 vs warm ~8f5c00 as gauge dots 8.9 < 27.5 (protan (machado))"));
   });
 
   it("fails the first palette D: owner's pair under B, restricted reads as ink, cvd boundary under 20 (mutation pin)", () => {
     const light = failures("light", resolveTheme("light", warmWasRestricted(FIRST_D.light)));
-    expect(light).toContain(de("light: closed ~8F0901 vs own ~C68900 as thin lines 19.5 < 21 (deutan (vienot) on ~e9e7e1)"));
+    expect(light).toContain(de("light: closed ~8F0901 vs own ~C68900 as thin lines 19.5 < 21 (deutan (vienot) on ~E5E2DB)"));
     expect(light).toContain(de("light: restricted ~1D002B reads as body ink ~15181C: 18.3 < 20"));
     expect(light).toContain(de("light: restricted ~1D002B vs body ink ~15181C 10.9 < 15 (deutan (machado))"));
     const dark = failures("dark", resolveTheme("dark", warmWasRestricted(FIRST_D.dark)));
@@ -623,7 +629,7 @@ describe("depth contours are seen on every lake (T158)", () => {
   it("fails the light contour cyan on the Depth colouring's own digitised fill (mutation pin)", () => {
     expect(contourFailures("light", resolveTheme("light", de({ "color.contour.line": "~2FA9C9" })))
       .filter((x) => x.includes("digitised") && x.includes("normal"))).toEqual(de([
-      "light: depth contours ~2FA9C9 on a color.survey.digitised ~0E7C86 lake, normal vision 4.8 < 15"]));
+      "light: depth contours ~2FA9C9 on a color.survey.digitised ~0E7C86 lake, normal vision 5.1 < 15"]));
   });
 
   it("fails a contour painted in the lake fill it lies on (mutation pin)", () => {

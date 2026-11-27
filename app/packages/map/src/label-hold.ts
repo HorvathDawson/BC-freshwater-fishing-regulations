@@ -53,8 +53,9 @@ export function labelGroup(l: Layer): LabelGroup | null {
 /** What the hold takes while the zoom moves: every name and mark except the gauge pills (a reading, not a label). */
 export const HELD_WHILE_ZOOMING: readonly LabelGroup[] = ["water", "places", "roads", "areas", "marks"];
 
-/** The sources whose layers the native map can adopt by id (each is a source element `Map.native.tsx` mounts). */
-export const HOLD_SOURCES = ["atlas", "basemap", "mus", "gauges"] as const;
+/** The sources whose layers the native map can adopt by id (each is a source element `Map.native.tsx` mounts); (T1208,
+ *  T1209) the towns' and the region names' own GeoJSON sources too, so those names wait out a zoom like the rest. */
+export const HOLD_SOURCES = ["atlas", "basemap", "mus", "gauges", TOWN_SOURCE, REGION_LABEL_SOURCE] as const;
 export type HoldSource = (typeof HOLD_SOURCES)[number];
 
 export interface HeldLayer { id: string; source: HoldSource; visibility: "visible" | "none" }

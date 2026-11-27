@@ -2382,8 +2382,8 @@
       ],
       "closed": [
         [
-          6,
-          1
+          4,
+          1.67
         ],
         [
           7,
@@ -2632,15 +2632,15 @@
       "ramp": [
         [
           4,
-          0.367
+          0.533
         ],
         [
           8,
-          0.467
+          0.667
         ],
         [
           11,
-          0.6
+          0.767
         ],
         [
           12,
@@ -3101,13 +3101,15 @@
       "color.region.line": "#8B857F",
       "color.label.region": "#8B857F",
       "dash.region": [
-        4,
-        2.5
+        5,
+        2,
+        1,
+        2
       ],
-      "opacity.region.band": 0.09,
-      "width.region.band": 4,
-      "color.ui.basemap.ground": "#EFEDE8",
-      "color.ui.basemap.water": "#A9C6EE",
+      "opacity.region.band": 0.11,
+      "width.region.band": 5,
+      "color.ui.basemap.ground": "#E5E2DB",
+      "color.ui.basemap.water": "#82CDD6",
       "opacity.ground.cover": 0.65,
       "color.water.mapped": "#0B6987",
       "color.water.unmapped": "#7F8C99",
@@ -3336,13 +3338,15 @@
       "color.region.line": "#B8B8B8",
       "color.label.region": "#B8B8B8",
       "dash.region": [
-        4,
-        2.5
+        5,
+        2,
+        1,
+        2
       ],
-      "opacity.region.band": 0.09,
-      "width.region.band": 4,
-      "color.ui.basemap.ground": "#141414",
-      "color.ui.basemap.water": "#333333",
+      "opacity.region.band": 0.11,
+      "width.region.band": 5,
+      "color.ui.basemap.ground": "#121618",
+      "color.ui.basemap.water": "#31353F",
       "opacity.ground.cover": 1,
       "color.water.mapped": "#38B6DE",
       "color.water.unmapped": "#93A0AB",
@@ -3571,13 +3575,15 @@
       "color.region.line": "#7F7C79",
       "color.label.region": "#7F7C79",
       "dash.region": [
-        4,
-        2.5
+        5,
+        2,
+        1,
+        2
       ],
-      "opacity.region.band": 0.09,
-      "width.region.band": 4,
-      "color.ui.basemap.ground": "#EFEDE8",
-      "color.ui.basemap.water": "#A9C6EE",
+      "opacity.region.band": 0.11,
+      "width.region.band": 5,
+      "color.ui.basemap.ground": "#E5E2DB",
+      "color.ui.basemap.water": "#82CDD6",
       "opacity.ground.cover": 0.65,
       "color.water.mapped": "#4A90E2",
       "color.water.unmapped": "#7F8C99",
@@ -4759,7 +4765,7 @@
     "dash.region": {
       "type": "dash",
       "themeable": false,
-      "$comment": "(T1208) The region boundary's dash: long enough to read as a line, broken so it is not a road."
+      "$comment": "(T1208) The region boundary's DASH-DOT (in line widths): a long dash and a dot, so it is not a road and not the no-access dots (`dash.route`, dashes only); the Map key draws it (`regionEdgeStyle`)."
     },
     "opacity.region.band": {
       "type": "number",
@@ -4774,12 +4780,12 @@
     "color.ui.basemap.ground": {
       "type": "color",
       "themeable": true,
-      "$comment": "(T1208) UI-family: the basemap's paper, a fill under everything (never a line beside a line, so not in the line palette rule): the basemap's ground (Protomaps `earth`): softer in the light theme; the dark theme keeps its flavour's own."
+      "$comment": "(T1208) UI-family: the basemap's paper, a fill under everything (never a line beside a line, so not in the line palette rule): the basemap's ground (Protomaps `earth`). Held to T47's floors like the water (tools/status-colours-distinct.test.ts reads it from the theme): the lighter #EFEDE8 the look first used put closed / own as a thin line at 20.6 (floor 21), so light is L90 (#E5E2DB, near the flavour's own); dark a step off #141414 (no access / closed, 8.4 < 8.5)."
     },
     "color.ui.basemap.water": {
       "type": "color",
       "themeable": true,
-      "$comment": "(T1208) The basemap's sea and its own river and lake fills: ONE water blue, a light tint of the lakes' blue, where Protomaps drew a cyan. The dark theme keeps its flavour's own."
+      "$comment": "(T1208) The basemap's sea and its own river and lake fills, one colour. MEASURED, NOT CHOSEN BY EYE: every status lake is drawn over it and every status line over rivers of it, so tools/status-colours-distinct.test.ts reads it from the theme and holds every T47 floor on it (review of T1208). The light tint of the lakes' blue the look first used (#A9C6EE) took closed / base as a lake fill from 35.1 to 32.6 (floor 35); a search of every water in reach found only the cyan family passing, so light and cvd keep a cyan near the flavour's own; dark a step off the flavour's #333333 (closed / own as lake fills, 21.9 < 22)."
     },
     "opacity.ground.cover": {
       "type": "number",

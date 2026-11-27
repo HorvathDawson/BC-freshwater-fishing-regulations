@@ -8,7 +8,8 @@ import { describe, expect, it } from "vitest";
 import { MAP_STYLE, resolveTheme, STYLE_META } from "./style";
 import { runtimeStyle } from "./runtime-style";
 import { PMTILES } from "./tile-access";
-import { REGION_BAND, REGION_NAMES, REGION_POINTS, TIER_ZOOM, TOWN_DOTS, TOWN_LIST, TOWN_NAMES, TOWNS_UNTIL } from "./look-a";
+import { NOACCESS_LAYER } from "./paint";
+import { OUR_TOWN_NAMES, REGION_BAND, REGION_NAMES, REGION_POINTS, TIER_ZOOM, TOWN_DOTS, TOWN_LIST, TOWN_NAMES, TOWNS_UNTIL } from "./look-a";
 
 type L = { id: string; type?: string; source?: string; filter?: unknown; minzoom?: number; maxzoom?: number;
            paint?: Record<string, unknown>; layout?: Record<string, unknown> };
@@ -20,9 +21,9 @@ const meta = STYLE_META as unknown as { dashes: Record<string, string>; widthRam
 const REGIONS = ["1", "2", "3", "4", "5", "6", "7A", "7B", "8"];
 
 describe("(T1208) region borders that read as borders", () => {
-  it("the border is dashed (dash.region) in every theme; the tiles' per-piece number is gone", () => {
+  it("the border is dash-dot (dash.region) in every theme; the tiles' per-piece number is gone", () => {
     expect(meta.dashes["region__edge"]).toBe("dash.region");
-    for (const th of ["light", "dark", "cvd"]) expect(resolveTheme(th)["dash.region"]).toEqual([4, 2.5]);
+    for (const th of ["light", "dark", "cvd"]) expect(resolveTheme(th)["dash.region"]).toEqual([5, 2, 1, 2]);
     expect(MAP_STYLE.layers.map((l) => l.id)).not.toContain("region__label");
   });
 
@@ -31,7 +32,42 @@ describe("(T1208) region borders that read as borders", () => {
     expect(ids(s).indexOf(REGION_BAND)).toBe(ids(s).indexOf("region__edge") - 1);
     expect([band.source, (band as { "source-layer"?: string })["source-layer"], band.maxzoom]).toEqual(["atlas", "region", 10]);
     // a polygon ring's right side is its inside: a positive offset
-    expect(JSON.stringify(band.paint!["line-offset"])).toBe(JSON.stringify(["interpolate", ["linear"], ["zoom"], 4, 1, 8, 2]));
+    expect(JSON.stringify(band.paint!["line-offset"])).toBe(JSON.stringify(["interpolate", ["linear"], ["zoom"], 4, 1.25, 8, 2.5]));
+  });
+
+  /*
+   * (review of T1208) THE BORDER IS NOT A NO-ACCESS STREAM. Both are grey and broken (T47 keeps the border a neutral), so
+   * they part by SHAPE and WEIGHT, held here with stated margins at every zoom from z5 to z9, in each theme as composed:
+   *   weight   the border at least 1.35 times as wide as the no-access dots, and at least 0.4 px wider;
+   *   shape    the border's pattern has a dash AND a dot (two lengths drawn), the no-access pattern one length; and the
+   *            border's longest dash, drawn, at least 1.5 times the no-access one's.
+   * (The built dashes were [4, 2.5] at 1.25 px beside [4, 3] at 1.2 px at z6: the same line to an eye.)
+   */
+  it("the border parts from the no-access dots by weight and shape, z5 to z9, light, dark and colour-blind", () => {
+    const at = (e: unknown, z: number): number => {
+      if (typeof e === "number") return e;
+      const a = e as unknown[];
+      expect(a.slice(0, 3)).toEqual(["interpolate", ["linear"], ["zoom"]]);
+      const st = a.slice(3) as number[];
+      if (z <= st[0]!) return st[1]!;
+      for (let i = 0; i + 3 < st.length; i += 2)
+        if (z <= st[i + 2]!) return st[i + 1]! + ((z - st[i]!) / (st[i + 2]! - st[i]!)) * (st[i + 3]! - st[i + 1]!);
+      return st[st.length - 1]!;
+    };
+    const ons = (d: number[]) => d.filter((_, i) => i % 2 === 0);
+    const short: string[] = [];
+    for (const th of ["light", "dark", "cvd"]) {
+      const s = composed(th);
+      const edge = s.layers.find((l) => l.id === "region__edge")!.paint!, dots = s.layers.find((l) => l.id === NOACCESS_LAYER)!.paint!;
+      const [ed, nd] = [edge["line-dasharray"] as number[], dots["line-dasharray"] as number[]];
+      if (new Set(ons(ed)).size < 2 || new Set(ons(nd)).size !== 1) short.push(`${th}: patterns ${JSON.stringify(ed)} vs ${JSON.stringify(nd)}`);
+      for (let z = 5; z <= 9; z++) {
+        const [ew, nw] = [at(edge["line-width"], z), at(dots["line-width"], z)];
+        if (ew < 1.35 * nw || ew - nw < 0.4) short.push(`${th} z${z}: widths ${ew.toFixed(2)} vs ${nw.toFixed(2)}`);
+        if (Math.max(...ons(ed)) * ew < 1.5 * Math.max(...ons(nd)) * nw) short.push(`${th} z${z}: longest dash drawn`);
+      }
+    }
+    expect(short).toEqual([]);
   });
 
   it("\"Region n\" once per region, from a fixed point (no tile edge), z4 to z7; the Conditions map hides it and the band", () => {
@@ -56,6 +92,24 @@ describe("(T1208) quieter rule lines zoomed out", () => {
     expect(z4[1]! + 9 * z4[2]!).toBeLessThan(1);
   });
 
+  it("a closed river is NOT thinned: from z4 to z8 it is as wide as before look A, every order (review of T1208)", () => {
+    const spec = (STYLE_META as unknown as { widths: Record<string, { ramp: number[][]; closed: number[][] }> }).widths["stream"]!;
+    const at = (stops: number[][], z: number) => {
+      if (z <= stops[0]![0]!) return stops[0]![1]!;
+      for (let i = 0; i + 1 < stops.length; i++) if (z <= stops[i + 1]![0]!)
+        return stops[i]![1]! + ((z - stops[i]![0]!) / (stops[i + 1]![0]! - stops[i]![0]!)) * (stops[i + 1]![1]! - stops[i]![1]!);
+      return stops[stops.length - 1]![1]!;
+    };
+    // before look A: the z4 stop [4, .5, .1], the closed factor from z6 ([6, 1], [7, 1.3])
+    const before = { 4: (o: number) => (0.5 + 0.1 * o) * 1, 8: (o: number) => (0.2 + 0.16 * o) * 1.3 } as Record<number, (o: number) => number>;
+    const thin: string[] = [];
+    for (const z of [4, 8]) {
+      const [, b, k] = spec.ramp.find((r) => r[0] === z)!;
+      for (let o = 1; o <= 9; o++) if (at(spec.closed, z) * (b! + k! * o) < before[z]!(o) - 1e-3) thin.push(`z${z} ord ${o}`);
+    }
+    expect(thin).toEqual([]);
+  });
+
   it("small orders recede from z5 (`fadeByOrder` z5 and z6 stops), never below T470's floor", () => {
     const fade = (STYLE_META as unknown as { orderFades: Record<string, { stops: [number, number[]][] }> }).orderFades["stream"]!;
     const z5 = fade.stops.find(([z]) => z === 5)![1];
@@ -65,7 +119,7 @@ describe("(T1208) quieter rule lines zoomed out", () => {
   });
 });
 
-describe("(T1208) the base: a softer ground and one water blue in light; dark unchanged", () => {
+describe("(T1208) the base: the ground and water the theme paints (held to T47 by tools/status-colours-distinct)", () => {
   const layer = (s: { layers: L[] }, id: string) => s.layers.find((l) => l.id === id)!;
   it("light: the ground and every basemap water are the theme's tokens, the land cover quieter", () => {
     const s = composed("light"), t = resolveTheme("light");
@@ -76,9 +130,10 @@ describe("(T1208) the base: a softer ground and one water blue in light; dark un
   it("the basemap's \"BRITISH COLUMBIA\" is gone (every reader knows where they are; it took a town's room)", () => {
     for (const th of ["light", "dark"]) expect(ids(composed(th))).not.toContain("places_region");
   });
-  it("dark: the flavour's own ground and water (Protomaps black)", () => {
-    const s = composed("dark");
-    expect([layer(s, "earth").paint!["fill-color"], layer(s, "water").paint!["fill-color"]]).toEqual(["#141414", "#333333"]);
+  it("dark: the theme's tokens too, a step off the flavour's black (#141414 / #333333) where T47's floors need it", () => {
+    const s = composed("dark"), t = resolveTheme("dark");
+    expect([layer(s, "earth").paint!["fill-color"], layer(s, "water").paint!["fill-color"]])
+      .toEqual([t["color.ui.basemap.ground"], t["color.ui.basemap.water"]]);
   });
 });
 
@@ -89,11 +144,22 @@ const px = (lon: number, lat: number, z: number): [number, number] => {
 };
 
 describe("(T1209) the towns to find your way by", () => {
+  it("official names (BC Geographical Names), and the basemap's own spelling hidden too (review of T1208)", () => {
+    const names = TOWN_LIST.map((t) => t.name);
+    expect(names).toContain("Daajing Giids");                 // adopted 2022-07-18; the basemap says the same
+    expect(names).not.toContain("Queen Charlotte");
+    // "Lac la Hache" is the Province's; the basemap writes "Lac La Hache": both are left out of the basemap's names below z10
+    expect(TOWN_LIST.find((t) => t.name === "Lac la Hache")!.basemap).toBe("Lac La Hache");
+    expect((OUR_TOWN_NAMES[1] as string[]).filter((n) => !names.includes(n))).toEqual(["Lac La Hache"]);
+  });
+
   it("drawn from our own file, under the water's names (a lake is named first) and over the basemap's", () => {
     const s = composed("light"), order = ids(s);
     expect(order.indexOf(TOWN_NAMES)).toBeGreaterThan(order.indexOf("places_locality"));
     expect(order.indexOf(TOWN_NAMES)).toBeLessThan(order.indexOf("lake__label"));
     expect(s.layers.find((l) => l.id === TOWN_DOTS)!.maxzoom).toBe(TOWNS_UNTIL);
+    // (review) the dots under the water's lines (Hope's sat on the Fraser): over the region edge, under the stream
+    expect([order.indexOf(TOWN_DOTS) > order.indexOf("region__edge"), order.indexOf(TOWN_DOTS) < order.indexOf("stream")]).toEqual([true, true]);
     // the basemap never names one of ours twice below z10
     expect(JSON.stringify(s.layers.find((l) => l.id === "places_locality")!.filter)).toContain('["!",["in",["coalesce",["get","name:en"],["get","name"]]');
   });

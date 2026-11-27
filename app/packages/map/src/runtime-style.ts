@@ -27,7 +27,7 @@ import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
-import { lookASources, OUR_TOWN_NAMES, quieterGround, regionBandLayer, regionNamesLayer, TOWNS_UNTIL, townLayers } from "./look-a";
+import { lookASources, OUR_TOWN_NAMES, quieterGround, regionBandLayer, regionNamesLayer, TOWNS_UNTIL, townDotsLayer, townLayers } from "./look-a";
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
 function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Tokens) {
@@ -224,8 +224,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     if (l.id === "lake") return [{
       id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: copyFilter("lake"),
       paint: copyFillPaint((painted as { paint?: Record<string, unknown> }).paint ?? {}) }, painted];
-    // (T1208) the soft band just inside each region's edge, under its dashes
-    if (l.id === "region__edge") return [regionBandLayer(tk), painted];
+    // (T1208) the soft band just inside each region's edge, under its dashes; (T1209) the towns' dots over it, under the
+    // water's lines (`townDotsLayer`)
+    if (l.id === "region__edge") return [regionBandLayer(tk), painted, townDotsLayer(tk)];
     if (l.id !== "stream") return [painted];
     const streamPaint = (painted as { paint?: Record<string, unknown> }).paint ?? paintFor("stream", "plain", tk);
     const copyLine = copyLinePaint(streamPaint, tk);

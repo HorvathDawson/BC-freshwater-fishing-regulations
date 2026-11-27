@@ -47,6 +47,8 @@ describe("the layers the hold takes", () => {
     expect(ids).toContain("stream__label");
     expect(ids).toContain("places_locality");
     expect(ids).toContain("route-arrows");
+    // (T1208, T1209, review) the towns' names and "Region n", from their own GeoJSON sources: held like every other name
+    expect([held.towns.map((l) => l.id), held["region-labels"].map((l) => l.id)]).toEqual([["town-names"], ["region-names"]]);
     expect(ids).not.toContain("gauge-label");
     expect(HELD_WHILE_ZOOMING).not.toContain("gauges");
     for (const src of HOLD_SOURCES) if (held[src].length) expect(s.sources[src]).toBeTruthy();

@@ -29,7 +29,9 @@ export const TOWNS_UNTIL = 10;
 /** The region names stop where the units' numbers start (as the tiles' region label did). */
 export const REGION_NAMES_UNTIL = 7;
 
-export interface Town { name: string; tier: 1 | 2 | 3; lon: number; lat: number; why: string; region: string; position: string }
+export interface Town { name: string; tier: 1 | 2 | 3; lon: number; lat: number; why: string; region: string; position: string;
+  /** the basemap's own string for this place where it is not the official name (de-duplication only) */
+  basemap?: string }
 export const TOWN_LIST = TOWNS.towns as readonly Town[];
 export const REGION_POINTS = REGION_LABELS.regions as readonly { region_id: string; lon: number; lat: number }[];
 
@@ -40,13 +42,18 @@ const tk = (t: Tokens, k: string) => {
 };
 
 /** The sources: the region label points and the towns, inline (small, fixed: no request). */
+/** (T1208, T1209) the region label points and the towns as GeoJSON: the style's sources, and what the phone's label hold
+ *  mounts by the same ids (native `View.tsx`), one object each so both hand the map the same data */
+export const REGION_LABEL_DATA = { type: "FeatureCollection", features: REGION_POINTS.map((r) => (
+  { type: "Feature", properties: { region_id: r.region_id }, geometry: { type: "Point", coordinates: [r.lon, r.lat] } })) } as const;
+export const TOWN_DATA = { type: "FeatureCollection", features: TOWN_LIST.map((t, i) => (
+  { type: "Feature", properties: { name: t.name, tier: t.tier, order: t.tier * 1000 + i },
+    geometry: { type: "Point", coordinates: [t.lon, t.lat] } })) } as const;
+
 export function lookASources(): Record<string, Record<string, unknown>> {
   return {
-    [REGION_LABEL_SOURCE]: { type: "geojson", data: { type: "FeatureCollection", features: REGION_POINTS.map((r) => (
-      { type: "Feature", properties: { region_id: r.region_id }, geometry: { type: "Point", coordinates: [r.lon, r.lat] } })) } },
-    [TOWN_SOURCE]: { type: "geojson", data: { type: "FeatureCollection", features: TOWN_LIST.map((t, i) => (
-      { type: "Feature", properties: { name: t.name, tier: t.tier, order: t.tier * 1000 + i },
-        geometry: { type: "Point", coordinates: [t.lon, t.lat] } })) } },
+    [REGION_LABEL_SOURCE]: { type: "geojson", data: REGION_LABEL_DATA },
+    [TOWN_SOURCE]: { type: "geojson", data: TOWN_DATA },
   };
 }
 
@@ -83,11 +90,17 @@ export const TIER_SHOWN = ["any",
   ["all", ["==", ["get", "tier"], 3], [">=", ["zoom"], TIER_ZOOM[3]]]];
 
 /** The towns' dots and names, in the place names' inks (`labels.ts`); a lake's name is placed before a town's. */
+/** (review of T1208) the towns' dots, UNDER the water's lines (drawn just after the region edge): Hope's dot sat on the
+ *  Fraser, a mark over the answer; the rule line wins where they meet, as a boundary's does (T83). */
+export function townDotsLayer(t: Tokens) {
+  return { id: TOWN_DOTS, type: "circle" as const, source: TOWN_SOURCE, maxzoom: TOWNS_UNTIL, filter: TIER_SHOWN,
+           paint: { "circle-radius": 2.6, "circle-color": tk(t, "color.label.place") as string,
+                    "circle-stroke-color": tk(t, "color.outside") as string, "circle-stroke-width": 1 } };
+}
+
+/** the towns' names, with the labels (over the basemap's names, under the water's) */
 export function townLayers(t: Tokens) {
   return [
-    { id: TOWN_DOTS, type: "circle" as const, source: TOWN_SOURCE, maxzoom: TOWNS_UNTIL, filter: TIER_SHOWN,
-      paint: { "circle-radius": 2.6, "circle-color": tk(t, "color.label.place") as string,
-               "circle-stroke-color": tk(t, "color.outside") as string, "circle-stroke-width": 1 } },
     { id: TOWN_NAMES, type: "symbol" as const, source: TOWN_SOURCE, maxzoom: TOWNS_UNTIL, filter: TIER_SHOWN,
       layout: { "text-field": ["get", "name"], "text-font": ["Noto Sans Medium"],
                 "text-size": ["interpolate", ["linear"], ["zoom"], 4, ["case", ["==", ["get", "tier"], 1], 11, 10.5],
@@ -100,7 +113,7 @@ export function townLayers(t: Tokens) {
 }
 
 /** The basemap's own place names leave out ours (no name twice) and wait for z10 for the rest of our towns' tiers. */
-export const OUR_TOWN_NAMES = ["literal", TOWN_LIST.map((t) => t.name)];
+export const OUR_TOWN_NAMES = ["literal", TOWN_LIST.flatMap((t) => (t.basemap ? [t.name, t.basemap] : [t.name]))];
 
 /**
  * THE BASEMAP'S GROUND AND WATER (Protomaps' `earth`, `water`, its own river lines, land cover and woods): the light theme's

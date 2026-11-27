@@ -6,5 +6,5 @@
  */
 export { imageryTiles } from "./endpoints";
 export { hiddenLayers, shownLayers, STYLE_META, FIELD_HANDOVER_Z, waterStatusColour, tempBandColour,
-         salmonStatusColour, salmonCasingColour, gearEdgeColour, closedCueColour, issueStripeColours, gaugeOnlyColours, runStateColour, tidalColours, notFishingColours } from "./style";
+         salmonStatusColour, salmonCasingColour, gearEdgeColour, closedCueColour, regionEdgeStyle, issueStripeColours, gaugeOnlyColours, runStateColour, tidalColours, notFishingColours } from "./style";
 export { colour, translucent } from "./chrome";

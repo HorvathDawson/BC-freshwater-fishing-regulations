@@ -2071,22 +2071,22 @@
           "ramp": [
             [
               4,
-              0.367
+              0.533
             ],
             [
               8,
-              0.467
+              0.667
             ],
             [
               11,
-              0.6
+              0.767
             ],
             [
               12,
               1.0
             ]
           ],
-          "$comment": "(T1208, look A) A MULTIPLE of width.region.edge (3 px): 1.1 px at z4, 1.4 at z8, 1.8 at z11, 3 from z12 (as before), DASHED (`dash.region`) in `color.region.line` with a soft band inside (runtime-style `REGION_BAND`). (T470 drew it solid grey at 2.2 / 1.6 / 2.0 / 3: zoomed out it read as a road, T1200.)"
+          "$comment": "(T1208, look A) A MULTIPLE of width.region.edge (3 px): 1.6 px at z4, 2 at z8, 2.3 at z11, 3 from z12 (as before), DASH-DOT (`dash.region`) in `color.region.line` with a soft band inside (runtime-style `REGION_BAND`). A BOUNDARY BY SHAPE AND WEIGHT, never by hue (T47 keeps it grey): the no-access dots are grey dashes too (`dash.route`, 1.2-1.6 px), so this line is the heavier one and the only one with a dot in its pattern (look-a.test holds the margin, z5-z9, light and dark). (T470 drew it solid grey at 2.2 / 1.6 / 2.0 / 3: zoomed out it read as a road, T1200.)"
         },
         "dash": {
           "token": "dash.region"
@@ -2304,7 +2304,7 @@
             2.0
           ]
         ],
-        "$comment_t1208": "(T1208, look A, owner 2026-11-26) THINNER ZOOMED OUT: the z4 stop was [4, .5, .1] (ord 9 at z4: 1.4 px, now 0.84); with `fadeByOrder`'s z5 and z6 stops (small orders recede: no deeper than T470's own floor, 0.45, which tools/status-colours-distinct.test.ts holds for colour-vision separation) the province view no longer reads as a road network (T1200).",
+        "$comment_t1208": "(T1208, look A, owner 2026-11-26) THINNER ZOOMED OUT: the z4 stop was [4, .5, .1] (ord 9 at z4: 1.4 px, now 0.84); with `fadeByOrder`'s z5 and z6 stops (small orders recede: no deeper than T470's own floor, 0.45, which tools/status-colours-distinct.test.ts holds for colour-vision separation) the province view no longer reads as a road network (T1200). CLOSED IS NOT THINNED (review of T1208): `closed` starts at z4 with 1.67 (the old z4 stop over the new, the same for every order; the factor is read at the ramp's own stops, z4 and z8), so a closed river is drawn as wide as before from z4 to z8 (look-a.test holds it).",
         "$comment_t470": "(T470 B, owner 2026-11-07) THINNER AT MID ZOOM, today's from z12: the z8-z11 stops were [8, .6, .15], [11, .75, .75] (ord 5: 1.35 / 3.45 / 4.5 px at z8 / z10 / z11, now 1.0 / 1.95 / 3.25). The same curve drives the closed stripe, the gear edges and the selection casing. `closed`: a closed section's width times this factor, so closed is the heaviest line on the mid-zoom map (1.3 from z7 to z11, back to 1 at z12).",
         "sideChannel": {
           "token": "width.stream.side",
@@ -2313,8 +2313,8 @@
         },
         "closed": [
           [
-            6,
-            1.0
+            4,
+            1.67
           ],
           [
             7,

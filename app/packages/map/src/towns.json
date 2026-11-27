@@ -1,5 +1,5 @@
 {
- "_about": "T1209: the towns the map names zoomed out, in three tiers (1 from z4, 2 from z6, 3 from z8), chosen by Claude for even coverage of B.C. (owner 2026-11-26: 'make it easy to find a location by zooming in from far out'): regional hubs, highway junctions, the last town before a lake or river system, coast access, fishing bases; population alone is not the rule. 'why' is the reason, 'region' the fishing region it lies in (towns.test.ts holds every tier to every region), 'position' says whether the point is the basemap's own place (OpenStreetMap via Protomaps, ODbL: the basemap credit covers it) or an approximate one. Drawn by runtime-style.ts (`TOWN_LAYERS`), the basemap's own places above z10.",
+ "_about": "T1209: the towns the map names zoomed out, in three tiers (1 from z4, 2 from z6, 3 from z8), chosen by Claude for even coverage of B.C. (owner 2026-11-26: 'make it easy to find a location by zooming in from far out'): regional hubs, highway junctions, the last town before a lake or river system, coast access, fishing bases; population alone is not the rule. 'why' is the reason, 'region' the fishing region it lies in (look-a.test.ts holds every tier to every region), 'position' says whether the point is the basemap's own place (OpenStreetMap via Protomaps, ODbL: the basemap credit covers it) or an approximate one; every name is the Province's official one (BC Geographical Names) and, where the basemap spells it otherwise, 'basemap' is the basemap's own string, which the de-duplication filter hides too. Drawn by runtime-style.ts (`TOWN_LAYERS`), the basemap's own places above z10.",
  "towns": [
   {
    "name": "Vancouver",
@@ -544,8 +544,8 @@
   {
    "name": "Hazelton",
    "tier": 2,
-   "lon": -127.5877,
-   "lat": 55.2454,
+   "lon": -127.6709,
+   "lat": 55.2554,
    "why": "Skeena and Bulkley meet; the Kispiox",
    "position": "basemap",
    "region": "6"
@@ -759,11 +759,12 @@
   },
   {
    "name": "Lac la Hache",
+   "basemap": "Lac La Hache",
    "tier": 3,
-   "lon": -121.47,
-   "lat": 51.82,
+   "lon": -121.478,
+   "lat": 51.8149,
    "why": "Cariboo lakes on Highway 97",
-   "position": "approximate",
+   "position": "basemap",
    "region": "5"
   },
   {
@@ -965,11 +966,11 @@
    "region": "6"
   },
   {
-   "name": "Queen Charlotte",
+   "name": "Daajing Giids",
    "tier": 3,
    "lon": -132.1027,
    "lat": 53.2548,
-   "why": "Daajing Giids; Skidegate Inlet",
+   "why": "Skidegate Inlet (Queen Charlotte until 2022: BC Geographical Names, adopted 2022-07-18)",
    "position": "basemap",
    "region": "1"
   },
