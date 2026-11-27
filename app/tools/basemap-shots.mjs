@@ -167,7 +167,8 @@ async function main() {
     }
     if (req.url === "/") { res.writeHead(200, { "Content-Type": "text/html" }); res.end(PAGE); return; }
     if (req.url === "/config.json") { res.writeHead(200, { "Content-Type": "application/json" }); res.end(JSON.stringify(cfg)); return; }
-    const f = files[req.url];
+    // (T1252) by path: GL 6 asks for its worker with a query (`maplibre-gl-worker.mjs?v=<version>`)
+    const f = files[req.url.split("?")[0]];
     if (!f) { res.writeHead(404); res.end(); return; }
     sendFile(req, res, ...f);
   });
