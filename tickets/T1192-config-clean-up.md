@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane: the repo clean chat; PR 1 (comments into the schem
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | PR 1 (comments move into curated.py, config.yaml stripped), then PRs 2-7 of the plan below, in order |
+| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 1 (comments into curated.py) and PR 2 (one strict `Config` schema, dead keys deleted) in review; then PRs 3-7 of the plan below, in order |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "the config.yaml i feel has a lot of stuff in it that is noit
 needed too? like there is a lot of bloat because of the way stuff is formatted could we audit this and maybe use it as
@@ -26,6 +26,9 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
    and a short header. No key or value changes.
 2. Loud validation: `extra="forbid"` at every level, a top-level schema, no defaults, no `null`; delete `data.base`
    and the two null `match_calls`; an unknown or missing key fails naming its dotted key.
+   PR 2 (done on its branch): `curated.Config` covers all six blocks, `parse_config` is the one load path (`project_config`
+   a view on it, `get_path(default=)` gone); the `null` `stocking` / `bathymetry` blocks are deleted rather than
+   declared (no such file exists yet; `bathymetry/accept.py` `SETS` names them; PR 4 declares them when they ship).
 3. One `source:` block (the FWA gpkg has three names today); the fetcher writes through it.
 4. Relative paths under `roots`; rename `waters.areas` → `area_closures`, `waters.tidal` → `tidal_limits`; declare the
    unlisted curated files (`closed_areas.json`, `owner_carries.json`, `recheck.json`, bathymetry, stocking) and the

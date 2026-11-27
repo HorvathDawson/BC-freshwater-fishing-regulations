@@ -50,14 +50,10 @@ class TestItResolves:
         # They are separate FILES with separate models (T324: separate folders too).
         assert syn != dfo
 
-    def test_the_built_domain_exists_and_the_unbuilt_are_declared(self, tree):
-        assert tree.gauges.matches is not None and tree.gauges.matches.is_file()
-        assert tree.gauges.match_calls is not None and tree.gauges.match_calls.is_file()
-        # Stocking and bathymetry are named before they exist so the freshness gate is
-        # already waiting. Asserting they are None would break the day they are built;
-        # asserting the DOMAIN resolves is the durable check.
-        for name in ("gauges", "stocking", "bathymetry"):
-            assert tree.domain(name) is not None, name
+    def test_the_gauge_domain_exists(self, tree):
+        # (T1192) stocking and bathymetry are no longer declared as `null` "not built" placeholders: a key that is
+        # stated names a file, and those two are declared when they ship.
+        assert tree.gauges.matches.is_file() and tree.gauges.match_calls.is_file()
 
     def test_a_review_is_a_separate_file_from_the_matches_it_corrects(self, tree):
         # The matches file is regenerated wholesale; a decision recorded inside it would not
@@ -103,15 +99,118 @@ class TestAWrongPathIsLoud:
         with pytest.raises(ValidationError):
             C.Curated.model_validate(blob)
 
-    def test_config_without_the_tree_says_which_document_explains_it(self):
-        import tempfile
-        from pathlib import Path
+    def test_config_without_the_tree_names_what_is_wrong(self, tmp_path):
+        p = tmp_path / "config.yaml"
+        p.write_text("output:\n  base: output\n")
+        with pytest.raises(C.ConfigError) as e:
+            C.load(p)
+        lines = str(e.value).splitlines()
+        assert f"{p}: unknown key output" in lines and f"{p}: missing key curated" in lines
 
-        with tempfile.TemporaryDirectory() as d:
-            p = Path(d) / "config.yaml"
-            p.write_text("output:\n  base: output\n")
-            with pytest.raises(KeyError, match="curated"):
-                C.load(p)
+
+# ======================================================================================
+# T1192: ONE schema for the whole file — unknown, missing and null keys stop the load, naming the key
+# ======================================================================================
+
+
+def _real_blob() -> dict:
+    return yaml.safe_load(C.CONFIG.read_text(encoding="utf-8"))
+
+
+def _keys(node, at=()):
+    """Every dotted key of the real config.yaml: (keys, is_a_block)."""
+    for k, v in node.items():
+        yield at + (k,), isinstance(v, dict)
+        if isinstance(v, dict):
+            yield from _keys(v, at + (k,))
+
+
+KEYS = [k for k, _ in _keys(_real_blob())]
+BLOCKS = [()] + [k for k, block in _keys(_real_blob()) if block]
+LEAVES = [k for k, block in _keys(_real_blob()) if not block]
+
+
+def _edit(tmp_path, keys, fn):
+    """A temp config.yaml: the real one with `fn(parent, last)` applied at `keys`."""
+    blob = _real_blob()
+    node = blob
+    for k in keys[:-1]:
+        node = node[k]
+    fn(node, keys[-1])
+    p = tmp_path / "config.yaml"
+    p.write_text(yaml.safe_dump(blob), encoding="utf-8")
+    return p
+
+
+class TestTheWholeFileIsStrict:
+    def test_the_real_config_loads_through_every_view(self):
+        blob, cfg = C.parse_config()
+        assert isinstance(cfg, C.Config) and set(blob) == set(C.Config.model_fields)
+        assert cfg.curated == C.load_repo()
+        assert cfg.data_tree == C.load_data_tree() and cfg.generated == C.load_generated.__wrapped__()
+        assert cfg.generated.atlas.default_build == blob["generated"]["atlas"]["default_build"]
+
+    @pytest.mark.parametrize("at", BLOCKS, ids=lambda k: ".".join(k) or "(top)")
+    def test_an_unknown_key_at_any_level_is_refused_naming_it(self, tmp_path, at):
+        p = _edit(tmp_path, (*at, "t1192_typo"), lambda n, last: n.__setitem__(last, "x"))
+        dotted = ".".join((*at, "t1192_typo"))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value).splitlines() == [f"{p}: unknown key {dotted}"]
+
+    @pytest.mark.parametrize("at", KEYS, ids=".".join)
+    def test_a_missing_key_is_refused_naming_it(self, tmp_path, at):
+        p = _edit(tmp_path, at, lambda n, last: n.pop(last))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value).splitlines() == [f"{p}: missing key {'.'.join(at)}"]
+
+    @pytest.mark.parametrize("at", LEAVES, ids=".".join)
+    def test_a_null_is_refused_naming_it(self, tmp_path, at):
+        p = _edit(tmp_path, at, lambda n, last: n.__setitem__(last, None))
+        with pytest.raises(C.ConfigError) as e:
+            C.parse_config(p)
+        assert str(e.value).startswith(f"{p}: {'.'.join(at)} is null")
+
+    def test_every_loader_refuses_what_the_schema_refuses(self, tmp_path):
+        p = _edit(tmp_path, ("curated", "waters", "cuts"), lambda n, last: n.__setitem__("cutz", n.pop(last)))
+        for load in (C.load, C.load_generated.__wrapped__, C.load_data_tree.__wrapped__):
+            with pytest.raises(C.ConfigError, match="unknown key curated.waters.cutz") as e:
+                load(p)
+            assert "missing key curated.waters.cuts" in str(e.value)
+
+    def test_the_real_file_is_named_as_config_yaml(self):
+        with pytest.raises(C.ConfigError, match=r"^config\.yaml: missing key curated$"):
+            C._validate(C.Config, {k: v for k, v in _real_blob().items() if k != "curated"}, C.CONFIG)
+
+    def test_no_field_has_a_default(self):
+        def walk(m, at=""):
+            for name, f in m.model_fields.items():
+                yield f"{at}{name}", f
+                ann = f.annotation
+                if isinstance(ann, type) and issubclass(ann, C.BaseModel):
+                    yield from walk(ann, f"{at}{name}.")
+        defaulted = [k for k, f in walk(C.Config) if not f.is_required()]
+        assert not defaulted, defaulted
+        assert all(m.model_config.get("extra") == "forbid" for m in C.BaseModel.__subclasses__()
+                   if m.__module__ == C.__name__)
+
+
+class TestGetPath:
+    def test_an_unknown_key_raises(self):
+        from project_config import ProjectConfig
+        cfg = ProjectConfig()
+        for keys in (("no", "such", "key"), ("data", "base"), ("data",), ("generated", "atlas", "default_build")):
+            with pytest.raises(KeyError, match=".".join(keys)):
+                cfg.get_path(*keys)
+
+    def test_it_reads_the_validated_model_and_takes_no_default(self):
+        import inspect
+        from project_config import ProjectConfig
+        cfg = ProjectConfig()
+        assert "default" not in inspect.signature(cfg.get_path).parameters
+        assert cfg.get_path("data_accessor", "gpkg_path") == cfg._model.data_accessor.gpkg_path
+        assert cfg.get_path("data_accessor", "gpkg_path").is_absolute()
 
 
 class TestTheTreeIsImmutable:
