@@ -517,8 +517,8 @@ def lake_link_zooms(graph, lake_z: dict[str, int], drawn_z: dict[str, int]) -> d
 
 
 #: (T299) The zooms a stream name's lines are merged for: one set of lines per zoom, the last one serving every zoom up
-#: to the archive's top. `stream__label` starts at the first.
-NAME_BANDS = (8, 9, 10, 11, 12, 13)
+#: to the archive's top. `stream__label` starts at the first (z4 since T1210; z8 before).
+NAME_BANDS = (4, 5, 6, 7, 8, 9, 10, 11, 12, 13)      # (T1210) from z4: rivers named zoomed out too
 #: AND SMOOTHED FOR THAT ZOOM. MapLibre places a line label only where the line turns less than `text-max-angle` within
 #: a few characters (`checkMaxAngle` sums every corner under the window), and a river at the label's own scale is all
 #: corners: measured on the Lower Mainland at z11, every vertex of the Coquitlam, Alouette, Salmon and Serpentine lines
@@ -591,6 +591,90 @@ def export_stream_names(out_dir: Path) -> dict:
                 write({"type": "LineString", "coordinates": _chaikin([tuple(c) for c in ln.coords], NAME_CHAIKIN)},
                       {"name": name, "ord": o or None}, band, top)
     return {"stream_name": close()}
+
+
+#: (T1210) THE PART OF A SPLIT LAKE'S NAME: "Williston Lake — Zone A" is Williston Lake (the registry's part names).
+_PART = " — "
+
+
+def lake_water_name(name: str) -> str:
+    """A lake part's water: its name without the part (`_PART`)."""
+    return name.split(_PART, 1)[0]
+
+
+#: (T1210 review) A SPLIT LAKE'S PARTS ARE ONE WATER WHEN THEY ALMOST TOUCH: Kootenay Lake's Main Body and its two West
+#: Arm parts are cut at the narrows and do not share an edge (three points, three labels at z7); within this many degrees
+#: (about 500 m) they are one. Two same-named lakes a valley apart stay two.
+LAKE_PART_BRIDGE_DEG = 0.005
+#: (T1210 review) WHICH LAKES ARE NAMED AT EACH ZOOM, CHOSEN HERE, BY AREA, NEVER BY TIPPECANOE: the waters ranked by
+#: summed area (largest first; then name, then place: deterministic), the first `n` of the rank given each zoom. A point's
+#: `minzoom` is the later of its rank's zoom and its lake's own first zoom; the pass keeps every point (`--drop-rate=1`,
+#: `tippe.alone_flags`), so the biggest lakes are always the ones written zoomed out.
+LAKE_NAME_RANK_ZOOM: tuple[tuple[int, int], ...] = ((4, 12), (5, 30), (6, 80))
+
+
+#: (T1210) A SPLIT LAKE'S PARTS ARE NAMED AS ONE (one point, the lake's name without the part, the parts' area summed). The
+#: ONE place that decides it: lake zones and cuts are design-only (owner 2026-11-26), so nothing here assumes a parts
+#: design; set False and each named part is its own point under its own full name ("Kootenay Lake — Main Body"), ranked
+#: by its own area, with no bridging between parts (`export_lake_names`; the test holds both).
+LAKE_NAME_JOINS_PARTS = True
+
+
+def lake_name_zoom(rank: int) -> int:
+    """The first zoom the `rank`-th biggest lake water (0-based) is named at (`LAKE_NAME_RANK_ZOOM`; the rest at z7)."""
+    for z, n in LAKE_NAME_RANK_ZOOM:
+        if rank < n:
+            return z
+    return BY_NAME["lake_name"].maxzoom
+
+
+def export_lake_names(out_dir: Path) -> dict:
+    """(T1210) The `lake_name` layer, DERIVED FROM THE WRITTEN `lake` LAYER FILE and nothing else: one point per lake WATER,
+    inside its biggest piece. A water is the named lake sections (`water` lake, not a stream's polygon) that share a name
+    without the part (`lake_water_name`) AND touch, or nearly (`LAKE_PART_BRIDGE_DEG`): two Fish Lakes a valley apart are
+    two points. Each point carries the name and the parts' summed `area_m2`, and is first drawn at the later of its
+    sections' earliest zoom and its area rank's (`lake_name_zoom`). Pure and sorted: two runs write the same bytes."""
+    from collections import defaultdict
+
+    from shapely import affinity, unary_union
+    from shapely.geometry import shape
+    from shapely.ops import polylabel
+
+    spec = BY_NAME["lake_name"]
+    src = out_dir / f"{BY_NAME['lake'].name}.geojsonl"
+    by_name: dict[str, list[tuple[object, float, int]]] = defaultdict(list)
+    with src.open() as fh:
+        for line in fh:
+            f = json.loads(line)
+            p = f.get("properties") or {}
+            if not p.get("name") or p.get("water") == "stream":
+                continue
+            by_name[lake_water_name(p["name"]) if LAKE_NAME_JOINS_PARTS else p["name"]].append(
+                (shape(f["geometry"]).buffer(0), float(p.get("area_m2") or 0), int(f.get("tippecanoe", {}).get("minzoom", 0))))
+    found: list[tuple[float, str, list[float], int]] = []
+    for name in sorted(by_name):
+        parts = by_name[name]
+        near = unary_union([g.buffer(LAKE_PART_BRIDGE_DEG if LAKE_NAME_JOINS_PARTS else 0) for g, _, _ in parts])
+        for reach in getattr(near, "geoms", [near]):
+            members = [(g, a, z) for g, a, z in parts if g.intersects(reach)]
+            # a lake first drawn past this layer's top is named by `lake__label` (z8 on), never here
+            if not members or min(z for _, _, z in members) > spec.maxzoom:
+                continue
+            # inside the biggest piece of the water (its own parts, not the bridge)
+            merged = unary_union([g for g, _, _ in members])
+            water = max(getattr(merged, "geoms", [merged]), key=lambda g: (g.area, g.bounds))
+            # the pole of inaccessibility, worked in a frame where a degree of longitude is as long as one of latitude
+            k = math.cos(math.radians(water.centroid.y))
+            flat = affinity.scale(water, xfact=k, yfact=1.0, origin=(0, 0))
+            pt = polylabel(flat, tolerance=0.0005)
+            at = [round(pt.x / k, _ROUND), round(pt.y, _ROUND)]
+            found.append((float(round(sum(a for _, a, _ in members))), name, at, min(z for _, _, z in members)))
+    ranked = sorted(found, key=lambda w: (-w[0], w[1], w[2]))
+    write, close = _writer(out_dir, spec)
+    for rank, (area, name, at, first) in enumerate(ranked):
+        write({"type": "Point", "coordinates": at}, {"name": name, "area_m2": int(area)},
+              max(first, lake_name_zoom(rank)), spec.maxzoom)
+    return {"lake_name": close()}
 
 
 #: THE UNDRAWN LIST (T64): the section handles the tile export left out on purpose, by layer, in
