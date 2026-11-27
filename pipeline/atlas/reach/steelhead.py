@@ -146,10 +146,10 @@ PACIFIC_STREAMS_ARE_STEELHEAD_WATER = True
 #: steelhead rows' entry ids and `CURATED_LIST`.
 PACIFIC_STREAM = "Pacific stream"
 
-#: THE FWA BASINS: the FIRST group of a section's FWA watershed code names the drainage it belongs to. These reach
-#: the Pacific: 100 the Fraser, 300 the Columbia, 400 the Skeena, 500 the Nass, 600 the Stikine, 700 the Taku, and
-#: every 9xx group (the coast and its islands: Vancouver Island, Haida Gwaii, the mainland inlets, the Unuk, Whiting,
-#: Alsek ...).
+#: THE FWA BASINS: the FIRST group of a section's FWA watershed code names the drainage it belongs to
+#: (`common.utils.wsc.root`). These reach the Pacific: 100 the Fraser, 300 the Columbia, 400 the Skeena, 500 the Nass,
+#: 600 the Stikine, 700 the Taku, and the Coastal Rivers groups 900-995 (`wsc.COASTAL_ROOTS`: Vancouver Island, Haida
+#: Gwaii, the mainland inlets, the Unuk, Whiting, Alsek ...).
 PACIFIC_BASINS = frozenset({"100", "300", "400", "500", "600", "700"})
 #: These do not: 200 the Mackenzie (the Peace and the Liard, to the Arctic) and 800 the Yukon (Teslin, Atlin; by the
 #: owner's ruling it stays as today with the Arctic).
@@ -158,12 +158,14 @@ NOT_PACIFIC_BASINS = frozenset({"200", "800"})
 
 def pacific_basin(wsc: str) -> bool | None:
     """Does a water with this FWA watershed code reach the Pacific? True / False by the code's first group
-    (`PACIFIC_BASINS`, the 9xx coast, `NOT_PACIFIC_BASINS`); None when there is no code. A first group in none of
-    them is REFUSED: a new basin is decided here, never guessed."""
-    head = str(wsc or "").strip().split("-")[0]
-    if not head:
+    (`PACIFIC_BASINS`, the Coastal Rivers `wsc.COASTAL_ROOTS`, `NOT_PACIFIC_BASINS`); None when the code places
+    nothing (no code, or FWA's `999` no-watershed sentinel, `wsc.is_unknown`). A first group in none of them is
+    REFUSED: a new basin is decided here, never guessed."""
+    from pipeline.common.utils import wsc as W
+    if W.is_unknown(str(wsc or "").strip()):
         return None
-    if head in PACIFIC_BASINS or (len(head) == 3 and head.startswith("9") and head.isdigit()):
+    head = W.root(str(wsc).strip())
+    if head in PACIFIC_BASINS or head in W.COASTAL_ROOTS:
         return True
     if head in NOT_PACIFIC_BASINS:
         return False

@@ -156,7 +156,7 @@ STEELHEAD_TEXT = (
     "of any size is a rainbow trout (user ruling 2026-10-03). Steelhead rules come only from the "
     "book. "
     "\"Pacific stream\": a stream of Regions 1, 2, 3, 5 or 6 whose water reaches the Pacific "
-    "(its FWA basin; RULINGS S14, owner 2026-11-27): steelhead can swim up to it from the sea. It "
+    "(its FWA basin; RULINGS S14, owner 2026-11-27): it drains to the Pacific. It "
     "binds no rule either; the provincial steelhead rules already apply on those streams. "
     "\"possible\": any other stream of Regions 1, 2, 3, 5 or 6 (the Arctic and Yukon drainage "
     "of Region 6); the steelhead rules apply, but "

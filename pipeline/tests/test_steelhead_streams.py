@@ -952,11 +952,12 @@ def test_mutation_without_s14_a_pacific_stream_is_possible(monkeypatch):
                                       ("400-431358", True), ("500", True), ("600-1", True),
                                       ("700-2", True), ("900-105422", True), ("915-765475", True),
                                       ("990-1", True), ("200-948755", False), ("800-1", False),
-                                      ("", None), (None, None)])
+                                      ("", None), (None, None), ("999-999999-999999", None)])
 def test_the_pacific_basins_are_the_first_group_of_the_fwa_code(wsc, want):
     """RULINGS S14: the basin is the FWA watershed code's first group. 100 the Fraser, 300 the
-    Columbia, 400 the Skeena, 500 the Nass, 600 the Stikine, 700 the Taku and every 9xx coast group
-    reach the Pacific; 200 (the Mackenzie: Peace, Liard) and 800 (the Yukon) do not; no code is None."""
+    Columbia, 400 the Skeena, 500 the Nass, 600 the Stikine, 700 the Taku and the Coastal Rivers groups
+    (900-995) reach the Pacific; 200 (the Mackenzie: Peace, Liard) and 800 (the Yukon) do not; no code and
+    FWA's 999 no-watershed sentinel are None."""
     from pipeline.atlas.reach import steelhead as SH
     assert SH.pacific_basin(wsc) is want
 
@@ -966,6 +967,8 @@ def test_an_unknown_basin_is_refused():
     from pipeline.atlas.reach import steelhead as SH
     with pytest.raises(ValueError, match="neither PACIFIC_BASINS nor NOT_PACIFIC_BASINS"):
         SH.pacific_basin("450-123456")
+    with pytest.raises(ValueError):
+        SH.pacific_basin("901-1")          # not a Coastal Rivers group
 
 
 @pytest.mark.parametrize("gone", ["steelhead.r1", "steelhead.r2", "steelhead.r4"])

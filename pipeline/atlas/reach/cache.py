@@ -238,6 +238,7 @@ from __future__ import annotations
 #:     known (source "Pacific stream"), so a rainbow over 50 cm there is a steelhead where steelhead rules apply. The
 #:     Arctic and Yukon drainage (basins 200, 800) stays "possible"; lakes stay out. Only the steelhead presence
 #:     table and its digest change; no rule binding, licensing placement or classify.py outcome changed. 54 is the
-#:     DFO branch's (it merges after the walk's 53).
+#:     DFO branch's (after the walk's 53); if this merges first, 54 is a gap until it lands (the number is a
+#:     changelog only, no cache reads it).
 POLICY_VERSION = "55"
 
