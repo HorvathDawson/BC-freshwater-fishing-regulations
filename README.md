@@ -19,7 +19,7 @@ looks answers up. Not affiliated with the Government of British Columbia: always
 | `scripts/` | dev and CI helpers: `heavy.sh`, `before_push.py`, the test tiers, bootstrap |
 | `docs/` | the plans, runbooks, restart pages and decisions |
 | `tickets/` | the open tickets, and the index of the closed ones |
-| `.github/`, `.githooks/` | the seven workflows (four are required checks); the commit-msg and pre-push hooks |
+| `.github/`, `.githooks/` | the nine workflows (four are required checks); the commit-msg and pre-push hooks |
 
 Each folder, pipeline stage and app package has its own `README.md`.
 

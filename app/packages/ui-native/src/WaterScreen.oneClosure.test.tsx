@@ -19,7 +19,7 @@ const notice = vi.hoisted(() => ({ on: false }));
 vi.mock("./regs/RegsScreen", async (orig) => {
   const m = await orig<typeof import("./regs/RegsScreen")>();
   const change = { id: "is-a", region: "4", water: "Wilkie Creek", from: "2026-11-01", to: "2026-12-31",
-                   text: "No fishing for bull trout.", source: "https://www2.gov.bc.ca/x", waters: null, words: {} };
+                   text: "No fishing for bull trout.", dated: false, phase: "in force" as const, source: "https://www2.gov.bc.ca/x", waters: null, words: {} };
   return { ...m, RegsScreen: (p: RegsScreenProps) => m.RegsScreen(notice.on ? { ...p, inSeason: [inSeasonBanner(change, { where: null })] } : p) };
 });
 const { WaterScreen } = await import("./WaterScreen");
