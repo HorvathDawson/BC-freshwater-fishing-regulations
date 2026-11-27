@@ -4,7 +4,7 @@ Node scripts and their tests for the app workspace. Run from `app/` (most throug
 top-level `.mjs` is named below (`pipeline/tests/test_readmes_name_every_tool.py` fails when one is not). A tool marked
 "one-off (ran for Tnnn)" has no caller in code, a script or CI; it is kept for the next time that check is wanted.
 
-## Gates (a `pnpm` name in brackets means `pnpm check` runs it; the rest are named where they run)
+## Gates (a `pnpm` name in parentheses means `pnpm check` runs it; the rest are named where they run)
 | tool | what |
 |---|---|
 | `check-boundaries.mjs` | enforces `layers.json`: which package may import which (`pnpm boundaries`) |
@@ -67,6 +67,7 @@ top-level `.mjs` is named below (`pipeline/tests/test_readmes_name_every_tool.py
 | `smoke-rulebook.mjs` | the smoke's rule-book step, split out so it is testable without a browser |
 | `request-walk.mjs` | what a web visitor fetches, moment by moment, checked against `request-walk.pin.json` |
 | `map-tap.mjs` | shared tap targets for the tools that tap the map on a first view |
+| `regs-census.mjs` | the palette census on the rendered Regulations page (layer D, manual, by hand; `docs/app-integration/tests.md`) |
 | `regs-walk.mjs` | every golden state of the Regulations page, light and dark, with no console error |
 | `basemap-shots.mjs` | the basemap render gate: does a rebuilt basemap look like the one it replaces |
 | `water-frame-measure.mjs`, `wide-measure.mjs` | lay pages out in headless Chrome for the layout tests; a test starts them |
@@ -76,7 +77,6 @@ top-level `.mjs` is named below (`pipeline/tests/test_readmes_name_every_tool.py
 | `spot-shots.mjs` | a saved spot's page with and without photos (one-off, ran for T284) |
 | `prefetch-measure.mjs` | the background prefetch's tap-to-regulations time (one-off, ran for T253) |
 | `updates-e2e.mjs` | the update scenarios on the staging test channel (one-off, ran for T251) |
-| `regs-census.mjs` | the palette census on the rendered Regulations page (one-off, ran for T39) |
 
 Folders: `testbed/` (the Android emulator test bed, its own README), `seo/` (the SEO site's code; `build-seo.mjs`),
 `maplibre-android/` (the pinned MapLibre build, README), `regs-recut/` (`sync.mjs` re-cuts the golden fixtures),
