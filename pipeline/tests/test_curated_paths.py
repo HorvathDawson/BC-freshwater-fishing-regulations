@@ -247,6 +247,43 @@ class TestGetPath:
         assert cfg.get_path("cache", "dfo_salmon").is_absolute()
 
 
+#: (T1192) one fresh process per entry: `dotenv.load_dotenv` stubbed to count its calls, then the reads
+_ENV_PROBE = """
+import json, sys, types
+calls = []
+stub = types.ModuleType("dotenv")
+stub.load_dotenv = lambda path=None, *a, **k: calls.append(str(path))
+sys.modules["dotenv"] = stub
+for read in sys.argv[1:]:
+    if read == "source":
+        from pipeline.common.curated import SOURCE
+        SOURCE.fwa_gpkg
+    elif read == "curated":
+        from pipeline.common.curated import CURATED
+        CURATED.waters.cuts
+    elif read == "get_config":
+        from project_config import get_config
+        get_config()
+print(json.dumps(calls))
+"""
+
+
+@pytest.mark.parametrize("reads", [["source"], ["curated"], ["get_config"], ["source", "curated", "get_config"]],
+                         ids="+".join)
+def test_the_env_file_is_loaded_once_by_whichever_config_read_comes_first(reads):
+    """`.env` is loaded on the one config load path (`parse_config`), once per process: `get_config()` loaded it before
+    this change, and a process that reads config only through SOURCE / CURATED loads it too (its removal is T1222)."""
+    import json
+    import os
+    import subprocess
+    import sys
+    env = {k: v for k, v in os.environ.items() if k != C.ROOT_ENV}
+    env["PYTHONPATH"] = str(C.REPO_ROOT)
+    got = subprocess.run([sys.executable, "-c", _ENV_PROBE, *reads], cwd=C.REPO_ROOT, env=env, check=True,
+                         capture_output=True, text=True)
+    assert json.loads(got.stdout.strip().splitlines()[-1]) == [str(C.REPO_ROOT / ".env")]
+
+
 class TestNamedSourceFiles:
     """(T1192) config.yaml `source:`: each named source file has ONE name, relative to the source root, read as
     `SOURCE.<name>` by the fetcher that writes it and by every reader."""

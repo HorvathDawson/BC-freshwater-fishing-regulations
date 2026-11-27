@@ -49,8 +49,11 @@ PATH_CALLS = {"Path", "PurePath", "PosixPath", "join"}
 #: (T1192) the named source files a string may not spell, and how they are read (`pipeline/tests/test_data_path_gate.py`
 #: pins this against config.yaml's `source:` block)
 NAMED = {"bc_fisheries_data.gpkg": "SOURCE.fwa_gpkg", "fwa_coast.gpkg": "SOURCE.coast_gpkg"}
-#: a string that is one of `NAMED`, or a path ending in one
+#: a string that is one of `NAMED`, or a path ending in one (a string with whitespace is prose that mentions the file:
+#: `"copy into data/source/bc_fisheries_data.gpkg"` names it, opens nothing)
 SPELLS = re.compile(r"(?:^|/)(" + "|".join(re.escape(n) for n in NAMED) + r")$")
+#: the two kinds of offender `check` returns: a data/ or cache/ path, a named source file spelt by its file name
+PATH, NAMED_FILE = "path", "named source file"
 
 
 def files(root: Path = ROOT) -> list[str]:
@@ -98,9 +101,9 @@ def _starts_a_path(node: ast.AST, parent: dict[int, ast.AST]) -> bool:
     return isinstance(up, ast.BinOp) and isinstance(up.op, ast.Div) and up.left is node
 
 
-def check(rel: str, src: str) -> tuple[list[str], list[str], list[str]]:
-    """(offenders, labels let through, stale labels) of one file, each `file:line: …`: a data/ or cache/ path, and a
-    named source file spelt by its file name (`NAMED`)."""
+def check(rel: str, src: str) -> tuple[list[tuple[str, str]], list[str], list[str]]:
+    """(offenders, labels let through, stale labels) of one file, each `file:line: …`; an offender is (its kind, that
+    line): `PATH` (a data/ or cache/ path) or `NAMED_FILE` (a named source file spelt by its file name, `NAMED`)."""
     tree = ast.parse(src)
     labels = {}
     for tok in tokenize.generate_tokens(io.StringIO(src).readline):
@@ -110,11 +113,13 @@ def check(rel: str, src: str) -> tuple[list[str], list[str], list[str]]:
     docs = _docstrings(tree)
     parent = {id(c): n for n in ast.walk(tree) for c in ast.iter_child_nodes(n)}
     bad, let, used = [], [], set()
-    paths = [(node, text, "") for node, text in strings(tree)
+    paths = [(node, text, PATH, "") for node, text in strings(tree)
              if UNDER.match(text) or (BARE.match(text) and _starts_a_path(node, parent))]
-    named = [(node, text, f"  (a named source file: read it as {NAMED[m.group(1)]})")
-             for node, text in every_string(tree) if (m := SPELLS.search(text)) and id(node) not in {id(n) for n, *_ in paths}]
-    for node, text, note in sorted(paths + named, key=lambda x: (x[0].lineno, x[0].col_offset)):
+    seen = {id(n) for n, *_ in paths}
+    named = [(node, text, NAMED_FILE, f"  (a named source file: read it as {NAMED[m.group(1)]})")
+             for node, text in every_string(tree)
+             if (m := SPELLS.search(text)) and not re.search(r"\s", text) and id(node) not in seen]
+    for node, text, kind, note in sorted(paths + named, key=lambda x: (x[0].lineno, x[0].col_offset)):
         if id(node) in docs:
             continue
         span = range(node.lineno, (node.end_lineno or node.lineno) + 1)
@@ -123,7 +128,7 @@ def check(rel: str, src: str) -> tuple[list[str], list[str], list[str]]:
             used |= {ln for ln in span if labels.get(ln)}
             let.append(f"{rel}:{node.lineno}: {text!r}  ({why})")
         else:
-            bad.append(f"{rel}:{node.lineno}: {text!r}{note}")
+            bad.append((kind, f"{rel}:{node.lineno}: {text!r}{note}"))
     stale = [f"{rel}:{ln}: a path-label {'with no reason (10+ characters)' if why is None else 'on no data/cache string'}"
              for ln, why in sorted(labels.items()) if ln not in used]
     return bad, let, stale
@@ -134,12 +139,12 @@ def main(argv: list[str] | None = None) -> int:
     for rel in files():
         b, lt, st = check(rel, (ROOT / rel).read_text(encoding="utf-8"))
         bad, let, stale = bad + b, let + lt, stale + st
-    for x in bad:
+    for _kind, x in bad:
         print(f"      {x}")
     for x in stale:
         print(f"      {x}")
-    print(f"  data/… or cache/… string in code       {len(bad) - sum('named source file' in x for x in bad):3}")
-    print(f"  named source file spelt in code        {sum('named source file' in x for x in bad):3}")
+    print(f"  data/… or cache/… string in code       {sum(k == PATH for k, _ in bad):3}")
+    print(f"  named source file spelt in code        {sum(k == NAMED_FILE for k, _ in bad):3}")
     print(f"  stale or reasonless path-label         {len(stale):3}")
     print(f"  path-labels let through                {len(let):3}")
     for x in let:

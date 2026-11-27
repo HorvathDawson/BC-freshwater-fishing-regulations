@@ -111,10 +111,21 @@ def test_the_gate_lets_prose_that_mentions_a_named_file_through(tmp_path):
         "# copies into bc_fisheries_data.gpkg",
         'HELP = "Skip copy to bc_fisheries_data.gpkg"',
         'WHY = "an FWA lake polygon (bc_fisheries_data.gpkg lakes)"',
+        'SAID = "the lake outlines are read from the FWA gpkg, sub/bc_fisheries_data.gpkg"',   # prose ending in a path
         'G = SOURCE.fwa_gpkg',
     ]) + "\n"})
     got = _gate(tree)
     assert got.returncode == 0, got.stdout + got.stderr
+
+
+def test_each_offender_carries_its_kind():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("check_data_paths", REPO / "scripts" / "check_data_paths.py")
+    cdp = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cdp)
+    bad, _let, _stale = cdp.check("pipeline/x.py", 'A = SOURCE / "fwa_coast.gpkg"\nB = Path("data/source/x.json")\n')
+    assert [k for k, _ in bad] == [cdp.NAMED_FILE, cdp.PATH]
+    assert bad[0][1] == "pipeline/x.py:1: 'fwa_coast.gpkg'  (a named source file: read it as SOURCE.coast_gpkg)"
 
 
 def test_the_gate_names_the_gpkg_files_config_yaml_declares():

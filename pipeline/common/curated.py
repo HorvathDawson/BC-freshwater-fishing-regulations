@@ -634,10 +634,20 @@ def read_yaml(path: Path):
         raise ConfigError(f"{_where(path)}: {e}") from None
 
 
+@functools.lru_cache(maxsize=1)
+def _load_env() -> None:
+    """The repo's `.env` into this process's environment, once (python-dotenv: a variable already set is kept). It rides
+    the one config load path, so every process that reads config loads it, as `get_config()` always did. The .env load;
+    its removal is T1222."""
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+
+
 def parse_config(config: Path | None = None) -> tuple[dict, Config]:
     """(the parsed YAML, the validated `Config`) of config.yaml — THE one load path. The raw values are what the build's
     stage keys digest (`_config_read`); the model is what every reader gets. Not cached itself: each loader caches its
-    own view (and `load_generated.__wrapped__()` reads the file afresh)."""
+    own view (and `load_generated.__wrapped__()` reads the file afresh). Loads `.env` first (`_load_env`)."""
+    _load_env()
     path = config or CONFIG
     blob = read_yaml(path)
     if not isinstance(blob, dict):

@@ -7,7 +7,6 @@ All pipelines import from this module to access configuration.
 
 from pathlib import Path, PurePath
 from typing import Dict, Any
-from dotenv import load_dotenv
 from pydantic import BaseModel
 
 
@@ -36,10 +35,7 @@ class ProjectConfig:
         return Path(__file__).parent
 
     def _load_config(self):
-        """Load configuration from config.yaml and .env file."""
-        # Load environment variables
-        load_dotenv(self.project_root / ".env")
-
+        """Load configuration from config.yaml (and `.env`: `parse_config` loads it, once per process)."""
         # (T1192) config.yaml through the ONE schema (`pipeline.common.curated.Config`): an unknown, missing or `null` key
         # anywhere in the file stops here, naming it. `_config` is the parsed YAML (what the build's keys digest),
         # `_model` the validated view every accessor returns.
