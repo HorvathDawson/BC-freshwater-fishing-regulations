@@ -20,7 +20,7 @@ function page(body = `<div id="gauge-chart"></div><div id="gauge-get-app"></div>
   const doc = document.implementation.createHTMLDocument("g");
   doc.body.innerHTML = body + `<script type="application/json" id="gauge-config">${JSON.stringify({
     station: "08MH001", facts: "https://d/f.json", live: "https://d/feeds/live", clim: [], fonts: null, weather: null, weatherAttribution: "",
-    sky: {}, crash: CRASH, env: "staging", release: "r1", contact: null, place: null })}</script>`;
+    sky: {}, crash: CRASH, env: "staging", release: "r1", contact: null, place: null, source: { name: "Environment Canada", url: "https://wateroffice.ec.gc.ca/" } })}</script>`;
   const sent: string[] = [];
   const fetchImpl = (async (u: string, init?: RequestInit) => {
     if (u === CRASH) { sent.push(JSON.parse(String(init?.body)).message); return new Response("{}", { status: 201 }); }
@@ -43,7 +43,7 @@ describe("the gauge page's roots say their own failures", () => {
   it("a config that parsed but no place for Get the app: shown where the chart goes AND reported", async () => {
     const p = page(`<div id="gauge-chart"></div>`);
     expect(() => mountGaugeChart(p.doc, p.fetchImpl, Date.now)).toThrow(/no #gauge-get-app/);
-    expect(p.doc.getElementById("gauge-chart")!.textContent).toBe(CHART_FAILED);
+    expect(p.doc.getElementById("gauge-chart")!.textContent).toBe(`${CHART_FAILED} Environment Canada`);       // (T1194) with the source's link
     await waitFor(() => expect(p.sent).toEqual(["gauge chart: no #gauge-get-app on this page"]));
   });
 });

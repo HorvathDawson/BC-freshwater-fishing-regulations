@@ -38,16 +38,9 @@ const T = (theme: "light" | "dark", token: string): string => {
   if (typeof v !== "string") throw new Error(`theme "${theme}" has no colour ${token}`);
   return v;
 };
-/** (T908) the map's flow ramp as a css gradient: the style's own `standing` stops, each colour at its percentile (ui-native theme.ts `flowRampStops`) */
-const rampOf = (th: "light" | "dark"): string => {
-  const mode = (meta as unknown as { colorModes: { stream: { standing: { stops: [number, { token: string }][] } } } }).colorModes.stream.standing;
-  return `linear-gradient(90deg,${mode.stops.filter(([at]) => at >= 0 && at <= 100).map(([at, ref]) => `${T(th, ref.token)} ${at}%`).join(",")})`;
-};
 const vars = (th: "light" | "dark"): string =>
   `--ink:${T(th, "color.ui.ink")};--card:${T(th, "color.ui.card")};--scrim:color-mix(in srgb,${T(th, "color.ui.shadow")} ${Math.round(Number((meta.themes as Record<string, Record<string, unknown>>)[th]?.["opacity.ui.scrim"]) * 100)}%,transparent);--muted:${T(th, "color.ui.sub")};--line:${T(th, "color.ui.line2")};--accent:${T(th, "color.ui.accent")};` +
-  `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")};` +
-  // (T908) the gauge page's standing colours: the map's "Flow vs. past years" ramp (layers.source.json `standing`, p0 f1 ... p100 f7), one stop per band
-  `--b-much-below:${T(th, "color.flow.f1")};--b-below:${T(th, "color.flow.f3")};--b-normal:${T(th, "color.flow.f4")};--b-above:${T(th, "color.flow.f5")};--b-much-above:${T(th, "color.flow.f7")};--flow-ramp:${rampOf(th)}`;
+  `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")};`;
 export const SHARE_GROUND = T("light", "color.ui.accent");
 /** (T406) the share card: its size (the size Facebook and X ask for a large-image card) and its face (share.ts loads it) */
 export const SHARE_W = 1200, SHARE_H = 630, SHARE_FONT = "Archivo";
@@ -71,6 +64,7 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .bk{font-size:.85rem;white-space:nowrap}.part{border-top:1px solid var(--line);margin-top:1.4rem}
 .legal{background:var(--soft);border-radius:.5rem;padding:.7rem 1rem;margin:1.5rem 0}
 .cols{columns:2 14rem;list-style:none;padding:0}.cols li{break-inside:avoid}
+.gv .gfoot{margin-top:2.5rem;padding:1.25rem 1rem;border:1px solid var(--line);border-radius:.75rem;background:var(--soft);text-align:center}.gv .gfoot .gl{margin:0 0 .3rem;font-weight:600;color:var(--ink)}.gv .gfoot .app{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-height:44px;margin:1rem 0 1.4rem;text-align:center}.gv .gfoot #gauge-credit .small{margin:0}
 .card{border:1px solid var(--line);padding:.8rem 1rem;margin:1rem 0}.card>p{margin:0 0 .5rem}.card .app{border-radius:0;margin:0}.opens{display:flex;flex-wrap:wrap;gap:.5rem}#gauge-get-app{margin-top:1rem}.card h2{margin-top:0}
 .lead{display:grid;gap:1rem;align-items:start;margin:.6rem 0 1rem}@media(min-width:44rem){.lead{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .mapcard{position:relative;border:1px solid var(--line);background:var(--soft)}.mapcard .tag2{position:absolute;top:.4rem;left:.4rem;font-size:.8rem;background:var(--card);color:var(--muted);padding:.1rem .4rem}
@@ -79,15 +73,8 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .find label{display:block;font-weight:600;margin-bottom:.3rem}.find input{box-sizing:border-box;width:100%;font:inherit;padding:.65rem .7rem;border:1.5px solid var(--ink);border-radius:0;background:var(--card);color:var(--ink)}
 .sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.sugg{list-style:none;margin:0;padding:0;border:0}.sugg:not(:empty){border:1px solid var(--line);border-top:0}.sugg li{margin:0;border-top:1px solid var(--line)}.sugg li:first-child{border-top:0}.sugg a{display:block;padding:.6rem .7rem;text-decoration:none;color:var(--ink)}.gres .gh{font-size:.9rem;font-weight:600;color:var(--muted);margin:1.3rem 0 .4rem}.gres .sugg a:hover,.gres .sugg a:focus-visible{background:var(--soft)}.gres .sugg a{padding:.7rem .8rem .15rem}.gres .sugg li{background:var(--card)}.find input:focus{outline:2px solid var(--accent);outline-offset:2px}.find .row{margin-bottom:.2rem}.find .said{margin:.5rem 0 0}.gres .gsep{font-size:.8rem;color:var(--muted);padding:.4rem .8rem;background:var(--soft)}.gres .sugg .tag{display:block;padding:0 .8rem .7rem;font-size:.85rem;color:var(--muted)}.mapline{margin:1rem 0 1.4rem}.mapline p{color:var(--muted)}.mapline .app{margin:0;display:block;text-align:center;flex:1}
 .yb svg{display:block;width:100%;height:auto}.yb text{font-size:10px;fill:var(--muted)}.yb .o{fill:var(--open)}.yb .c{fill:var(--closed)}.yb ul{margin:.4rem 0 0}
-.gv .reading{font-size:1.1rem;margin:.2rem 0}.gv .reading b{font-size:1.6rem}.gv .standing{font-weight:600;margin:.1rem 0}
-.gv .headrow{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.2rem 1rem;margin:.8rem 0 .2rem}.gv .headrow .reading{margin:0}.gv .headrow .reading b{font-size:1.5rem}.gv .meta{margin:.2rem 0 .6rem}
-.gv .nowline{font-size:1.25rem;line-height:1.25;border-left:8px solid var(--band,var(--line));padding:.25rem .7rem;margin:0}
-.gv .b-much-below{--band:var(--b-much-below)}.gv .b-below{--band:var(--b-below)}.gv .b-normal{--band:var(--b-normal)}.gv .b-above{--band:var(--b-above)}.gv .b-much-above{--band:var(--b-much-above)}
 .gv details{margin:.5rem 0}.gv summary{cursor:pointer;font-weight:600}.gv .wxfold,.gv .keyfold,.gv .fdfold{border-top:1px solid var(--line);padding-top:.4rem}.gv .keyfold summary,.gv .fdfold summary{font-weight:400;font-size:.9rem;color:var(--muted)}
 .gv h2{font-size:1.1rem;margin:1.2rem 0 .3rem}
-.gv .ramp{margin:.3rem 0 .6rem}.gv .ramptitle{margin:.2rem 0}.gv .rampbar{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--muted)}.gv .rampbar span{flex:0 0 2.6rem}.gv .rampbar span:last-child{text-align:left}.gv .rampbar span:first-child{text-align:right}
-.gv .bar{position:relative;flex:1;height:12px;background:var(--flow-ramp);margin-top:6px}.gv .mark{position:absolute;top:-6px;bottom:-4px;width:4px;margin-left:-2px;background:var(--ink);box-shadow:0 0 0 2px var(--soft)}
-.gv .rampnormal{position:relative;height:1.3rem;margin:2px 3rem 0}.gv .rampnormal div{position:absolute;top:0;height:100%;box-sizing:border-box;border:1px solid var(--muted);border-top:0;text-align:center;font-size:.8rem;color:var(--muted);line-height:1.1rem}
 .warn{border-left:3px solid var(--accent);padding:.3rem .7rem;background:var(--soft)}
 .gv #gauge-chart{margin:.4rem 0;min-height:550px}
 .wx{border-collapse:collapse;width:100%;font-size:.9rem}.wx th,.wx td{text-align:left;padding:.25rem .4rem;border-bottom:1px solid var(--line)}

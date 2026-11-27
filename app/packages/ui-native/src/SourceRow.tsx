@@ -19,7 +19,7 @@ import { RuleBookLink } from "./regs/RuleBookLink";
 /** (T40, T1031) a link's words may wrap: at 2× text "DFO notices, Region 6 Skeena ↗" is wider than a 360 px phone */
 const WRAP = { flexShrink: 1, maxWidth: "100%" } as const;
 
-export function SourceRow({ vm, palette, onBook, onSheet, testID = "source-row", sheetTestID = `${testID}-sheet` }: {
+export function SourceRow({ vm, palette, onBook, onSheet, testID = "source-row", sheetTestID = `${testID}-sheet`, center = false }: {
   vm: TabSourcesVM; palette: Palette;
   /** what a synopsis page's press does (the screen's `actions.onBook`); default: open the synopsis there */
   onBook?: (pdf: number, box?: readonly SourceBox[]) => void;
@@ -28,13 +28,15 @@ export function SourceRow({ vm, palette, onBook, onSheet, testID = "source-row",
   testID?: string;
   /** the "All sources ›" press's test id */
   sheetTestID?: string;
+  /** (T1194) the row centred (the gauge page's foot card) */
+  center?: boolean;
 }) {
   const face = [TYPE.metaBold, { color: palette.accent }];
   // (T1031 item 3) a block with nothing to cite (an in-season change with no page) draws no line, not a bare label
   if (!vm.links.length) return null;
   return (
     <View testID={testID}
-          style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 12, rowGap: 6, minHeight: 44, paddingVertical: 10 }}>
+          style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", justifyContent: center ? "center" : "flex-start", columnGap: 12, rowGap: 6, minHeight: 44, paddingVertical: 10 }}>
       <Text style={[TYPE.metaBold, { color: palette.sub }]}>{vm.label}</Text>
       {vm.links.map((l) => {
         switch (l.k) {

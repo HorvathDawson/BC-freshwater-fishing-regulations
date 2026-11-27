@@ -57,7 +57,7 @@ export function Map(props: MapProps) {
   return <div ref={probe} data-map-unbuilt="" style={{ position: "absolute", inset: 0, ...(props.style as object) }} />;
 }
 
-function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing,
+function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onPressGauge,
                      chrome,
                       onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker,
                       style,
@@ -88,7 +88,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   usePushedData(refs, data);
   useMoved(refs, onMoved);
   useLongPress(refs, onLongPress, at);
-  useMapPoint(refs, onMapPoint);
+  useMapPoint(refs, onMapPoint, onPressGauge);
   useMe(refs, me, theme);
   usePins(refs, marker, pins, furniture);
   const lit = useHighlight(refs, { highlight, water, selection, near, inSeason });
@@ -105,9 +105,9 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   useVisible(refs, onVisible);
   useRegion(refs, onRegion);
   useDrawn(refs, onDrawn);
-  usePressFeature(refs, onPressFeature, onError, onPressObstacle, onPressNotFishing, onPressStart);
+  usePressFeature(refs, onPressFeature, onError, onPressObstacle, onPressNotFishing, onPressStart, onPressGauge);
   useHoverCursor(refs, { feature: !!onPressFeature, obstacle: !!onPressObstacle,
-                        notFishing: !!onPressNotFishing, mark: !!onPressMark }, onError);
+                        notFishing: !!onPressNotFishing, mark: !!onPressMark, gauge: !!onPressGauge }, onError);
 
   /**
    * THE CONTROLS' COLOURS, from the map's own theme.
