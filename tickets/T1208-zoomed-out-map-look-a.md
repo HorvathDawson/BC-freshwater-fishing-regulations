@@ -1,10 +1,10 @@
 # T1208 — The zoomed-out map look A: borders that read as borders, quieter rule lines, a softer base, region labels once
 
-Status: IN PROGRESS — lane T1208 (worktree wt-T1208); release 0.10.0 re-cut
+Status: DONE — 13d06f5cd, 0d625ea71, d353cc9a5, 1e0c1d490, 9a6f2cbe5, 9433b3dc6, 99aaadffb (look A, the owner's pick; borders dash-dot, cyan water, wide screens fit the province; reviewed).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1208 | The zoomed-out map look A: borders that read as borders, quieter rule lines, a softer base, region labels once | IN PROGRESS — 0.10.0 re-cut | 13d06f5cd, 0d625ea71, 663d3a35a, 1e0c1d490, 8ef9734ee, 1ba92dd47, 99aaadffb | built, with the owner's three picks (dash-dot border, cyan water, the whole province on wide screens: it fits, pinned by tools/wide-province-fit.test.ts); owed: re-review, the full pre-PR check, the PR |
+| T1208 | The zoomed-out map look A: borders that read as borders, quieter rule lines, a softer base, region labels once | DONE | 13d06f5cd, 0d625ea71, d353cc9a5, 1e0c1d490, 9a6f2cbe5, 9433b3dc6, 99aaadffb | — |
 
 Source: T1200 (owner 2026-11-26: "build A ..."; proposal A, round 3 sheet 2). Prototype: branch
 `feat/T1200-map-readability-options` (dev-only `?t1200=`, not shipped).

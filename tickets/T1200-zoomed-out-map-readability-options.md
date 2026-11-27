@@ -1,10 +1,10 @@
 # T1200 — Zoomed-out map readability: names, towns, boundaries, the tapped water, the legend (options as pictures first)
 
-Status: OPEN — 0.10.0 re-cut (owner 2026-11-26); options prototyped in the web app, pictures to the owner, then to the tester
+Status: PARTIAL — the options were prototyped and the owner picked (look A: T1208, T1209, T1210, T1211, built); left (Claude): T1212, the phone map controls (option A, Tidy), and T1204, hillshade, after the re-cut.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1200 | Zoomed-out map readability: names, towns, boundaries, the tapped water, the legend (options as pictures first) | OPEN — 0.10.0 re-cut; options prototyped in the web app, pictures to the owner, then to the tester | — | research the standard, build the option set in the web app, send pictures; build tickets are numbered after the pick |
+| T1200 | Zoomed-out map readability: names, towns, boundaries, the tapped water, the legend (options as pictures first) | PARTIAL | d071fefb7, 7ac7b9ccb, 7ecc0c042, 1ba92dd47 | T1212 (tidy controls) to merge; T1204 after the re-cut; the reply to the tester is the owner's to send |
 
 Source: a closed tester's email, 2026-11-26 (feedback log F47–F50, F52; app 0.9.0, Android, light theme, Trout mode),
 with two pictures of the main map (province zoom, 200 km scale bar; and about a 50 km scale bar near Prince George) and
