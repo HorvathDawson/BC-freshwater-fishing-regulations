@@ -67,11 +67,32 @@ describe("(T1194) the trend beside the reading", () => {
     expect(gaugeReadingVM(reading(), { at, values: [4, 5, 8.01] }, FED).trend).toBe("rising");
     expect(gaugeReadingVM(reading(), { at, values: [8, 8.2, 8.01] }, FED).trend).toBe("steady");
   });
-  it("no trend: a level reading, a line that is not there, a line too short, a reading that is not current", () => {
-    expect(gaugeReadingVM(reading({ discharge: null, level: 1.85, parameter: "level" }), { at, values: [2, 2, 1.85] }, FED).trend).toBeNull();
+  it("no trend: a line that is not there, a line too short, a reading that is not current (a Level reading has its own rule, below)", () => {
     expect(gaugeReadingVM(reading(), null, FED).trend).toBeNull();
     expect(gaugeReadingVM(reading(), { at: at.slice(2), values: [8.01] }, FED).trend).toBeNull();
     expect(gaugeReadingVM(reading({ observedAt: "2026-10-25T10:00:00-08:00" }), { at, values: [20, 12, 8] }, FED).trend).toBeNull();
+  });
+});
+
+describe("(owner 2026-11-27) a Level reading has a trend word too: by the change in the stage; none on tidal water", () => {
+  const H = 3_600_000, at = [48, 24, 0].map((h) => new Date(FED - h * H).toISOString());
+  const level = (o: Partial<Conditions> = {}) => reading({ discharge: null, level: 531.25, parameter: "level", percentile: 0.5, ...o });
+  const vm = (v: number[], over: Partial<Conditions> = {}, tidal = false) => gaugeReadingVM(level(over), { at, values: v }, FED, tidal);
+  it("rising, falling, and steady inside the 2 cm deadband (a lake)", () => {
+    expect(vm([531.0, 531.1, 531.25]).trend).toBe("rising");
+    expect(vm([531.5, 531.4, 531.25]).trend).toBe("falling");
+    expect(vm([531.24, 531.25, 531.25]).trend).toBe("steady");
+    expect(vm([531.23, 531.24, 531.25]).figure).toBe("531.25 m");
+  });
+  it("TIDAL: no word whatever the stage did (the tide swings it); the same line on a river that is not tidal has one", () => {
+    expect(vm([530.0, 531.1, 531.25], {}, true).trend).toBeNull();
+    expect(vm([530.0, 531.1, 531.25], {}, false).trend).toBe("rising");
+    expect(vm([20, 12, 8.01], { discharge: 8.01, level: null, parameter: "discharge" }, true).trend).toBe("falling");   // Flow on a flagged gauge is not the tide's
+  });
+  it("not current, or no line, or a gap: none", () => {
+    expect(gaugeReadingVM(level({ observedAt: new Date(FED - 9 * H).toISOString() }), { at, values: [531, 531.1, 531.25] }, FED).trend).toBeNull();
+    expect(gaugeReadingVM(level(), null, FED).trend).toBeNull();
+    expect(vm([531.0, null as never, 531.25]).trend).toBeNull();
   });
 });
 

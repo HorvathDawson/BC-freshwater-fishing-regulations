@@ -45,6 +45,8 @@ export interface GaugeConfig {
   readonly place: { readonly lat: number; readonly lon: number } | null;
   /** (T1194) where the readings come from (core `authorityWeb("eccc")`): the failure line links it, so a page with no reading still points at the source */
   readonly source: { readonly name: string; readonly url: string };
+  /** (owner 2026-11-27) the station's release flags (tidal, backwater, diversion) */
+  readonly flags: { readonly tidal: boolean; readonly backwater: boolean; readonly diversion: boolean };
 }
 
 export interface Run { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string; horizonDays?: number }

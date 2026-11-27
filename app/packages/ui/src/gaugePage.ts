@@ -6,7 +6,7 @@
  *                      reading (core `readingCurrentNow`, T1205: by the clock; this file only calls it), the plain line saying when it last reported.
  *   `useGaugePage`     the release's facts for one station (`readGaugePage`): name, flags, the waters it serves.
  */
-import { CONDITIONS_WORDS, GAUGE_PAGE_WORDS, donorLastReport, gaugeTrend, figureIn, freshness, now as clockNow, readingAgeLine,
+import { CONDITIONS_WORDS, GAUGE_PAGE_WORDS, donorLastReport, gaugeLevelTrend, gaugeTrend, figureIn, freshness, now as clockNow, readingAgeLine,
          readingCurrentNow, readingStanding, type Standing } from "@app/core";
 import type { Parameter, Series } from "@app/data";
 import { readGaugePage, type GaugePageFacts, type ReleaseLoader } from "@app/data/release";
@@ -22,7 +22,7 @@ export interface GaugeReadingVM {
   standing: string | null;
   /** the reading's place on the colour bar, 0–1; null: no mark (no current reading, or not ranked) */
   percentile: number | null;
-  /** (T1194, owner 2026-11-26) "falling", beside the big reading: flow only, a current reading with a measured line a day back; else null */
+  /** (T1194, owner 2026-11-26 and 11-27) "falling", beside the big reading: Flow by ratio, Level by change (not on tidal water); a current reading with a measured line a day back; else null */
   trend: string | null;
   /** the foot line: how old the reading is */
   age: string | null;
@@ -37,7 +37,7 @@ export interface GaugeReadingVM {
  * goes old as time passes with no fetch.
  */
 export function gaugeReadingVM(c: Conditions | null, measured: Pick<Series, "at" | "values"> | null = null,
-                               at: number = clockNow()): GaugeReadingVM {
+                               at: number = clockNow(), tidal = false): GaugeReadingVM {
   const none = (last: string): GaugeReadingVM => ({ figure: null, quantity: null, standing: null, percentile: null, trend: null, age: null,
                                                     noReading: GAUGE_PAGE_WORDS.noReading(last) });
   if (!c) return none("The live feed has no report from this gauge.");
@@ -50,7 +50,9 @@ export function gaugeReadingVM(c: Conditions | null, measured: Pick<Series, "at"
     standing: ranked ? readingStanding({ percentile: c.percentile, standing: c.standing as Standing | null,
                                         ...(c.rankedAt !== undefined ? { rankedAt: c.rankedAt } : {}), observedAt: c.observedAt }) : null,
     percentile: ranked ? c.percentile! : null,
-    trend: rq.quantity === "discharge" && measured ? (() => { const t = gaugeTrend(measured.at, measured.values); return t ? GAUGE_PAGE_WORDS.trend[t] : null; })() : null,
+    // Flow by the ratio, Level by the change in the stage (a 2 cm deadband); tidal water none (the tide swings the stage metres); no line, no word
+    trend: measured && !(rq.quantity === "level" && tidal)
+      ? (() => { const t = (rq.quantity === "discharge" ? gaugeTrend : gaugeLevelTrend)(measured.at, measured.values); return t ? GAUGE_PAGE_WORDS.trend[t] : null; })() : null,
     age: readingAgeLine(freshness(c.fetchedAt, at), c.observedAt, undefined, !!c.kept),
     noReading: null,
   };

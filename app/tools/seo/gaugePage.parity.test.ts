@@ -155,6 +155,22 @@ describe("the gauge page shows what the app shows for one station", () => {
     cleanup();
   });
 
+  it("(owner 2026-11-27) the site's mount shows the SAME trend word for a Level reading, none on a tidal gauge, and the tide's note", async () => {
+    const lvl = async () => ({ fetchedAt: NOW, value: { discharge: null, level: 531.25, parameter: "level", percentile: 0.5, standing: null, at: iso(NOW - H) } });
+    const series = (v: number[]) => async () => ({ value: { step: "1h", from: "", parameter: "level", values: v, band: [], now: null, forecast: null, forecasts: [],
+      at: v.map((_, i) => iso(NOW - (v.length - 1 - i) * 12 * H)) }, fetchedAt: NOW });
+    const src = (v: number[]) => ({ gaugeNow: lvl, gaugeSeries: series(v), gaugeParameters: async () => ["level"] }) as unknown as PageSource;
+    const rising = [531.0, 531.1, 531.2, 531.25, 531.25];
+    const view = render(h(GaugeChartRoot, { source: src(rising), station: ST, flags: { tidal: false, backwater: false, diversion: false } }));
+    await waitFor(() => expect(view.getByTestId("gauge-trend").textContent).toBe("· rising"));
+    cleanup();
+    const tide = render(h(GaugeChartRoot, { source: src(rising), station: ST, flags: { tidal: true, backwater: false, diversion: false } }));
+    await waitFor(() => expect(tide.getByTestId("gauge-figure").textContent).toBe("531.25 m"));
+    expect(tide.queryByTestId("gauge-trend")).toBeNull();
+    await waitFor(() => expect(tide.getByTestId("gauge-note").textContent).toBe(GAUGE_PAGE_WORDS.tidal));
+    cleanup();
+  });
+
   it("(T1039) the page's source answers the chart exactly as the app's release source: every span, quantity and model", async () => {
     const feed = httpFeed(BASE, feedFetch());
     const page = stationChartSource(ST, feed, CLIM), app = appSource(feed);

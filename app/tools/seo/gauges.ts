@@ -25,7 +25,7 @@ import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
 import { gaugeFindForm } from "./gaugeFind";
 import type { SearchGauge } from "./gaugeSearch";
-import { authorityWeb, bestServes, gaugePath, gaugeSubject, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
+import { authorityWeb, bestServes, gaugePath, gaugeSubject, STORE_CONTACT, TRUST_RANK, type GaugeFlags, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
 import type { StationClim } from "@app/data";
 import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
@@ -44,6 +44,8 @@ export interface GaugeModel {
   readonly rough: readonly WaterLink[];
   /** (T1045) what the release holds for the station (`gauge_clim`): the words of its title, heading and links */
   readonly parameters: readonly GaugeParameter[];
+  /** (T1194) the station's flags: the tide note, and no Level trend word on tidal water */
+  readonly flags: GaugeFlags;
 }
 
 export { gaugePath };
@@ -59,7 +61,7 @@ export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink 
     out.push({ station: g.station, name: g.name, path: gaugePath(g.station, g.name), lat: g.lat, lon: g.lon,
                close: links.filter((l) => l.t !== "weak").map((l) => l.w),
                main: links.filter((l) => TRUST_RANK[l.t] <= TRUST_RANK.good).map((l) => l.w), more: links.filter((l) => TRUST_RANK[l.t] > TRUST_RANK.good).map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w),
-               parameters: (clim?.get(g.station) ?? []).map((c) => c.parameter) });
+               parameters: (clim?.get(g.station) ?? []).map((c) => c.parameter), flags: g.flags ?? { tidal: false, backwater: false, diversion: false } });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name) || a.station.localeCompare(b.station));
 }
@@ -239,6 +241,8 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
     place: g.lat === null || g.lon === null ? null : { lat: g.lat, lon: g.lon },
     // (T1194) the readings' source, linked from the failure line
     source: authorityWeb("eccc"),
+    // (owner 2026-11-27) the flags the shared reading and its notes read: no Level trend word on tidal water; the tide's note
+    flags: g.flags,
   };
 }
 

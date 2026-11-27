@@ -67,7 +67,7 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
               <Text testID="gauge-station" style={{ ...TYPE.meta, color: palette.sub }}>{GAUGE_PAGE_WORDS.stationLine(station)}</Text>
             </View>
             <GaugeReading source={source} station={station} palette={palette} theme={theme} feed={feed}
-                          notes={(q) => gaugeNotes(facts, q)} />
+                          notes={(q) => gaugeNotes(facts, q)} tidal={facts.tidal} />
             <View testID="gauge-serves" style={{ gap: SPACE.s2 }}>
               <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{GAUGE_PAGE_WORDS.servesHeading}</Text>
               {facts.serves.length === 0

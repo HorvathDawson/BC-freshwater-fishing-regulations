@@ -17,7 +17,7 @@ import { createElement as h, type ReactElement } from "react";
 import { createRoot } from "react-dom/client";
 import { View, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { reportFailure, setFailureSink } from "@app/core";
+import { gaugeNotes, reportFailure, setFailureSink } from "@app/core";
 import { httpFeed, stationChartSource, type GaugeFeed, type StationClim, type StationId } from "@app/data";
 import type { ChartSource } from "@app/ui";
 import type { WaterSource } from "@app/data";
@@ -46,17 +46,18 @@ export function climOf(cfg: Pick<GaugeConfig, "clim">): StationClim[] {
  * live feed file (the one its source reads), so the chart reads the year the app's does for a station with no normal range and
  * draws its observations before the envelope (T256).
  */
-export function GaugeChart({ source, station, feed }: { source: PageSource; station: StationId; feed?: PageFeed | null }) {
+export function GaugeChart({ source, station, feed, flags }: { source: PageSource; station: StationId; feed?: PageFeed | null; flags?: GaugeConfig["flags"] }) {
   const dark = useColorScheme() === "dark";
   return h(View, { testID: "gauge-page-chart" },
-    h(GaugeReading, { source, station, palette: THEMES[dark ? "dark" : "light"], theme: dark ? "dark" : "light", feed: feed ?? null }));
+    h(GaugeReading, { source, station, palette: THEMES[dark ? "dark" : "light"], theme: dark ? "dark" : "light", feed: feed ?? null,
+      ...(flags ? { tidal: flags.tidal, notes: (q: "discharge" | "level" | null) => gaugeNotes(flags, q) } : {}) }));
 }
 
 /**
  * (T1039 review) THE PAGE'S ROOT: the app's chart under react-native-gesture-handler's root, as the app runs under one
  * (apps/mobile gestureRoot.tsx): without it the chart's pinch, drag and double-tap recognisers do not run.
  */
-export function GaugeChartRoot(props: { source: PageSource; station: StationId; feed?: PageFeed | null }) {
+export function GaugeChartRoot(props: { source: PageSource; station: StationId; feed?: PageFeed | null; flags?: GaugeConfig["flags"] }) {
   return h(GestureHandlerRootView, { style: { flex: 1 } }, h(GaugeChart, props));
 }
 
@@ -92,7 +93,7 @@ export function mountGaugeChart(doc: Document, fetchImpl: typeof fetch, now: () 
     // ONE feed, read by the source AND handed to the chart (the year scale and the early draft read its observations)
     const feed = httpFeed(cfg.live, fetchImpl);
     const source = stationChartSource(cfg.station as StationId, feed, climOf(cfg));
-    renderInto(box, h(GaugeChartRoot, { source, station: cfg.station as StationId, feed }));
+    renderInto(box, h(GaugeChartRoot, { source, station: cfg.station as StationId, feed, flags: cfg.flags }));
   } catch (e) {
     shown(box);
     reportFailure(e);

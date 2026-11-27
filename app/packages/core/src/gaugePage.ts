@@ -22,7 +22,9 @@ export const gaugePath = (station: string, name: string): string => `/gauge/${st
 export const gaugeUrl = (station: string, name: string, origin: string = SITE_ORIGIN): string => `${origin}${gaugePath(station, name)}`;
 
 export type ServesTrust = "own" | "lake" | "good" | "fair" | "weak";
-export interface GaugeRow { readonly station: string; readonly name: string; readonly item: string | null; readonly lat: number | null; readonly lon: number | null }
+/** a station's flags in the release (`gauge.tidal`, `.backwater`, `.diversion`); absent on a release cut before them (read as not flagged) */
+export interface GaugeFlags { readonly tidal: boolean; readonly backwater: boolean; readonly diversion: boolean }
+export interface GaugeRow { readonly station: string; readonly name: string; readonly item: string | null; readonly lat: number | null; readonly lon: number | null; readonly flags?: GaugeFlags }
 export interface ServeRow { readonly station: string; readonly item: string; readonly trust: ServesTrust }
 /** a release's gauges and the waters each serves (`@app/data/release` `readGaugeRows`, from its conditions + core files) */
 export interface GaugeRows { readonly gauges: readonly GaugeRow[]; readonly serves: readonly ServeRow[] }
@@ -138,20 +140,45 @@ export function observedTrend(before: number, now: number): keyof typeof GAUGE_P
   return r >= STEADY_RATIO ? "rise" : r <= 1 / STEADY_RATIO ? "fall" : "steady";
 }
 
+/** How far from the 24 h mark the look-back value may stand, and how far from the line's end the latest value may: past it the line has a gap there. */
+export const TREND_SLACK_MS = 3 * 3_600_000;
+
 /**
- * THE TREND OF A MEASURED FLOW LINE (`at` ISO stamps, `values` aligned, a null a gap): its last value against the latest value at
- * least a day before it. Null where the line does not reach back a day, or either end is a gap: never a guess. Flow only — a ratio of
- * stages is not a ratio of water (the Change view's rule), so a Level line has no trend word.
+ * THE TWO ENDS OF A MEASURED LINE (`at` ISO stamps, `values` aligned, a null a gap): its latest value, and the latest value at least a
+ * day before it. Null where the line does not reach back a day, or either end sits in a gap (the latest value more than
+ * `TREND_SLACK_MS` before the line's own end; the look-back value more than that before the 24 h mark): never a guess across a gap.
  */
-export function gaugeTrend(at: readonly string[], values: readonly (number | null)[]): keyof typeof GAUGE_PAGE_WORDS.trend | null {
+function lookBack(at: readonly string[], values: readonly (number | null)[]): { before: number; now: number } | null {
+  const has = (i: number) => values[i] !== null && values[i] !== undefined;
   let last = -1;
-  for (let i = values.length - 1; i >= 0; i--) if (values[i] !== null && values[i] !== undefined) { last = i; break; }
+  for (let i = values.length - 1; i >= 0; i--) if (has(i)) { last = i; break; }
   if (last < 0) return null;
-  const t = Date.parse(at[last] ?? "");
-  if (!Number.isFinite(t)) return null;
+  const t = Date.parse(at[last] ?? ""), end = Date.parse(at[at.length - 1] ?? "");
+  if (!Number.isFinite(t) || !Number.isFinite(end) || end - t > TREND_SLACK_MS) return null;
   for (let j = last - 1; j >= 0; j--) {
     const tj = Date.parse(at[j] ?? "");
-    if (Number.isFinite(tj) && t - tj >= TREND_WINDOW_MS && values[j] !== null && values[j] !== undefined) return observedTrend(values[j]!, values[last]!);
+    if (Number.isFinite(tj) && t - tj >= TREND_WINDOW_MS && has(j)) return t - tj - TREND_WINDOW_MS > TREND_SLACK_MS ? null : { before: values[j]!, now: values[last]! };
   }
   return null;
+}
+
+/** THE TREND OF A MEASURED FLOW LINE: its last value against the one a day before it, by the "little change" ratio (`observedTrend`). Never across a gap. */
+export function gaugeTrend(at: readonly string[], values: readonly (number | null)[]): keyof typeof GAUGE_PAGE_WORDS.trend | null {
+  const e = lookBack(at, values);
+  return e ? observedTrend(e.before, e.now) : null;
+}
+
+/**
+ * (owner 2026-11-27: "Yes, on Level too") THE TREND OF A MEASURED LEVEL LINE: the CHANGE in the stage over the same day, not a ratio (a
+ * ratio of stages is not a ratio of water). Within `LEVEL_DEADBAND_M` either way is "steady": the deadband is 2 cm, chosen from the
+ * feed's own levels (2026-10-28, 424 stations): a station's 30-minute reading moves a median 1 mm (p90 4 mm), so sensor noise stays far
+ * inside it; its 24 h change is a median 1 cm and 2.2 cm at the 75th percentile, so a lake reads "steady" and a river that moved more than
+ * 2 cm in the day says which way. Never across a gap. Tidal water has no trend word (`gaugeReadingVM`): its level swings metres with the tide.
+ */
+export const LEVEL_DEADBAND_M = 0.02;
+export function gaugeLevelTrend(at: readonly string[], values: readonly (number | null)[]): keyof typeof GAUGE_PAGE_WORDS.trend | null {
+  const e = lookBack(at, values);
+  if (!e) return null;
+  const d = e.now - e.before;
+  return d > LEVEL_DEADBAND_M ? "rise" : d < -LEVEL_DEADBAND_M ? "fall" : "steady";
 }

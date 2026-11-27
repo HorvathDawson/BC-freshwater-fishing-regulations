@@ -173,7 +173,7 @@ describe("T487 gauge pages", () => {
 describe("(T1045) gauge pages for the searcher's words", () => {
   const g = (name: string, parameters: GaugeModel["parameters"], station = "08MH005") => ({ station, name, parameters });
   const model = (name: string, parameters: GaugeModel["parameters"]): GaugeModel => ({ station: "08MH005", name, path: "/gauge/08MH005/x", lat: 49.2, lon: -122.4,
-    close: [{ id: "w", name: "Alouette River", path: "/water/alouette-river" }], main: [], more: [], rough: [], parameters });
+    close: [{ id: "w", name: "Alouette River", path: "/water/alouette-river" }], main: [], more: [], rough: [], parameters, flags: { tidal: false, backwater: false, diversion: false } });
   const body = (m: GaugeModel) => gaugeBody(m, "r-x", "/c.js", "2026-11-23", "/ch.js", { clim: [], fonts: null });
   it("the words come from what the release holds for the station: level, flow, both, or none known; never twice, never 'forecast'", () => {
     expect(gaugeTitle(g("Alouette River Near Haney", ["discharge", "level"]))).toBe("Alouette River Near Haney level and flow (08MH005)");

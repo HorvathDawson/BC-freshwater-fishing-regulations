@@ -88,3 +88,19 @@ describe("(T1205) the open page goes old as time passes, with no new feed", () =
     for (const id of ["gauge-figure", "gauge-trend", "gauge-standing", "legend-ramp"]) expect(screen.queryByTestId(id), id).toBeNull();
   });
 });
+
+describe("(owner 2026-11-27) a Level reading's trend word, by the change in the stage; none on tidal water", () => {
+  const level = async () => ({ fetchedAt: FED, value: { discharge: null, level: 531.25, parameter: "level", percentile: 0.5,
+                                                       standing: null, at: "2026-10-27T20:05:00-08:00" } });
+  it("a lake: steady inside 2 cm, rising past it; the same line, flagged tidal: no word", async () => {
+    render(<GaugeReading source={source(level, [531.24, 531.245, 531.25, 531.25, 531.25])} station={ST} palette={LIGHT} theme="light" />);
+    await waitFor(() => expect(screen.getByTestId("gauge-trend").textContent).toBe("· steady"));
+    cleanup();
+    render(<GaugeReading source={source(level, [531.0, 531.1, 531.2, 531.25, 531.25])} station={ST} palette={LIGHT} theme="light" />);
+    await waitFor(() => expect(screen.getByTestId("gauge-trend").textContent).toBe("· rising"));
+    cleanup();
+    render(<GaugeReading source={source(level, [531.0, 531.1, 531.2, 531.25, 531.25])} station={ST} palette={LIGHT} theme="light" tidal />);
+    await waitFor(() => expect(screen.getByTestId("gauge-figure").textContent).toBe("531.25 m"));
+    expect(screen.queryByTestId("gauge-trend")).toBeNull();
+  });
+});

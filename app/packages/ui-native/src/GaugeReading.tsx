@@ -28,11 +28,13 @@ const TREND_FACE = TYPE.title;   // same size as the figure (owner 2026-11-26: "
 /** what the piece asks of its source: the chart's two questions and the station's reading */
 export type GaugeReadingSource = ChartSource & Pick<WaterSource, "gaugeNow">;
 
-export function GaugeReading({ source, station, palette, theme, feed, notes }: {
+export function GaugeReading({ source, station, palette, theme, feed, notes, tidal = false }: {
   source: GaugeReadingSource; station: StationId; palette: Palette; theme: string;
   /** the feed whose observations the chart draws before the envelope lands (the site's `httpFeed`, the app's feed) */
   feed?: Parameters<typeof useStationChart>[2]["feed"];
   /** the notes the page puts under the chart for the quantity it shows (the tide, on Level: `gaugeNotes`); the app's, from the release */
+  /** the station is flagged tidal (`gauge.tidal`): its Level has no trend word, the tide swings it */
+  tidal?: boolean;
   notes?: (quantity: "discharge" | "level" | null) => readonly string[];
 }) {
   const [width, setWidth] = useState(0);
@@ -43,8 +45,8 @@ export function GaugeReading({ source, station, palette, theme, feed, notes }: {
   const vm = useStationChart(source, station, { width, feed: feed ?? null, offRecord: c?.offRecord ?? null,
                                                ...(rq ? { reports: c!.reports ?? null, readingQuantity: rq.quantity } : {}) });
   // the last day's measured flow, for the trend word (the 72 h series, shared with the chart's own asks)
-  const day = useSeries(source, station, "72h", "discharge", undefined, rq?.quantity === "discharge");
-  const r = got.state === "ready" ? gaugeReadingVM(c, day.state === "ready" ? day.value ?? null : null) : null;
+  const day = useSeries(source, station, "72h", rq?.quantity, undefined, rq !== null);
+  const r = got.state === "ready" ? gaugeReadingVM(c, day.state === "ready" ? day.value ?? null : null, undefined, tidal) : null;
   const noRecord = noRecordLine(vm.shown, vm.banded, vm.known, rq ? c!.reports : null, c?.offRecord ?? null);
   const failed = got.state === "failed" || vm.chart.state === "failed" || vm.series.state === "failed";
   return (

@@ -14,8 +14,10 @@ export async function readGaugeRows(loader: ReleaseLoader, station?: string): Pr
   const cond = await loader.db("conditions"), core = await loader.db("core");
   const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
   const one = station === undefined ? "" : " WHERE station = ?", arg = station === undefined ? [] : [station];
-  const gauges: GaugeRow[] = (await cond.all(`SELECT station, name, item_id, lat, lon FROM gauge${one} ORDER BY station`, ...arg)).map((r) => ({
+  // `SELECT *`: the flags are additive columns (a release cut before them has none: read as not flagged), never named in the query
+  const gauges: GaugeRow[] = (await cond.all(`SELECT * FROM gauge${one} ORDER BY station`, ...arg)).map((r) => ({
     station: String(r.station), name: String(r.name), item: r.item_id == null || r.item_id === "" ? null : String(r.item_id), lat: num(r.lat), lon: num(r.lon),
+    flags: { tidal: Number(r.tidal ?? 0) === 1, backwater: Number(r.backwater ?? 0) === 1, diversion: Number(r.diversion ?? 0) === 1 },
   }));
   const serves: ServeRow[] = [];
   for (const g of gauges) if (g.item) serves.push({ station: g.station, item: g.item, trust: "own" });
