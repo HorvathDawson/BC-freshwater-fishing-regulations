@@ -55,7 +55,7 @@ export function GaugeScreen({ station, source, loader, palette, theme, feed, onB
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s4 * 3, gap: SPACE.s4 }}>
-        {page.state === "loading" && <LoadingState palette={palette} size={72} label="Loading this gauge" style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />}
+        {page.state === "loading" && <LoadingState palette={palette} size={72} label={GAUGE_PAGE_WORDS.loading} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />}
         {page.state === "failed" && <ErrorState palette={palette} size="body" testID="gauge-release-failed" message={GAUGE_PAGE_WORDS.releaseFailed} />}
         {page.state === "ready" && facts === null && (
           <ErrorState palette={palette} size="body" testID="gauge-unknown" message={GAUGE_PAGE_WORDS.unknown(station)} />

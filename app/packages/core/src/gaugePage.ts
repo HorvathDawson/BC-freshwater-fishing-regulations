@@ -84,6 +84,9 @@ export const GAUGE_PAGE_WORDS = {
   back: "Back to Conditions",
   stationLine: (station: string): string => `Station ${station}`,
   servesHeading: "Waters this gauge serves",
+  /** the waiting lines: the screen's release facts, and the live reading */
+  loading: "Loading this gauge",
+  reading: "Reading the gauge",
   /** the app's foot: this gauge's page on the website (the website's own foot says "Open … in the web app") */
   openOnSite: "Open on the website",
   /** a gauge serving no water: the page opens and says so (owner 2026-11-26: "yes as long as they have up to date data") */

@@ -51,7 +51,7 @@ export function GaugeReading({ source, station, palette, theme, feed, notes, tid
   const failed = got.state === "failed" || vm.chart.state === "failed" || vm.series.state === "failed";
   return (
     <View testID="gauge-reading" onLayout={measure} style={{ gap: SPACE.s3 }}>
-      {got.state === "loading" && <LoadingState palette={palette} size={48} label="Reading the gauge" style={{ alignItems: "center", paddingVertical: SPACE.s3 }} />}
+      {got.state === "loading" && <LoadingState palette={palette} size={48} label={GAUGE_PAGE_WORDS.reading} style={{ alignItems: "center", paddingVertical: SPACE.s3 }} />}
       {got.state === "failed" && <ErrorState palette={palette} size="body" testID="gauge-feed-failed" message={GAUGE_PAGE_WORDS.feedFailed} />}
       {r?.noReading && <Text testID="gauge-no-reading" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.noReading}</Text>}
       {r?.figure && (
@@ -63,13 +63,13 @@ export function GaugeReading({ source, station, palette, theme, feed, notes, tid
           {(noRecord ?? r.standing) && <Text testID={noRecord ? "reading-no-record" : "gauge-standing"} style={{ ...TYPE.bodyStrong, color: palette.ink }}>{noRecord ?? r.standing}</Text>}
         </View>
       )}
-      {r?.percentile != null && !noRecord && (
-        <LegendRamp palette={palette} stops={flowRampStops(theme)} marks={[r.percentile]}
+      {r?.ranked && !noRecord && (
+        <LegendRamp palette={palette} stops={flowRampStops(theme)} marks={[r.percentile!]}
                     title={FLOW_LEGEND.title[r.quantity === "level" ? "level" : "discharge"]}
                     low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high} counted={false}
                     // (review 2026-11-27) the mark is THIS GAUGE (not "1 reach"), and the bar says it in words, never by colour alone
                     tickLabel={(_n, at) => GAUGE_PAGE_WORDS.barMark(FLOW_LEGEND.near(at))}
-                    describe={`${FLOW_LEGEND.scale(FLOW_LEGEND.title[r.quantity === "level" ? "level" : "discharge"], FLOW_LEGEND.low, FLOW_LEGEND.high, FLOW_LEGEND.mid)}. ${GAUGE_PAGE_WORDS.barMark(FLOW_LEGEND.near(r.percentile))}`} />
+                    describe={`${FLOW_LEGEND.scale(FLOW_LEGEND.title[r.quantity === "level" ? "level" : "discharge"], FLOW_LEGEND.low, FLOW_LEGEND.high, FLOW_LEGEND.mid)}. ${GAUGE_PAGE_WORDS.barMark(FLOW_LEGEND.near(r.percentile!))}`} />
       )}
       {r?.age && <Text testID="gauge-age" style={{ ...TYPE.meta, color: palette.sub }}>{r.age}</Text>}
       <StationChart vm={vm} palette={palette} colour={palette.live} />

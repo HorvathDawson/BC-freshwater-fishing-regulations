@@ -7,7 +7,7 @@
  *   `useGaugePage`     the release's facts for one station (`readGaugePage`): name, flags, the waters it serves.
  */
 import { CONDITIONS_WORDS, GAUGE_PAGE_WORDS, donorLastReport, gaugeLevelTrend, gaugeTrend, figureIn, freshness, now as clockNow, readingAgeLine,
-         readingCurrentNow, readingStanding, type Standing } from "@app/core";
+         readingCurrentNow, readingRanked, readingStanding, type Standing } from "@app/core";
 import type { Parameter, Series } from "@app/data";
 import { readGaugePage, type GaugePageFacts, type ReleaseLoader } from "@app/data/release";
 import type { Conditions } from "./hooks";
@@ -22,6 +22,8 @@ export interface GaugeReadingVM {
   standing: string | null;
   /** the reading's place on the colour bar, 0–1; null: no mark (no current reading, or not ranked) */
   percentile: number | null;
+  /** the reading is ranked against the record (core `readingRanked`, `donorState`'s own rule): the bar's mark and the standing exist only then */
+  ranked: boolean;
   /** (T1194, owner 2026-11-26 and 11-27) "falling", beside the big reading: Flow by ratio, Level by change (not on tidal water); a current reading with a measured line a day back; else null */
   trend: string | null;
   /** the foot line: how old the reading is */
@@ -38,18 +40,18 @@ export interface GaugeReadingVM {
  */
 export function gaugeReadingVM(c: Conditions | null, measured: Pick<Series, "at" | "values"> | null = null,
                                at: number = clockNow(), tidal = false): GaugeReadingVM {
-  const none = (last: string): GaugeReadingVM => ({ figure: null, quantity: null, standing: null, percentile: null, trend: null, age: null,
+  const none = (last: string): GaugeReadingVM => ({ figure: null, quantity: null, standing: null, percentile: null, ranked: false, trend: null, age: null,
                                                     noReading: GAUGE_PAGE_WORDS.noReading(last) });
   if (!c) return none("The live feed has no report from this gauge.");
   const rq = readingQuantityOf(c);
   if (!rq || !readingCurrentNow(c.observedAt, at)) return none(donorLastReport(c.observedAt));
-  const ranked = c.percentile !== null && c.percentile !== undefined;
+  const ranked = readingRanked(c);                // core decides what a reading is (T123); this file only switches over it
   return {
     figure: `${figureIn(rq.figure, rq.quantity)} ${CONDITIONS_WORDS.unit[rq.quantity]}`,
     quantity: rq.quantity,
     standing: ranked ? readingStanding({ percentile: c.percentile, standing: c.standing as Standing | null,
                                         ...(c.rankedAt !== undefined ? { rankedAt: c.rankedAt } : {}), observedAt: c.observedAt }) : null,
-    percentile: ranked ? c.percentile! : null,
+    percentile: ranked ? c.percentile! : null, ranked,
     // Flow by the ratio, Level by the change in the stage (a 2 cm deadband); tidal water none (the tide swings the stage metres); no line, no word
     trend: measured && !(rq.quantity === "level" && tidal)
       ? (() => { const t = (rq.quantity === "discharge" ? gaugeTrend : gaugeLevelTrend)(measured.at, measured.values); return t ? GAUGE_PAGE_WORDS.trend[t] : null; })() : null,
