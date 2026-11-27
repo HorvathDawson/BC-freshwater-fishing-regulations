@@ -329,6 +329,11 @@ def test_re_resolve_writes_only_the_resolution_and_never_changes_a_match(env, re
     release = under_test.release(request)
     one_vintage(Path(env["reuse"]._BUILD), release)
     monkeypatch.setattr(R, "release_dir", lambda arg=None: Path(arg) if arg else release)
+    # (T1258) each Re-resolve takes its own backup: when this machine's resolution names an older release than the one
+    # under test (a promote not yet re-resolved), the first Re-resolve rewrites the copy, and `writes`' burst rule would
+    # hand the third one that snapshot (the file before the FIRST write) instead of a new one
+    import writes
+    monkeypatch.setattr(writes, "BURST_S", 0)
     c = env["client"]
     curated = _stamps(load_repo().base)
     nw = Path(under_test.curated().inseason.notice_waters)
