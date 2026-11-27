@@ -1,10 +1,10 @@
 # T1207 — A water closed all year to salmon and game fish shows ONE schedule, not two
 
-Status: IN PROGRESS — option A built (lane T1207, branch feat/T1207-one-schedule-when-all-closed); release: 0.10.0 re-cut.
+Status: DONE — 1821b3426, 9c29340a0, 917bc9f94, d1702d634, d720e63ad (option A, the owner's pick 2026-11-26; reviewed; ships with the 0.10.0 re-cut).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1207 | A water closed all year to salmon and game fish shows one schedule, not two (splits again when they differ) | IN PROGRESS — A built, 0.10.0 re-cut | see git | owner picked A 11-26; built behind `closedWithSalmon`; review + the 0.10.0 re-cut |
+| T1207 | A water closed all year to salmon and game fish shows one schedule, not two (splits again when they differ) | DONE | 1821b3426, 9c29340a0, 917bc9f94, d1702d634, d720e63ad | — |
 
 Source: the owner, 2026-11-26, via the planning chat, verbatim: "we could combine the salmon and game fish schedules for
 year round closures tho if they are both always closed (they could split again if it ever changes)."
