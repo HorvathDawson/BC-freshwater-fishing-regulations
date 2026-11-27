@@ -212,11 +212,11 @@ def test_the_bundles_equivalent_lifts_follow_the_own_entry_caveat(db):
         "select exempts from rule where entry_id = ? and rule_id = 'fraser_river.r2'",
         (fraser,)).fetchone()[0])}
     assert Z5_SPRING in own and _equivalents(db, fraser, "fraser_river.r2") == set()
+    # the Canim prints no closure of its own, so since RULINGS L28 (owner P7b, T1177) it lifts nothing at all: neither
+    # Region 5's spring closure nor, carried, Region 3's
     canim = "r5:canim_river_also_in_m_u_3_46@5-15"
-    canim_lifts = {f"{x['entry_id']}::{x['rule_id']}" for x in json.loads(db.execute(
-        "select exempts from rule where entry_id = ? and rule_id = 'canim_river.r1x'",
-        (canim,)).fetchone()[0])}
-    assert canim_lifts == {Z5_SPRING}
+    assert db.execute("select count(*) from rule where entry_id = ? and exempts is not null",
+                      (canim,)).fetchone()[0] == 0
     assert {Z6_FRASER, Z7A_SPRING} <= _equivalents(db, WEST_ROAD, "west_road_blackwater_river.r6")
     # OWNER RULING T13 (D4, 2026-10-12, superseding Q3/T3 of 2026-10-07; commit ce74eaef): a ✱
     # row's printed exemption walks to its tributaries — the Similkameen's "exempt from spring
