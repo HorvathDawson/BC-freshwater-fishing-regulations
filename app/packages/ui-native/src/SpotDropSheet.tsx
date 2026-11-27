@@ -27,7 +27,8 @@ export function SpotDropSheet({ at, palette, onCancel, onContinue, overlay }: {
         </Text>
         <Text style={{ ...TYPE.small, color: palette.sub }}>{SPOT_DROP.detail}</Text>
       </View>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, paddingHorizontal: 20, paddingTop: 18 }}>   {/* (T1203) wraps at a large text size: Continue drops to its own line, never off the edge */}
+      {/* (T1203) wraps at a large text size: Continue drops to its own line, never off the edge */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, paddingHorizontal: 20, paddingTop: 18 }}>
         <Button palette={palette} label={SPOT_DROP.cancel} onPress={onCancel} kind="ghost" />
         <CoachSpot k="spot:drop" style={{ flex: 1 }}><Button palette={palette} label={SPOT_DROP.go} onPress={onContinue} /></CoachSpot>
       </View>

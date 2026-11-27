@@ -208,7 +208,8 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
           )}
         </View>
       )}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>   {/* (T1203) wraps at a large text size: a button drops to the next line, never off the edge */}
+      {/* (T1203) the row wraps at a large text size: a button drops to the next line, never off the edge */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
         <Btn palette={palette} text={DAY_PICKER.earlier} label={DAY_PICKER.earlierLabel} onPress={() => step(-1)} enabled={canEarlier} />
         <Btn palette={palette} text={DAY_PICKER.today} label={DAY_PICKER.todayLabel} onPress={() => onDay(null)} strong />
         <Btn palette={palette} text={DAY_PICKER.later} label={DAY_PICKER.laterLabel} onPress={() => step(1)} enabled={canLater} />
