@@ -629,7 +629,9 @@ SPEC = {
                     "export part's names and picker facts",
             "version": "20",
             "at": "[[frame index per segment] per key]",
-            "frames": "[{status, closing, closers?, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
+            "frames": "[{status, closing, closers?, unless_opened?, strip}] — (T1251, same shape, no new version: an "
+                      "older reader still reads it) `closing` in rule order with the more upstream of two rows' closures "
+                      "first (`rows.evaluate.most_upstream_first`), so `closers` name the most upstream row first. `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
                       "speaking full closure) | tidal: on TIDAL water `{status: tidal, tidal: true, "
                       "note, see, licence}` all year (no freshwater status). `closing` (version 3, "
