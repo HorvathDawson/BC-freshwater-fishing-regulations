@@ -117,3 +117,55 @@ def test_the_curated_file_is_well_formed_and_accepts_nothing_yet():
     doc = json.loads(under_test.curated().waters.area_edge_calls.read_text())
     assert E.problems(doc) == []
     assert {r["water"] for r in doc["proposed"]} >= {"Beaverfoot River"}
+
+
+def _hug_two_grazes():
+    """The real two's shape (Beaverfoot / Klanawa, T1199 round 3): an open line 5-10 m out of the edge x = 1000 for
+    over 100 m within the band, with exactly TWO grazes of 0.3 m into the area."""
+    return LineString([(0, 100), (995, 100), (1000.3, 101), (995, 102), (990, 120), (990, 200), (995, 220),
+                       (1000.3, 221), (995, 222), (0, 222)])
+
+
+def test_g6_names_a_hug_with_exactly_two_grazes(monkeypatch):
+    line = _hug_two_grazes()
+    inside = CC.decide_area(line, AREA, AREA.boundary)[1]
+    assert inside == [], "both grazes are under the dip: the cutter leaves it open"
+    g, geoms = _built(line, inside)
+    got = G.measure(g, geoms, [(AID, NAME, AREA)])["checks"]["G6"]
+    assert [r["grazes"] for r in got] == [2] and G.GRAZES_TO_LOOK_AT == 2
+    monkeypatch.setattr(G, "GRAZES_TO_LOOK_AT", 3)
+    assert G.measure(g, geoms, [(AID, NAME, AREA)])["counts"]["G6"] == 0, "the pin is what names two"
+
+
+def test_an_open_call_holds_a_stretch_moved_under_match_m_and_goes_stale_past_it():
+    line = _hug_two_grazes()
+    g, geoms = _built(line, [])
+    row = G.measure(g, geoms, [(AID, NAME, AREA)])["checks"]["G6"][0]
+    for off, stale in ((E.MATCH_M - 1.0, 0), (E.MATCH_M + 1.0, 1)):
+        c = _call("open", row["from_m"] + off, row["to_m"])
+        n = G.measure(g, geoms, [(AID, NAME, AREA)], calls=[c])["counts"]
+        assert (n["G6"], n["G6_stale"]) == (stale, stale), off
+
+
+def test_a_called_stretch_on_a_line_that_never_crosses_moves_onto_a_boundary_within_the_floor():
+    """The floor AND the move apply to a called stretch, crossings or none: its end 60 m short of another boundary
+    moves onto it (round 3: the no-crossing path ran the floor only)."""
+    line = LineString([(980, 0), (980, 2000)])
+    stats: dict = {}
+    cuts, inside, _ = CC.decide_area(line, AREA, AREA.boundary, others=[760.0], forced_in=[(500.0, 700.0)],
+                                     stats=stats)
+    assert inside == [(500.0, 760.0)] and cuts == [500.0, 760.0]
+    assert stats["stretches_called_edge_water"] == 1
+
+
+def test_a_closed_call_whose_stretch_left_the_band_is_stale():
+    """A `closed` call is applied by measure; if the line under it no longer lies within the edge band (FWA redrew
+    it), the call is no longer edge water: stale, named, never applied blind."""
+    line = LineString([(990, 100), (990, 150), (940, 160), (940, 175), (990, 185), (990, 300)])
+    g, geoms = _built(line, [(0.0, line.length)])
+    res = G.measure(g, geoms, [(AID, NAME, AREA)], calls=[_call("closed", 0.0, line.length)])
+    assert res["counts"]["G6_stale"] == 1 and "beyond the 50 m edge band" in res["checks"]["G6_stale"][0]["why"]
+    assert res["counts"]["G1"] == 0, "under G1's allowance: only the call's own check sees it"
+    ok = LineString([(990, 100), (990, 300)])
+    g, geoms = _built(ok, [(0.0, ok.length)])
+    assert G.measure(g, geoms, [(AID, NAME, AREA)], calls=[_call("closed", 0.0, ok.length)])["counts"]["G6_stale"] == 0
