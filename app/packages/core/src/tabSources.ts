@@ -22,7 +22,7 @@ import { LICENCE_ROWS } from "./menu/licences";
 import { bookText, type Line, type Run } from "./regs/line";
 import type { RuleIndex } from "./regs/inputs";
 import type { RegsPage, SourceLineVM } from "./regs/model";
-import type { SheetKey } from "./regs/sheetKey";
+import { foldedSource, type SheetKey } from "./regs/sheetKey";
 import { ALL_SOURCES_KEY, drawnSourceRules } from "./regs/sheets/allsources";
 import { TROUT_SOURCES_KEY } from "./regs/sheets/trout";
 import type { InSeasonBannerVM } from "./inseason";
@@ -177,7 +177,7 @@ const boxKey = (b: BookBox) => `${b.pdf}:${b.box.join(",")}`;
 /**
  * Every synopsis page `v` links, by printed page, with the highlight boxes of every run citing it (deduplicated): a
  * `{t:"book"}` run anywhere (a page's lines, a sheet's rows), and a section source line's `pages` (`SourceLineVM`) —
- * except a per-row gear source (`srcs:gl|…`), which is not drawn since T900. Functions (the page's lazy `sheet`) are
+ * except one folded into its section's line (`foldedSource`: a per-row gear source, the bait list's), not drawn since T900. Functions (the page's lazy `sheet`) are
  * not walked; their sheets are asked for by name.
  */
 function citedPages(v: unknown, out: Map<number, Page>, seen = new Set<unknown>()): Map<number, Page> {
@@ -194,7 +194,7 @@ function citedPages(v: unknown, out: Map<number, Page>, seen = new Set<unknown>(
   if (o.t === "book" && typeof o.printed === "number") add(o.printed, typeof o.pdf === "number" ? o.pdf : null, o.box);
   // (T1031 item 3) a drawn Source line's page link (`SourceLinkVM` "book")
   if (o.k === "book" && typeof o.printed === "number") add(o.printed, typeof o.pdf === "number" ? o.pdf : null, o.box);
-  if (typeof o.open === "string" && o.open.startsWith("srcs:") && !o.open.startsWith("srcs:gl|") && Array.isArray(o.pages))
+  if (typeof o.open === "string" && o.open.startsWith("srcs:") && !foldedSource(o.open) && Array.isArray(o.pages))
     for (const p of o.pages as readonly { printed?: unknown; pdf?: unknown; box?: unknown }[])
       if (typeof p?.printed === "number") add(p.printed, typeof p.pdf === "number" ? p.pdf : null, p.box);
   for (const k in o) citedPages(o[k], out, seen);

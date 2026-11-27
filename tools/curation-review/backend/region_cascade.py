@@ -271,7 +271,7 @@ def regions() -> dict:
 def _outline(slug: str):
     from shapely import wkb as _wkb
     from shapely.ops import unary_union
-    src = reuse.SOURCE / "bc_fisheries_data.gpkg"
+    src = reuse.SOURCE.fwa_gpkg
     ids = WMU_PREFIX.get(slug)
     pre = slug.rstrip("ab") + "-"
     out = []

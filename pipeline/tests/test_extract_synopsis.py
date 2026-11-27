@@ -3,7 +3,7 @@ import pdfplumber
 import os
 import sys
 
-from project_config import get_config
+from pipeline.common.curated import SOURCE
 
 pytestmark = pytest.mark.slow
 
@@ -13,7 +13,7 @@ from pipeline.regs.extraction.extract_synopsis import FishingSynopsisParser
 # --- CONFIGURATION ---
 # The configured path, not a literal: this read `data/fishing_synopsis.pdf` after the PDF moved to
 # `data/source/`, and every test here silently had nothing to open.
-PDF_PATH = str(get_config().synopsis_pdf_path)
+PDF_PATH = str(SOURCE.synopsis_pdf)
 
 
 # --- HELPER ---

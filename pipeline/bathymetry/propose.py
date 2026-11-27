@@ -390,12 +390,11 @@ def main(argv=None) -> int:
     import tempfile
 
     from pipeline.common.curated import CURATED, GENERATED, SOURCE
-    from project_config import get_config
 
     ap = argparse.ArgumentParser(description="chart -> lake proposals (T634)")
     ap.add_argument("--release", type=Path, help="a release directory (default: the one data/release/LATEST names)")
     a = ap.parse_args(argv)
-    gpkg = Path(get_config().get_path("data", "fetch", "output_gpkg"))
+    gpkg = SOURCE.fwa_gpkg
     from pipeline.deliver.release.manifest import live
     rel = a.release or live(GENERATED.release)
     cores = sorted(p for p in Path(rel).glob("core-*.sqlite.gz") if p.name.count("-") == 1)

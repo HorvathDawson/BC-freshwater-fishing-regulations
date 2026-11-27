@@ -1158,7 +1158,7 @@ def summary_md(doc: dict) -> str:
 
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--gpkg", type=Path, default=SOURCE / "bc_fisheries_data.gpkg")
+    ap.add_argument("--gpkg", type=Path, default=SOURCE.fwa_gpkg)
     ap.add_argument("--atlas", type=Path, default=GENERATED.build())
     ap.add_argument("--osm", type=Path, action="append", default=[], help="Overpass JSON (out geom tags)")
     ap.add_argument("--basemap", type=Path, default=None, help="bc.pmtiles: OSM roads + rail from the app basemap")

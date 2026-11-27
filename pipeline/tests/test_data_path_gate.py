@@ -80,6 +80,67 @@ def test_the_gate_refuses_a_planted_data_or_cache_literal(tmp_path, where):
     assert missed == [], got.stdout
 
 
+#: (T1192) each a named source file spelt by its file name in pipeline code: the forms the ~20 gpkg readers had
+NAMED = [
+    'G = SOURCE / "bc_fisheries_data.gpkg"',
+    'G = Path(data_dir) / "bc_fisheries_data.gpkg"',
+    'G = os.path.join(d, "bc_fisheries_data.gpkg")',
+    "G = f'{d}/bc_fisheries_data.gpkg'",
+    'SPEC = {"dest": "fwa_coast.gpkg", "as": "rivers"}',
+    'G = SOURCE / "sub/fwa_coast.gpkg"',
+]
+
+
+@pytest.mark.parametrize("where", ["pipeline", "data", "tools/curation-review/backend"])
+def test_the_gate_refuses_a_named_source_file_spelt_by_its_file_name(tmp_path, where):
+    """Each planted line in a file of its own: refused, naming the accessor to read it through. Mutations: drop the
+    name rule, match only a whole string, skip f-string parts: one plant passes and this fails."""
+    tree = _tree(tmp_path, {f"{where}/n{i}.py": f"import os\nfrom pathlib import Path\n{line}\n"
+                            for i, line in enumerate(NAMED)})
+    got = _gate(tree)
+    assert got.returncode == 1, got.stdout + got.stderr
+    missed = [line for i, line in enumerate(NAMED) if f"{where}/n{i}.py:3:" not in got.stdout]
+    assert missed == [], got.stdout
+    assert "(a named source file: read it as SOURCE.coast_gpkg)" in got.stdout
+    assert f"named source file spelt in code          {len(NAMED)}" in got.stdout
+
+
+def test_the_gate_lets_prose_that_mentions_a_named_file_through(tmp_path):
+    tree = _tree(tmp_path, {"pipeline/ok.py": "\n".join([
+        '"""Reads `bc_fisheries_data.gpkg` (SOURCE.fwa_gpkg)."""',
+        "# copies into bc_fisheries_data.gpkg",
+        'HELP = "Skip copy to bc_fisheries_data.gpkg"',
+        'WHY = "an FWA lake polygon (bc_fisheries_data.gpkg lakes)"',
+        'SAID = "the lake outlines are read from the FWA gpkg, sub/bc_fisheries_data.gpkg"',   # prose ending in a path
+        'G = SOURCE.fwa_gpkg',
+    ]) + "\n"})
+    got = _gate(tree)
+    assert got.returncode == 0, got.stdout + got.stderr
+
+
+def test_each_offender_carries_its_kind():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("check_data_paths", REPO / "scripts" / "check_data_paths.py")
+    cdp = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cdp)
+    bad, _let, _stale = cdp.check("pipeline/x.py", 'A = SOURCE / "fwa_coast.gpkg"\nB = Path("data/source/x.json")\n')
+    assert [k for k, _ in bad] == [cdp.NAMED_FILE, cdp.PATH]
+    assert bad[0][1] == "pipeline/x.py:1: 'fwa_coast.gpkg'  (a named source file: read it as SOURCE.coast_gpkg)"
+
+
+def test_the_gate_names_the_gpkg_files_config_yaml_declares():
+    """The gate is standard library only, so it holds the two file names itself: pinned to config.yaml's `source:`
+    block (every .gpkg there), so a renamed file moves the gate too."""
+    import importlib.util
+    from pipeline.common.curated import CONFIG
+    spec = importlib.util.spec_from_file_location("check_data_paths", REPO / "scripts" / "check_data_paths.py")
+    cdp = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cdp)
+    declared = {Path(v).name: f"SOURCE.{k}" for k, v in yaml.safe_load(CONFIG.read_text())["source"].items()
+                if v.endswith(".gpkg")}
+    assert cdp.NAMED == declared
+
+
 def test_the_gate_takes_comments_docs_tests_labels_and_other_words(tmp_path):
     """What the gate leaves alone: a comment, a docstring, a test file, a string that says why it only names a path
     (listed), a help text whose path is not where its string starts, and strings that are not a path under data/ or

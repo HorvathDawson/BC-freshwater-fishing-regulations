@@ -2,7 +2,7 @@
  * The flow chart as a view (owner 2026-10-21): built at the measured width, zoomed and panned by measurements only,
  * read out in core's words. The gestures that feed it are drawn in @app/ui-native; this pins what they cause.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { chartReadoutLine, monthAbbr } from "@app/core";
 import type { WaterSource, Series, StationId } from "@app/data";
@@ -63,6 +63,20 @@ describe("the axis names real times", () => {
     const year = { t0: Date.UTC(2026, 0, 1), t1: Date.UTC(2026, 11, 31) };
     expect(chartTicks(year, "year", 3).map((k) => k.label)).toEqual(["Jan", "Apr", "Jul", "Oct"]);
   });
+});
+
+describe("(T1205) the chart's Today mark is the last point only while it is current by the clock", () => {
+  afterEach(() => { vi.useRealTimers(); });
+  const markAt = async (nowMs: number) => {
+    vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true }); vi.setSystemTime(nowMs);
+    const { result } = renderHook(() => useChartView(source, ST, "72h", undefined, undefined, 600));
+    await waitFor(() => expect(result.current.state).toBe("ready"));
+    const v = result.current.state === "ready" ? result.current.value! : null!;
+    return [v.shape.todayX !== null, v.shape.now !== null];
+  };
+  const LAST = T0 + (N - 1) * H;
+  it("present for a last point an hour old", async () => { expect(await markAt(LAST + H)).toEqual([true, true]); });
+  it("absent for a last point nine hours old (the line and its dates stay)", async () => { expect(await markAt(LAST + 9 * H)).toEqual([false, false]); });
 });
 
 describe("useChartView", () => {
@@ -193,12 +207,20 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
   const draw = (source: WaterSource, draft: ReturnType<typeof feedOf> | null) =>
     renderHook(() => useChartView(source, "08GA031" as StationId, "72h", "level", undefined, 590, true, draft as never));
   const scaleOf = (r: ReturnType<typeof draw>["result"]) => (r.current.state === "ready" ? r.current.value?.shape.scale : null);
+  // (T1213) WAITS FOR A CONDITION, NEVER A DURATION. The hook's reads are promises (microtasks) with no timer behind them, so
+  // each `act` round flushes one more stage (render -> effect -> ask -> answer). The bound counts rounds, not milliseconds:
+  // a starved worker takes longer over the same rounds and still gets the same answer (`waitFor`'s 1 s clock did not).
+  const until = async (what: string, cond: () => boolean) => {
+    for (let i = 0; i < 200 && !cond(); i++) await act(async () => {});
+    if (!cond()) throw new Error(`never reached: ${what}`);
+  };
+  const flush = async (rounds = 20) => { for (let i = 0; i < rounds; i++) await act(async () => {}); };
 
   it("reads the year's levels from the feed: the axis reaches this year's high", async () => {
     const { clearAnswers } = await import("./answers");
     clearAnswers();
     const { result } = draw(src, feedOf());
-    await waitFor(() => expect(scaleOf(result)).toBe("year"));
+    await until("the year scale", () => scaleOf(result) === "year");
     expect(peekAnswer(src, YKEY)).not.toBeNull();
     const v = result.current.state === "ready" ? result.current.value! : null;
     expect(Math.max(...v!.shape.yTicks.map((t) => t.value))).toBeGreaterThanOrEqual(1.9);
@@ -207,7 +229,7 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
     const { clearAnswers } = await import("./answers");
     clearAnswers();
     const { result } = draw(src, null);
-    await waitFor(() => expect(scaleOf(result)).toBe("reading"));
+    await until("the reading scale", () => scaleOf(result) === "reading");
   });
   it("a feed that fails is reported, and the chart scales to its reading", async () => {
     const { clearAnswers } = await import("./answers");
@@ -218,8 +240,9 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
     try {
       const { result } = draw(src, feedOf(true));
       // (the draft read while the series loads, T256, reports the same failure too)
-      await waitFor(() => expect(scaleOf(result)).toBe("reading"));
-      await waitFor(() => expect(peekAnswer(src, YKEY)).toBeNull());
+      await until("the reading scale", () => scaleOf(result) === "reading");
+      await flush();
+      expect(peekAnswer(src, YKEY)).toBeNull();
       expect(seen.length).toBeGreaterThanOrEqual(1);
       expect(new Set(seen)).toEqual(new Set(["station file would not read"]));
     } finally { undo(); }
@@ -236,7 +259,13 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
     const two = { gaugeSeries: async (st: string) => ({ fetchedAt: 0, value: seriesFor(st) }) } as unknown as WaterSource;
     const yearOf = (st: string) => ({ ...obs, level: seriesFor(st).values,
       daily: st === "A" ? [["2026-01-04", 2.0, 1], ["2026-06-01", 0.5, 1]] : [["2026-01-04", 9.5, 1], ["2026-06-01", 4.0, 1]] });
-    const draft = { feed: { observations: async (st: string) => { await new Promise((r) => setTimeout(r, 5)); return yearOf(st); } } };
+    // (T1213) each station's year lands when the test lets it (held promises: the hook reads a station's feed more than
+    // once, the draft and the year), not after a timer
+    const held = new Map<string, (() => void)[]>();
+    const release = (st: string) => { for (const go of held.get(st) ?? []) go(); };
+    const draft = { feed: { observations: (st: string) => new Promise((done) => {
+      held.set(st, [...(held.get(st) ?? []), () => done(yearOf(st))]);
+    }) } };
     const frames: { st: string; scale: string; top: number }[] = [];
     const { rerender } = renderHook(({ st }) => {
       const r = useChartView(two, st as StationId, "72h", "level", undefined, 590, true, draft as never);
@@ -244,10 +273,15 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
         frames.push({ st, scale: r.value.shape.scale, top: Math.max(...r.value.shape.yTicks.map((t) => t.value)) });
       return r;
     }, { initialProps: { st: "A" } });
-    await waitFor(() => expect(frames.some((f) => f.st === "A")).toBe(true));
+    await until("A asks its year", () => held.has("A"));
+    await flush();
+    expect(frames).toEqual([]);                            // nothing drawn before A's year is in
+    await until("an A frame", () => { release("A"); return frames.some((f) => f.st === "A"); });   // (releases every read A has asked so far)
     rerender({ st: "B" });
-    await waitFor(() => expect(frames.some((f) => f.st === "B")).toBe(true));
-    await new Promise((r) => setTimeout(r, 30));
+    await until("B asks its year", () => held.has("B"));
+    await flush();                                         // B's year still held: any B frame now is on A's year
+    await until("a B frame", () => { release("B"); return frames.some((f) => f.st === "B"); });
+    await flush();
     // A's year runs 0.5 to 2 m, B's 4 to 9.5 m: an A frame tops out under 2.5, a B frame at 8 or more
     expect(frames.filter((f) => f.scale !== "year" || (f.st === "A" ? f.top > 2.5 : f.top < 8))).toEqual([]);
   });
@@ -259,7 +293,7 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
     const banded = { gaugeSeries: async () => ({ fetchedAt: 0, value: { ...SERIES, parameter: "level" as const } }) } as unknown as WaterSource;
     const { result } = renderHook(() => useChartView(banded, "08HD006" as StationId, "72h", "level", undefined, 590, true,
                                                     feedOf() as never, true, [], [], true));
-    await waitFor(() => expect(result.current.state).toBe("ready"));
+    await until("the banded chart is ready", () => result.current.state === "ready");
     const v = result.current.state === "ready" ? result.current.value! : null;
     expect([v!.shape.envelopes.length, v!.shape.scale, v!.shape.priorYears.length]).toEqual([0, "reading", 0]);
     expect(peekAnswer(banded, `yearscale:${seriesKey("08HD006" as StationId, "year", "level", undefined)}`)).toBeNull();
@@ -269,8 +303,8 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
     clearAnswers();
     const banded = { gaugeSeries: async () => ({ fetchedAt: 0, value: { ...SERIES, parameter: "level" as const } }) } as unknown as WaterSource;
     const { result } = draw(banded, feedOf());
-    await waitFor(() => expect(scaleOf(result)).toBe("band"));
-    await new Promise((r) => setTimeout(r, 20));
+    await until("the band scale", () => scaleOf(result) === "band");
+    await flush();
     expect(peekAnswer(banded, YKEY)).toBeNull();           // the year's key was never asked
   });
 });

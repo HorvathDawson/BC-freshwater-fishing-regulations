@@ -1,6 +1,6 @@
 # Where the data lives: paths only.
 # What each file is, its kind and who owns it: pipeline/common/curated.py (the `#:` field notes);
-# the data / data_accessor / cache paths: project_config.py.
+# `source:` names are relative to data_tree.source; the cache path: project_config.py.
 
 generated:
   base: "data/generated"
@@ -29,19 +29,15 @@ generated:
   side: "data/generated/side"
   release: "data/release"
 
-data:
-  base: "data/source"
-  fetch:
-    output_gpkg: "data/source/bc_fisheries_data.gpkg"
-    temp_dir: "data/source/temp_bc_data"
-
-data_accessor:
-  gpkg_path: "data/source/bc_fisheries_data.gpkg"
-  coast_gpkg_path: "data/source/fwa_coast.gpkg"
-
 data_tree:
   source: "data/source"
   generated: "data/generated"
+
+source:
+  fwa_gpkg: "bc_fisheries_data.gpkg"
+  coast_gpkg: "fwa_coast.gpkg"
+  synopsis_pdf: "fishing_synopsis.pdf"
+  fetch_temp: "temp_bc_data"
 
 cache:
   dfo_salmon: "cache/dfo_salmon"
@@ -95,9 +91,3 @@ curated:
     backwater_stations: "data/curated/gauges/backwater_stations.json"
     diversion_stations: "data/curated/gauges/diversion_stations.json"
     datum_change_stations: "data/curated/gauges/datum_change_stations.json"
-  stocking:
-    matches: null
-    match_calls: null
-  bathymetry:
-    matches: null
-    match_calls: null

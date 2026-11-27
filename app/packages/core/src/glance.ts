@@ -32,6 +32,10 @@ export const SOURCE_WORDS = {
   /** the two blocks' names, the tag beside each */
   salmon: "Salmon",
   game: "Game fish",
+  /** (T1207) the ONE block's name where one closure shuts both for the whole year (`closedWithSalmon`); its tag is `salmonTag.book` */
+  both: "Salmon and game fish",
+  /** (T1207) what a screen reader says for the one block's header: both fish and the status */
+  bothLabel: "Salmon and game fish: closed all year",
 } as const;
 
 /** (T531) the rule source a species row's answer comes from. */
