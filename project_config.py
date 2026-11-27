@@ -155,8 +155,8 @@ class ProjectConfig:
     def fetch_output_gpkg_path(self) -> Path:
         """Get path for data fetch output GeoPackage (legacy, for fetch_data.py).
 
-        Everything `data/fetch_data.py` writes lands under data/source/ (beside this file): a fetcher that writes where
-        no reader looks is how a freshness gate goes quiet about a roster nobody is reading."""
+        Everything `data/fetch_data.py` writes lands under data/source/, where this gpkg is: a fetcher that writes
+        where no reader looks is how a freshness gate goes quiet about a roster nobody is reading."""
         return self.get_path("data", "fetch", "output_gpkg")
 
     @property
