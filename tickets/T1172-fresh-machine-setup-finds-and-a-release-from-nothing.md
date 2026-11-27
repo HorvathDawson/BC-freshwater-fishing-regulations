@@ -109,6 +109,11 @@ from the mouth"). The name uses the short area form ("inside Creston Valley WMA"
 part the bundle measures inside or at one, reviewed or not: the bundle measures every cut and membership-only area
 (`part_inside.cut`), and REVIEWED_INSIDE is now only the name's gate. Clean clone release r-6f59a36e1f1e, rc=0
 (deliver only, 14m29s). The words table and the owner's questions are in the PR; it waits for his look before merge.
+2026-11-26 round 4 (the owner's three rulings on the table): a part takes the plain count unless every channel has a
+named end (Snehumption p1 "2 side channels"); "Eco Reserve" short form; an unmeasured unique part is logged by name.
+NOT built: Klinaklini p1 / MacMillan p2 "Mouth → Source" (the channels' own ends, `branch_end_tokens` for a salmon-cut
+piece). Dropping them makes the app's `mergeNav` join throw, so the app must first take a joined span's ends from the
+pieces that have them. Release r-ab4722f01fc9, rc=0. The 474-floor test is left as is (T1146 moved it; not re-pinned).
 
 ## Acceptance
 The clean clone makes a release directory from nothing, with no copied file; deliver passes on gnis:2123, with a
