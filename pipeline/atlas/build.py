@@ -11,7 +11,7 @@ summary.txt. The blue-line chains are built and used in memory only (P21: their 
 from __future__ import annotations
 
 # (T1171) THE RECORDER FIRST, before any import below reads a file (importing `pipeline.common.curated` reads
-# config.yaml, `project_config` the .env): the atlas's code record (`graph.pkl.meta.json` `code`, `atlas.inputs.
+# config.yaml): the atlas's code record (`graph.pkl.meta.json` `code`, `atlas.inputs.
 # record_code`) is what this process imported, read and took from config.yaml. `_trace` is the standard library only.
 if __name__ == "__main__":
     from pipeline import _trace as _rec
