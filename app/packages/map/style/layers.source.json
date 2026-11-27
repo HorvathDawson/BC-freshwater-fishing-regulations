@@ -2063,30 +2063,33 @@
       },
       "outline": {
         "color": {
-          "token": "color.region.edge"
+          "token": "color.region.line"
         },
         "width": {
           "token": "width.region.edge",
           "mode": "zoom",
           "ramp": [
             [
-              5,
-              0.733
+              4,
+              0.367
             ],
             [
               8,
-              0.533
+              0.467
             ],
             [
               11,
-              0.667
+              0.6
             ],
             [
               12,
               1.0
             ]
           ],
-          "$comment": "(T470) A MULTIPLE of width.region.edge (3 px): 2.2 px at z5, 1.6 at z8, 2.0 at z11, 3 from z12 (was 3 at every zoom). Still wider than the unit's dotted edge at every zoom."
+          "$comment": "(T1208, look A) A MULTIPLE of width.region.edge (3 px): 1.1 px at z4, 1.4 at z8, 1.8 at z11, 3 from z12 (as before), DASHED (`dash.region`) in `color.region.line` with a soft band inside (runtime-style `REGION_BAND`). (T470 drew it solid grey at 2.2 / 1.6 / 2.0 / 3: zoomed out it read as a road, T1200.)"
+        },
+        "dash": {
+          "token": "dash.region"
         },
         "opacity": {
           "token": "opacity.region.edge",
@@ -2103,35 +2106,7 @@
           "$comment": "(T470) 0.75 to z11, full from z12."
         }
       },
-      "label": {
-        "field": "region_id",
-        "placement": "point",
-        "minzoom": 4,
-        "maxzoom": 7,
-        "priority": 2,
-        "font": [
-          "Noto Sans Medium"
-        ],
-        "size": [
-          [
-            4,
-            13
-          ],
-          [
-            6,
-            16
-          ]
-        ],
-        "color": {
-          "token": "color.region.edge"
-        },
-        "halo": {
-          "token": "color.outside"
-        },
-        "haloWidth": 2,
-        "$comment": "The big number in the middle, z4 to z7 — and then it stops, because from z7 the unit boundaries appear and their numbers take over. Two administrative numbering systems on screen at once is how a reader ends up fishing under the wrong table.\n\nMEDIUM, NOT BOLD. The glyph host does not serve a 'Noto Sans Bold' face — every range 404s — so this label asked for a font that does not exist and rendered nothing at all. There is no error a reader can see: MapLibre requests the range, gets a 404, and draws no text. `tools/check-style.mjs` now holds the font list to the faces the host actually has."
-      },
-      "$comment": "SOLID AND HEAVIER THAN A UNIT. The regulations are organised by region, so this is the boundary that changes which table you are reading; the unit boundary inside it only refines it. v1 drew regions solid at 2-4.5 px and units dotted at 1.2-1.8, and that weight difference is the whole hierarchy."
+      "$comment": "(T1208) DASHED, THINNER, A BAND INSIDE; NAMED ONCE FROM A FIXED POINT (runtime-style `REGION_NAMES`, `region-labels.json`): the tiles' polygon label was placed per tile piece, so a region cut by a tile edge was named at the screen's edge. Before: SOLID AND HEAVIER THAN A UNIT. The regulations are organised by region, so this is the boundary that changes which table you are reading; the unit boundary inside it only refines it. v1 drew regions solid at 2-4.5 px and units dotted at 1.2-1.8, and that weight difference is the whole hierarchy."
     },
     {
       "id": "mu",
@@ -2295,8 +2270,8 @@
         "ramp": [
           [
             4,
-            0.5,
-            0.1
+            0.3,
+            0.06
           ],
           [
             8,
@@ -2329,6 +2304,7 @@
             2.0
           ]
         ],
+        "$comment_t1208": "(T1208, look A, owner 2026-11-26) THINNER ZOOMED OUT: the z4 stop was [4, .5, .1] (ord 9 at z4: 1.4 px, now 0.84); with `fadeByOrder`'s z5 and z6 stops (small orders recede: no deeper than T470's own floor, 0.45, which tools/status-colours-distinct.test.ts holds for colour-vision separation) the province view no longer reads as a road network (T1200).",
         "$comment_t470": "(T470 B, owner 2026-11-07) THINNER AT MID ZOOM, today's from z12: the z8-z11 stops were [8, .6, .15], [11, .75, .75] (ord 5: 1.35 / 3.45 / 4.5 px at z8 / z10 / z11, now 1.0 / 1.95 / 3.25). The same curve drives the closed stripe, the gear edges and the selection casing. `closed`: a closed section's width times this factor, so closed is the heaviest line on the mid-zoom map (1.3 from z7 to z11, back to 1 at z12).",
         "sideChannel": {
           "token": "width.stream.side",
@@ -2368,6 +2344,26 @@
           7
         ],
         "stops": [
+          [
+            5,
+            [
+              0.45,
+              0.45,
+              0.5,
+              0.7,
+              1.0
+            ]
+          ],
+          [
+            6,
+            [
+              0.45,
+              0.5,
+              0.6,
+              0.8,
+              1.0
+            ]
+          ],
           [
             7,
             [
@@ -2971,6 +2967,13 @@
   },
   "$toggleable_groups": "WHAT MAY BE SWITCHED OFF, and what may not.\n\n`protected` and `access` are NOT toggleable and are ON by default. A national park, an ecological reserve, an Indian reserve and land the public may not enter are all reasons a person can be somewhere they should not be, and none of them is a preference. They were both toggleable and hidden by default, which meant the map's normal state was one that showed none of them.\n\n`ownership` IS toggleable and off by default, and that asymmetry is the point: title is context, not an instruction. It carries private land ONLY — most of British Columbia is Crown land, so drawing that would be a wash over the whole province saying almost nothing. Private title on the bank you meant to walk down is worth looking up deliberately.",
   "$comment_order": "DRAW ORDER IS SOURCE ORDER. Areas, then the water's fills, then the administrative boundaries, then the water's LINES (the lake shoreline via `outline.drawAfter`, then the streams), and labels last (the generator appends those itself). A boundary painted under a lake is a boundary nobody can trace; a boundary painted over a status line hides the answer (T83, tools/layer-order.test.ts).",
+  "$runtimeCompanions": {
+    "$comment": "(T1208) Layers runtime-style.ts draws beside a source layer, hidden with it wherever a view hides it (build-style: a view's `hide`). The ids are runtime-style's (`look-a.ts`).",
+    "region": [
+      "region-band",
+      "region-names"
+    ]
+  },
   "$runtimeLayers": [
     "gauges"
   ]

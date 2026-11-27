@@ -27,6 +27,7 @@ import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
+import { lookASources, OUR_TOWN_NAMES, quieterGround, regionBandLayer, regionNamesLayer, TOWNS_UNTIL, townLayers } from "./look-a";
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
 function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Tokens) {
@@ -86,7 +87,14 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Token
     : l));
   const named = ground.map((l) => (BASEMAP_LABELS.includes(l.id)
     ? { ...l, paint: { ...(l as { paint?: Record<string, unknown> }).paint, ...basemapLabelPaint(l.id, tokens, "map") } }
-    : l)).map(placesByImportance);
+    : l)).map(placesByImportance)
+    // (T1208) the light theme's softer ground and one water blue (`look-a.ts`); dark's tokens are its flavour's own
+    .map((l) => quieterGround(l as { id: string; type?: string; paint?: Record<string, unknown> }, tokens) as typeof l)
+    // (T1209) a town of ours is named by ours below z10 (`TOWNS_UNTIL`), never twice
+    .map((l) => (l.id === "places_locality" && Array.isArray(l.filter)
+      ? { ...l, filter: [...l.filter, ["any", [">=", ["zoom"], TOWNS_UNTIL],
+                                       ["!", ["in", ["coalesce", ["get", "name:en"], ["get", "name"]], OUR_TOWN_NAMES]]]] }
+      : l));
   const i = named.findIndex((l) => l.type === "symbol");
   return i < 0 ? { below: named, labels: [] as typeof named }
                : { below: named.slice(0, i), labels: named.slice(i) };
@@ -211,6 +219,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     if (l.id === "lake") return [{
       id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: copyFilter("lake"),
       paint: copyFillPaint((painted as { paint?: Record<string, unknown> }).paint ?? {}) }, painted];
+    // (T1208) the soft band just inside each region's edge, under its dashes
+    if (l.id === "region__edge") return [regionBandLayer(tk), painted];
     if (l.id !== "stream") return [painted];
     const streamPaint = (painted as { paint?: Record<string, unknown> }).paint ?? paintFor("stream", "plain", tk);
     const copyLine = copyLinePaint(streamPaint, tk);
@@ -423,6 +433,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       [COPY_SOURCE]: { type: "geojson" as const, data: EMPTY_COPY },
       // (T235) the credits a mode or an overlay adds, each on an empty source of its own — see credits.ts
       ...creditSources(),
+      // (T1208, T1209) the region label points and the towns, inline (`look-a.ts`)
+      ...lookASources(),
     },
     layers: [
       /**
@@ -527,6 +539,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       ...ours.filter((l) => l.type !== "symbol"),
       // our other names and marks (areas, units, obstacles) UNDER the basemap's: a town's name outranks a park's
       ...ours.filter((l) => l.type === "symbol" && !WATER_NAMES.includes(l.id)),
+      // (T1208) "Region n", once per region
+      regionNamesLayer(resolveTheme(theme)),
       /*
        * The basemap's own labels, AFTER ours — see the split above. They still draw; they
        * just no longer get first refusal on every position on the map.
@@ -544,6 +558,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * the mask already cached and took the constructor path instead of the effect.
        */
       ...baseLabels,
+      // (T1209) THE TOWNS TO FIND YOUR WAY BY, over the basemap's names and under the water's: a lake is named first
+      ...townLayers(resolveTheme(theme)),
       /*
        * (T299) OUR WATER NAMES, OVER THE BASEMAP'S — and so placed FIRST. MapLibre places symbols from the TOP of the style
        * down (`PauseablePlacement` walks the layer order from the last layer), and a placed label keeps its spot. With

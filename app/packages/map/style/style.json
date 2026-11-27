@@ -1541,55 +1541,6 @@
       ]
     },
     {
-      "id": "region__label",
-      "type": "symbol",
-      "source": "atlas",
-      "source-layer": "region",
-      "layout": {
-        "visibility": "visible",
-        "symbol-placement": "point",
-        "text-field": [
-          "get",
-          "region_id"
-        ],
-        "text-font": [
-          "Noto Sans Medium"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          4,
-          13,
-          6,
-          16
-        ],
-        "text-allow-overlap": false,
-        "text-padding": 3
-      },
-      "minzoom": 4,
-      "maxzoom": 7,
-      "filter": [
-        "all",
-        [
-          "has",
-          "region_id"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "region_id"
-          ],
-          ""
-        ]
-      ]
-    },
-    {
       "id": "lake__label",
       "type": "symbol",
       "source": "atlas",

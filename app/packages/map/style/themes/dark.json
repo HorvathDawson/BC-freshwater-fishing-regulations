@@ -1,6 +1,14 @@
 {
   "name": "dark",
   "values": {
+    "color.region.line": "@color.region.edge",
+    "color.label.region": "@color.region.line",
+    "dash.region": [4, 2.5],
+    "opacity.region.band": 0.13,
+    "width.region.band": 6,
+    "color.ui.basemap.ground": "#141414",
+    "color.ui.basemap.water": "#333333",
+    "opacity.ground.cover": 1,
     "color.water.mapped": "#38B6DE",
     "color.water.unmapped": "#93A0AB",
     "color.highlight": "#ff77b8",

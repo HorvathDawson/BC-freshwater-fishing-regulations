@@ -19,6 +19,7 @@
  * places labels off the main work and a pinch there is smooth.
  */
 
+import { REGION_LABEL_SOURCE, TOWN_SOURCE } from "./look-a";
 import { now as clockNow } from "@app/core";
 
 /** The kinds of name and mark on the map: the per-kind lab switches (`lab.ts`) and what the hold takes. */
@@ -43,6 +44,9 @@ export function labelGroup(l: Layer): LabelGroup | null {
   if (l.source === "basemap") return BASEMAP_PLACES.has(l.id) ? "places" : "roads";
   if (WATER_NAMES.has(l.id)) return "water";
   if (l.source === "atlas" || l.source === "mus") return "areas";
+  // (T1208, T1209) the towns are place names; "Region n" an area's (`look-a.ts`, their own GeoJSON sources)
+  if (l.source === TOWN_SOURCE) return "places";
+  if (l.source === REGION_LABEL_SOURCE) return "areas";
   return null;
 }
 
