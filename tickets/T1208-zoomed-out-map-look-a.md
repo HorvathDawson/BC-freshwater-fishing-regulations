@@ -75,3 +75,7 @@ Depends: none. Size: M. Owner: no.
 
 - [x] 2026-11-26 — look A built (the built sheet): merge it? → "Merge, and fix the opening frame so Haida Gwaii is fully in view (Recommended)" (2026-11-26)
   So: approved; the same branch also frames the opening whole-province view with Haida Gwaii fully in view.
+- [x] 2026-11-26 — the region border (three variants beside a no-access stream)? → "1 · Dash-dot, heavier, light band (Recommended)" (2026-11-26) = as built.
+- [x] 2026-11-26 — the basemap water the colour floors allow (cyan) or a bluer one with the status colours moved? → "Accept cyan water (Recommended)" (2026-11-26) = as built.
+- [x] 2026-11-26 — Haida Gwaii: z4 cannot hold B.C. on a phone; what then? → "Leave phones; fit all on wide screens (Recommended)" (2026-11-26)
+  So: phones as they are; on a wide screen, zoomed all the way out, the whole province with Haida Gwaii fits.
