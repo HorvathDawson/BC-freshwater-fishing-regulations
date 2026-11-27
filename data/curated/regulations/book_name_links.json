@@ -770,9 +770,10 @@
     "2-8"
    ]
   },
-  "note": "UNCERTAIN: Could be McLennan Creek (100-052188, MU 2-4) OR McLean Creek (100-025956-073866, MU 2-8). Currently matched to McLennan Creek but regulation specifies MU 2-8 which matches McLean Creek. User should verify correct creek and update if needed.",
+  "note": "BOUND TO BOTH until the Province answers (owner 2026-11-26, T1118 D6: \"should match to both maybe for now then make sure it is in gotcha as a question to ask\"; the question is in pipeline/docs/BOOK-QUESTIONS.md). No McLennan Creek is in MU 2-8: BC Geographical Names has one McLennan Creek in BC (id 20557, Abbotsford, gnis 26380, FWA 100-052188, MU 2-4, mouth on the Matsqui flats 1.7 km from the 2-8 line); McLean Creek (id 38227, gnis 37586, FWA 100-025956-073866, 2.7 km, Coquitlam) is inside 2-8, beside the 2-8 rows McCartney, McKay, Brothers and Mosquito. The spelling fits McLennan, the unit fits McLean.",
   "fwa_watershed_codes": [
-   "100-052188-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+   "100-052188-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+   "100-025956-073866-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
   ]
  },
  {
