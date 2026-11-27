@@ -4,7 +4,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
-import { GAUGE_PAGE_WORDS, setFailureSink } from "@app/core";
+import { FLOW_LEGEND, GAUGE_PAGE_WORDS, setFailureSink } from "@app/core";
 import { FEED_TTL_MS, type StationId } from "@app/data";
 import { LIGHT } from "./theme";
 import { GaugeReading, type GaugeReadingSource } from "./GaugeReading";
@@ -41,6 +41,12 @@ describe("(T1194) the shared gauge reading", () => {
     await waitFor(() => expect(screen.getByTestId("gauge-figure").textContent).toBe("8.01 m³/s"));
     expect(screen.getByTestId("legend-ramp")).toBeTruthy();
     expect(screen.queryByTestId("gauge-no-reading")).toBeNull();
+    // (review 2026-11-27) the bar's ACCESSIBLE NAMES say THIS GAUGE, in words (percentile 0.02), never "1 reach" and never colour alone
+    const near = FLOW_LEGEND.near(0.025);
+    const names = [...screen.getByTestId("legend-ramp").querySelectorAll("[aria-label]")].map((e) => e.getAttribute("aria-label"));
+    expect(names).toContain(`This gauge: ${near}`);
+    expect(names).toContain(`${FLOW_LEGEND.scale(FLOW_LEGEND.title.discharge, FLOW_LEGEND.low, FLOW_LEGEND.high, FLOW_LEGEND.mid)}. This gauge: ${FLOW_LEGEND.near(0.02)}`);
+    expect(names.join("|")).not.toMatch(/reach/i);
   });
 
   it("(T1205) 9 h old by the clock, whatever the feed was written at: when it last reported, no figure, no bar, no trend", async () => {

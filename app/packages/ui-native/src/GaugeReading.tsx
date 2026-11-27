@@ -64,7 +64,10 @@ export function GaugeReading({ source, station, palette, theme, feed, notes }: {
       {r?.percentile != null && !noRecord && (
         <LegendRamp palette={palette} stops={flowRampStops(theme)} marks={[r.percentile]}
                     title={FLOW_LEGEND.title[r.quantity === "level" ? "level" : "discharge"]}
-                    low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high} counted={false} />
+                    low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high} counted={false}
+                    // (review 2026-11-27) the mark is THIS GAUGE (not "1 reach"), and the bar says it in words, never by colour alone
+                    tickLabel={(_n, at) => GAUGE_PAGE_WORDS.barMark(FLOW_LEGEND.near(at))}
+                    describe={`${FLOW_LEGEND.scale(FLOW_LEGEND.title[r.quantity === "level" ? "level" : "discharge"], FLOW_LEGEND.low, FLOW_LEGEND.high, FLOW_LEGEND.mid)}. ${GAUGE_PAGE_WORDS.barMark(FLOW_LEGEND.near(r.percentile))}`} />
       )}
       {r?.age && <Text testID="gauge-age" style={{ ...TYPE.meta, color: palette.sub }}>{r.age}</Text>}
       <StationChart vm={vm} palette={palette} colour={palette.live} />

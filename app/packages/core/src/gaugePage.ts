@@ -97,6 +97,8 @@ export const GAUGE_PAGE_WORDS = {
   /** each served water's trust, in a word (`weak` is a rough guide) */
   trust: { own: "On this water", lake: "On this lake", good: "Good match", fair: "Fair match", weak: "Rough guide" } as Readonly<Record<ServesTrust, string>>,
   open: (water: string): string => `Open ${water}, conditions`,
+  /** the colour bar's mark, aloud: where THIS GAUGE stands (the bar marks a gauge here, not reaches); `near` is core's `FLOW_LEGEND.near` */
+  barMark: (near: string): string => `This gauge: ${near}`,
   /** what the measured line has done over about a day, beside the big reading (`gaugeTrend`) */
   trend: { rise: "rising", steady: "steady", fall: "falling" } as const,
   /** the waters list folds past `GAUGE_SERVES_SHOWN` */
