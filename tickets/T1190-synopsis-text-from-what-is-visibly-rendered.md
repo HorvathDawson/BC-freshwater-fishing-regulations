@@ -1,10 +1,10 @@
 # T1190 — Synopsis PDF text from what is visibly rendered
 
-Status: PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Claude): step 5, painting rules for lines and fills, later
+Status: PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Claude): the whole-book gate + August run before merge; step 5 later
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1190 | Synopsis PDF text from what is visibly rendered | PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Claude): step 5, later | 2cc9bd697, 461744993 | step 5: the same painter's model for lines and fills (a stale table's frame can never steer `find_tables` or the row bands; row bands read from the display list, not sampled pixels) |
+| T1190 | Synopsis PDF text from what is visibly rendered | PARTIAL — steps 1-4 built (PR open, a second agent reviews); left (Claude): the whole-book gate + August run before merge; step 5 later | 2cc9bd697, 461744993, e4cc0525d | before merge: the whole-book gate and the August book's new-method run (heavy, not yet run); then step 5, painting rules for lines and fills (`## Step 5`) |
 
 Source: the owner, 2026-11-26 ~17:50 (planning chat), verbatim: "also we should do a quick review of the pdf extraction code we have because it does wildd
 stuff to remove bad text in the background of the pdf. i think now that claude is better we could look at the pdf extraction again and do it better (to get the
@@ -43,7 +43,10 @@ Nanaimo River, PDF p.19 (printed 17), "Oct ~~15~~" (BOOK-ERRORS entry 15), the o
 - Tests: `test_visible_text.py` 26 rule tests on PDFs written by hand; `test_visible_text_book.py` 4 pins of the real book (hidden pdfplumber chars:
   p.17 2,581, pp.24/25 27 each, pp.65-67 25 each; the Nanaimo mark; p.61's one misplaced glyph). Glyph-level, the module equals the study's prototype on
   all 88 pages (0 verdict differences). Hard pages 17-19, 24, 25, 61, 65-67 re-read against the baseline: 0 unexplained (Heber, the accepted T415 diff).
-- Whole-book gate and the August 2026 book: measuring (heavy lane queue); the PR body carries the numbers, this section follows.
+- August 2026 book, OLD method (before the swap, a pristine checkout of main): 1,393 rows, 0 page errors (65 s, 2.3 GB).
+- NOT RUN (the heavy lane stayed taken for 3 h by other lanes' chained jobs): the whole-book gate on the current book and the NEW method on the
+  August book. Before merge, through `scripts/heavy.sh`: `extract_synopsis --check-against pipeline/regs/extraction/baseline/2025-27.json`
+  (must say 0 unexplained and one known `[struck]` item), then the August book read by both methods and diffed row by row.
 
 ## Step 5 (follow-up, not built)
 Apply the same painter's model to lines and fills: `find_tables` (lines strategy) and the row bands (`get_color_sections`, a pixel column at x0+2 of a 150 dpi
