@@ -727,8 +727,8 @@ class Generated(_Tree):
 
 
 class Source(BaseModel):
-    """The source files that have a name of their own (`source:`), each RELATIVE to the source root (`roots.source`). Read them as `SOURCE.fwa_gpkg`, never as a literal: one name per file, so the fetcher that
-    writes a file and the readers that open it cannot disagree about where it is. Everything `data/fetch_data.py` writes
+    """The source files that have a name of their own (`source:`), each RELATIVE to the source root (`roots.source`).
+    Read them as `SOURCE.fwa_gpkg`, never as a literal: one name per file, so the fetcher that writes a file and the readers that open it cannot disagree about where it is. Everything `data/fetch_data.py` writes
     lands under the source root: a fetcher that writes where no reader looks is how a freshness gate goes quiet about a
     file nobody is reading. Every other source file is still `SOURCE / "<file>"`.
 
