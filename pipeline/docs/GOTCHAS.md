@@ -60,8 +60,8 @@ designations, and some labels sit on the wrong FWA line. Do not drop or rename t
   Creek; Mashiter Side Channel.
 - Labels on the wrong line: Evans Creek on the Squamish River; Dragonfly Creek on Still Creek; Lost Trib.1 on Austin
   Creek; Stoney Trib.4 on Stoney Creek. Several names on one unnamed line: Thunderbird + Newport (`360305166`); Beaver
-  Creek + Beaver Creek BioPond North + Deer Lake Brook (`356297118`); Beecher + Sunken Engine (`356093488`). The Seymour
-  River item holds the city's Tunnel Creek (`-2000000390`).
+  Creek + Beaver Creek BioPond North + Deer Lake Brook (`356297118`); Beecher + Sunken Engine (`356093488`). Tunnel,
+  Turner and Capitol creeks were filed under the Seymour, Noons and "Squatters" creeks by a code fault (T1246).
 
 ## Book errata: an MU printed wrong (Mackenzie Creek "4-21" is 4-31)
 
