@@ -28,6 +28,7 @@ Each folder, pipeline stage and app package has its own `README.md`.
 - Data side: [`pipeline/docs/MAP.md`](pipeline/docs/MAP.md) (stages, inputs, outputs), then `pipeline/build.py` (one rebuild) and
   `pipeline/deliver/__main__.py` (the release steps). How the book is read: [`pipeline/docs/RULINGS.md`](pipeline/docs/RULINGS.md), which wins over any other note.
 - App side: [`app/MAP.md`](app/MAP.md), then `app/apps/mobile/src/App.tsx` (the one shell) and `app/packages/ui-native/src/Shell.tsx`.
+- Docs index: [`docs/README.md`](docs/README.md) says what each page and folder in `docs/` is.
 - Rules for working here: [`AGENTS.md`](AGENTS.md); read the rule you are about to touch. Work lives in tickets (AGENTS W49): `tickets/README.md`.
 
 ## The three everyday things
@@ -52,7 +53,7 @@ python scripts/before_push.py         # what a PR's required checks ask, for thi
 ```
 
 Tools: Python 3.13, Node (`app/.nvmrc`) with pnpm 9, and tippecanoe + pmtiles for tiles. The whole fresh-machine path is
-`docs/runbooks/fresh-machine.md`; a release is `python -m pipeline release --staging` (`docs/runbooks/release.md`; production is the owner's).
+`docs/runbooks/fresh-machine.md`. `bootstrap.sh --setup-only` is the cheap path (hooks, `.venv`, JS install, no download); the full run also downloads about 16 GB of pinned source data. A release, start to finish by hand: [`docs/runbooks/release-by-hand.md`](docs/runbooks/release-by-hand.md) (the flags are in `docs/runbooks/release.md`; production is the owner's).
 The synopsis parse spends credits: **a person runs it**, never an agent (AGENTS A1; `pipeline/regs/parsing/README.md`).
 
 ## Contributing

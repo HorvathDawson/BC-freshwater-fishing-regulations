@@ -4,7 +4,7 @@ Status: OPEN — lane: the repo clean chat, after T1192 PR 1; the audit (`repo-u
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | — | PR 1: deleted 11 ran/superseded files; kept drop-v1.sh, feeds-placeholder, perfetto/pinch.py (still referenced; see Done); PR 2: one ledger-hook script |
+| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | — | PR 1: deleted 11 ran/superseded files; kept drop-v1.sh, feeds-placeholder, perfetto/pinch.py (still referenced; see Done); PR 2: one ledger-hook script; index pages done (docs/README, tool READMEs); PR C: agent pages to docs/agents/ |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "same with scripts too and a few others that feel like they
 have way too many things that it would be hard for a human to use the repo themselves." and "also these scripts feel
