@@ -127,7 +127,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 **P. Planning (background, keep it open)**
 > Start in a scratchpad worktree of origin/main and read everything from there (never touch the main checkout). Then
 > docs/agents/START-HERE.md (step 0, reports first; link the git-ignored worker tokens from the main checkout into
-> the worktree's app/workers/feeds/ so both workers are read) and ROADMAP-after-0.9.0.md (row P, "Who is who",
+> the worktree's app/workers/feeds/ so both workers are read) and docs/agents/ROADMAP-after-0.9.0.md (row P, "Who is who",
 > "Release contents"). You are the planning chat: never write code, never run lanes, builds, emulators or heavy jobs.
 > You alone create ticket numbers (file + ledger row, check-tickets.mjs before every commit). Triage each item:
 > severity, release or future chat, model and lane size. Keep current: this roadmap, the release contents,
@@ -186,7 +186,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 
 **5i. iOS full release (first after 0.9.1)**
 > First make a scratchpad worktree of origin/main and read from it. Then docs/agents/START-HERE.md (step 0),
-> ROADMAP-after-0.9.0.md row 5i, T1071, T727 and docs/ios/. You orchestrate on Fable; scope frozen to T1071;
+> docs/agents/ROADMAP-after-0.9.0.md row 5i, T1071, T727 and docs/ios/. You orchestrate on Fable; scope frozen to T1071;
 > docs and my clicks, no feature work; at most 2 lanes (Sonnet for the checklist and listing pages, Opus only where
 > a privacy or compliance answer needs the code read), one review round. Write one page under docs/ios/ I
 > paste from, with every App Store Connect answer drafted or marked mine. (Production push, T996: I moved it to
@@ -196,8 +196,8 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > restart page.
 
 **S. Store content (beside 5i)**
-> First make a scratchpad worktree of origin/main and read from it. Then START-HERE.md (step 0),
-> ROADMAP-after-0.9.0.md row S, T1072, T1076, T319. You orchestrate on Fable; scope frozen to T1072 + T1076; Sonnet
+> First make a scratchpad worktree of origin/main and read from it. Then docs/agents/START-HERE.md (step 0),
+> docs/agents/ROADMAP-after-0.9.0.md row S, T1072, T1076, T319. You orchestrate on Fable; scope frozen to T1072 + T1076; Sonnet
 > lanes, at most 2, one review round. First fix the reshoot tool (T1076) so it builds its own store-shots export.
 > Then show me 2–3 directions for the screenshot set as pictures, in chat, and wait for my pick. Then ONE new set
 > from the 0.9.x app, the same frames for Android and iPhone (my ask of 11-24), in every Play and App Store size, in
@@ -207,8 +207,8 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > either store: hand me the files and the steps. New finds go to the planning chat.
 
 **2b. 0.9.2 hardening (after chat 3)**
-> First make a scratchpad worktree of origin/main and read from it. Then START-HERE.md (step 0) and
-> ROADMAP-after-0.9.0.md row 2b. You orchestrate on Fable; scope frozen to row 2b, no features; the four lanes and
+> First make a scratchpad worktree of origin/main and read from it. Then docs/agents/START-HERE.md (step 0) and
+> docs/agents/ROADMAP-after-0.9.0.md row 2b. You orchestrate on Fable; scope frozen to row 2b, no features; the four lanes and
 > their models are in the row; one review round; PRs to main with auto-merge once the independent review is clean;
 > heavy jobs only through scripts/heavy.sh. New finds go to the planning chat, which numbers the tickets. When the
 > lanes are merged, cut 0.9.2 to staging and Play Closed and hand me the production commands (CONFIRM_PROD is mine).
