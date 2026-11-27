@@ -122,6 +122,13 @@ def _resolve_area_file(name: str) -> Path:
     return Path(got) if got is not None else Path(name)
 
 
+def area_files(defs: list[dict] | None = None) -> dict[str, Path]:
+    """(T1229) {the `file` a def names: the file it resolves to} for every areas def that draws its polygons from a
+    curated file (`load_area_polys`), resolved as that does: what the tiles key holds by content (`build.curated_parts`)."""
+    return {ad["file"]: _resolve_area_file(ad["file"])
+            for ad in (load_area_split_defs() if defs is None else defs) if ad.get("file")}
+
+
 def load_area_attrs(area_def: dict) -> dict:
     """`{name -> {attr: value}}` for the extra per-feature properties a def asks to `carry`.
 

@@ -69,3 +69,4 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
 ## Owner
 
 - [x] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him. Answered 2026-11-27: "Merge with the list; close both edge stretches (Recommended)".
+  - 2026-11-27: the lane's list (26 stretches, 12.43 km open, plus 252 m on 10 lines that only graze an area; 254 stretches, 14.74 km close; figures may move up to 0.25 km) was put to him. His answer, verbatim: "Hold for the loop-removal trial". Reading: the rule and its list wait for the T1242 trial; he sees both in one look.

@@ -527,7 +527,8 @@ def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
     assert B.tiles_key(build)["obstacles"] is None          # (T173) not fetched: the stage runs and names the fetch
     obstacles.write_bytes(b"x")
     before = B.tiles_key(build)
-    assert set(before) == {"handles", "gpkg", "areas", "code", "tools", "obstacles", "tidal_record"}
+    # (T1229) `area_files`: every file an areas def names by `file` (the sign zones), by content
+    assert set(before) == {"handles", "gpkg", "areas", "area_files", "code", "tools", "obstacles", "tidal_record"}
     (build / "registry.json").write_text('{"items": {"renamed": 1}}')
     assert B.tiles_key(build) == before
     # (T166 -> T678) a new tidal section in the atlas's record takes a piece off the map: the tiles rerun
