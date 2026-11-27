@@ -15,7 +15,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import { parseRunTimingIndex, RunTimingFacts, type PaintDoc, type RunsDoc, type SalmonFacts, type StatusIndex } from "@app/core";
 import { parseManifest, type RunTimingSource } from "@app/data";
-import { HOME, type PairingInput, type Route, type StatusSource } from "@app/ui";
+import { HOME, openGauge, reduce, type PairingInput, type Route, type StatusSource } from "@app/ui";
+import type { StationId } from "@app/data";
 
 const SCALE = (globalThis as unknown as { __T1203_SCALE: { v: number } }).__T1203_SCALE;
 const { PixelRatio } = await import("react-native");
@@ -259,6 +260,8 @@ const SCREENS: Screen[] = [
   { id: "map-search-open", must: "search-field", go: () => act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); }) },
   { id: "map-search-results", must: /Chilliwack/, go: async () => { await type("Search waters and towns", "chilliwack"); await settle(500); } },
   { id: "conditions", must: "legend-ramp", go: () => tab("Conditions") },
+  // (T1194) a gauge's own page over the Conditions map (its release facts are mocked in the shell-map shard): Back, the name, the reading line, the waters it serves, the foot card
+  { id: "gauge-page", must: /Fraser River at Mission/, start: reduce(reduce(HOME, { type: "tab", tab: "conditions" }), openGauge("08MH024" as StationId)) },
   { id: "runs", must: "runs-legend", props: { runTiming: FEED }, go: async () => { tab("Runs"); await settle(600); } },
   { id: "runs-sheet", must: /Done|Close/, props: { runTiming: FEED }, go: async () => { tab("Runs"); await settle(600); pressLabel("tap a stream"); await settle(600); } },
   { id: "spots-empty", must: "spots-screen", go: () => tab("Spots") },

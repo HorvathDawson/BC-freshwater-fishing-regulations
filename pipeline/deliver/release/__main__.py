@@ -10,13 +10,13 @@ import json
 import sys
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED, SOURCE
+from pipeline.common.curated import GENERATED, ROOTS, SOURCE
 
 
 def live_root(out_root: Path) -> bool:
-    """(T788 #5) is `out_root` the live release root (`GENERATED.release`, data/release: LATEST's folder, what the
+    """(T788 #5) is `out_root` the live release root (`ROOTS.release`, data/release: LATEST's folder, what the
     uploads read), by its resolved path, so `./data/release` or a symlink to it is the same root"""
-    return Path(out_root).resolve() == Path(GENERATED.release).resolve()
+    return Path(out_root).resolve() == Path(ROOTS.release).resolve()
 
 
 def main(argv=None) -> int:
@@ -30,11 +30,11 @@ def main(argv=None) -> int:
                     help="the regs store to package (deliver all makes it in its staging directory; P20: none is kept)")
     ap.add_argument("--status-index", type=Path, default=GENERATED.bundle / "status_index.bin")
     ap.add_argument("--export-dir", type=Path, default=EXPORT.parent)
-    ap.add_argument("--out-root", type=Path, default=GENERATED.release)
+    ap.add_argument("--out-root", type=Path, default=ROOTS.release)
     ap.add_argument("--data-release", default=None, help="default: r-<sha12 of the files>")
     ap.add_argument("--tiles", type=Path, default=GENERATED.tiles,
                     help="the tile set this release names (its atlas.meta.json; default: the live tiles)")
-    ap.add_argument("--tiles-release-root", type=Path, default=GENERATED.release,
+    ap.add_argument("--tiles-release-root", type=Path, default=ROOTS.release,
                     help="where that tile set's released folder (tiles/<version>/) is (default: data/release)")
     ap.add_argument("--lake-facts", type=Path, default=None,
                     help="a lakes/1 file (pipeline/deliver/lake_facts.py), shipped as `lakes`; none is made yet, so "
@@ -55,7 +55,7 @@ def main(argv=None) -> int:
     ap.add_argument("--no-synopsis", action="store_true",
                     help="ship no synopsis PDF, and read or write no synopsis cache")
     ap.add_argument("--source", type=Path, default=SOURCE,
-                    help="the fetched source tree the source dates are read from (default: data_tree.source)")
+                    help="the fetched source tree the source dates are read from (default: roots.source)")
     ap.add_argument("--dfo-rules", type=Path, default=GENERATED.regs.dfo_salmon / "rules",
                     help="the parsed DFO salmon pages the DFO date is read from (default: the live ones)")
     a = ap.parse_args(argv)
@@ -69,7 +69,7 @@ def main(argv=None) -> int:
     if live and (a.no_basemap or a.no_synopsis):
         ap.error(f"{'--no-basemap' if a.no_basemap else '--no-synopsis'} is only for a release no device installs, cut "
                  f"with its own --out-root and --tiles-release-root; {' and '.join(live)} is the live release root "
-                 f"({GENERATED.release})")
+                 f"({ROOTS.release})")
     if not Path(a.source).is_dir():
         ap.error(f"--source {a.source} is not a directory")
     from pipeline.common.synopsis_pages import default_pdf

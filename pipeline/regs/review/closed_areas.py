@@ -30,9 +30,9 @@ ABOUT = ("THE CLOSED AREAS THE OWNER CONFIRMED (T573): one record per closed are
 
 
 def path() -> Path:
-    """beside the places files (moved with the whole tree by `CURATED_ROOT`)"""
+    """`CURATED.dfo_salmon.closed_areas` (moved with the whole tree by `CURATED_ROOT`); it may be absent"""
     from pipeline.common.curated import CURATED
-    return Path(CURATED.dfo_salmon.places).parent / "closed_areas.json"
+    return Path(CURATED.dfo_salmon.closed_areas)
 
 
 def target_of(water_id: str, key: str) -> str:

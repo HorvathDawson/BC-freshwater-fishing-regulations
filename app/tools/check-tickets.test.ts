@@ -380,7 +380,7 @@ describe("T539 the docs guard", () => {
   it("(T1081) a restart page outside restart/ fails unless it is one of the four named legacy pages", () => {
     expect(LEGACY_RESTART).toHaveLength(4);
     expect(checkDocs({ ...live(), restartFiles: [...docs.restartFiles, "docs/RESTART-new-chat.md"] })).toEqual([
-      "docs/RESTART-new-chat.md is a restart page outside docs/restart/ (T1081): move it there, link it from START-HERE.md (LEGACY_RESTART names the only ones left where they are)"]);
+      "docs/RESTART-new-chat.md is a restart page outside docs/agents/restart/ (T1081): move it there, link it from START-HERE.md (LEGACY_RESTART names the only ones left where they are)"]);
     expect(checkDocs({ ...live(), restartFiles: [...docs.restartFiles, "docs/NEXT-SESSION-2026-11-25-x.md"] })[0]).toMatch(/NEXT-SESSION-2026-11-25-x\.md is a restart page outside/);
     expect(checkDocs({ ...live(), restartFiles: [...LEGACY_RESTART] })).toEqual([]);
   });

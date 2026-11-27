@@ -73,7 +73,7 @@ def _tidal(decided: E.Decided) -> dict[Path, str]:
     rows, skipped = T.build(decided)
     for s in skipped:
         print(f"  tidal: not written {s['target']}: {s['why']}")
-    return {Path(CURATED.waters.tidal): T.document(rows)}
+    return {Path(CURATED.waters.tidal_limits): T.document(rows)}
 
 
 #: domain -> its FILE writer: the decided data -> {final curated file: its text} (fast: the write-through runs these

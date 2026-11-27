@@ -80,7 +80,7 @@ def followups() -> tuple[dict[str, str], str | None]:
     error that stopped it (None). The writer takes the marks' decisions in memory (`review.export.load`, T408).
     Cached on the marks store's, tidal.json's and splits.json's mtimes (a build takes ~0.3 s)."""
     from pipeline.common.curated import CURATED
-    key = _mtimes([Path(reuse.MARKS_PATH), Path(CURATED.waters.tidal), Path(CURATED.waters.cuts)])
+    key = _mtimes([Path(reuse.MARKS_PATH), Path(CURATED.waters.tidal_limits), Path(CURATED.waters.cuts)])
     if _FOLLOWUPS["key"] != key:
         from pipeline.regs.review import export as E
         from pipeline.tools import tidal_limits as TL
@@ -108,7 +108,7 @@ def _owner_calls() -> dict[str, str]:
     file that does not parse RAISES (never read as "no owner calls")."""
     from pipeline.atlas.splits import tidal as TL
     from pipeline.common.curated import CURATED
-    key = _mtimes([Path(CURATED.waters.tidal)])
+    key = _mtimes([Path(CURATED.waters.tidal_limits)])
     if _OWNER_CALLS["key"] != key:
         _OWNER_CALLS.update(key=key, by_blk={r.blk: r.decided for r in TL.load() if r.mark is None})
     return _OWNER_CALLS["by_blk"]

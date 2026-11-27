@@ -6,7 +6,7 @@ Status: OPEN.
 |---|---|---|---|---|
 | T1065 | T1047 follow-ups: level-only relocated stations, too-recent stations, and the two-sided publisher change | OPEN —  | | planning chat 2026-11-24 |
 
-Source: the 0.9.1 chat's finds on T1047 (RESTART-091-chat.md, 2026-11-24).
+Source: the 0.9.1 chat's finds on T1047 (docs/agents/RESTART-091-chat.md, 2026-11-24).
 
 ## Work
 1. 08MH044 and 08MH053 are level-only and relocated: the off-rating check cannot see them. Find another test (HYDAT remarks, station history).

@@ -5,10 +5,10 @@
 import { dayLabel, type DayRange, type NotFishingKind, type SectionKey, type SyncVM, now as clockNow } from "@app/core";
 import { useCallback, useContext, type MutableRefObject } from "react";
 import { Platform, View } from "react-native";
-import { openProbe } from "@app/data";
+import { openProbe, type StationId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, tabsAsRail, useLayoutClass, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type TapAhead, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
-         mapError, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
+         mapError, openGauge, gaugeTapOn, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
 import { hiddenLayers, shownLayers } from "@app/map/colours";
@@ -120,6 +120,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `opensWater` reads exactly these
     [tab, flowParam, picking, tap, regsPrefetch]);
+  const onPressGauge = useCallback((station: string) => { regsPrefetch?.stop(); go(openGauge(station as StationId)); }, [go, regsPrefetch]);
   const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey, lat?: number, lon?: number) => {
     // PICK ON THE MAP: a tap places the spot's pin (`onMapPoint`) and opens nothing — a water under it included
     if (picking) return;
@@ -295,6 +296,9 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // (T173) a fish obstacle mark (drawn only while its Layers switch is on, Map tab only): its sheet,
                      // and no water opens under it
                      onPressObstacle={picking || wideSearch || tab !== "map" ? undefined : onObstacle}
+                     // (T1194) a gauge dot (Conditions tab only; the dots on the Map tab's Temperature choice stay as they were):
+                     // that gauge's own screen, asked before the water
+                     onPressGauge={gaugeTapOn({ tab, picking, wideSearch }) ? onPressGauge : undefined}
                      // (T166) tidal water, asked last (Map tab only): its sheet
                      // (T292) a sewage lagoon / tailings pond / dump (Map tab only): what it is, never regulations
                      onPressNotFishing={picking || wideSearch || tab !== "map" ? undefined : onNotFishing}

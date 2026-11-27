@@ -4,8 +4,8 @@
     python -m pipeline.bathymetry.accept --by OWNER --rule clean --evidence equal      # accept a whole bucket
     python -m pipeline.bathymetry.accept --by OWNER --ids 00099LARL --refuse "no such lake"
 
-Reads `GENERATED.base/bathymetry/proposals.json` (pipeline.bathymetry.propose) and appends to the frozen file
-`CURATED.base/bathymetry/matches.json` (created by the first accept). Rules (owner, standing):
+Reads `GENERATED.bathymetry/proposals.json` (pipeline.bathymetry.propose) and appends to the frozen file
+`CURATED.bathymetry.matches` (created by the first accept). Rules (owner, standing):
   * nothing is pre-accepted: a row enters only through this command, with who and when;
   * an accepted row is NEVER rewritten: accepting an id that is already in the file refuses (the gauge lesson, a rerun
     once demoted 25 reviewed gauges); a deliberate change is `--replace`, which prints the old row first;
@@ -24,21 +24,24 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
 
-#: the proposal sets this command accepts from: (proposals file, frozen file). `contours` and `stocking` are built on
-#: "Access Only" records (owner says OGL, unconfirmed: T634); their rows carry the licence flag through.
-SETS = {"charts": ("bathymetry/proposals.json", "bathymetry/matches.json"),
-        "contours": ("bathymetry/contour_proposals.json", "bathymetry/contour_matches.json"),
-        "stocking": ("stocking/proposals.json", "stocking/matches.json")}
+#: the proposal sets this command accepts from: (the domain, its proposals file under `GENERATED.<domain>`, its frozen
+#: file `CURATED.<domain>.<key>`). `contours` and `stocking` are built on "Access Only" records (owner says OGL,
+#: unconfirmed: T634); their rows carry the licence flag through.
+SETS = {"charts": ("bathymetry", "proposals.json", "matches"),
+        "contours": ("bathymetry", "contour_proposals.json", "contour_matches"),
+        "stocking": ("stocking", "proposals.json", "matches")}
 
 
 def frozen_path(which: str = "charts") -> Path:
     from pipeline.common.curated import CURATED
-    return Path(CURATED.base) / SETS[which][1]
+    domain, _proposals, key = SETS[which]
+    return Path(getattr(getattr(CURATED, domain), key))
 
 
 def proposals_path(which: str = "charts") -> Path:
     from pipeline.common.curated import GENERATED
-    return GENERATED.base / SETS[which][0]
+    domain, proposals, _key = SETS[which]
+    return Path(getattr(GENERATED, domain)) / proposals
 
 
 def load_frozen(path: Path) -> dict:

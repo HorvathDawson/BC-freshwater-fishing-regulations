@@ -49,6 +49,13 @@ vi.mock("react-native", async (importOriginal) => {
   });
   return { ...rn, Text };
 });
+// (T1194) the gauge page's release facts: long water names and every trust word, so the page's rows are laid out at their widest
+vi.mock("@app/ui", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@app/ui")>()),
+  useGaugePage: () => ({ state: "ready", error: null, value: { station: "08MH024", name: "Fraser River at Mission", tidal: true, backwater: false, diversion: false,
+    serves: [{ item: "a", name: "Chilliwack/Vedder River (Sardis to the Fraser confluence)", trust: "own" }, { item: "b", name: "Nicomen Slough", trust: "good" },
+             { item: "c", name: "Enterprise Channel near the Pitt River mouth", trust: "weak" }] } }),
+}));
 // no WebGL in jsdom: the map itself is blank, the screen around it (rail, switch, legend, day bar) is the app's
 vi.mock("@app/map", async (importOriginal) => {
   const { View, Pressable } = await import("react-native");
@@ -66,4 +73,4 @@ vi.mock("@app/map", async (importOriginal) => {
 vi.mock("../packages/ui-native/src/FishSpinner", () => ({ FishSpinner: () => null }));
 
 const { walk } = await import("./system-text-walk");
-walk("shell-map", ["map", "map-day-picker", "map-layers", "map-search-open", "map-search-results", "conditions", "runs", "runs-sheet"]);
+walk("shell-map", ["gauge-page", "map", "map-day-picker", "map-layers", "map-search-open", "map-search-results", "conditions", "runs", "runs-sheet"]);
