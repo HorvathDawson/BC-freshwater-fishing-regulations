@@ -48,6 +48,22 @@ placeholder populations below that, so the tiers are our own list (`app/packages
 The atlas tiles carry only the 10 largest lakes at z4 and river sections too short to hold a name, so lake and river
 names zoomed out need the T1210 tile layer.
 
+## The basemap colours the T47 floors bind (review, for the owner's cyan-or-bluer-water question)
+
+tools/status-colours-distinct.test.ts reads `color.ui.basemap.ground` / `.water` from the themes. The pairs that bind,
+worst vision, with what the look's first colours gave:
+
+| theme | pair, as drawn | now | floor | look's first colours |
+|---|---|---|---|---|
+| light | closed / own, thin line on the ground #E5E2DB | 21.31 | 21 | 20.6 on #EFEDE8 |
+| light | closed / own, lake fill on the water #82CDD6 | 25.2 | 25 | 23.5 on #A9C6EE |
+| light | closed / base, line and lake fill on the water | 35.5 | 35 | 32.6 on #A9C6EE |
+| dark | no access / closed, thin line on the ground #121618 | 8.51 | 8.5 | 8.41 on #141414 |
+| dark | closed / own, lake fill on the water #31353F | 22.4 | 22 | 21.9 on #333333 |
+
+A search of every water from L60 to 92 (all hues 150-285) found only the cyan family passing with this palette: a bluer
+water needs the status colours moved (T47's palette), not the basemap.
+
 ## Acceptance
 
 Style tests over the built `style.json` (each fails without its change); pictures today vs A at three zooms, dark.
