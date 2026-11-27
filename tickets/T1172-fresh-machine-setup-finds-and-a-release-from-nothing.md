@@ -114,6 +114,10 @@ named end (Snehumption p1 "2 side channels"); "Eco Reserve" short form; an unmea
 NOT built: Klinaklini p1 / MacMillan p2 "Mouth → Source" (the channels' own ends, `branch_end_tokens` for a salmon-cut
 piece). Dropping them makes the app's `mergeNav` join throw, so the app must first take a joined span's ends from the
 pieces that have them. Release r-ab4722f01fc9, rc=0. The 474-floor test is left as is (T1146 moved it; not re-pinned).
+2026-11-26 round 5: "Eco Reserve" everywhere (owner: "it should be \"[name] eco reserve\" everywhere"). One function,
+applied at `end_name` and `part_label`, changes 206 parts on 74 waters and 198 end tokens. The review's fixes: a part
+that needs its distance but has none now stops the build; fast wiring tests; the stale comments. Release
+r-83588a004b03, rc=0.
 
 ## Acceptance
 The clean clone makes a release directory from nothing, with no copied file; deliver passes on gnis:2123, with a
