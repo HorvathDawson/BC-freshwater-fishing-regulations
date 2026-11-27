@@ -16,6 +16,7 @@ class Part:
                  presence, ladder_value: dict, md, open_states: Optional[dict] = None,
                  at=None):
         self.B = B
+        self.set_id = set_id
         self.kind, self.presence = kind, presence
         self.steelhead_water = steelhead_water
         self.steelhead_rules = steelhead_rules

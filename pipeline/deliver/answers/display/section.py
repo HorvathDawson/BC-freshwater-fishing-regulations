@@ -59,9 +59,8 @@ def section_prepare(scope, ctx):
         return [0] * DAYS, [{"status": "tidal", **TIDAL_STATE}]
     st = ctx.store
     k = ctx.B.key_ix[scope]
-    from pipeline.deliver.answers.rows.evaluate import most_upstream_first
-    from pipeline.deliver.bundle import read
-    upstream = read._upstream_of(ctx.B.path)
+    from pipeline.deliver.answers.rows.evaluate import most_upstream_first, own_rows, upstream_pairs
+    upstream, own = upstream_pairs(ctx.B), own_rows(ctx.B, scope.set_id)
     floor = "own" if st.own(k) else "base"
     none = "none"
     # RULINGS P12: the lifting rules this key holds by the tributary walk (a ✱ row's, T13 / T3a)
@@ -74,7 +73,7 @@ def section_prepare(scope, ctx):
         # (T1251) rule order, then the more upstream of two rows' closures first (`rows.evaluate.most_upstream_first`,
         # the comparison the card's naming asks): the banner lists `closers` in this order and says a sentence once
         ordered = most_upstream_first([_Closer(st.rule_ids[r], fs, ctx, scope) for r, fs in sorted(
-            closing.items(), key=lambda p: ctx.rule_index[st.rule_ids[p[0]]])], upstream)
+            closing.items(), key=lambda p: ctx.rule_index[st.rule_ids[p[0]]])], upstream, own)
         v = {"status": "closed" if rd.closed else floor,
              "closing": [[ctx.rule_index[c.key], c.fish] for c in ordered]}
         if rd.closed:

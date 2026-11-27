@@ -130,12 +130,40 @@ def test_rank_still_comes_first_and_a_tie_without_a_pair_falls_to_the_old_order(
     assert _named([_closure(b), _closure(a)], UP) == b, "no pair, a full tie: the input order"
 
 
-def test_two_closures_on_their_own_rows_water_keep_the_old_order():
-    """Only INHERITED closures: the Campbell River's 100 m below Strathcona Dam is printed in two rows' own extents (the
-    river's all-year spot closure, Lower Campbell Lake's row "including Campbell River between Strathcona Dam and (Lower)
-    Campbell Lake", Feb 1-Jul 15): neither is inherited there, and T206 names the year-round one, as before."""
-    got = _named([_closure(LOWER, rank=0, via="reach"), _closure(RIVER, rank=0, dated=False, via="reach")], UP)
-    assert got == RIVER
+NORTH, ALOUETTE = "r2:north_alouette_river@2-8", "r2:alouette_river@2-8"
+
+
+def _named_own(cands, upstream, own):
+    return EV._stable_sort(cands, key=EV.closure_order_for(frozenset(upstream), frozenset(own)))[0].entry_id
+
+
+def test_the_waters_own_row_is_named_first_north_alouette(monkeypatch):
+    """Owner 2026-11-27, verbatim: "(a) Own row first, then most upstream (Recommended)". The North Alouette River:
+    its own "No Fishing upstream of 216th Street (Fifth Ave), May 1-June 30" and the Alouette River's "... (including
+    North Alouette River), May 1-June 30", both printed by the rows' own extents on one rung: the own row is named."""
+    cands = [_closure(ALOUETTE, rank=0, via="reach"), _closure(NORTH, rank=0, via="reach")]
+    assert _named_own(cands, {(NORTH, ALOUETTE)}, {NORTH}) == NORTH
+    assert _named_own(cands, set(), {NORTH}) == NORTH, "own row first, before any upstream pair"
+    monkeypatch.setattr(EV, "OWN_ROW_FIRST", False)
+    assert _named_own(cands, {(NORTH, ALOUETTE)}, {NORTH}) == ALOUETTE, "the pin: T206's order again"
+
+
+def test_the_campbell_rivers_100_m_keeps_its_own_all_year_closure():
+    """The Campbell River below Strathcona Dam: its own all-year closure and Lower Campbell Lake's "including Campbell
+    River between Strathcona Dam and (Lower) Campbell Lake" (Lower Campbell is the more upstream row): own row first."""
+    cands = [_closure(LOWER, rank=0, via="reach"), _closure(RIVER, rank=0, dated=False, via="reach")]
+    assert _named_own(cands, UP, {RIVER}) == RIVER
+
+
+def test_set_own_is_the_row_whose_water_holds_the_set():
+    db = _db(walks={}, matched={NORTH: ["gnis:north"], ALOUETTE: ["gnis:alouette"]})
+    db.executescript("CREATE TABLE item_section (ord INTEGER, sid INTEGER);")
+    ords = dict(db.execute("SELECT item_id, ord FROM item"))
+    db.executemany("INSERT INTO item_section VALUES (?,?)", [(ords["gnis:north"], 1), (ords["gnis:north"], 2),
+                                                             (ords["gnis:alouette"], 3)])
+    db.executemany("INSERT INTO ruleset VALUES (?,?,?,?)", [(9, NORTH, "r1", "reach"), (9, ALOUETTE, "r2", "reach")])
+    db.executemany("INSERT INTO section_ruleset VALUES (?,?)", [(1, 9), (2, 9)])
+    assert N.compute_set_own(db) == {(9, NORTH)}
 
 
 def test_a_waters_own_extent_comes_before_what_it_inherits_on_one_rung():
@@ -155,6 +183,43 @@ def test_the_banners_closers_put_the_most_upstream_row_first_and_keep_the_rest_i
     three = [_closure(RIVER), _closure(HART), _closure(LOWER)]
     assert [c.entry_id for c in EV.most_upstream_first(three, UP)] == [LOWER, HART, RIVER]
     assert [c.entry_id for c in EV.most_upstream_first(three, frozenset())] == [RIVER, HART, LOWER], "no pairs: as given"
+
+
+def test_the_banner_reorders_within_a_rung_only():
+    """Review round 2 (Greenstone Creek, Feb 1-May 31): campbell_river (inherited, rung 1) > greenstone_creek (its own
+    row, rung 0) > lower_campbell (inherited, rung 1). Only the two inherited closures swap, in the places rung 1 holds;
+    the own row keeps its place, and a zone closure on another rung never moves."""
+    green = "r1:greenstone_creek@1-10"
+    zone = _closure("zp:superior_closures", rank=4, via="reach")
+    got = EV.most_upstream_first([_closure(RIVER), _closure(green, rank=0, via="reach"), _closure(LOWER), zone], UP)
+    assert [c.entry_id for c in got] == [LOWER, green, RIVER, "zp:superior_closures"]
+    got = EV.most_upstream_first([zone, _closure(RIVER), _closure(LOWER)], UP)
+    assert [c.entry_id for c in got] == ["zp:superior_closures", LOWER, RIVER]
+
+
+def test_two_closures_no_chain_relates_keep_their_order():
+    """A pulled closure moves to the place of the one it precedes; an unrelated one keeps its place relative to the
+    first (the banner's two all-year closures are not reordered by a third)."""
+    other = "r4:a_lake_s_tributaries@4-1"
+    got = EV.most_upstream_first([_closure(other), _closure(RIVER), _closure(LOWER)], UP)
+    assert [c.entry_id for c in got] == [other, LOWER, RIVER]
+
+
+def test_own_extent_before_inherited_follows_the_own_row_pin(monkeypatch):
+    """False = an own-extent and an inherited closure on one rung fall to the input order (T206) again."""
+    own, inh = _closure(RIVER, via="reach"), _closure(LOWER)
+    monkeypatch.setattr(EV, "OWN_ROW_FIRST", False)
+    assert _named([inh, own], UP) == LOWER and _named([own, inh], UP) == RIVER
+
+
+def test_one_read_of_the_pairs():
+    """A bundle object with no path (built in memory by a test) has no pairs; a path reads the table (seeded here)."""
+    assert EV.upstream_pairs(SimpleNamespace()) == frozenset() and EV.own_rows(SimpleNamespace(), 9) == frozenset()
+    read._UPSTREAM_BY_PATH["mem:t1251"] = frozenset({(LOWER, HART)})
+    try:
+        assert EV.upstream_pairs(SimpleNamespace(path="mem:t1251")) == {(LOWER, HART)}
+    finally:
+        read._UPSTREAM_BY_PATH.pop("mem:t1251")
 
 
 def test_a_circle_in_the_pairs_is_refused():

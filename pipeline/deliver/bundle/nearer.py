@@ -252,6 +252,51 @@ def upstream_cycle(pairs: Iterable[Tuple[str, str]]) -> List[str]:
     return []
 
 
+#: POLICY (T1251, owner 2026-11-27, verbatim: "(a) Own row first, then most upstream (Recommended)"): A WATER'S OWN ROW
+#: IS NAMED FIRST. `set_own`: per rule set where two or more water rows print rules by their OWN extents, the rows whose
+#: matched water holds every section of the set — the water's own row (the North Alouette's on the North Alouette River,
+#: not the Alouette's "including North Alouette River"). Read only for which closure is named and the banner's order
+#: (`answers.rows.evaluate.OWN_ROW_FIRST`).
+def compute_set_own(db: sqlite3.Connection) -> Set[Tuple[int, str]]:
+    import json
+    reach: Dict[int, Set[str]] = {}
+    for set_id, e in db.execute("SELECT DISTINCT set_id, entry_id FROM ruleset "
+                                "WHERE via = 'reach' AND entry_id LIKE 'r%' ORDER BY set_id, entry_id"):
+        reach.setdefault(set_id, set()).add(e)
+    reach = {k: v for k, v in reach.items() if len(v) >= 2}
+    if not reach:
+        return set()
+    want = {e for es in reach.values() for e in es}
+    ords = dict(db.execute("SELECT item_id, ord FROM item"))
+    secs_of_item: Dict[int, Set[int]] = {}
+    matched: Dict[str, Set[int]] = {}
+    for e, m in db.execute("SELECT entry_id, matched FROM entry ORDER BY entry_id"):
+        if e in want:
+            matched[e] = {ords[i] for i in json.loads(m or "[]") if i in ords}
+    need = {o for ms in matched.values() for o in ms}
+    for o, sid in db.execute("SELECT ord, sid FROM item_section"):
+        if o in need:
+            secs_of_item.setdefault(o, set()).add(sid)
+    members: Dict[int, Set[int]] = {}
+    for sid, set_id in db.execute("SELECT sid, set_id FROM section_ruleset"):
+        if set_id in reach:
+            members.setdefault(set_id, set()).add(sid)
+    out: Set[Tuple[int, str]] = set()
+    for set_id, es in reach.items():
+        secs = members.get(set_id, set())
+        for e in es:
+            water = set().union(*(secs_of_item.get(o, set()) for o in matched.get(e, ())))
+            if secs and secs <= water:
+                out.add((set_id, e))
+    return out
+
+
+def write_set_own(db: sqlite3.Connection, cov) -> None:
+    pairs = sorted(compute_set_own(db))
+    db.executemany("INSERT INTO set_own (set_id, entry_id) VALUES (?,?)", pairs)
+    cov.filled("set_own", len(pairs))
+
+
 def write_trib_upstream(db: sqlite3.Connection, cov) -> None:
     pairs = sorted(compute_trib_upstream(db))
     db.executemany("INSERT INTO trib_upstream (near, far) VALUES (?,?)", pairs)
@@ -275,6 +320,9 @@ def prove(db: sqlite3.Connection) -> None:
     if loop:
         raise SystemExit(f"trib_upstream: the pairs run in a circle ({' > '.join(loop)}): no row is the most upstream "
                          f"there — fix the rows' waters or walks, then rebuild the bundle")
+    if set(db.execute("SELECT set_id, entry_id FROM set_own")) != compute_set_own(db):
+        raise SystemExit("set_own: the stored rows are not what the rule sets, entry.matched and item_section give — "
+                         "rebuild the bundle")
     if stored_up != compute_trib_upstream(db):
         raise SystemExit("trib_upstream: the stored pairs are not what trib_nearer and the rule sets' walks give — "
                          "rebuild the bundle")
