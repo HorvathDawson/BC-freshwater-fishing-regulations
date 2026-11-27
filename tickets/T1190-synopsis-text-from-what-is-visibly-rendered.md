@@ -22,6 +22,11 @@ the same origin (spaces too), or the same colour as the fill provably under it. 
 layout engine; the two read the same content stream and are paired in content order: a text disagreement refuses the page by name (`PageNotJudged`); an
 origin disagreement (PDF p.61's scale-bar "8", placed 47 pt off by pdfminer, a map page) is said on stderr and refuses the page only if it holds rows.
 `get_cleaned_page` calls it; nothing else in the extractor changed. A page that fails now fails the whole extraction run, naming every page.
+UNSURE IS KEPT (review of #323): a rule hides a glyph only when it is sure; otherwise the glyph stays and its page prints a named note
+(`[visible] PDF page N: …`). A fill clipped by anything but one axis-aligned rectangle covers nothing (`fill-under-a-clip-path`); an image covers only
+inside every clip that might be in force at its paint order (the drawing list holds clips, not images), and not at all under a clip path or a
+translucent or blended group (`image-under-a-clip-path`); only an opaque Normal fill is a background colour (`same-colour-as-a-translucent-or-blended-fill`);
+a line through the middle painted BEFORE the text is not marked struck (`possible-strike`). No strike length cap.
 
 LIBRARY: PyMuPDF 2.2 (MuPDF 1.28.6), AGPL-3.0 or Artifex commercial; pinned in `constraints.txt`, the licence noted in `requirements.txt`. Pipeline only,
 never shipped in the app. Only `visible.py` imports it: a swap re-implements its five MuPDF readers; the rule tests write their PDFs by hand and stand.
@@ -50,50 +55,6 @@ Nanaimo River, PDF p.19 (printed 17), "Oct ~~15~~" (BOOK-ERRORS entry 15), the o
   Nanaimo's struck "15" still printed and known; peak memory 1.07 GB (old 2.34 GB), 52 s (old 65 s).
 - Found on the way: `extract_synopsis`'s command could not start since 0399ce248 (T1021): a local `import get_config` in `main()` shadowed the
   module's name (UnboundLocalError). Fixed in 37fdbccdd with a test that runs `main(["--help"])`.
-
-## Step 5`) |
-
-Source: the owner, 2026-11-26 ~17:50 (planning chat), verbatim: "also we should do a quick review of the pdf extraction code we have because it does wildd
-stuff to remove bad text in the background of the pdf. i think now that claude is better we could look at the pdf extraction again and do it better (to get the
-sane result) because we know the extractiuon is well tested and good. then you can use that to make sure the new method works good. we want to use what is
-actually visually there based on rendering rules of pdf of something. make sense? this is just to make everything more robust for the future."
-The study: projects-folder note `night-notes-2026-11-26/pdf-extraction-study.md` (prototype in scratch). Owner decisions ~19:20 (memory note
-`planning-chat-2026-11-26-day.md`): PyMuPDF accepted; struck text kept, marked, one warning line, only a NEW strike flagged; the August book added.
-
-## Method (built)
-`pipeline/regs/extraction/visible.py` decides which of pdfplumber's characters are on the paper by the PDF's own painting rules, on MuPDF's display list
-(one paint-order number shared by text spans and paths, plus blend modes, opacity, layers and clips). A glyph is hidden only for a stated reason: render mode
-3/7, opacity 0, a layer off (the page is traced with every layer on), outside the crop box, clipped (MuPDF's TEXT_CLIP), covered by a LATER opaque fill
-(Normal blend, opacity 1 up its groups, inside its clip; two fills meeting under one glyph cover it together) or image, the same glyph drawn again later at
-the same origin (spaces too), or the same colour as the fill provably under it. No pixel is sampled and no colour threshold is used. pdfplumber stays the
-layout engine; the two read the same content stream and are paired in content order: a text disagreement refuses the page by name (`PageNotJudged`); an
-origin disagreement (PDF p.61's scale-bar "8", placed 47 pt off by pdfminer, a map page) is said on stderr and refuses the page only if it holds rows.
-`get_cleaned_page` calls it; nothing else in the extractor changed. A page that fails now fails the whole extraction run, naming every page.
-
-LIBRARY: PyMuPDF 2.2 (MuPDF 1.28.6), AGPL-3.0 or Artifex commercial; pinned in `constraints.txt`, the licence noted in `requirements.txt`. Pipeline only,
-never shipped in the app. Only `visible.py` imports it: a swap re-implements its five MuPDF readers; the rule tests write their PDFs by hand and stand.
-
-DELETED: the 400 dpi cleaning render, the two-colour background palette, the per-character ink test (`COLOR_DIFF_THRESHOLD`, `LUMINANCE_THRESHOLD`,
-`MIN_INK_PIXELS_STANDARD`, `SYMBOLS_TO_RELAX`), the 4-30 pt font-size filter, DBSCAN over (line, paint order) with `StandardScaler` and the 80 %/20 %
-passes, the "BROKEN CODE" first-line overlap cut, the cluster debug plots (matplotlib), and scikit-learn with joblib and threadpoolctl (nothing else used
-them; scipy is now listed itself for `app/tools/fish-sources/make-signal-crayfish.py`, which had it only through scikit-learn).
-
-STRIKE-THROUGH: a thin horizontal line painted after a visible glyph, through its middle band, lying mostly on text. The row carries it as a SEPARATE field,
-`raw_regs_marked` (`raw_regs` with each struck run in `~~`, e.g. "Sept 1-Oct ~~15~~"), present only on a row with a strike; the extractor refuses a marked
-text that is not `raw_regs` plus the marks. `raw_regs` is unchanged because it is what every consumer keys on: the T426 baseline row sha, the batch
-`rows_digest` (water + raw_regs) and entry ids, `synopsis_book carry` (raw_regs == regs_verbatim), ingest (`regs_verbatim`), the review tool's reuse index.
-A row with no strike serialises byte for byte as before. A run prints ONE `[struck]` line listing every struck item; one not in
-`pipeline/regs/extraction/known_strikes.json` is marked NEW, and the T426 gate fails on a NEW strike or a recorded one it no longer reads. Baseline recorded:
-Nanaimo River, PDF p.19 (printed 17), "Oct ~~15~~" (BOOK-ERRORS entry 15), the only strike in the current book.
-
-## Results
-- Tests: `test_visible_text.py` 26 rule tests on PDFs written by hand; `test_visible_text_book.py` 4 pins of the real book (hidden pdfplumber chars:
-  p.17 2,581, pp.24/25 27 each, pp.65-67 25 each; the Nanaimo mark; p.61's one misplaced glyph). Glyph-level, the module equals the study's prototype on
-  all 88 pages (0 verdict differences). Hard pages 17-19, 24, 25, 61, 65-67 re-read against the baseline: 0 unexplained (Heber, the accepted T415 diff).
-- August 2026 book, OLD method (before the swap, a pristine checkout of main): 1,393 rows, 0 page errors (65 s, 2.3 GB).
-- NOT RUN (the heavy lane stayed taken for 3 h by other lanes' chained jobs): the whole-book gate on the current book and the NEW method on the
-  August book. Before merge, through `scripts/heavy.sh`: `extract_synopsis --check-against pipeline/regs/extraction/baseline/2025-27.json`
-  (must say 0 unexplained and one known `[struck]` item), then the August book read by both methods and diffed row by row.
 
 ## Step 5 (follow-up, not built)
 Apply the same painter's model to lines and fills: `find_tables` (lines strategy) and the row bands (`get_color_sections`, a pixel column at x0+2 of a 150 dpi
