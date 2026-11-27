@@ -278,7 +278,7 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
                                   for t, a in zip(toks, inside)]
     # (T1140 PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is
     # fixed in hardening") a part of added city lines with its own name: "Noons Creek — Turner Creek (City of Port Moody
-    # ESA streams layer)" (`part.OWN`, both ends)
+    # ESA streams layer)" (`part.OWN`, both ends; Turner Creek itself is its own water since T1246)
     for i, t in enumerate(toks):
         own = crossings.get((W.id, "own", W.export_ix[i])) if t is None and ends[i] is None else None
         if own:
