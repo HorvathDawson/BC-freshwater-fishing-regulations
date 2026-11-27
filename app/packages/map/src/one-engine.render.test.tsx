@@ -20,7 +20,7 @@ import type { StandingValues } from "./style";
 
 const log: string[] = [];
 let built = 0;
-/** The tiles the fake map holds (in view), as GL 5.24 shapes them: a feature index that decodes the tile's layers. */
+/** The tiles the fake map holds (in view), as GL 6.19 shapes them: a feature index that decodes the tile's layers. */
 let held: unknown[] = [];
 let stylesLoaded = true;
 const tile = (ids: Record<string, number[]>) => ({
@@ -36,10 +36,13 @@ let gl: FakeGl | null = null;
 class FakeGl {
   private on_ = new Map<string, Set<Handler>>();
   private json: { layers: { id: string; source?: string }[] };
-  /** GL 5.24's internals as `web/tileIds.ts` reads them. */
+  /** GL 6.19's internals as `web/tileIds.ts` reads them. */
   style = { tileManagers: { atlas: { _inViewTiles: { getAllTiles: () => held }, _outOfViewCache: { data: {} } } } };
   touchZoomRotate = { disableRotation: () => {} };
   keyboard = { disableRotation: () => {} };
+  /** (T1252) GL 6 asks this for an image a layer wants and the style lacks (`styleimagemissing` only notifies) */
+  missing: ((id: string) => void) | null = null;
+  setMissingStyleImageResolver(fn: (id: string) => void) { this.missing = fn; }
   constructor(opts: Record<string, unknown>) {
     built++; gl = this;
     this.json = opts.style as FakeGl["json"];
@@ -88,7 +91,8 @@ class FakeGl {
 class Control { constructor(_o?: unknown) {} }
 vi.mock("maplibre-gl", () => ({ Map: FakeGl, NavigationControl: Control, ScaleControl: Control,
                                 Marker: class { setLngLat() { return this; } addTo() { return this; } remove() {} },
-                                Popup: class { setText() { return this; } }, addProtocol: () => {} }));
+                                Popup: class { setText() { return this; } }, addProtocol: () => {},
+                                setWorkerUrl: () => {}, getVersion: () => "6.19.0" }));
 vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
 
 const { Map: WebMap } = await import("./Map.web");

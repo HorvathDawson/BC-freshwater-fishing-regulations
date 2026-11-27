@@ -545,6 +545,8 @@ describe("T198 hosting config (code half)", () => {
     expect(h).toMatch(/\/assets\/\*\n {2}Cache-Control: public, max-age=31536000, immutable/);
     // (T910) and the web export's hashed script + stylesheets
     expect(h).toMatch(/\/_expo\/static\/\*\n {2}Cache-Control: public, max-age=31536000, immutable/);
+    // (T1252) and GL's worker, whose folder carries GL's version
+    expect(h).toMatch(/\n\/maplibre-gl-\*\n {2}Cache-Control: public, max-age=31536000, immutable\n/);
     expect(h).toBe(headersFile());
     expect(built.files.get("404.html")).toContain('content="noindex"');
     expect(built.files.get("404.html")).toContain('href="/region/');

@@ -5,7 +5,8 @@ declare const __DEV__: boolean | undefined;
  */
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, IMAGERY, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, IMAGERY, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure,
+         type MapUnavailableReason } from "@app/core";
 import { webRenderer } from "../adapters/web";
 import { Colouring, LABEL_SOURCE_LAYERS } from "../colouring";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "../gestures";
@@ -18,19 +19,40 @@ import { sourceTiles, tileIds } from "./tileIds";
 import { atlasTarget, copyTarget, publicSections } from "./handles";
 import { addImages, isGeneratedImage } from "./images";
 import { followPixelRatio, webPixelRatio } from "./pixelRatio";
+import { glWorkerMissingError, isGlWorkerMissing } from "./glWorker";
 import { devCost, EMPTY_FC, forcePublic, registerPMTiles, styledOnce } from "./ready";
 import type { WebMapRefs } from "./refs";
 
 type Made = Pick<MapProps, "at" | "theme" | "modes" | "gauges" | "initial" | "bare" | "zoomControls" | "onError"
                           | "onImageryError">;
 
-/** (T1005) no WebGL reported once a page by the maps that have no `onError` (the browser does not change) */
-let noWebGLReported = false;
+/**
+ * (T1005, T1252) A failure of the BROWSER or the SITE — no WebGL, GL's worker file missing — meets every map on the page
+ * alike, so a map with no `onError` of its own (MiniMap: the water page, Conditions, the gauge trace, the donor map)
+ * reports it once a page (W46: shown AND reported); a map with one hands it on as any error.
+ */
+const reportedOnce = new Set<string>();
+function reportPageFailure(e: Error, onError: MapProps["onError"]): void {
+  if (onError) { onError(e); return; }
+  if (reportedOnce.has(e.name)) return;
+  reportedOnce.add(e.name);
+  reportFailure(e);
+}
+/**
+ * (T1252) GL's worker failing is reported ONCE A PAGE from every map, `onError` or not: GL subscribes every worker of its
+ * pool (up to 3 on Safari, worker_pool.ts) and every map of the page meets the same missing file.
+ */
+function reportWorkerOnce(e: Error, onError: MapProps["onError"]): void {
+  if (reportedOnce.has(e.name)) return;
+  reportedOnce.add(e.name);
+  if (onError) onError(e);
+  else reportFailure(e);
+}
 
 export function useMapInstance(refs: WebMapRefs,
                                { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError }: Made,
                                /** (T1005) told when this browser cannot draw a map (no WebGL): the map says so */
-                               onUnavailable?: (unavailable: boolean) => void) {
+                               onUnavailable?: (why: MapUnavailableReason | null) => void) {
   const { host, map, renderer, adapter, copy, colouring, pill, refit } = refs;
   // read by the map's one `error` handler, which is bound once at construction
   const imageryError = useRef(onImageryError);
@@ -58,6 +80,11 @@ export function useMapInstance(refs: WebMapRefs,
       // its own deepest zoom, which the source declares (runtime-style) — CAMERA_MAX_ZOOM.
       minZoom: MIN_ZOOM,
       maxZoom: CAMERA_MAX_ZOOM,
+      // (T1252) EVERY zoom past a source's own deepest is OVERZOOMED from that tile, as GL 5 and the phone do. GL 6
+      // defaults this to 4: with the camera at 18 and the archives at 13 it SLICES each z13 tile into z14 children from
+      // z14 up (measured on Cultus Lake at z14: its name drawn 3 times, the park's 5, 14 atlas range requests; GL 5 and
+      // this: 2, 4, 8), changing what a tap or a label query finds, on the web only. `undefined` is GL's "never slice".
+      zoomLevelsToOverscale: undefined,
       maxBounds: CAMERA_BOUNDS as unknown as maplibregl.LngLatBoundsLike,
       // (T424) the credits are OURS (`MapCredits`, credits.ts): one chip and card, the phone's component — the renderer's
       // own control is off, so the web and the phone cannot list or look different
@@ -75,14 +102,11 @@ export function useMapInstance(refs: WebMapRefs,
       // (T1005) NO WEBGL is the browser, not a defect: said on the map (`onUnavailable`) and reported as one stable
       // message. Anything else the constructor throws is thrown on, as before.
       if (!isNoWebGL(e)) throw e;
-      onUnavailable?.(true);
-      // a map with no `onError` of its own (MiniMap: the water page, Conditions, the gauge trace, the donor map) still
-      // reports it (W46: shown AND reported), once a page: every map on it meets the same browser
-      if (onError) onError(noWebGLError(e));
-      else if (!noWebGLReported) { noWebGLReported = true; reportFailure(noWebGLError(e)); }
+      onUnavailable?.("webgl");
+      reportPageFailure(noWebGLError(e), onError);
       return;
     }
-    onUnavailable?.(false);
+    onUnavailable?.(null);
     if (!touchRotation()) m.touchZoomRotate.disableRotation();
     if (!keyboardRotation()) m.keyboard.disableRotation();
 
@@ -125,12 +149,23 @@ export function useMapInstance(refs: WebMapRefs,
     // offline device fails every imagery tile, and the caller answers that by drawing the map's own ground. The status
     // travels (GL JS's AJAXError carries it; a network failure has none).
     m.on("error", (e) => {
-      const ev = e as { sourceId?: string; error?: Error & { status?: number } };
+      // (T1252) GL 6 types the event's `error` as `{ message }`; the source's id and the AJAXError's status ride on it
+      const ev = e as typeof e & { sourceId?: string; error?: { status?: number } };
       if (ev.sourceId === IMAGERY.source && imageryError.current) {
         imageryError.current(typeof ev.error?.status === "number" ? ev.error.status : undefined);
         return;
       }
-      onError?.(e.error instanceof Error ? e.error : new Error(e.error?.message ?? "map error"));
+      const err = e.error instanceof Error ? e.error : new Error(e.error?.message ?? "map error");
+      // (T1252) GL 6 raises its no-WebGL error here too, when a lost context cannot be restored: the browser, as above
+      if (isNoWebGL(err)) { onUnavailable?.("webgl"); reportPageFailure(noWebGLError(err), onError); return; }
+      // (T1252) GL's worker file did not load (`glWorker.ts`): no tile will draw on any map of this page; said on the
+      // map in its own words, reported once a page
+      if (isGlWorkerMissing(err)) {
+        onUnavailable?.("worker");
+        reportWorkerOnce(glWorkerMissingError(err, maplibregl.getVersion()), onError);
+        return;
+      }
+      onError?.(err);
     });
     /**
      * THE GAUGE LABEL'S PILL, as pixels (and the hatches and the "you are here" pin: `images.ts`).
@@ -144,13 +179,15 @@ export function useMapInstance(refs: WebMapRefs,
      * MapLibre's response to a missing `icon-image` is to draw the text and log a warning,
      * so every label rendered as bare text on the basemap and nothing looked broken.
      *
-     * `styleimagemissing` is the belt to that brace: MapLibre fires it the moment a layer
+     * The missing-image resolver is the belt to that brace: MapLibre asks it the moment a layer
      * asks for an image it does not have, so the pill arrives however the ordering falls.
+     * (T1252) GL 6 made `styleimagemissing` notify-only — an image added in its listener no longer
+     * answers the request that fired it — so the answer is the resolver, which GL awaits first.
      */
     const addPill = () => addImages(m, themeNow.current);
     pill.current = addPill;
-    m.on("styleimagemissing", (e: { id: string }) => {
-      if (isGeneratedImage(e.id))
+    m.setMissingStyleImageResolver((id) => {
+      if (isGeneratedImage(id))
         pill.current?.();
     });
     m.on("load", addPill);
@@ -167,7 +204,7 @@ export function useMapInstance(refs: WebMapRefs,
      * The status used to arrive after `idle` (every tile in, the 300 ms symbol fade over) and a React round trip —
      * half a second of grey on every new tile. Synchronous, no React, ids already seen skipped: about 0.1 ms a pan.
      *
-     * The ids come from 5.24's internals (`web/tileIds.ts`, pinned by a test). Where they are not there, the PUBLIC
+     * The ids come from GL's internals (`web/tileIds.ts`, pinned by a test). Where they are not there, the PUBLIC
      * route: one `querySourceFeatures` scan per burst of tile events, in a microtask — still before the next frame —
      * and on `moveend` as well, because the public route cannot see a cached tile coming back into view.
      */
