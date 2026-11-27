@@ -1402,7 +1402,13 @@ def cut_shores(b: _Build) -> None:
         n = graph.nodes[nid]
         if n.kind == NodeKind.stream and n.blk and (n.blk not in mouth_node or n.down_m < mouth_node[n.blk].down_m):
             mouth_node[n.blk] = n
-    ends = sorted(bk for bk, n in mouth_node.items() if not graph.down_adj.get(n.node_id) and bk in chains)
+    # A LINE ENDING IN THE SEA: nothing leaves it at its mouth (`shore.leaves_at_mouth`). Not "its lowest piece has no
+    # edge out": since the closure areas are cut after the coast cut (T1199), a lowest piece can hold a distributary
+    # leaving kilometres up, and the line was no longer seen ending in the sea (Lost Shoe, Camper, Schmidt, Clanninick).
+    _view = _bs.View(graph, geoms)
+    _leaves = _shore.edge_leave_measures(graph, geoms, _view)
+    ends = sorted(bk for bk, n in mouth_node.items()
+                  if bk in chains and not _shore.leaves_at_mouth(graph, n, _leaves, _coast.STUB_M))
     sea_mouth = frozenset(bk for bk, s in zip(ends, cg.in_sea([shapely.get_point(chains[bk].geometry, 0) for bk in ends])) if s)
     e1450 = _coast.edge1450_tops(b.fids)
     cache: dict = {}
@@ -1423,11 +1429,9 @@ def cut_shores(b: _Build) -> None:
     if now_governed:
         print(f"  coast: {len(now_governed)} owner-ruled line(s) are governed by a DFO-written boundary now: {now_governed[:5]}")
         held = {k: v for k, v in held.items() if k not in governed}
-    _view = _bs.View(graph, geoms)
     pts, whole, rows = _coast.coast_rule(graph, tidal=tidal, e1450=e1450, edge=edge, sea_mouth=sea_mouth,
                                          governed=governed, held=held,
-                                         existing=_shore.standing_boundaries(graph),
-                                         leaves_at=_shore.edge_leave_measures(graph, geoms, _view))
+                                         existing=_shore.standing_boundaries(graph), leaves_at=_leaves)
     out = Path(args.out)
     # THE OWNER'S RULINGS APPLIED: every row of the held file, as written
     owner_rows = [{**{k: v for k, v in held[bk].items()}, "blk": bk} for bk in sorted(held)]
