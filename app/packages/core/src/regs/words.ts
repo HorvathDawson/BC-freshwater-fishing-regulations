@@ -76,6 +76,8 @@ export const WORDS = Object.freeze({
   CLOSED_OPENS_AGAIN: (md: string) => `Closed · opens again ${md}`,
   NO_FISHING_RUN: (span: string) => `No fishing for any game fish ${span}.`,
   TOGETHER: " Together these closures cover it:",
+  /** (T1078) the run sentence's span when the closures close the whole year together (a proposal for the owner) */
+  ALL_YEAR_SPAN: "all year",
   OPENS_AGAIN_LINK: (md: string) => `Opens again ${md}. See the rules from then ›`,
   SOURCE: "Source",
   FROM_STREAMS_CAP: "From streams, ",
