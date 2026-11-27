@@ -129,12 +129,15 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const shown = open ? { title, sub, children, icon, head } : kept.current;
   // (T405) the web's Modal is a role=dialog: named by its title (aria-labelledby; a label on it would swallow its content)
   const titleId = useId();
-  // (T1203) a word wider than the title's share (a long name at 2x on a 320 px window) breaks where it must, never over Done
-  const titleText = <Text nativeID={titleId} accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1, minWidth: 0, ...BREAK_ANYWHERE } as never}>{shown.title}</Text>;
+  // (T1203) AT THE DEFAULT TEXT SIZE THE HEADER IS 0.9.0's, pixel for pixel. At a larger one a word wider than the title's share (a
+  // long name at 2x on a 320 px window) breaks where it must, never over Done, and Done keeps its place and its room.
+  const grown = useCappedScale() > 1;
+  const titleText = <Text nativeID={titleId} accessibilityRole="header"
+                          style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1, ...(grown ? { minWidth: 0, ...BREAK_ANYWHERE } : null) } as never}>{shown.title}</Text>;
   const titleEl = shown.icon
     ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 }}>{shown.icon}{titleText}</View>
-    // (T1203) the title yields to Done: at a large text size a long title wraps inside its share, never pushing Done off the sheet
-    : <View style={{ flexShrink: 1 }}>{titleText}</View>;
+    : grown ? <View style={{ flexShrink: 1 }}>{titleText}</View> : titleText;
+  const doneStyle = grown ? { flexShrink: 0, marginLeft: 12 } as const : undefined;
   useEffect(() => {
     /*
      * The wide dialog's Modal shows `open` itself and runs no motion of ours, so a close there must put `up` down at once:
@@ -198,7 +201,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                paddingBottom: 10, borderBottomWidth: 1.5,
                                borderBottomColor: palette.ink }}>
                   {titleEl}
-                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done} {...DONE_HIT} style={{ flexShrink: 0, marginLeft: 12 }}>
+                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done} {...DONE_HIT} style={doneStyle}>
                     <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                   </Pressable>
                 </View>
@@ -255,7 +258,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                              borderBottomColor: palette.ink }}>
                 {titleEl}
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done}
-                           {...DONE_HIT} style={{ flexShrink: 0, marginLeft: 12 }}>
+                           {...DONE_HIT} style={doneStyle}>
                   <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                 </Pressable>
               </View>

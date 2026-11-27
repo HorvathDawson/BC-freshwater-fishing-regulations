@@ -17,9 +17,11 @@ export function ObstacleSheet({ props, palette, onClose }: {
   props: Readonly<Record<string, unknown>> | null; palette: Palette; onClose: () => void;
 }) {
   const vm = props ? obstacleSheet(props) : null;
-  const scale = Math.min(useCappedScale(), LABEL_SCALE);   // (T1203) the label column grows with the text size (104 px at the default): a label is never broken
+  const capped = useCappedScale();
+  const scaled = capped > 1;
+  const scale = Math.min(capped, LABEL_SCALE);   // (T1203) the label column grows with the text size (104 px at the default): a label is never broken
   return (
-    <Sheet open={vm !== null} onClose={onClose} title={vm?.title ?? ""} sub={vm?.sub ?? null} palette={palette} scroll   /* (T1203) taller than the window at a large text size: it scrolls under its title and Done */
+    <Sheet open={vm !== null} onClose={onClose} title={vm?.title ?? ""} sub={vm?.sub ?? null} palette={palette} scroll={scaled}   /* (T1203) taller than the window at a large text size: it scrolls under its title and Done; at the default size it is 0.9.0's */
            icon={props ? <ObstacleIcon type={props.type} ink={palette.ink} size={24} /> : undefined}>
       <View testID="obstacle-sheet" style={{ paddingHorizontal: 20, paddingTop: 12, gap: 8 }}>
         {vm?.rows.map((r) => (
