@@ -1,10 +1,10 @@
 # T1203 — Larger system text: the screens the T1201 walk could not reach
 
-Status: OPEN — 0.10.0 re-cut (owner 2026-11-26: every change from this batch)
+Status: IN PROGRESS — 0.10.0 re-cut (owner 2026-11-26: every change from this batch)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1203 | Larger system text: the screens the T1201 walk could not reach | OPEN — 0.10.0 re-cut | — | walk the Map tab's legend, day bar and switch in place, Offline maps, Spots and a spot page, fish and source sheets, the walkthrough at 1.15–2.0; fix what breaks; one check on a real phone |
+| T1203 | Larger system text: the screens the T1201 walk could not reach | IN PROGRESS — 0.10.0 re-cut | — | walk the Map tab's legend, day bar and switch in place, Offline maps, Spots and a spot page, fish and source sheets, the walkthrough at 1.15–2.0; fix what breaks; one check on a real phone |
 
 Source: T1201's sweep (2026-11-26, `app/tools/system-text-sweep.test.ts`): ten screens at 360 and 412 wide and text
 scales 1 to 2.0 came out clean after its fixes, but these were not reached by the harness (the map is blanked there,
@@ -34,3 +34,8 @@ Every screen above is in the walk and clean at 1.3; usable at 2.0. Pictures of a
 merge. The phone check is recorded here (who, what build, what was seen).
 
 Depends: T1201 merged. Size: M. Model: Sonnet. Owner: the phone check, or a look at its pictures.
+
+## Owner
+
+- [x] 2026-11-26 — the switch is wider than the rail buttons at 1.3x → "we just want to make sure bigger text plays nicely in all parts of the app" (2026-11-26): not a defect; check larger text on EVERY screen and fix what breaks.
+- [ ] 2026-11-26 — the phone check: system font large + display size large on a real Android phone (what to look at is in the report).
