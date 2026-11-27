@@ -54,7 +54,9 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
 - A graze (an inside run under 5 m) is dropped BEFORE the band joins anything: a line beside the edge stays outside.
   Gate G5 refuses a member run with no 5 m inside run, unless the run lies wholly inside (`RUN_WHOLLY_INSIDE_M`:
   FWA's 1.5-3.8 m lines between lakes in a park). G6 stops the build on an open line hugging the edge for over 100 m
-  with 2+ grazes (a boundary river drawn wiggling on the edge): none today; one appearing is an owner question.
+  with 2+ grazes (a boundary river drawn wiggling on the edge). The pre-check finds two, both opened by the graze fix:
+  the Beaverfoot in Yoho (123 m within the band, 2 grazes up to 0.3 m) and a Klanawa ER creek (103 m, 2 grazes up to
+  3.3 m). Owner question: closed (edge water) or open; the next build stops on them until it is answered.
 - Strathcona's rule binds 9.7 m more (Megin River ER): the floor grew the reserve's 9.7 m mouth piece to 100 m, merged
   with park water; the park's overlap membership now holds the whole piece.
 - Coast: moving the closure cuts after the coast cut hid four sea ends (a channel leaving the lowest piece 5-9 km up:
