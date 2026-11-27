@@ -1,10 +1,10 @@
 # T1199 — Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside
 
-Status: OPEN — ruled by the owner; built by the data and release chat inside the 0.10.0 re-cut.
+Status: OPEN — ruled by the owner; the opens list answered 2026-11-27 ("Merge with the list; close both edge stretches (Recommended)"); lands in the 0.10.0 re-cut.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — in the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | build the rule in the cutter (`clean_cut.py`), then the opens list to the owner before the re-cut closes |
+| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — in the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | the PR into the 0.10.0 re-cut; that build's area-cut gate proves the two accepted calls |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim. On the cut rule: "we need to figure out a way that everything
 get simplified a lot.... like the skeena river er example is crazy... we want to maybe do braid simplification here
@@ -56,8 +56,8 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
   FWA's 1.5-3.8 m lines between lakes in a park). G6 stops the build on an open line hugging the edge for over 100 m
   with 2+ grazes (a boundary river drawn wiggling on the edge). The pre-check finds two, both opened by the graze fix:
   the Beaverfoot in Yoho (123 m within the band, 2 grazes up to 0.3 m) and a Klanawa ER creek (103 m, 2 grazes up to
-  3.3 m). Owner question: closed (edge water) or open. Proposed (as `closed`) in `waters/area_edge_calls.json`;
-  the next build stops on them until he accepts a row (`closed`: the cutter closes it; `open`: accepted open).
+  3.3 m). Owner 2026-11-27: "Merge with the list; close both edge stretches (Recommended)": both ACCEPTED `closed` in `waters/area_edge_calls.json`; the
+  pre-check closes exactly 123.0 m and 103.3 m (51.6 m of Klanawa is open today): opens 12.50 km in 36, closes 14.80 km in 273.
 - Strathcona's rule binds 9.7 m more (Megin River ER): the floor grew the reserve's 9.7 m mouth piece to 100 m, merged
   with park water; the park's overlap membership now holds the whole piece.
 - Coast: moving the closure cuts after the coast cut hid four sea ends (a channel leaving the lowest piece 5-9 km up:
@@ -68,4 +68,4 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
 
 ## Owner
 
-- [ ] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him.
+- [x] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him. Answered 2026-11-27: "Merge with the list; close both edge stretches (Recommended)".
