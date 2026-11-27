@@ -10,7 +10,8 @@
 #                 process (below), is always a chunk of its own
 #   --only REGEX  only the test files whose path matches (Tier 0 / trying the runner on a few files)
 #   --dry-run     print the chunks, run nothing
-#   pytest args   passed to every chunk, e.g. `-- -m slow` (pytest.ini's default `-m "not slow"` holds otherwise)
+#   pytest args   passed to every chunk, e.g. `-- -m slow`; with none, each chunk is a plain pytest, the no-data tier
+#                 (T1193), and `-- --with-data` is the data tier
 #
 # A FILE THAT STARTS A CHILD PROCESS RUNS ALONE (T792 B): a child forked from a process where an earlier test file loaded
 # pyproj dies between fork and exec (PROJ's after-fork handler closes its cached proj.db through Apple's SQLite logging:
@@ -59,6 +60,23 @@ if (( dry )); then
 fi
 
 test_env_pycache
+# (T1193) no -m and no --with-data: each chunk is a plain pytest, the no-data tier, and prints what it left out; the
+# chunks append their counts to one file (the root conftest.py reads TIER_LEFT_OUT_FILE) and the run ends with ONE total
+default_tier=1
+for a in ${args[@]+"${args[@]}"}; do [[ $a == -m* || $a == --with-data ]] && default_tier=0; done
+if (( default_tier )); then
+  TIER_LEFT_OUT_FILE=$(mktemp "${TMPDIR:-/tmp}/tier-left-out.XXXXXX"); export TIER_LEFT_OUT_FILE
+fi
+left_out_total() {
+  (( default_tier )) || return 0
+  local d s
+  read -r d s < <(awk '{d += $1; s += $2} END {print d + 0, s + 0}' "$TIER_LEFT_OUT_FILE"); rm -f "$TIER_LEFT_OUT_FILE"
+  local said=()
+  (( d )) && said+=("$d data test(s) NOT RUN in all (they need built data): add -- --with-data")
+  (( s )) && said+=("$s slow test(s) NOT RUN in all: -- -m slow")
+  (( ${#said[@]} )) && { local IFS=';'; echo "pytest-chunked: !!! ${said[*]} !!!"; }
+  return 0
+}
 # THE FOOTPRINT PER CHUNK (T667 slice 7, T638 item 4): each chunk runs under BSD time, and its peak memory footprint (the
 # figure macOS kills by, compressed pages included) is printed beside its time, then the five biggest at the end. Where
 # there is no BSD time (Linux) it says so instead; nothing is guessed.
@@ -86,5 +104,6 @@ echo "pytest-chunked: ${#chunks[@]} chunks in $((SECONDS - t0)) s"
 if (( ${#peaks[@]} )); then
   echo "pytest-chunked: biggest peak footprints:"; printf '%s\n' "${peaks[@]}" | sort -rn | head -5 | sed 's/^/  /; s/ chunk/ GB  chunk/'
 fi
-if (( ${#failed[@]} )); then echo "pytest-chunked: FAILED chunk(s): ${failed[*]}"; exit 1; fi
+if (( ${#failed[@]} )); then echo "pytest-chunked: FAILED chunk(s): ${failed[*]}"; left_out_total; exit 1; fi
 echo "pytest-chunked: all passed"
+left_out_total
