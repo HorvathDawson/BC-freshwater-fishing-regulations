@@ -304,6 +304,10 @@ class Waters(_Tree):
     #: measure range. Only `accepted` rows are read (`splits.area_edge_calls`); the area-cut gate's G6 stops the
     #: build on any such stretch no accepted row covers, and on a stale row.
     area_edge_calls: Annotated[FilePath, At("waters/area_edge_calls.json")]
+    #: AUTHORED (T1242, owner 2026-11-27): the braid loops the map build never removes BY NAME (a book row or DFO place
+    #: names them, or the owner holds them), one row per water with its blue lines and the row's own words. Read by
+    #: the atlas build's loop pass (`graph.prune.loop_keeps`); a listed blue line the atlas lacks stops the build.
+    loop_exemptions: Annotated[FilePath, At("waters/loop_exemptions.json")]
 
     _abs = field_validator("*", mode="before")(_under("curated"))
 

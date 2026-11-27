@@ -73,10 +73,13 @@ ATLAS_INPUTS: dict[str, str] = {
     "source:fwa_coast": "cut_shores (`splits.coast.CoastGeometry`: FWA river polygons + land mass)",
     # T1229: an override naming a waterbody key FWA leaves nameless makes that item, named by its `name_verbatim`
     "curated:regulations.book_name_links": "build_registry (`registry.build.pinned_by_override`)",
+    # T1242 (ruling E31): the braid loops the map build keeps by name; every other creek-less loop is removed
+    "curated:waters.loop_exemptions": "prune_graph (`graph.prune.loop_keeps`, the creek-less braid loop pass)",
 }
 
 #: (T1229) inputs listed after atlases were recorded: an atlas recorded before one says so (`behind`), never "changed"
-LISTED_AFTER: dict[str, str] = {"curated:regulations.book_name_links": "T1229, 2026-11-27"}
+LISTED_AFTER: dict[str, str] = {"curated:regulations.book_name_links": "T1229, 2026-11-27",
+                                "curated:waters.loop_exemptions": "T1242, 2026-11-27"}
 
 #: curated keys named in the atlas build's modules that are NOT recorded, and why
 NOT_ATLAS_INPUTS: dict[str, str] = {
