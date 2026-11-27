@@ -7,7 +7,7 @@
 WHY A MODEL AND NOT `get_path("curated", "splits")`.
 
 `ProjectConfig.get_path` returned `Path()` — the current directory — for a key that did not
-exist. No exception, no warning (it raises since T435). Hand that to a loader and you get an empty list, and an
+exist. No exception, no warning (it raises now). Hand that to a loader and you get an empty list, and an
 empty list of curated cuts looks exactly like a build with no cuts to make. That is not a
 hypothetical: a `--splits` flag with no default silently dropped all 376 curated cuts from
 three full builds, one of which was promoted, and nothing anywhere looked wrong.
@@ -17,7 +17,7 @@ the failure moves from "a quiet wrong answer, three builds later" to "the proces
 start, and it names the key". That is the entire argument for the dependency, and pydantic
 is already in `requirements.txt` for the parsing models.
 
-ONE SCHEMA FOR THE WHOLE FILE (T1192). `Config` covers every block of config.yaml, refuses an unknown key at every
+ONE SCHEMA FOR THE WHOLE FILE. `Config` covers every block of config.yaml, refuses an unknown key at every
 level and has no field default and no `null`: `parse_config` is the one load path, the loaders here and
 `project_config.get_config()` are views on it, and a bad key fails as "config.yaml: unknown key curated.waters.cutz" /
 "config.yaml: missing key source.fwa_gpkg" (`ConfigError`).
@@ -47,7 +47,7 @@ is and who owns it are this module's (`At` on the field, the `#:` note above it)
 puts the two together (`read_config`) before validating, so a name stated in both places, a key
 in neither, or one missing is refused naming the key.
 
-THE ONE EXCEPTION IS THE WHOLE TREE, NEVER A FILE (T422). `CURATED_ROOT=<dir>` moves EVERY curated path under
+THE ONE EXCEPTION IS THE WHOLE TREE, NEVER A FILE. `CURATED_ROOT=<dir>` moves EVERY curated path under
 `<dir>` (the layout of `data/curated`; `make_root` copies the live tree there): the review app's tests, a side
 rebuild's app (`proposals.side_commands`) and the parity / gate side loads run on such a copy. One root means a
 process reads all real files or all copies — the per-file overrides it replaced (`CURATION_MARKS`,
@@ -100,7 +100,7 @@ def _absolute(v: object) -> object:
     return v
 
 
-#: (T1192) Every model of the file: immutable, and an UNKNOWN key refused (pydantic's default `extra="ignore"` dropped a
+#: Every model of the file: immutable, and an UNKNOWN key refused (pydantic's default `extra="ignore"` dropped a
 #: misspelt key without a word, and an optional field it was meant for silently became `None`). No field has a default
 #: and none takes `null`: a key config.yaml does not state is a missing key, never "not built".
 _STRICT = ConfigDict(frozen=True, extra="forbid")
@@ -118,7 +118,7 @@ class At:
 
 @dataclass(frozen=True)
 class _Reads:
-    """(T1192) What a read of one node of the `curated:` / `generated:` tree records (`_trace.config_read`): its dotted
+    """What a read of one node of the `curated:` / `generated:` tree records (`_trace.config_read`): its dotted
     key `at` with its value as `read_config` states it (`raw`, what `stepcache.config_now` digests), and the root it is
     joined to (`root`: `("roots.curated", value)`; None under `CURATED_ROOT`, whose root is no config value, as
     `SOURCE.under`)."""
@@ -142,7 +142,7 @@ class _Reads:
 
 
 class _Tree(BaseModel):
-    """(T1192) A node of the `curated:` / `generated:` tree that RECORDS EACH READ, so a build stage is keyed on the
+    """A node of the `curated:` / `generated:` tree that RECORDS EACH READ, so a build stage is keyed on the
     config values it reads (`CURATED.waters.cuts` records `curated.waters.cuts` + `roots.curated`), never on a whole
     block. The record is made per ACCESS, in the process that reads (the loaders are cached; validation at load is no
     read), and callers get the model itself: `isinstance`, pickling and equality are pydantic's. A sub-block is not a
@@ -231,7 +231,7 @@ def _under(tree: str):
 
 
 class Waters(_Tree):
-    """Curation that shapes the atlas itself, and the lists of waters (T324 naming: `*_calls` = the owner's per-item
+    """Curation that shapes the atlas itself, and the lists of waters (the naming: `*_calls` = the owner's per-item
     decisions, `*_waters` = a list of waters). Each key is its file's name."""
 
     model_config = _STRICT
@@ -241,42 +241,42 @@ class Waters(_Tree):
     #: AUTHORED: name variants on FWA waters, read by the atlas registry and the name matchers (`tools.mined_names`,
     #: the bathymetry and stocking proposals, `bathymetry.contours`).
     name_variants: Annotated[FilePath, At("waters/name_variants.json")]
-    #: PROMOTED (T224): name variants found in city layers, OSM, ECCC… that the owner accepted (auto rule or
+    #: PROMOTED: name variants found in city layers, OSM, ECCC… that the owner accepted (auto rule or
     #: review mark); each name carries its real source. Written by `pipeline.tools.mined_names`.
     found_names: Annotated[FilePath, At("waters/found_names.json")]
-    #: AUTHORED (T327): the owner's calls on single found-name candidates (accept / hold, a stored name, display),
+    #: AUTHORED: the owner's calls on single found-name candidates (accept / hold, a stored name, display),
     #: by candidate id — was `names.OWNER` in code. Read by `pipeline.regs.review.names`; an input to `mined_names`.
     found_name_calls: Annotated[FilePath, At("waters/found_name_calls.json")]
     #: AUTHORED: THE OWNER-DECIDED CONTINUATION LINKS (`water_continue`): `reviewed` ship, `refused` never, anything
-    #: else the topology proposes is held for review (owner 2026-10-29, `bundle.continuation.gate`).
+    #: else the topology proposes is held for review (the owner's rule, `bundle.continuation.gate`).
     continuations: Annotated[FilePath, At("waters/continuations.json")]
-    #: T326: THE ONE TIDAL FILE (`tidal_limits.json`) — one row per ocean-entering water: its tidal limit at the
+    #: THE ONE TIDAL FILE (`tidal_limits.json`) — one row per ocean-entering water: its tidal limit at the
     #: `mouth` (an alias, no cut), on an existing `split`, a new `cut`, or the `whole` water. Written by
     #: `pipeline.tools.tidal_limits` (review write-through); read by the ATLAS only (`atlas.splits.tidal.load`), which
     #: writes `tidal.resolved.json`.
     tidal_limits: Annotated[FilePath, At("waters/tidal_limits.json")]
-    #: T678/T685: the owner's rulings on single lines for the coast cut (cut at a measure / whole / fresh, each row
+    #: The owner's rulings on single lines for the coast cut (cut at a measure / whole / fresh, each row
     #: `decided`), applied as written. Hand-written only; read by the ATLAS only (`build.cut_shores`).
     shore_held: Annotated[FilePath, At("waters/shore_held.json")]
-    #: T678 (owner 2026-11-11): one row per `split` row of `tidal_limits`: is the boundary DFO-written (quoted from the
+    #: One row per `split` row of `tidal_limits`: is the boundary DFO-written (quoted from the
     #: cached DFO copies)? Only DFO-written splits have authority over the tidal cut; the rest are listed for the owner,
     #: never dropped. A sidecar because `tidal_limits` is rewritten from the marks with its own fields only. Read by the
     #: atlas (`splits.coast.load_authority`).
     #: Classified by Claude, each row cited; the owner may correct it.
     tidal_split_authority: Annotated[FilePath, At("waters/tidal_split_authority.json")]
-    #: T322 (owner 2026-10-30): APPLIED: the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
+    #: APPLIED: the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
     #: `pipeline.tools.slough_calls`; the registry folds each into the one stream through it, else ignores it
     #: (`registry.flowing.fold_confirmed_sloughs`).
     slough_calls: Annotated[FilePath, At("waters/slough_calls.json")]
-    #: (owner 2026-11-13, Gagnon Creek) AUTHORED: unnamed polygons the owner keeps as LAKES of their own: the
+    #: AUTHORED (first case: Gagnon Creek): unnamed polygons the owner keeps as LAKES of their own: the
     #: registry's widening fold leaves them (`registry.flowing.load_pond_calls`). Hand-written only.
     pond_calls: Annotated[FilePath, At("waters/pond_calls.json")]
-    #: T322: the retired slough review page's database — the owner's verdicts and free-text notes
-    #: (`pipeline.regs.review.slough.page_note`). Was `sloughs/page-marks-2026-10-28.json`.
+    #: The retired slough review page's database — the owner's verdicts and free-text notes
+    #: (`pipeline.regs.review.slough.page_note`). Was the slough page's dated marks file under `sloughs/`.
     slough_page_calls: Annotated[FilePath, At("waters/slough_page_calls.json")]
-    #: THE USER'S KNOWN-STEELHEAD LIST (authored; user ruling 2026-10-02) — rivers that are steelhead
+    #: THE OWNER'S KNOWN-STEELHEAD LIST (authored, his ruling) — rivers that are steelhead
     #: water though no row of the book says so. `pipeline.atlas.reach.steelhead.load_list`; a new generated list is
-    #: accepted with `python -m pipeline.regs.steelhead.accept` (T324).
+    #: accepted with `python -m pipeline.regs.steelhead.accept`.
     steelhead_waters: Annotated[FilePath, At("waters/steelhead_waters.json")]
     #: AUTHORED: blanket area closures — cut every stream crossing the polygon.
     area_closures: Annotated[FilePath, At("waters/area_closures.json")]
@@ -289,13 +289,13 @@ class Waters(_Tree):
     #: PROMOTED, not authored — 361 minted streams whose negative `blk` ids are a live ABI.
     #: Re-running `added_streams/build_dataset.py` remints them and strands every cut bound to the old ids.
     added_streams: Annotated[FilePath, At("waters/added_streams.json")]
-    #: AUTHORED (T679 #13): the added-streams generator's hand fixes (a feature dropped by name or src_id, a name typo,
+    #: AUTHORED: the added-streams generator's hand fixes (a feature dropped by name or src_id, a name typo,
     #: a receiver override), read by the generator only (`added_streams.clean.calls`), never by the atlas build.
     added_stream_calls: Annotated[FilePath, At("waters/added_stream_calls.json")]
     #: The worklist for minting more added lakes (was `ungazetted.json`). No build reader BY DESIGN; the minting is a
     #: hand process. Checked by `check_curated --waters`; declared so a dead-file sweep cannot delete it.
     unmapped_waters: Annotated[FilePath, At("waters/unmapped_waters.json")]
-    #: AUTHORED (T632, owner 2026-11-11): the pieces the reach could not place that the owner ACCEPTED staying
+    #: AUTHORED: the pieces the reach could not place that the owner ACCEPTED staying
     #: unplaced, one row per (entry or DFO place, rule, piece, reason). Any other unplaced piece stops the reach run
     #: (`pipeline.atlas.reach.build.unplaced_gate`); `proposed` rows are not accepted and stop it too.
     unplaced_piece_calls: Annotated[FilePath, At("waters/unplaced_piece_calls.json")]
@@ -305,7 +305,7 @@ class Waters(_Tree):
 
 class DfoSalmon(_Tree):
     """DFO salmon: the curated places DFO's rules bind to (`places/region-*.json`, was `regulations/entries/
-    dfo_salmon/`) and T321's limits wording as a closed registry (`pipeline.regs.dfo_salmon.wording`), AUTHORED; the
+    dfo_salmon/`) and the limits wording as a closed registry (`pipeline.regs.dfo_salmon.wording`), AUTHORED; the
     feeds worker reads synced copies (`pipeline.deliver.sync_inputs`)."""
 
     model_config = _STRICT
@@ -316,10 +316,10 @@ class DfoSalmon(_Tree):
     #: AUTHORED (templates reviewed by hand; `pipeline.regs.dfo_salmon.wording`); synced to R2
     #: `private/feeds/dfo/wording.json` (`pipeline.deliver.sync_inputs`), the feeds worker's ONLY copy.
     wording: Annotated[FilePath, At("dfo_salmon/wording.json")]
-    #: AUTHORED (T632, owner 2026-11-11): the DFO places that KEEP their tidal water, each with its stated reason;
+    #: AUTHORED: the DFO places that KEEP their tidal water, each with its stated reason;
     #: every other place has the run's tidal sections subtracted (`pipeline.atlas.reach.dfo_salmon.load_tidal_calls`).
     tidal_calls: Annotated[FilePath, At("dfo_salmon/tidal_calls.json")]
-    #: AUTHORED (T679 #2): the places the page defaults and cascade scopes bind (`entries.load_scope_places`), read
+    #: AUTHORED: the places the page defaults and cascade scopes bind (`entries.load_scope_places`), read
     #: by the atlas promote guards too (`promote.curated_boundary_ids`: a moved cut it names stops the promote).
     scope_places: Annotated[FilePath, At("dfo_salmon/scope_places.json")]
     #: REVIEWED: the closed areas the owner confirmed, one record per closed area of a DFO row's entry B (a stretch
@@ -332,11 +332,11 @@ class DfoSalmon(_Tree):
 
 
 class Review(_Tree):
-    """The curation review's REVIEWED data (T97): `marks` is the append-only store of every
+    """The curation review's REVIEWED data: `marks` is the append-only store of every
     reviewer's mark (`pipeline.regs.review.marks`), checked in empty before the first mark.
 
-    T266: the marks are REVIEW STATE. No build reads them: what they decide lands in the curated files via the
-    apply paths (`pipeline.regs.review.apply`, decisions in memory, T408), so the path is NOT required to exist here
+    The marks are REVIEW STATE. No build reads them: what they decide lands in the curated files via the
+    apply paths (`pipeline.regs.review.apply`, decisions held in memory), so the path is NOT required to exist here
     (a build runs with it absent); `marks.load` still raises on a missing store for its readers."""
 
     model_config = _STRICT
@@ -345,9 +345,9 @@ class Review(_Tree):
     #: that may be absent): the key must be stated, the file need not exist.
     marks: Annotated[Path, At("review/marks.jsonl")]
     #: owner calls on PROPOSED splits the marks cannot carry (the store is append-only, never
-    #: edited): a cut's confidence (`marks.ConfidenceOverride`, owner 2026-10-27). Folded by T326.
+    #: edited): a cut's confidence (`marks.ConfidenceOverride`). Meant to fold into `tidal_limits` later.
     proposal_overrides: Annotated[FilePath, At("review/proposal_overrides.json")]
-    #: T325: the CLOSED review domains (`pipeline.regs.review.closed`) — beside the marks, never required to exist
+    #: The CLOSED review domains (`pipeline.regs.review.closed`) — beside the marks, never required to exist
     #: (absent = nothing closed); the apply and the review app skip a domain listed here. A plain `Path` on purpose, as
     #: `marks`: the key must be stated, the file may be absent.
     closed: Annotated[Path, At("review/closed.json")]
@@ -363,7 +363,8 @@ class Review(_Tree):
 
 class Regulations(_Tree):
     """The synopsis corpus and the book. `synopsis` is the per-region rule corpus (was `entries/catalogue`) — the
-    format doc 18 describes: a rule is a TYPE plus named CONDITIONS and the label is generated."""
+    format `pipeline/docs/18-how-regulations-are-stored.md` describes: a rule is a TYPE plus named CONDITIONS and the
+    label is generated."""
 
     model_config = _STRICT
 
@@ -374,13 +375,13 @@ class Regulations(_Tree):
     #: THE BOOK'S TEXT, transcribed verbatim (`definitions.md` p.80, `water-specific-tables.md`
     #: p.4, `licensing.md` pp.6-7, `region-*.md`): source text, read by the answers glossary.
     reference: Annotated[DirectoryPath, At("regulations/reference")]
-    #: ACCEPTED (T679 D4): every printed-word read the reach made that matched on the accepted run; a listed read that
+    #: ACCEPTED: every printed-word read the reach made that matched on the accepted run; a listed read that
     #: stops matching stops the reach run (`pipeline.atlas.reach.word_reads`).
     word_reads: Annotated[FilePath, At("regulations/word_reads.json")]
-    #: AUTHORED (T679 #12): the owner's rulings on the export's two closure scans, a dated water release / a water
+    #: AUTHORED: the owner's rulings on the export's two closure scans, a dated water release / a water
     #: row's quota under a blanket closure (`pipeline.deliver.export.closures.under_closure_calls`).
     under_closure_calls: Annotated[FilePath, At("regulations/under_closure_calls.json")]
-    #: AUTHORED, ACCEPTED ROWS ONLY (T981): waters closed to fishing by a city, park board or other local authority, not
+    #: AUTHORED, ACCEPTED ROWS ONLY: waters closed to fishing by a city, park board or other local authority, not
     #: by the synopsis (`region-*.json`, each entry a water's closure with its `authority` cited). A second ENTRY SOURCE
     #: beside `synopsis` (`parsing.io.entry_sources`); read and checked by `pipeline.regs.local_closures`.
     local_closures: Annotated[DirectoryPath, At("regulations/local_closures")]
@@ -402,21 +403,22 @@ class Gauges(_Tree):
     matches: Annotated[FilePath, At("gauges/matches.json")]
     #: AUTHORED: an INPUT to matching, never written by a program.
     match_calls: Annotated[FilePath, At("gauges/match_calls.json")]
-    #: (T331) ECCC's stated water-body type is scraped SOURCE data now: `SOURCE / "bc_station_waterbody_type.json"`
-    #: (`pipeline.gauges.generate.waterbody_type.TYPES_FILE`), not a curated key. (T324) The gauge review QUEUE
+    #: ECCC's stated water-body type is scraped SOURCE data: `SOURCE / "bc_station_waterbody_type.json"`
+    #: (`pipeline.gauges.generate.waterbody_type.TYPES_FILE`), not a curated key. The gauge review QUEUE
     #: (`candidates.json`) is machine output: `GENERATED.gauges.candidates`.
     #: AUTHORED — level stations the tide or a tidal river's backwater moves, each with its reason, joined
-    #: with HYDAT's own tidal remarks by `pipeline.gauges.consume.tidal` into the bundle's `gauge.tidal` (T78).
+    #: with HYDAT's own tidal remarks by `pipeline.gauges.consume.tidal` into the bundle's `gauge.tidal`.
     tidal_stations: Annotated[FilePath, At("gauges/tidal_stations.json")]
     #: AUTHORED — level stations a LAKE below them backs up (a standing backwater), each naming the lake
     #: and quoting the HYDAT remark that says so, checked against the record by `pipeline.gauges.consume.tidal` into
-    #: the bundle's `gauge.backwater` (T160).
+    #: the bundle's `gauge.backwater`.
     backwater_stations: Annotated[FilePath, At("gauges/backwater_stations.json")]
     #: AUTHORED — gauges on a DIVERSION canal that speak for the river above its intake instead of the
-    #: gauges named (T696, RULINGS P54), checked against HYDAT by `pipeline.gauges.consume.diversion` into the bundle's
-    #: `gauge.diversion` and the intake placement.
+    #: gauges named (the owner's ruling that a canal gauge also serves its river: `pipeline/docs/RULINGS.md` P54),
+    #: checked against HYDAT by `pipeline.gauges.consume.diversion` into the bundle's `gauge.diversion` and the intake
+    #: placement.
     diversion_stations: Annotated[FilePath, At("gauges/diversion_stations.json")]
-    #: (T1047) gauges whose live level is on a different zero (datum) than their HYDAT record — one row per
+    #: Gauges whose live level is on a different zero (datum) than their HYDAT record — one row per
     #: change, each `proposed` until the owner accepts it; only an ACCEPTED row with a known offset puts the record on
     #: today's zero (`pipeline.gauges.feed.datum`, read by `climatology`).
     datum_change_stations: Annotated[FilePath, At("gauges/datum_change_stations.json")]
@@ -426,7 +428,7 @@ class Gauges(_Tree):
 
 class RunTiming(_Tree):
     """Run timing: the authored curation (`run_calls.json`, was `review.json`). The parsed timings (`timing.json`, `pipeline/runtiming/
-    timing.py`) are source data, `SOURCE / "runtiming/timing.json"` (T331)."""
+    timing.py`) are source data, `SOURCE / "runtiming/timing.json"`."""
 
     model_config = _STRICT
 
@@ -438,9 +440,9 @@ class RunTiming(_Tree):
 
 
 class InSeason(_Tree):
-    """T226: the provincial in-season notices bound to waters (`notice_waters.json`, was `matches.json`;
+    """The provincial in-season notices bound to waters (`notice_waters.json`, was `matches.json`;
     `pipeline.regs.inseason.matches`), AUTHORED — written by the review app's In-season tab or by hand, never by a
-    generator. (T679 #11) The owner's matches only: their resolved ranges are generated (`matches.resolved_path()`)."""
+    generator. The owner's matches only: their resolved ranges are generated (`matches.resolved_path()`)."""
 
     model_config = _STRICT
 
@@ -582,13 +584,13 @@ class GeneratedGauges(_Tree):
     #: `temp_history.json`.
     feeds: Annotated[Path, At("gauges/feeds")]
     #: The matcher's RAW output (`pipeline.gauges.generate.match`), never the curated file: only
-    #: `promote` writes `CURATED.gauges.matches`, and only after it has shown what would be demoted (T94).
+    #: `promote` writes `CURATED.gauges.matches`, and only after it has shown what would be demoted.
     match: Annotated[Path, At("gauges/match.json")]
-    #: (T324) the REVIEW QUEUE — matches `pipeline.gauges.generate.promote` did not promote (an independent check
+    #: The REVIEW QUEUE — matches `pipeline.gauges.generate.promote` did not promote (an independent check
     #: disagreed), with their evidence. Written by promote beside the curated `matches`; committed (data/.gitignore)
     #: so `check_curated --ci` sees the queue in CI too. Machine output, so not curated.
     candidates: Annotated[Path, At("gauges/candidates.json")]
-    #: (T1047) the datum / relocation remarks HYDAT holds for the roster, parsed: PROPOSALS
+    #: The datum / relocation remarks HYDAT holds for the roster, parsed: PROPOSALS
     #: (`pipeline.tools.audit.datum_remarks`), never in effect; the curated rows are `CURATED.gauges.datum_change_stations`.
     #: Committed (data/.gitignore) because those curated rows cite it.
     datum_proposals: Annotated[Path, At("gauges/datum_proposals.json")]
@@ -638,18 +640,19 @@ class Generated(_Tree):
     #: by `pipeline.runtiming.feed.release`, which `pipeline.deliver runtiming` runs) and the run-timing feed (`feed/`);
     #: re-runnable from `data/source/runtiming/`.
     runtiming: Annotated[Path, At("runtiming")]
-    #: T226: `feed/matches.json`: what `pipeline.regs.inseason.publish` writes for the app. The local tile server serves
+    #: `feed/matches.json`: what `pipeline.regs.inseason.publish` writes for the app. The local tile server serves
     #: `feed/` as `/feeds/inseason/`; in production it is R2 `feeds/inseason/`, beside the feeds worker's `index.json`
     #: (in dev `--feed` copies a captured `index.json` beside it). `resolved.json`: the curated matches resolved on a
     #: release (`pipeline.regs.inseason.resolve`), never committed.
     inseason: Annotated[Path, At("inseason")]
-    #: T330: the curation review's machine-written inputs (candidates, pre-verify, suggestions, the Q154 sample, the
-    #: mined name candidates, the T185 proposals) — moved out of docs/; the review app and `regs/review/*` read them.
+    #: The curation review's machine-written inputs (candidates, pre-verify, suggestions, the river-widening sample in
+    #: `q154/`, the mined name candidates, the fix proposals of `regs.review.proposals`) — moved out of docs/; the
+    #: review app and `regs/review/*` read them.
     #: Committed (data/.gitignore) because the review app reads them; nothing human-made lives here.
     review: Annotated[Path, At("review")]
-    #: (T435) the slough finder's output (`slough-automark.json`, `candidates_v2.json.gz`) the slough review reads
+    #: The slough finder's output (`slough-automark.json`, `candidates_v2.json.gz`) the slough review reads
     sloughs: Annotated[Path, At("sloughs")]
-    #: (T1021) the T185 proposals' side rebuilds, one directory per proposal id + digest (`proposals.side_dir`): the
+    #: The fix proposals' side rebuilds, one directory per proposal id + digest (`proposals.side_dir`): the
     #: patched curated copies, the side atlas, its reach run
     side: Annotated[Path, At("side")]
     #: The bathymetry PROPOSALS (`proposals.json`: charts, `contour_proposals.json`: contour maps), machine output
@@ -671,7 +674,7 @@ class Generated(_Tree):
     #: copy keeps its own beside the copy instead.
     curated_writes: Annotated[Path, At("curated_writes")]
 
-    #: Every field (T1192: a list of names left a new Path field relative, silently); `_absolute` passes the sub-blocks'
+    #: Every field (a list of names left a new Path field relative, silently); `_absolute` passes the sub-blocks'
     #: dicts through untouched.
     _abs = field_validator("*", mode="before")(_under("generated"))
 
@@ -772,7 +775,7 @@ class Cache(BaseModel):
 
 
 class Config(BaseModel):
-    """THE schema of config.yaml, every block (T1192), its files' names included (`At`). Parsed once per loader by
+    """THE schema of config.yaml, every block, its files' names included (`At`). Parsed once per loader by
     `parse_config`; `load` / `load_generated` / `load_roots` and `project_config.get_config()` are views on it, so a key
     unknown or missing ANYWHERE stops every process that reads config, naming the key. The roots are validated first
     (`_validate_config`): every other path is joined to one of them."""
@@ -844,7 +847,7 @@ class _Duplicate(Exception):
 
 
 class UniqueKeyLoader(yaml.SafeLoader):
-    """`yaml.SafeLoader` that REFUSES a key stated twice in one mapping (T1192 review): PyYAML keeps the last one without a
+    """`yaml.SafeLoader` that REFUSES a key stated twice in one mapping: PyYAML keeps the last one without a
     word, so a second `cuts:` under `curated.waters` silently repointed the cuts. Used by `read_yaml`, for every reader of
     config.yaml (`parse_config` and the build record's `stepcache.config_now`), so both read by the same rules."""
 
@@ -910,14 +913,14 @@ def parse_config(config: Path | None = None) -> tuple[dict, Config]:
     """(the parsed values, the validated `Config`) of config.yaml — THE one load path. The values (`read_config`: the
     file with the schema's names) are what the build's stage keys digest (`_config_read`); the model is what every
     reader gets. Not cached itself: each loader caches its own view (and `load_generated.__wrapped__()` reads the file
-    afresh). (T1222) No `.env` is read: a setting the pipeline needs at run time comes from the shell environment
+    afresh). No `.env` is read: a setting the pipeline needs at run time comes from the shell environment
     (docs/runbooks/fresh-machine.md section 10)."""
     path = config or CONFIG
     blob = read_config(path)
     return blob, _validate_config(blob, path)
 
 
-#: T422: THE sandbox — the one variable that moves curated data, and it moves ALL of it (module docstring).
+#: THE sandbox — the one variable that moves curated data, and it moves ALL of it (module docstring).
 ROOT_ENV = "CURATED_ROOT"
 
 #: The per-file overrides `CURATED_ROOT` replaced, and the key each one repointed. Set (even empty) = refused:
@@ -964,7 +967,7 @@ def _checked_root(v: str) -> Path | None:
 
 
 def load(config: Path | None = None) -> Curated:
-    """The validated curated tree — the live one, or the whole copy `CURATED_ROOT` names (T422). Cached, because
+    """The validated curated tree — the live one, or the whole copy `CURATED_ROOT` names. Cached, because
     validation stats every file.
 
     Raises `ConfigError` naming the offending key when a path is wrong, or a key is unknown, missing or `null`
@@ -986,8 +989,8 @@ def _is_config(path: Path) -> bool:
 
 
 def _config_read(path: Path, key: str, value) -> None:
-    """(T1171) The build's stage keys hold the config.yaml VALUES a stage reads, not the file
-    (`pipeline._trace.config_read`); (T1192) one value per read, never a block (`_Tree`, `SOURCE`, `ROOTS`)."""
+    """The build's stage keys hold the config.yaml VALUES a stage reads, not the file
+    (`pipeline._trace.config_read`); one value per read, never a block (`_Tree`, `SOURCE`, `ROOTS`)."""
     if _is_config(path):
         _trace.config_read(key, value)
 
@@ -1009,7 +1012,7 @@ def _load(config: Path | None, root: Path | None) -> Curated:
 def make_root(dst: Path) -> Path:
     """A whole copy of THIS PROCESS'S curated tree at `dst` (created; existing files there are overwritten), for
     `CURATED_ROOT`: the live tree, or the copy `CURATED_ROOT` already names — a sandboxed process copies its own world,
-    never reaches past it to the live files (one root, never a mix; T777: a test run's sandbox). A copy, never links: a
+    never reaches past it to the live files (one root, never a mix: a test run's sandbox). A copy, never links: a
     write through the sandbox must not reach a real file. Refuses a `dst` that overlaps the live tree or the copied one."""
     live = load_repo().base.resolve()
     src = Path(load().base).resolve()
