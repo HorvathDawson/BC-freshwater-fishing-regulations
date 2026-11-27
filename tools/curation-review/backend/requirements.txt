@@ -1,0 +1,7 @@
+# Backend deps for the curation-review app: the repo's ONE locked Python set (T994 #21). The backend imports the
+# pipeline itself, so it needs that whole set, at the versions in constraints.txt (fastapi/starlette are what refuse a
+# text/plain mark post; a floor like fastapi>=0.110 would not). Install into the repo .venv:
+#     .venv/bin/pip install -r tools/curation-review/backend/requirements.txt
+# (the same as `pip install -r requirements.txt -c constraints.txt` at the repo root). Paths are relative to this file.
+-r ../../../requirements.txt
+-c ../../../constraints.txt

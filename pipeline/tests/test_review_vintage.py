@@ -419,7 +419,7 @@ def test_bundle_matches_names_labels_missing_rules_and_what_it_could_not_check()
 def test_the_review_app_panel_reports_the_tacheeda_mismatch(tmp_path, monkeypatch):
     """The tool's bundle panel (`answer.entry_in_bundle`) over the same bundle: the same verdict,
     with each rule's count in the bundle and now."""
-    monkeypatch.syspath_prepend(str(REPO / "curation-review" / "backend"))
+    monkeypatch.syspath_prepend(str(REPO / "tools" / "curation-review" / "backend"))
     sys.modules.pop("answer", None)
     import answer
     monkeypatch.setattr(answer.R, "BUNDLE", str(_tacheeda_bundle(tmp_path / "b.sqlite", 1)))
@@ -527,7 +527,7 @@ def test_an_entry_reads_the_splits_its_binding_reads():
 
 def _py_sources():
     for p in sorted(list((REPO / "pipeline").rglob("*.py")) +
-                    list((REPO / "curation-review" / "backend").rglob("*.py"))):
+                    list((REPO / "tools" / "curation-review" / "backend").rglob("*.py"))):
         if "tests" not in p.parts:
             yield p, p.read_text(encoding="utf-8")
 
@@ -558,6 +558,6 @@ def test_no_second_copy_of_the_vintage_the_digests_or_the_counts():
           if re.search(r"\bls\b[^\n|]*-\w*t\w*[^\n|]*release/r-\*", p.read_text(encoding="utf-8"))}
     assert sh == set(), sh
     # the review app never decides the vintage itself: it reads digests and asks `vintage`
-    reuse = (REPO / "curation-review" / "backend" / "reuse.py").read_text(encoding="utf-8")
+    reuse = (REPO / "tools" / "curation-review" / "backend" / "reuse.py").read_text(encoding="utf-8")
     assert "entry_digests" not in reuse and "Waiting." not in reuse
     assert len(re.findall(r"V\.entry_state\(", reuse)) == 1

@@ -19,10 +19,17 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(B, "MANIFEST", tmp_path / "build-manifest.json")
     monkeypatch.setattr(B, "keys", lambda _b, missing_ok=False: k)
     monkeypatch.setattr(B, "outputs", lambda _b: outs)
+    # (T1120) the in-season resolution is there (this machine's state, never read here); a test empties it
+    monkeypatch.setattr(B, "inseason_stale", lambda _b: STALE.get("why"))
+    STALE.clear()
 
     def seal():
         B.save_manifest({"stages": {s: {"key": B._sha(k[s])} for s in B.STAGES}, "runs": []})
     return k, outs, seal
+
+
+#: (T1120) `inseason_stale`'s answer in the `world` fixture: {"why": reason} = the resolution is missing / stale
+STALE: dict = {}
 
 
 def _runs(build_dir=Path("atlas"), force=()):
@@ -30,7 +37,8 @@ def _runs(build_dir=Path("atlas"), force=()):
 
 
 def test_no_manifest_runs_everything(world):
-    assert _runs() == list(B.STAGES)
+    # (T1120) but the in-season resolution, made only when missing: on a machine with a release it is the release's
+    assert _runs() == [s for s in B.STAGES if s not in B.MADE_WHEN_MISSING]
 
 
 def test_an_unchanged_world_is_up_to_date(world):
@@ -248,7 +256,7 @@ def test_independent_stages_run_side_by_side_and_deliver_waits_for_them(world, m
     monkeypatch.setattr(B, "run_stage", fake)
     rows = B.plan(Path("atlas"), set())
     ran = B.execute(Path("atlas"), rows, {s: [s] for s in B.STAGES}, {}, B.load_manifest(), jobs=2)
-    assert ran == set(B.STAGES)
+    assert ran == set(B.STAGES) - set(B.MADE_WHEN_MISSING)
     starts = [s for e, s in events if e == "start"]
     assert starts[:2] == ["clim", "reach"]                       # two at once, in run order
     i_deliver = events.index(("start", "deliver"))
@@ -289,6 +297,8 @@ def test_a_side_run_writes_nothing_live(monkeypatch, tmp_path):
     cmds = B.commands(build)
     outs = B.outputs(build)
     for s in B.STAGES:
+        if s in B.MADE_WHEN_MISSING:
+            continue                    # (T1120) the live resolution, read by a side deliver too; never made by one
         assert all(str(tmp_path / "side") in str(p) for p in outs[s]), s
     assert cmds["deliver"][cmds["deliver"].index("--out-dir") + 1] == str(tmp_path / "side" / "deliver")
     assert cmds["tiles"][cmds["tiles"].index("--release-root") + 1] == str(tmp_path / "side" / "deliver" / "release")
@@ -354,3 +364,163 @@ def test_the_build_keeps_the_baseline_only_when_reach_will_run():
     i = src.index("keep_live_baseline()", src.index("def main"))
     assert 'SIDE is None and dict((s, go) for s, _k, go in rows).get("reach")' in src[i - 120:i]
     assert i < src.index("execute(build_dir, rows", i)
+
+
+# ------------------------------------------------------------------ T1120: a fresh machine reaches deliver
+
+def test_a_missing_resolution_is_made_after_reach_and_deliver_is_keyed_on_it(world, monkeypatch):
+    """A fresh machine has no in-season resolution, and deliver reads it: the plan runs `inseason` (only it, on a
+    built tree), it starts only once reach is done, and deliver is keyed again on what it made (`READS_CONTENT`)."""
+    k, _o, seal = world
+    seal()
+    STALE["why"] = "no resolution"
+    assert _runs() == ["inseason"]
+    ran: list[str] = []
+    monkeypatch.setattr(B, "run_stage", lambda s, *_a, **_kw: ran.append(s))
+    monkeypatch.setattr(B, "keys", lambda _b, missing_ok=False:
+                        dict(k, deliver={"in": "deliver", "ends": "made"}) if "inseason" in ran else k)
+    rows = [(s, key, s in ("reach", "inseason")) for s, key, _go in B.plan(Path("atlas"), set())]
+    B.execute(Path("atlas"), rows, {s: [s] for s in B.STAGES}, {}, B.load_manifest())
+    assert ran == ["reach", "inseason", "deliver"]
+
+
+def test_a_present_resolution_is_never_remade_by_the_build(world):
+    """The owner's machine: the resolution is the release's (its follows re-resolve it). No record of the stage, a
+    reach rerun, a moved key — none reruns it; only a missing (or another atlas's first-build) one or --force."""
+    k, _o, _seal = world
+    B.save_manifest({"stages": {s: {"key": B._sha(k[s])} for s in B.STAGES if s != "inseason"}, "runs": []})
+    assert _runs() == []
+    k["reach"]["in"] = "edited"
+    k["inseason"]["in"] = "edited"
+    assert _runs() == ["reach", "deliver"]
+    assert _runs(force=["inseason"]) == ["reach", "inseason", "deliver"]
+
+
+def test_what_makes_the_resolution_stale(tmp_path, monkeypatch):
+    """`inseason_stale`: none on disk, or a FIRST BUILD's made on another atlas (its ranges are that atlas's
+    sections). One that names a release is the release's: never re-made here."""
+    from pipeline.common import section_handles as H
+    from pipeline.regs.inseason import matches as M
+    res = tmp_path / "resolved.json"
+    monkeypatch.setattr(M, "resolved_path", lambda: res)
+    monkeypatch.setattr(H, "digest_for", lambda b: "h")
+    assert B.inseason_stale(Path("atlas")).startswith("no resolution")
+    monkeypatch.setattr(B, "live_release_handles", lambda: None)          # no release is live
+    res.write_text(json.dumps({"release": "first-build:old"}))
+    assert "a first build's on another atlas (first-build:old; this atlas h)" in B.inseason_stale(Path("atlas"))
+    res.write_text(json.dumps({"release": "first-build:h"}))
+    assert B.inseason_stale(Path("atlas")) is None
+    res.write_text(json.dumps({"release": "r-1"}))
+    assert B.inseason_stale(Path("atlas")) is None and B.inseason_state() == {"release": "r-1"}
+
+    # (T1120 review) a first build delivered (its release, from atlas "old", is live), then a new atlas was promoted
+    # before any `pipeline release`: the file is that release's resolution and stands as a release's would
+    res.write_text(json.dumps({"release": "first-build:old"}))
+    monkeypatch.setattr(B, "live_release_handles", lambda: "old")
+    assert B.inseason_stale(Path("atlas")) is None
+    monkeypatch.setattr(B, "live_release_handles", lambda: "third")      # a live release of yet another atlas
+    assert "a first build's on another atlas (first-build:old" in B.inseason_stale(Path("atlas"))
+
+
+def test_the_first_build_is_chosen_by_whether_a_release_is_live(monkeypatch, tmp_path):
+    from pipeline.regs.inseason import resolve as R
+    h = B.Homes.of(Path("atlas"), tmp_path / "side")
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: True)
+    assert B.inseason_cmd(Path("atlas"), h)[2:] == ["pipeline.regs.inseason.resolve"]
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: False)
+    assert B.inseason_cmd(Path("atlas"), h)[2:] == ["pipeline.regs.inseason.resolve", "--first-build",
+                                                    "--reaches", str(h.reaches)]
+
+
+def test_a_missing_resolution_is_only_a_placeholder_in_the_plan(inputs, tmp_path, monkeypatch):
+    from pipeline.regs.inseason import matches as M
+    monkeypatch.setattr(M, "resolved_path", lambda: tmp_path / "none.json")
+    assert B.deliver_sources(missing_ok=True)["inseason_ends"] is None
+    assert B.deliver_sources()["inseason_ends"] == "ends"               # taken (`matches.load` refuses a missing one)
+
+
+def test_a_first_builds_resolution_and_the_releases_key_deliver_alike():
+    """A later resolve on the release, same ends: deliver's key does not move (only `release` and stamps differ)."""
+    from pipeline.regs.inseason import matches as M
+    import pipeline.regs.inseason.matches as _M
+
+    def doc(release):
+        d = M.Matches.model_validate({"format": M.FORMAT, "release": release, "matches": {"is-aaaaaaaaaaaa": {
+            "region": "1", "extents": [{"op": "whole", "item_id": "gnis:1"}],
+            "waters": {"gnis:1": {"runs": [[7, 0, 100]], "ends": [["a", "source"]]}}}}})
+        return d.model_copy(update={"matches": {k: M.stamped(m, release) for k, m in d.matches.items()}})
+    a, b = doc("first-build:h"), doc("r-1")
+    assert a.matches["is-aaaaaaaaaaaa"].stamp != b.matches["is-aaaaaaaaaaaa"].stamp
+    assert B._sha(_M.end_tokens(a)) == B._sha(_M.end_tokens(b))
+
+
+def test_a_side_run_never_makes_the_resolution(world, monkeypatch, tmp_path):
+    from pipeline.regs.inseason import resolve as R
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: False)
+    monkeypatch.setattr(B, "SIDE", tmp_path / "side")
+    STALE["why"] = "no resolution"
+    with pytest.raises(SystemExit, match="must be made in the live tree first — no resolution"):
+        _runs()
+
+
+# ------------------------------------------------------------------ T1120: a run that raised is closed, never "running"
+
+def _main_world(world, monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    monkeypatch.setattr(B, "preflight", lambda want_tiles: None)
+    monkeypatch.setattr(B, "GENERATED", SimpleNamespace(build=lambda: tmp_path / "atlas"))
+    monkeypatch.setattr(B, "atlas_inputs_warning", lambda b: None)
+    monkeypatch.setattr(B, "keep_live_baseline", lambda: "kept")
+
+
+def test_a_raise_outside_any_stage_closes_the_run_as_failed(world, monkeypatch, tmp_path, capsys):
+    """Caught on a fresh clone (T1120): the deliver key raised (no in-season resolution) in the build's own process,
+    after atlas, promote and the stages before it had saved the run, and `--status` said "running" for good."""
+    _main_world(world, monkeypatch, tmp_path)
+
+    def plan(*_a, **_kw):
+        raise FileNotFoundError("resolved.json: the in-season matches are not resolved on this machine")
+    monkeypatch.setattr(B, "plan", plan)
+    with pytest.raises(FileNotFoundError):
+        B.main(["--no-tiles"])
+    last = json.loads(B.MANIFEST.read_text())["runs"][-1]
+    assert last["status"] == ("failed at plan: FileNotFoundError: resolved.json: the in-season matches are not "
+                              "resolved on this machine")
+    capsys.readouterr()
+    assert B.main(["--status"]) == 0
+    assert "— failed at plan: FileNotFoundError" in capsys.readouterr().out
+
+
+def test_a_stage_that_raises_is_named_in_the_closed_run(world, monkeypatch, tmp_path):
+    _main_world(world, monkeypatch, tmp_path)
+    monkeypatch.setattr(B, "plan", lambda *_a, **_kw: [(s, "k", s == "reach") for s in B.STAGES])
+    monkeypatch.setattr(B, "commands", lambda b: {s: [s] for s in B.STAGES})
+
+    def run_stage(s, *_a, **_kw):
+        raise RuntimeError("boom")
+    monkeypatch.setattr(B, "run_stage", run_stage)
+    with pytest.raises(RuntimeError, match="boom"):
+        B.main(["--no-tiles"])
+    assert json.loads(B.MANIFEST.read_text())["runs"][-1]["status"] == "failed at reach: RuntimeError: boom"
+
+
+def test_a_failed_stage_process_keeps_its_own_words(world, monkeypatch, tmp_path):
+    """`run_stage` has already said "failed at <stage>" (rc != 0): closing the run never rewrites it."""
+    _main_world(world, monkeypatch, tmp_path)
+    monkeypatch.setattr(B, "plan", lambda *_a, **_kw: [(s, "k", s == "reach") for s in B.STAGES])
+    monkeypatch.setattr(B, "commands", lambda b: {s: ["x"] for s in B.STAGES})
+    monkeypatch.setattr(B, "_run", lambda *a, **kw: (3, 0))
+    with pytest.raises(SystemExit, match="reach failed"):
+        B.main(["--no-tiles"])
+    assert json.loads(B.MANIFEST.read_text())["runs"][-1]["status"] == "failed at reach"
+
+
+def test_the_live_releases_atlas_is_read_off_its_manifest(tmp_path, monkeypatch):
+    from pipeline.regs.inseason import resolve as R
+    (tmp_path / "r-1").mkdir()
+    (tmp_path / "r-1" / "manifest.json").write_text(json.dumps({"files": {"core": {"section_handles": "abc"}}}))
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: True)
+    monkeypatch.setattr(R, "release_dir", lambda arg=None: tmp_path / "r-1")
+    assert B.live_release_handles() == "abc"
+    monkeypatch.setattr(R, "release_is_live", lambda root=None: False)
+    assert B.live_release_handles() is None

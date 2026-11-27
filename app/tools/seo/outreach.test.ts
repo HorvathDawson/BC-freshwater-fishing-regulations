@@ -7,7 +7,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const DIR = join(dirname(fileURLToPath(import.meta.url)), "../../../handoff/PLAN/seo/outreach");
+const DIR = join(dirname(fileURLToPath(import.meta.url)), "../../../docs/seo/outreach");
 const TEMPLATES = ["club-email.md", "ffsbc-email.md", "forum-post.md", "reddit-post.md", "shop-counter-card.md"];
 /** the file with its hard line wraps joined (a section break "---" stays on its own line) */
 const read = (f: string) => readFileSync(join(DIR, f), "utf8").replace(/[ \t]*\n(?!---|\n)/g, " ");

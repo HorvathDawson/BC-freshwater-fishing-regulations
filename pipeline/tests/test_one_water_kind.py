@@ -32,7 +32,7 @@ def test_flows_is_decided_in_the_registry_only():
     """Nothing after the registry recomputes the water kind from a name. MUTATION: re-adding
     `from pipeline.common.water_kind import flows` to the export (or `FLOWING` anywhere) is red."""
     bad = []
-    for p in sorted(list(PIPELINE.rglob("*.py")) + list((REPO_ROOT / "curation-review").rglob("*.py"))):
+    for p in sorted(list(PIPELINE.rglob("*.py")) + list((REPO_ROOT / "tools" / "curation-review").rglob("*.py"))):
         rel = str(p.relative_to(REPO_ROOT))
         if rel.startswith("pipeline/tests/") or "/node_modules/" in rel:
             continue

@@ -217,7 +217,7 @@ def test_every_live_entry_takes_a_tier_and_every_tier_is_in_use():
 def _py_sources():
     for p in sorted((REPO / "pipeline").rglob("*.py")):
         yield p, p.read_text(encoding="utf-8")
-    for p in sorted((REPO / "curation-review" / "backend").glob("*.py")):
+    for p in sorted((REPO / "tools" / "curation-review" / "backend").glob("*.py")):
         yield p, p.read_text(encoding="utf-8")
 
 
@@ -240,8 +240,8 @@ def test_no_second_copy_of_the_tier_the_grade_the_flag_the_strip_or_the_verdict(
         r"\[auto-proposal ([A-Z])\]": ["pipeline/regs/review/tiers.py"],
         "def coverage(": ["pipeline/regs/review/coverage.py"],
         "def verdict_from_answers(": ["pipeline/regs/review/marks.py"],
-        "def find_passage(": ["curation-review/backend/evidence.py"],
-        "def app_part(": ["curation-review/backend/answer.py"]}
+        "def find_passage(": ["tools/curation-review/backend/evidence.py"],
+        "def app_part(": ["tools/curation-review/backend/answer.py"]}
 
 
 # --------------------------------------------------------------------------- the row boxes
@@ -332,7 +332,7 @@ def _render_in_threads(render, pages=(5, 9, 14, 20, 26, 31, 40, 47), each: int =
 @pytest.fixture
 def backend_mods(monkeypatch):
     import sys
-    monkeypatch.syspath_prepend(str(REPO / "curation-review" / "backend"))
+    monkeypatch.syspath_prepend(str(REPO / "tools" / "curation-review" / "backend"))
     for m in ("evidence", "synopsis_pages"):
         sys.modules.pop(m, None)
     import evidence
@@ -412,7 +412,7 @@ def test_the_render_lock_is_pinned_by_mutation():
     always ends in about a minute; the outer timeout is only a backstop."""
     import subprocess
     import sys
-    got = subprocess.run([sys.executable, "-c", _MUTATION, str(REPO / "curation-review" / "backend"), str(REPO)],
+    got = subprocess.run([sys.executable, "-c", _MUTATION, str(REPO / "tools" / "curation-review" / "backend"), str(REPO)],
                          capture_output=True, text=True, timeout=240, cwd=REPO)
     if got.returncode < 0:     # killed by a signal: unlocked pdfium can crash the process outright — a failure too
         return
@@ -447,7 +447,7 @@ def _node_review(expr: str):
     import subprocess
     node = shutil.which("node")
     assert node, "node is needed (the app and the review frontend need it too): install Node >= 22.6"
-    src = REPO / "curation-review" / "frontend" / "src" / "review.ts"
+    src = REPO / "tools" / "curation-review" / "frontend" / "src" / "review.ts"
     code = f"const R = await import({json.dumps(src.as_uri())}); console.log(JSON.stringify({expr}));"
     got = subprocess.run([node, "--input-type=module", "-e", code], capture_output=True,
                          text=True, timeout=60)

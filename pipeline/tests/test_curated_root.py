@@ -16,7 +16,7 @@ from pipeline.common import curated as C
 
 REPO = Path(__file__).resolve().parents[2]
 #: the code a curated-path override could hide in (docs and archived plans are history, not code)
-CODE_DIRS = ("pipeline", "curation-review", "scripts", "deploy")
+CODE_DIRS = ("pipeline", "tools/curation-review", "scripts", "deploy")
 CODE_EXT = {".py", ".sh", ".ts", ".tsx", ".js", ".mjs", ".yml", ".yaml"}
 SKIP = ("node_modules", "pipeline/docs/archive", ".venv")
 #: where the retired names may be spelled: the refusal list and the tests that pin it

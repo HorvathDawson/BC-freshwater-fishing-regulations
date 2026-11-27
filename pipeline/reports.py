@@ -13,7 +13,7 @@ Sources (each can fail alone; a failed source is SAID, never skipped):
                                  (Play Console only: the command says so).
 
 Every item is marked with the ticket that cites it (a report id, a crash hash or a TestFlight / Play id written in any
-`handoff/PLAN/app-integration/tickets/T*.md`) or NEW. "New" also means newer than the last check: the time of the last
+`tickets/T*.md`) or NEW. "New" also means newer than the last check: the time of the last
 check is kept in `cache/reports-last-check.json` (git-ignored; `--no-save` leaves it alone; `--since` overrides it).
 Nothing here writes to a service. A reporter's email is never printed.
 """
@@ -32,7 +32,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-TICKETS = REPO / "handoff" / "PLAN" / "app-integration" / "tickets"
+TICKETS = REPO / "tickets"
 STATE = REPO / "cache" / "reports-last-check.json"
 WORKERS = {
     "prod": ("https://feeds.canifishthis.ca", REPO / "app/workers/feeds/.run-token.prod"),
@@ -346,7 +346,7 @@ def render(sections: list[Section], since: str) -> str:
     unread = [s.source for s in sections if s.error]
     lines.append(f"-- {total_new} NEW item(s)" + (f"; UNREAD sources: {', '.join(unread)}" if unread else "; every source read"))
     lines.append("Ticket anything NEW (write its id in the ticket) and add a row to "
-                 "handoff/PLAN/play-production-access/feedback-log.md (T1046).")
+                 "docs/play-production-access/feedback-log.md (T1046).")
     return "\n".join(lines)
 
 

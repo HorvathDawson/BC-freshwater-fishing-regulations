@@ -13,13 +13,19 @@
  *
  * (T899, owner 2026-11-19: "in season notices should default open") OPEN BY DEFAULT: every open of the page shows each
  * notice under the line; a press on the line still folds them, a second opens them again.
+ *
+ * (T1167, owner 2026-11-25 "Banner only, but louder"; 2026-11-26 "A: warning amber with a mark") A notice IN FORCE wears
+ * the page's WARNING amber, as the no-access block does (`palette.warning` bar, its band `palette.noAccessBand` as the
+ * ground, the words ink) and the caution mark (core `warn`, hidden from a screen reader), and the Keep tab's status line
+ * points at it (`InSeasonYear`); one in the two weeks before its stated range reads "Upcoming …" with its dates and stays
+ * grey (owner "A: grey, as pictured"). First on the page, above the answer, either way.
  */
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { Icon } from "../icons";
-import { inSeasonSourcesOf, inSeasonSummary, type InSeasonBannerVM } from "@app/core";
+import { inSeasonLineTone, inSeasonSourcesOf, inSeasonSummary, type InSeasonBannerVM, type InSeasonTone } from "@app/core";
 import { useInSeasonFocus } from "@app/ui";
 import { TYPE } from "../type";
 import { GUTTER, RADIUS, type Palette } from "../theme";
@@ -33,14 +39,19 @@ export function InSeasonBanners({ banners: all, palette }: { banners: readonly I
   useEffect(() => { if (focused) setOpen(true); }, [focused]);
   const summary = inSeasonSummary(banners);
   if (!summary) return null;
+  // (T1167) a tone's bar and ground: the warning amber's (in force) or grey (upcoming)
+  const look = (t: InSeasonTone) => (t === "warn" ? { borderLeftColor: palette.warning, backgroundColor: palette.noAccessBand }
+    : { borderLeftColor: palette.sub, backgroundColor: palette.tint });
+  const line = inSeasonLineTone(banners);
   return (
     <View testID="inseason-banners">
       <Pressable testID="inseason-line" onPress={() => setOpen((o) => !o)} accessibilityRole="button" aria-expanded={open}
                  accessibilityLabel={summary}
                  style={{ marginTop: 10, marginBottom: 2, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
-                          backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: palette.attention,
+                          borderLeftWidth: 6, ...look(line.tone),
                           minHeight: 44, paddingVertical: 8, paddingLeft: 12, paddingRight: 14, justifyContent: "center" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          {line.warn && <Text testID="inseason-warn" aria-hidden style={[TYPE.regsBodyBold, { color: palette.ink }]}>{line.warn}</Text>}
           <Text testID="inseason-summary" style={[TYPE.regsBodyBold, { color: palette.ink, flex: 1 }]}>{summary}</Text>
           <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={14} />
         </View>
@@ -48,12 +59,13 @@ export function InSeasonBanners({ banners: all, palette }: { banners: readonly I
       {open && banners.map((b) => (
         <View key={b.id} testID="inseason-banner"
               style={{ marginTop: 10, marginBottom: 2, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
-                       backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: palette.attention,
+                       borderLeftWidth: 6, ...look(b.tone),
                        paddingTop: 10, paddingBottom: 4, paddingLeft: 12, paddingRight: 14 }}>
           {b.mark && (
             <Text testID="inseason-mark" style={[TYPE.metaBold, { color: palette.ink, marginBottom: 2 }]}>{b.mark}</Text>
           )}
           <Text accessibilityRole="alert" style={[TYPE.regsBody, { color: palette.ink }]}>
+            {b.warn && <Text testID="inseason-banner-warn" aria-hidden style={TYPE.regsBodyBold}>{`${b.warn} `}</Text>}
             <Text style={TYPE.regsBodyBold}>{b.head}: </Text>
             {b.text}
           </Text>

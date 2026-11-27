@@ -9,6 +9,7 @@ import { CHANGELOG_WORDS, changelogVM, LICENCE_WORDS, licencesVM, MENU_WORDS, PR
 import { Credits } from "../Credits";
 import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
+import { useCappedScale } from "../textScale";
 import { SPACE, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
 import { openOfficial } from "./openOfficial";
@@ -25,6 +26,7 @@ export function AboutPage({ vm, palette, onSources, onReport, onChangelog }: { v
                             /** (T234 v1.1) open What's new (every version) */ onChangelog?: () => void;
                             /** (T237) open Report a problem */ onReport?: () => void;
                             /** (T235) open Sources and licences */ onSources?: () => void }) {
+  const scale = useCappedScale();   // (T1201) the versions' label column, one width for every row, grows with the text
   return (
     <>
       {vm.env && <EnvBadge vm={vm.env} palette={palette} />}
@@ -56,7 +58,8 @@ export function AboutPage({ vm, palette, onSources, onReport, onChangelog }: { v
         {vm.versions.map((v) => (
           <View key={v.label} style={{ flexDirection: "row", gap: SPACE.s3, paddingVertical: 6,
                                        borderTopWidth: 1, borderTopColor: palette.line }}>
-            <Text style={{ ...TYPE.small, color: palette.sub, width: 104 }}>{v.label}</Text>
+            {/* (T1201) 104 wide at the default size; a larger text size widens every row's alike so "Regulations" is never broken in two */}
+            <Text style={{ ...TYPE.small, color: palette.sub, width: 104 * scale, flexShrink: 0 }}>{v.label}</Text>
             <Text selectable testID={`about-version-${v.label}`}
                   style={{ ...TYPE.figure, fontSize: 12.5, color: palette.ink, flex: 1 }}>{v.value}</Text>
           </View>

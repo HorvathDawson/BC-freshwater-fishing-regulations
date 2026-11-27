@@ -15,7 +15,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 STAGING = ROOT / "deploy/staging"
-SET = ROOT / "handoff/PLAN/app-integration/store/graphics/store/light"
+SET = ROOT / "docs/app-integration/store/graphics/store/light"
 sys.path.insert(0, str(STAGING))
 import store_shots_list  # noqa: E402
 

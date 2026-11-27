@@ -48,6 +48,10 @@ NEVER = {
     f"{OLD_TICKETS}/closed.tsv": "closed tickets' titles are history",
     f"{NEW_TICKETS}/closed.tsv": "closed tickets' titles are history",
     SELF: "this script names the old paths",
+    # moved whole, never edited (the owner's records and marks; T1081 "Never touch"): both spellings, before and after
+    **{f"{root}/{sub}": "a move-only folder: its bytes never change" for root in (OLD_PLAN, NEW_PLAN) for sub in (
+        "play-production-access/", "app-integration/store/", "repo-move/", "sloughs/marks/",
+        "tools/curation-review/tidal/owner-decisions.json")},
 }
 
 #: (file, old, new, replace_all): the places a path is BUILT from parts, or spelled in a way the prefix rules do not reach.
@@ -77,10 +81,8 @@ EDITS = [
     # a listing of the planning folder that held the tickets folder
     ("app/tools/ledger.test.ts", '.toEqual(["T11-shots", "T4-shots", "tickets"])', '.toEqual(["T11-shots", "T4-shots"])', False),
     # prose that now needs both folders
-    ("README.md", "| `handoff/` | the work: tickets and their ledger, runbooks, plans, owner to-do |",
+    ("README.md", "| `handoff/` | the work: tickets and their ledger, runbooks, plans, the owners' asks (each ticket's `## Owner` block) |",
      "| `docs/` | the plans, runbooks, restart pages and decisions |\n| `tickets/` | the open tickets, and the index of the closed ones |", False),
-    # a relative path that was ambiguous once `docs/` could mean two folders
-    ("pipeline/README.md", "the stage order is docs/MAP.md", "the stage order is pipeline/docs/MAP.md", False),
 ]
 
 #: bare `handoff/` (after the two longer prefixes) -> docs/. The two longer prefixes are matched first, in both spellings.

@@ -7,17 +7,12 @@
  *
  * (T420) A TILE'S IDS COME ONCE PER WATCH. MapLibre Native re-requests tiles it already holds many times a second; the
  * binding sends a tile's ids the first time only, and a repeat as `{tag, z, x, y}` with no `layers` (`touch`), which
- * moves the tile to the end here exactly as the binding's own memory of what it sent (an LRU of `NATIVE_SENT_MAX`,
- * touched in the same order). The hold keeps at least twice that, so a repeat always finds its tile; one that does not
- * is a broken invariant, reported by the caller and answered with a new watch (which makes the binding send again).
+ * moves the tile to the end here exactly as the binding's own memory of what it sent (an LRU of `sentMax`, the engine's
+ * `EngineTiles.sentMax`: `native/maplibre/tiles.ts`, touched in the same order). The hold keeps at least twice that, so a
+ * repeat always finds its tile; one that does not is a broken invariant, reported by the caller and answered with a new
+ * watch (which makes the binding send again).
  */
 import { LABEL_SOURCE_LAYERS, type TileSections } from "./colouring";
-
-/** The binding's memory of tiles sent (`SENT_MAX` in the patch's MLRNVectorSource.kt / .m). */
-export const NATIVE_SENT_MAX = 256;
-
-/** The device event the patched binding sends per requested tile. */
-export const TILE_IDS_EVENT = "MLRNTileIds";
 
 export interface TileIdsEvent {
   /** The `VectorSource` view's tag (`nativeTag()`): which map's source asked. */
@@ -32,8 +27,9 @@ export interface TileIdsEvent {
 /** The tiles last reported, most recent last; a tile reported again moves to the end. */
 export class TileHold {
   private tiles = new Map<string, TileSections>();
-  constructor(private readonly max = 2 * NATIVE_SENT_MAX) {
-    if (max < 2 * NATIVE_SENT_MAX) throw new Error(`TileHold: ${max} tiles cannot cover the binding's ${NATIVE_SENT_MAX}`);
+  /** `sentMax`: how many tiles the engine remembers sending (`EngineTiles.sentMax`). */
+  constructor(sentMax: number, private readonly max = 2 * sentMax) {
+    if (max < 2 * sentMax) throw new Error(`TileHold: ${max} tiles cannot cover the binding's ${sentMax}`);
   }
 
   /** Keep one event's tile and return its sections — only the source-layers that wear labels. */

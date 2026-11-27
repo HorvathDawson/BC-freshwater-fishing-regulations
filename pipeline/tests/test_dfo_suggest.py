@@ -218,7 +218,7 @@ def test_the_written_suggestions_are_valid_extent_fixes():
 
 # --------------------------------------------------------------------------- the review app
 
-DFO_TSX = REPO / "curation-review/frontend/src/components/DfoReview.tsx"
+DFO_TSX = REPO / "tools/curation-review/frontend/src/components/DfoReview.tsx"
 
 
 def _ts_function(src: str, name: str) -> str:
@@ -233,7 +233,7 @@ def test_a_suggestion_becomes_the_drafts_pieces_and_its_new_splits():
     (node + the frontend's typescript): its pieces, its new splits renamed off any ref already taken, the points
     following them. Nothing is posted by it: the save is the one write (`dfoExtent.markBody`, tests/dfoExtent.test.ts)."""
     src = DFO_TSX.read_text()
-    tsc = REPO / "curation-review/frontend/node_modules/typescript/lib/typescript.js"
+    tsc = REPO / "tools/curation-review/frontend/node_modules/typescript/lib/typescript.js"
     node = shutil.which("node")
     if not (node and tsc.exists()):
         pytest.skip("node / the frontend's typescript not installed: source pins only")

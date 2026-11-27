@@ -22,7 +22,7 @@ print what would change, then DELETE the edit; nothing reaches the listing. --co
 - (T1127) The pictures in the phone folder must be EXACTLY the list app/tools/store-shots.json implies
   (deploy/staging/store_shots_list.py): a leftover picture or a missing one stops the run by name, in every mode, before
   any network call. Plan mode prints the count and names per size.
-- Icon + feature graphic: handoff/PLAN/app-integration/store/graphics/{app-icon-512,feature-graphic-1024x500}.png,
+- Icon + feature graphic: docs/app-integration/store/graphics/{app-icon-512,feature-graphic-1024x500}.png,
   uploaded only when Play holds none or a different file (sha256).
 - Promo video: only with --video-url (a YouTube URL); otherwise the listing's video is left as it is.
 Languages: the listing languages Play already has among en-CA / en-US, or --language. Any asset that breaks Play's rules
@@ -44,7 +44,7 @@ API = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications"
 UPLOAD = "https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications"
 SCOPE = ["https://www.googleapis.com/auth/androidpublisher"]
 ROOT = Path(__file__).resolve().parents[2]
-GRAPHICS = ROOT / "handoff/PLAN/app-integration/store/graphics"
+GRAPHICS = ROOT / "docs/app-integration/store/graphics"
 SET = GRAPHICS / "store/light"   # the one committed store set (app/tools/store-shots.mjs writes it; the App Store push reads it too)
 LISTING = ROOT / "app/store-listing/listing.json"
 DESCRIPTION = LISTING

@@ -199,7 +199,7 @@ def test_a_place_on_an_atlas_without_its_cut_is_not_bound_there_and_refused(monk
     """the binding check on an atlas that has not got the place's cut (the live one for a new cut, a stale side atlas,
     --build naming the wrong one) would bind NOTHING and withhold nothing: it says the cut is missing instead"""
     import sys
-    sys.path.insert(0, "curation-review/backend")
+    sys.path.insert(0, "tools/curation-review/backend")
     import dfo
     reuse = dfo.reuse
     loc = {"binding": {"extents": [{"op": "between", "splits": ["cut_a", "cut_b"]}]}}
@@ -237,7 +237,7 @@ def test_the_side_commands_of_a_dfo_place_with_a_new_cut_end_in_the_apply_that_c
 def test_the_reach_binding_change_reports_withheld_and_unaccepted(monkeypatch):
     """`reuse.dfo_binding_change` carries `withheld` / `unaccepted` from `build_reach`'s diagnostics."""
     import sys
-    sys.path.insert(0, "curation-review/backend")
+    sys.path.insert(0, "tools/curation-review/backend")
     import dfo
     reuse = dfo.reuse                                      # the one the backend uses now (tests reload them)
     loc = {"binding": {"extents": [{"op": "whole"}]}}
@@ -261,7 +261,7 @@ def test_a_save_time_binding_takes_the_runs_limits(monkeypatch):
     """(T779 item 4) `dfo_salmon.resolve_all` binds a place with `regional=False` and the run's tidal water out unless
     `keep_tidal` names it; the save-time bindings take the same (`dfo.as_the_run_binds`)."""
     import sys
-    sys.path.insert(0, "curation-review/backend")
+    sys.path.insert(0, "tools/curation-review/backend")
     import dfo
     import pipeline.atlas.reach.dfo_salmon as DS
     reuse = dfo.reuse

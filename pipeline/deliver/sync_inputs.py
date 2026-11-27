@@ -6,7 +6,7 @@ stages each input at `DIR/<its R2 key>` and prints one line per object, `<key>\t
 only put what is staged — all on the Mac (T520, owner 2026-11-08: the GitHub workflow is deleted; it had no atlas):
 
     deploy/staging/sync-inputs.sh   (rclone --checksum; by hand, from upload.sh, and by the review app after a saved
-                                     input: curation-review/backend/inputs_sync.py)
+                                     input: tools/curation-review/backend/inputs_sync.py)
     deploy/prod/sync-inputs.sh      (the owner's CONFIRM_PROD step)
 
 THE LIST (`INPUTS`), every source read through `CURATED` / `SOURCE`:

@@ -7,7 +7,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 
 const ROOT = resolve(__dirname, "../../..");
 const cfg = JSON.parse(readFileSync(join(ROOT, "app/tools/store-shots.json"), "utf8"));
-const dir = join(ROOT, "handoff/PLAN/app-integration/store/graphics/store/light", cfg.creative.folder);
+const dir = join(ROOT, "docs/app-integration/store/graphics/store/light", cfg.creative.folder);
 // ffprobe is found on PATH (FFPROBE overrides, as in creative.mjs). A hosted CI runner has none and the four committed files are checked
 // where it exists (this Mac: pre-push / before_pr). Without it the two video checks are SKIPPED BY NAME, with the reason printed; under
 // REGS_STORE_REQUIRED=1 (scripts/test-full.sh) they fail instead, so a full local run can never pass without them.

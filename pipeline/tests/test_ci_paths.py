@@ -37,7 +37,7 @@ def test_the_match_is_githubs_glob(path, pattern, hit):
 
 
 def test_areas_of_a_change():
-    assert CP.areas_of(["handoff/PLAN/STATUS.md"]) == {"docs"}
+    assert CP.areas_of(["docs/STATUS.md"]) == {"docs"}
     assert CP.areas_of(["NOTICE.txt"]) == set()
     assert CP.areas_of(["README.md"]) == {"docs", "pipeline"}            # (T995 review) test_doc_drift reads it; (T1081) its size budget
     assert CP.areas_of(["pipeline/regs/README.md"]) >= {"docs"}          # (T1081) any markdown file's length is budgeted
@@ -50,14 +50,14 @@ def test_areas_of_a_change():
 
 
 def test_a_push_runs_everything_and_a_pr_only_its_area():
-    paths = lambda base, head: ["handoff/PLAN/STATUS.md", "AGENTS.md"]          # noqa: E731
+    paths = lambda base, head: ["docs/STATUS.md", "AGENTS.md"]          # noqa: E731
     assert CP.github("app", {"EVENT_NAME": "push"}, paths)[0] is True
     assert CP.github("pipeline", {"EVENT_NAME": "workflow_dispatch"}, paths)[0] is True
     pr = {"EVENT_NAME": "pull_request", "BASE_SHA": "b", "HEAD_SHA": "h"}
     run, why = CP.github("app", pr, paths)
     assert run is False and why == "the pull request changes 2 path(s), none in app: its jobs are skipped (a pass)"
     run, why = CP.github("docs", pr, paths)
-    assert run is True and why == "2 of the pull request's 2 path(s) are in docs: handoff/PLAN/STATUS.md, AGENTS.md"
+    assert run is True and why == "2 of the pull request's 2 path(s) are in docs: docs/STATUS.md, AGENTS.md"
     with pytest.raises(SystemExit, match="needs BASE_SHA and HEAD_SHA"):
         CP.github("app", {"EVENT_NAME": "pull_request"}, paths)
     with pytest.raises(SystemExit, match="no area 'worker'"):
@@ -69,7 +69,7 @@ def test_a_merge_queue_group_is_filtered_as_its_pull_requests_were():
     base_sha...head_sha, so the required `ok` reports on it as on the PR. Mutation: drop merge_group from FILTERED ->
     every job runs (the first assert fails)."""
     seen = []
-    paths = lambda base, head: seen.append((base, head)) or ["handoff/PLAN/STATUS.md"]   # noqa: E731
+    paths = lambda base, head: seen.append((base, head)) or ["docs/STATUS.md"]   # noqa: E731
     mg = {"EVENT_NAME": "merge_group", "BASE_SHA": "trunk", "HEAD_SHA": "group"}
     run, why = CP.github("app", mg, paths)
     assert run is False and why == "the merge group changes 1 path(s), none in app: its jobs are skipped (a pass)"
@@ -87,8 +87,8 @@ def test_the_pr_diff_is_the_merge_base_with_the_base(tmp_path, monkeypatch):
     run("add", "a")
     run("commit", "-qm", "base")
     run("switch", "-qc", "lane")
-    (tmp_path / "handoff").mkdir()
-    (tmp_path / "handoff" / "x.md").write_text("x")
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "x.md").write_text("x")
     run("add", ".")
     run("commit", "-qm", "lane")
     head = run("rev-parse", "HEAD").strip()
@@ -99,7 +99,7 @@ def test_the_pr_diff_is_the_merge_base_with_the_base(tmp_path, monkeypatch):
     run("commit", "-qm", "main moved")
     base = run("rev-parse", "HEAD").strip()
     monkeypatch.chdir(tmp_path)
-    assert CP.pr_paths(base, head) == ["handoff/x.md"]
+    assert CP.pr_paths(base, head) == ["docs/x.md"]
     # (T995 review) a file moved out of an area names its old path too: git's rename detection names only the new one
     run("switch", "-q", "lane")
     (tmp_path / "pipeline").mkdir()
@@ -163,10 +163,10 @@ def test_typescript_names_the_same_trunk():
 
 def test_no_script_or_doc_names_the_old_dev_branch():
     """(T995 acceptance) nothing names the retired dev branch — in what this suite's area covers (its own input, so a
-    change that brings the name back runs it: the code, the workflows, deploy, the app, the README; handoff/ history is
+    change that brings the name back runs it: the code, the workflows, deploy, the app, the README; docs/ history is
     not in it). The app's two names are pinned by its own tests too (legal.test.ts REPO_BLOB, dispatch DEFAULT_REF)."""
     old = "redesign/" + "stream-sections"
-    specs = [f":(glob){p}" for p in CP.AREAS["pipeline"]] + [":(exclude)handoff/**"]
+    specs = [f":(glob){p}" for p in CP.AREAS["pipeline"]] + [":(exclude)docs/**", ":(exclude)tickets/**"]
     got = subprocess.run(["git", "grep", "-n", "-F", old, "--", *specs], cwd=ROOT, capture_output=True, text=True)
     assert got.returncode in (0, 1), got.stderr
     assert got.stdout == ""

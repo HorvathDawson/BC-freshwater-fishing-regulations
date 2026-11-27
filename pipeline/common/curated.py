@@ -94,6 +94,8 @@ class Waters(BaseModel):
 
     #: AUTHORED: every curated cut on a water (`cuts.json`, was `splits.json`); the atlas sectionizer applies them.
     cuts: FilePath
+    #: AUTHORED: name variants on FWA waters, read by the atlas registry and the name matchers (`tools.mined_names`,
+    #: the bathymetry and stocking proposals, `bathymetry.contours`).
     name_variants: FilePath
     #: PROMOTED (T224): name variants found in city layers, OSM, ECCC… that the owner accepted (auto rule or
     #: review mark); each name carries its real source. Written by `pipeline.tools.mined_names`.
@@ -101,8 +103,8 @@ class Waters(BaseModel):
     #: AUTHORED (T327): the owner's calls on single found-name candidates (accept / hold, a stored name, display),
     #: by candidate id — was `names.OWNER` in code. Read by `pipeline.regs.review.names`; an input to `mined_names`.
     found_name_calls: FilePath
-    #: THE OWNER-DECIDED CONTINUATION LINKS (`water_continue`): `reviewed` ship, `refused` never, anything else the
-    #: topology proposes is held for review (owner 2026-10-29, `bundle.continuation.gate`).
+    #: AUTHORED: THE OWNER-DECIDED CONTINUATION LINKS (`water_continue`): `reviewed` ship, `refused` never, anything
+    #: else the topology proposes is held for review (owner 2026-10-29, `bundle.continuation.gate`).
     continuations: FilePath
     #: T326: THE ONE TIDAL FILE (`tidal_limits.json`) — one row per ocean-entering water: its tidal limit at the
     #: `mouth` (an alias, no cut), on an existing `split`, a new `cut`, or the `whole` water. Written by
@@ -114,14 +116,16 @@ class Waters(BaseModel):
     shore_held: FilePath
     #: T678 (owner 2026-11-11): one row per `split` row of `tidal`: is the boundary DFO-written (quoted from the cached
     #: DFO copies)? Only DFO-written splits have authority over the tidal cut; the rest are listed for the owner, never
-    #: dropped. A sidecar because `tidal` is rewritten from the marks with its own fields only. No reader yet.
+    #: dropped. A sidecar because `tidal` is rewritten from the marks with its own fields only. Read by the atlas
+    #: (`splits.coast.load_authority`).
+    #: Classified by Claude, each row cited; the owner may correct it.
     tidal_split_authority: FilePath
-    #: T322 (owner 2026-10-30): the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
+    #: T322 (owner 2026-10-30): APPLIED: the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
     #: `pipeline.tools.slough_calls`; the registry folds each into the one stream through it, else ignores it
     #: (`registry.flowing.fold_confirmed_sloughs`).
     slough_calls: FilePath
-    #: (owner 2026-11-13, Gagnon Creek) unnamed polygons the owner keeps as LAKES of their own: the registry's widening
-    #: fold leaves them (`registry.flowing.load_pond_calls`). Hand-written only.
+    #: (owner 2026-11-13, Gagnon Creek) AUTHORED: unnamed polygons the owner keeps as LAKES of their own: the
+    #: registry's widening fold leaves them (`registry.flowing.load_pond_calls`). Hand-written only.
     pond_calls: FilePath
     #: T322: the retired slough review page's database — the owner's verdicts and free-text notes
     #: (`pipeline.regs.review.slough.page_note`). Was `sloughs/page-marks-2026-10-28.json`.
@@ -132,11 +136,14 @@ class Waters(BaseModel):
     steelhead_waters: FilePath
     #: AUTHORED: blanket area closures (`area_closures.json`) — cut every stream crossing the polygon.
     areas: FilePath
-    #: Hand-drawn admin polygons — closure zones a regulation states as an AREA rather than a
-    #: reach. Selected by an `area_closures.json` def that names it in `file`; see `load_area_polys`.
+    #: AUTHORED: hand-drawn admin polygons — closure zones a regulation states as an AREA rather than a
+    #: reach. Selected by an `area_closures.json` def that names it in `file` (instead of a fetched gpkg `layer`);
+    #: see `load_area_polys`.
     added_areas: FilePath
+    #: AUTHORED: hand-drawn lake polygons, read by the atlas build.
     added_lakes: FilePath
     #: PROMOTED, not authored — 361 minted streams whose negative `blk` ids are a live ABI.
+    #: Re-running `added_streams/build_dataset.py` remints them and strands every cut bound to the old ids.
     added_streams: FilePath
     #: AUTHORED (T679 #13): the added-streams generator's hand fixes (a feature dropped by name or src_id, a name typo,
     #: a receiver override), read by the generator only (`added_streams.clean.calls`), never by the atlas build.
@@ -159,7 +166,11 @@ class DfoSalmon(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    #: The curated DFO locations, one file per region (item ids, extents); synced to the feeds worker as R2
+    #: `private/feeds/dfo/entries/` (`pipeline.deliver.sync_inputs`).
     places: DirectoryPath
+    #: AUTHORED (templates reviewed by hand; `pipeline.regs.dfo_salmon.wording`); synced to R2
+    #: `private/feeds/dfo/wording.json` (`pipeline.deliver.sync_inputs`), the feeds worker's ONLY copy.
     wording: FilePath
     #: AUTHORED (T632, owner 2026-11-11): the DFO places that KEEP their tidal water, each with its stated reason;
     #: every other place has the run's tidal sections subtracted (`pipeline.atlas.reach.dfo_salmon.load_tidal_calls`).
@@ -181,6 +192,7 @@ class Review(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    #: REVIEWED: the reviewers' marks, append-only.
     marks: Path
     #: owner calls on PROPOSED splits the marks cannot carry (the store is append-only, never
     #: edited): a cut's confidence (`marks.ConfidenceOverride`, owner 2026-10-27). Folded by T326.
@@ -198,6 +210,7 @@ class Regulations(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    #: The parsed synopsis rows, one file per region.
     synopsis: DirectoryPath
     #: AUTHORED: a book water name -> the FWA water(s) it means (was `overrides.json`).
     book_name_links: FilePath
@@ -231,7 +244,10 @@ class Domain(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    #: PROMOTED: a machine produced it and a person approved it; regenerated wholesale (gauges: only
+    #: `pipeline.gauges.generate.promote` writes it).
     matches: FilePath | None = None
+    #: AUTHORED: an INPUT to matching, never written by a program.
     match_calls: FilePath | None = None
     #: (T331) ECCC's stated water-body type is scraped SOURCE data now: `SOURCE / "bc_station_waterbody_type.json"`
     #: (`pipeline.gauges.generate.waterbody_type.TYPES_FILE`), not a curated key. (T324) The gauge review QUEUE
@@ -261,6 +277,8 @@ class RunTiming(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    #: AUTHORED, and short by design: run labels only where the CU names do not already separate two runs (most
+    #: state their own), and `coverage_gaps`, the waters an angler will look up and find nothing for.
     run_calls: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
@@ -273,6 +291,7 @@ class InSeason(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    #: AUTHORED: an in-season feed row id -> the waters (extents) it applies to.
     notice_waters: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
@@ -323,10 +342,12 @@ class DataTree(BaseModel):
 
 
 class GeneratedAtlas(BaseModel):
-    """Graph builds. One subdirectory per region, plus `full/`."""
+    """Graph builds: `full/`, plus any small named build (`--gnis` / `--bbox`, named by `--out`)."""
 
     model_config = ConfigDict(frozen=True)
 
+    #: Written by `pipeline.atlas.build --out`: `full/`, or a small named build (`--gnis` / `--bbox`, e.g. `adams/`);
+    #: each holds graph.pkl, registry.json, geometries.pkl, item_points.json, splits.resolved.json.
     builds: Path
     #: The build the review app serves AND rebuilds into. One name, read by both — these
     #: were two independent hard-codings of "output/v2/full", and the app could rebuild one
@@ -339,8 +360,11 @@ class GeneratedAtlas(BaseModel):
 class GeneratedRegs(BaseModel):
     model_config = ConfigDict(frozen=True)
 
+    #: `synopsis_raw_data.json` and `row_images/` (`pipeline.regs.extraction`).
     extraction: Path
+    #: The LLM parse work dir: batches/, responses/, reviews/ (`pipeline.regs.parsing.io.default_work_dir`).
     parse: Path
+    #: The DFO salmon scrape: locations/, rules/, untangled/, and the typed feed (typed/).
     dfo_salmon: Path
     entries_backup: Path
 
@@ -350,6 +374,8 @@ class GeneratedRegs(BaseModel):
 class GeneratedGauges(BaseModel):
     model_config = ConfigDict(frozen=True)
 
+    #: The published feed: per-station JSON (`<station>.json`) plus `index.json`, `clim.json`, `stats.json`,
+    #: `temp_history.json`.
     feeds: Path
     #: The matcher's RAW output (`pipeline.gauges.generate.match`), never the curated file: only
     #: `promote` writes `CURATED.gauges.matches`, and only after it has shown what would be demoted (T94).
@@ -360,6 +386,7 @@ class GeneratedGauges(BaseModel):
     candidates: Path
     #: (T1047) the datum / relocation remarks HYDAT holds for the roster, parsed: PROPOSALS
     #: (`pipeline.tools.audit.datum_remarks`), never in effect; the curated rows are `CURATED.gauges.datum_change_stations`.
+    #: Committed (data/.gitignore) because those curated rows cite it.
     datum_proposals: Path
 
     _abs = field_validator("*", mode="before")(_absolute)
@@ -387,25 +414,41 @@ class Generated(BaseModel):
 
     base: Path
     atlas: GeneratedAtlas
+    #: The reach binding (`pipeline.atlas.reach`): rule -> sections, one directory per build.
     reaches: Path
+    #: A deliverable: the bundle stage's output (`pipeline.deliver.bundle`).
     bundle: Path
+    #: A deliverable: the tiles stage's output (`pipeline.deliver.tiles`).
     tiles: Path
+    #: The added-streams review artifacts (`pipeline.atlas.waters.added_streams`): the mapcheck / verify_map html, the
+    #: demo gpkg, the OSM candidates.
     added_streams: Path
+    #: Ad-hoc candidate dumps from one-off audits, looked at once and thrown away; nothing downstream reads them. Kept
+    #: out of the domain folders on purpose.
     scratch: Path
     regs: GeneratedRegs
     gauges: GeneratedGauges
+    #: The CU polygons `pipeline.runtiming.parse` stitches from the cached Explorer tiles (`cu_polygons.geojson`, read
+    #: by `pipeline.runtiming.feed.release`, which `pipeline.deliver runtiming` runs) and the run-timing feed (`feed/`);
+    #: re-runnable from `data/source/runtiming/`.
     runtiming: Path
-    #: T226: what `pipeline.regs.inseason.publish` writes for the app (`matches.json` beside the feed; served as
-    #: `/feeds/inseason/` by the local tile server, R2 `feeds/inseason/` in production)
+    #: T226: `feed/matches.json`: what `pipeline.regs.inseason.publish` writes for the app. The local tile server serves
+    #: `feed/` as `/feeds/inseason/`; in production it is R2 `feeds/inseason/`, beside the feeds worker's `index.json`
+    #: (in dev `--feed` copies a captured `index.json` beside it). `resolved.json`: the curated matches resolved on a
+    #: release (`pipeline.regs.inseason.resolve`), never committed.
     inseason: Path
     #: T330: the curation review's machine-written inputs (candidates, pre-verify, suggestions, the Q154 sample, the
-    #: mined name candidates, the T185 proposals) — moved out of handoff/; the review app and `regs/review/*` read them
+    #: mined name candidates, the T185 proposals) — moved out of docs/; the review app and `regs/review/*` read them.
+    #: Committed (data/.gitignore) because the review app reads them; nothing human-made lives here.
     review: Path
     #: (T435) the slough finder's output (`slough-automark.json`, `candidates_v2.json.gz`) the slough review reads
     sloughs: Path
-    #: (T1021) the T185 proposals' side rebuilds, one directory per proposal id + digest (`proposals.side_dir`)
+    #: (T1021) the T185 proposals' side rebuilds, one directory per proposal id + digest (`proposals.side_dir`): the
+    #: patched curated copies, the side atlas, its reach run
     side: Path
-    #: The shipped set (`data/release`), NOT a build artifact: only what an app downloads (P08/P18).
+    #: The shipped set (`data/release`), NOT a build artifact: only what an app downloads (P08/P18). Holds
+    #: `<data_release>/`, `tiles/<tile_version>/` (the geometry-only atlas, the outside-BC mask, the map assets) and
+    #: `basemap/`.
     release: Path
 
     _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
@@ -518,6 +561,14 @@ def load_repo(config: Path | None = None) -> Curated:
     return _load(config, None)
 
 
+def _config_read(path: Path, key: str, value) -> None:
+    """(T1171) The build's stage keys hold the config.yaml VALUES a stage reads, not the file: each loader here names the
+    block it consumed (`pipeline._trace.config_read`). Another config file (a test's) is no config.yaml value."""
+    if Path(path).resolve() == CONFIG.resolve():
+        from pipeline import _trace
+        _trace.config_read(key, value)
+
+
 @functools.lru_cache(maxsize=8)
 def _load(config: Path | None, root: Path | None) -> Curated:
     path = config or CONFIG
@@ -525,6 +576,7 @@ def _load(config: Path | None, root: Path | None) -> Curated:
     if "curated" not in blob:
         raise KeyError(f"{path} has no `curated:` tree — see the restructure plan")
     cur = blob["curated"]
+    _config_read(path, "curated", cur)
     if root is not None:
         cur = _rebase(cur, Path(_absolute(cur["base"])), root)
     return Curated.model_validate(cur)
@@ -552,6 +604,7 @@ def load_data_tree(config: Path | None = None) -> DataTree:
     blob = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if "data_tree" not in blob:
         raise KeyError(f"{path} has no `data_tree:` — see the restructure plan")
+    _config_read(path, "data_tree", blob["data_tree"])
     return DataTree.model_validate(blob["data_tree"])
 
 
@@ -563,6 +616,8 @@ def load_generated(config: Path | None = None) -> Generated:
     blob = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if "generated" not in blob:
         raise KeyError(f"{path} has no `generated:` tree — `output:` was retired into it")
+    _config_read(path, "generated", blob["generated"])
+    _config_read(path, "data_tree", blob.get("data_tree"))
     got = Generated.model_validate(blob["generated"])
     root = DataTree.model_validate(blob["data_tree"]).generated
     if got.base != root:

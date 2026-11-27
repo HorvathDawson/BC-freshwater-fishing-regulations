@@ -11,7 +11,8 @@ import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { hitProps } from "./regs/hit";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
-import { LEGEND_TEXT, TYPE } from "./type";
+import { LABEL_PROPS, LABEL_SCALE, LEGEND_TEXT, TYPE, labelMinWidth } from "./type";
+import { useScaleUpTo } from "./textScale";
 import { round, type Palette } from "./theme";
 
 /**
@@ -302,6 +303,9 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   const count = legendCount(n);
   const pct = (x: number) => `${Math.round(x * 1000) / 10}%` as const;
   const word = { ...TYPE.caption, lineHeight: 15, color: palette.sub } as const;
+  // (T1201) Low / High / Normal sit in fixed boxes: one line, whole, following the OS size to LABEL_SCALE; the boxes grow
+  const scale = useScaleUpTo(LABEL_SCALE);
+  const ends = scale > 1 ? Math.max(LABEL_W, labelMinWidth(low, word, scale, 0, 0.6), labelMinWidth(high, word, scale, 0, 0.6)) : LABEL_W;
 
   return (
     <View testID="legend-ramp" style={{ width: "100%", maxWidth: LEGEND_RAMP_MAX, alignSelf: "center" }}>
@@ -315,7 +319,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
       </View>
       {/* (T427) LOW and HIGH flank the bar on its own row; the bracket under the middle half carries "Normal" in it */}
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: LABEL_GAP }}>
-        <Text style={{ ...word, width: LABEL_W, textAlign: "right" }}>{low}</Text>
+        <Text {...LABEL_PROPS} style={{ ...word, width: ends, textAlign: "right" }}>{low}</Text>
         <View style={{ flex: 1, height: TICKS + BAR }}>
           {counts.map((c, i) => c === 0 ? null : (
             // (T243) a labelled picture, said as one: a label on a role-less view is ignored by screen readers (axe)
@@ -339,14 +343,14 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
             </Svg>
           </View>
         </View>
-        <Text style={{ ...word, width: LABEL_W }}>{high}</Text>
+        <Text {...LABEL_PROPS} style={{ ...word, width: ends }}>{high}</Text>
       </View>
-      <View style={{ height: 16, marginHorizontal: LABEL_W + LABEL_GAP }}>
+      <View style={{ height: 16 * scale, marginHorizontal: ends + LABEL_GAP }}>
         <View testID="legend-normal"
-              style={{ position: "absolute", top: 2, height: 14, left: pct(band[0]), width: pct(band[1] - band[0]),
+              style={{ position: "absolute", top: 2, height: 14 * scale, left: pct(band[0]), width: pct(band[1] - band[0]),
                        alignItems: "center", borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1,
                        borderColor: palette.sub }}>
-          <Text style={{ ...word, lineHeight: 13 }}>{mid}</Text>
+          <Text {...LABEL_PROPS} style={{ ...word, lineHeight: 13 }}>{mid}</Text>
         </View>
       </View>
     </View>

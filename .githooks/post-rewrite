@@ -1,11 +1,3 @@
 #!/bin/sh
-# (T1041) REBUILD THE LEDGER AND OWNER VIEWS after a rebase or amend:
-# handoff/PLAN/views/LEDGER.md, DONE.md and OWNER.md, git-ignored, built from each ticket's row and `## Owner` block by
-# app/tools/ledger.mjs. A branch from before T1041 has no tool and no views: nothing to build there.
-root=$(git rev-parse --show-toplevel) || exit 0
-[ -f "$root/app/tools/ledger.mjs" ] || exit 0
-# shellcheck disable=SC2046
-unset $(git rev-parse --local-env-vars)
-cd "$root" || exit 0
-node app/tools/ledger.mjs --quiet || echo "post-rewrite: the ledger views were not rebuilt (see above): node app/tools/ledger.mjs" >&2
-exit 0
+# (T1193) rebuilds the ledger views: the body is lib/ledger-views.sh (T1041)
+exec "$(dirname "$0")/lib/ledger-views.sh" post-rewrite "$@"

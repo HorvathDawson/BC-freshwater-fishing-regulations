@@ -26,9 +26,9 @@
  *      `tickets/OWNER-UNFILED.md`, and a DONE / DROPPED ticket holds no open owner line (`ledger.mjs --archive` refuses it too).
  *   6b. (T540) a ledger row's last cell is at most `LEFT_CELL_MAX` characters; the detail lives in the ticket file.
  *   7. (T539) the docs guard, `checkDocs`: STATUS.md starts with its title; every repo path a backticked token cites in
- *      START-HERE and the restart pages exists, and every path a runbook (handoff/PLAN/runbooks/*.md) cites,
+ *      START-HERE and the restart pages exists, and every path a runbook (docs/runbooks/*.md) cites,
  *      in backticks or in a command block (T628); (T1081) START-HERE is at most `START_HERE_MAX` lines and links every page of
- *      `handoff/PLAN/restart/` (one short page per live chat, at most `RESTART_MAX` lines, deleted when the chat ends) and
+ *      `docs/restart/` (one short page per live chat, at most `RESTART_MAX` lines, deleted when the chat ends) and
  *      nothing missing; a restart page holds no state (no release id, no build number: those live only in the STATUS top
  *      entry); a RESTART-* / NEXT-SESSION-* file anywhere else fails unless named in `LEGACY_RESTART`; AGENTS rule ids are unique.
  *   8. (T1081) the size guard, `check-size.mjs`: every budget of the docs (required reading, READMEs, open tickets, any markdown file,
@@ -47,7 +47,7 @@ import { CLAIMS_DIR, CLOSED_TSV, LEGACY_TICKETS_DIR, LEDGER_POINTER, MARKER, OLD
 export const CLOSED = ["DONE", "DROPPED"];
 
 /** The repo-relative tickets folder. */
-export const TICKETS_DIR = "handoff/PLAN/app-integration/tickets";
+export const TICKETS_DIR = "tickets";
 
 /** The `Status:` line must sit within this many lines of the top (title, blank, Status). */
 export const STATUS_WITHIN = 6;
@@ -127,9 +127,9 @@ export function checkLedger({ tickets, subjects, unfiled = "", extraProblems = [
     "a row lives in its ticket file under the Status line (T1041); move each row into its ticket file by hand (the one-row table under the Status line), then empty this table");
   else if (ledgerSection(legacy.readme) !== LEDGER_POINTER)
     problems.push(`${README}: its "## Ledger" section is not the pointer text (ledger.mjs LEDGER_POINTER): a row lives in its ticket file (T1041), nothing is written there`);
-  if (legacy.doneLedger !== null) problems.push(`${OLD_DONE} exists: closed rows live in their ticket files and are built into handoff/PLAN/views/DONE.md (T1041); ` +
+  if (legacy.doneLedger !== null) problems.push(`${OLD_DONE} exists: closed rows live in their ticket files and are built into docs/views/DONE.md (T1041); ` +
     "move any row it holds into its ticket file by hand (under the Status line), then git rm it");
-  for (const p of legacy.retired) problems.push(`${p} exists: it was retired (T1081): an owner ask is a line of the "## Owner" block in its ticket (${OWNER_UNFILED} when it has none); \`node app/tools/ledger.mjs\` builds handoff/PLAN/views/OWNER.md`);
+  for (const p of legacy.retired) problems.push(`${p} exists: it was retired (T1081): an owner ask is a line of the "## Owner" block in its ticket (${OWNER_UNFILED} when it has none); \`node app/tools/ledger.mjs\` builds docs/views/OWNER.md`);
   for (const { name, text } of tickets) {
     const id = idOfFile(name);
     if (!id) { problems.push(`${name}: file name does not start with a ticket id (Tnn-slug.md)`); continue; }
@@ -194,19 +194,19 @@ export function checkLedger({ tickets, subjects, unfiled = "", extraProblems = [
   return [...new Set(problems)].sort();
 }
 
-const RUNBOOKS_DIR = "handoff/PLAN/runbooks";
+const RUNBOOKS_DIR = "docs/runbooks";
 /** (T1081) One short page per live chat; START-HERE links each. A page is deleted when its chat ends. */
-export const RESTART_DIR = "handoff/PLAN/restart";
+export const RESTART_DIR = "docs/restart";
 /** (T1081) the numbers live in check-size.mjs BUDGETS, the one table of limits */
 export const RESTART_MAX = BUDGETS.restart[0];
 export const START_HERE_MAX = BUDGETS.startHere[0];
 /** (T1081) The restart pages of chats that were running when the scheme began; their chats edit them where they are, so
  *  these four paths (and only these) are tolerated until the rename commit moves them into restart/ and this list goes. */
 export const LEGACY_RESTART = [
-  "handoff/PLAN/RESTART-091-chat.md",
-  "handoff/PLAN/RESTART-repo-move-chat.md",
-  "handoff/PLAN/RESTART-store-content-chat.md",
-  "handoff/PLAN/ios/RESTART-ios-release-chat.md",
+  "docs/RESTART-091-chat.md",
+  "docs/RESTART-repo-move-chat.md",
+  "docs/RESTART-store-content-chat.md",
+  "docs/ios/RESTART-ios-release-chat.md",
 ];
 /** Every file name that is a restart page wherever it sits (a stray one outside restart/ fails). */
 export const RESTART_NAME = /^(RESTART|NEXT-SESSION)[^/]*\.md$/;
@@ -215,7 +215,7 @@ export const RESTART_NAME = /^(RESTART|NEXT-SESSION)[^/]*\.md$/;
 export const RUNBOOK_MAKES = {
   "annual-synopsis.md": ["data/source/fishing_synopsis.2025-27.pdf"],   // step 1: `cp` keeps last year's book under this name
 };
-const CITED_ROOTS = /^(app|pipeline|data|deploy|scripts|handoff|curation-review|\.github)\//;
+const CITED_ROOTS = /^(app|pipeline|data|deploy|scripts|docs|tickets|tools\/curation-review|\.github)\//;
 const TOP_FILES = /^(AGENTS|CLAUDE)\.md$/;
 /** (T1081) A branch name is not a repo path: `docs/T1081-cut` (one segment, no dot, a conventional-commit type before the slash).
  *  The folder `docs/` is a repo root after the rename, so a cited branch would read as a dead path without this. */
@@ -264,10 +264,10 @@ export function ruleIds(agents) {
  * Every way the handoff docs are wrong (T539), as a sorted list (empty = fine). Pure: `exists` / `isIgnored` answer for a
  * repo path (a git-ignored output such as app/dist/... is not required to exist).
  *
- * `runbooks` (T628): every `handoff/PLAN/runbooks/*.md`, read with `runbookPaths` (its command blocks too).
+ * `runbooks` (T628): every `docs/runbooks/*.md`, read with `runbookPaths` (its command blocks too).
  *
- * `restartPages` (T1081): every `handoff/PLAN/restart/*.md` (name + text); `restartFiles`: every repo path under
- * handoff/PLAN whose file name is a restart page (RESTART-*.md, NEXT-SESSION-*.md), wherever it sits.
+ * `restartPages` (T1081): every `docs/restart/*.md` (name + text); `restartFiles`: every repo path under
+ * docs whose file name is a restart page (RESTART-*.md, NEXT-SESSION-*.md), wherever it sits.
  *
  * @param {{ status: string, startHere: string, restartPages: { name: string, text: string }[], restartFiles: string[], agents: string,
  *           runbooks: { name: string, text: string }[],
@@ -293,7 +293,7 @@ export function checkDocs({ status, startHere, restartPages, restartFiles, agent
   // (T1081) START-HERE is short and lists every live chat's restart page; a page is short and holds no state
   const startLines = startHere.replace(/\n+$/, "").split("\n").length;
   if (startLines > START_HERE_MAX) problems.push(`START-HERE.md is ${startLines} lines (max ${START_HERE_MAX}): it points, the restart pages and AGENTS.md hold the rest`);
-  const linked = new Set([...startHere.matchAll(/handoff\/PLAN\/restart\/([\w.-]+\.md)/g)].map((m) => m[1]));
+  const linked = new Set([...startHere.matchAll(/docs\/restart\/([\w.-]+\.md)/g)].map((m) => m[1]));
   for (const name of linked) if (!pages.some((r) => r.name === name)) problems.push(`START-HERE.md links ${RESTART_DIR}/${name}, which does not exist`);
   for (const { name, text } of pages) {
     if (!linked.has(name)) problems.push(`${RESTART_DIR}/${name} is not linked from START-HERE.md (it lists every live chat's page; delete the page when its chat ends)`);
@@ -321,7 +321,7 @@ export function readRepo(repoRoot) {
     .sort()
     .map((name) => ({ name, text: readFileSync(join(dir, name), "utf8") }));
   const git = (...args) => execFileSync("git", ["-C", repoRoot, ...args], { encoding: "utf8" });
-  // (T1081) the folder moved (handoff/... to tickets/): its history began at the old path, so both are asked
+  // (T1081) the folder moved (docs/... to tickets/): its history began at the old path, so both are asked
   // Subjects before the tickets folder used T-numbers of an older plan (e.g. "T3a"); they are not tickets.
   const firsts = git("log", "--diff-filter=A", "--format=%H", "--", TICKETS_DIR, LEGACY_TICKETS_DIR).trim().split("\n").filter(Boolean);
   if (!firsts.length) throw new Error(`no commit adds ${TICKETS_DIR}; cannot scope commit subjects`);
@@ -348,11 +348,11 @@ export function ledgerIds(repoRoot) {
 
 /** The docs checkLedger's sibling reads: real files, real existence, real git-ignore. */
 export function readDocs(repoRoot) {
-  const plan = join(repoRoot, "handoff/PLAN");
+  const plan = join(repoRoot, "docs");
   const startHere = readFileSync(join(plan, "START-HERE.md"), "utf8");
   const rdir = join(repoRoot, RESTART_DIR);
   const restartPages = existsSync(rdir) ? readdirSync(rdir).filter((n) => !n.startsWith(".")).sort().map((name) => ({ name, text: readFileSync(join(rdir, name), "utf8") })) : [];
-  const restartFiles = readdirSync(plan, { recursive: true }).map(String).filter((p) => RESTART_NAME.test(p.split("/").pop())).map((p) => `handoff/PLAN/${p}`).sort();
+  const restartFiles = readdirSync(plan, { recursive: true }).map(String).filter((p) => RESTART_NAME.test(p.split("/").pop())).map((p) => `docs/${p}`).sort();
   // git answers 0 (ignored) or 1 (not); anything else is git itself failing, said aloud so a runner that cannot ask
   // does not read as "every ignored path is a dead path". GIT_* from a caller's environment must not point git elsewhere.
   const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")));

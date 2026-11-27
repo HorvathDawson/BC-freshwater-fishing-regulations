@@ -12,7 +12,7 @@ import pytest
 from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence", "idlist")
 
 ROWS = [{"entry_id": "r1:a@1-1", "verify": "verified"}, {"entry_id": "r1:b@1-2", "verify": "wrong"},

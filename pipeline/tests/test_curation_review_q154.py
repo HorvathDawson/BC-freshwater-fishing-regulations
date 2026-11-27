@@ -15,7 +15,7 @@ from pipeline.tests.conftest import curated_root, no_served_build
 REPO = Path(__file__).resolve().parents[2]
 #: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
 LIVE_CURATED = under_test.curated().base
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 
 
 def _pond(i, caught, s="example", **kw):

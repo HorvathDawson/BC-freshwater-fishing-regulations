@@ -14,7 +14,7 @@ from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 CANDIDATES = under_test.generated().review / "tidal" / "tidal-candidates.json"
 NELSON = "tidal:356013125"
 

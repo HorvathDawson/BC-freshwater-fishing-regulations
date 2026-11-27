@@ -10,7 +10,7 @@
  *
  * NO IMPORTS: build-apk.sh reads this file with node (`node -e "import('./…/changelog.ts')"`, type stripping).
  *
- * `draft: true` — drafted by Claude from handoff/PLAN/STATUS.md for the owner to review (everything added is a proposal);
+ * `draft: true` — drafted by Claude from docs/STATUS.md for the owner to review (everything added is a proposal);
  * the owner clears it once read. Dates are the day the version was cut (null: not cut yet / not recorded).
  */
 export interface ChangelogEntry {

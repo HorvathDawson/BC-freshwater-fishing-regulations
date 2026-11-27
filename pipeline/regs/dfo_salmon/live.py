@@ -63,7 +63,7 @@ the row-change digest is not.
 
 Nothing here writes a curated file except `queue`, which is run by a person (the seed never edits an existing record).
 The schedule (every 6 h in season) and the R2 sync of the feed dir to `feeds/dfo/` are the owner's
-(handoff/PLAN/OWNER-TODO.md).
+(docs/OWNER-TODO.md).
 """
 from __future__ import annotations
 

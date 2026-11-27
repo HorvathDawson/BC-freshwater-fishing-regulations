@@ -178,7 +178,7 @@ def test_a_checklist_mark_is_all_correct_only_when_every_row_is_ok_or_ticked():
 def _backend(monkeypatch, name):
     import sys
     from pathlib import Path
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     # taken out again at once: a `checks` left in sys.modules stays bound to THIS test's `reuse` (its marks store),
     # and a later test's fresh app then read its rule marks from the wrong store (order-dependent "unchecked")
     sys.modules.pop(name, None)
@@ -461,7 +461,7 @@ def test_the_owners_two_piece_alouette_save_reads_as_built_as_saved():
     item_id for "the place's waters", and a place-level tributary flag."""
     import sys
     from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     try:
         import dfo as BD
     finally:
