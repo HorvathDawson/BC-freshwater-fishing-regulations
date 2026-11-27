@@ -50,7 +50,7 @@ export function GaugeReading({ source, station, palette, theme, feed, notes }: {
       {r?.figure && (
         <View style={{ gap: SPACE.s1 }}>
           <Text testID="gauge-figure" style={{ ...TYPE.title, color: palette.ink }}>{r.figure}</Text>
-          {(noRecord ?? r.standing) && <Text testID="gauge-standing" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{noRecord ?? r.standing}</Text>}
+          {(noRecord ?? r.standing) && <Text testID={noRecord ? "reading-no-record" : "gauge-standing"} style={{ ...TYPE.bodyStrong, color: palette.ink }}>{noRecord ?? r.standing}</Text>}
         </View>
       )}
       {r?.percentile != null && !noRecord && (

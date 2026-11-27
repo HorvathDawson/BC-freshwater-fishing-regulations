@@ -18,8 +18,7 @@
  * a value differently from the app (T622; `gauges.test.ts` holds the names and the output to core's). Everything else it
  * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
-import { BC_TIME_LABEL, bandOfWord, bcDayWords, bcFields, daysNear, FLOW_LEGEND, NORMAL_BAND, bcIsoDayWords, bcStampWords, freshness,
-         observedTrend, readingAgeBrief, gaugeSummaryLine, standingNowLine, bandWord, sunLine, SPOT_WINDOW, weatherFigure } from "@app/core";
+import { BC_TIME_LABEL, bcDayWords, bcFields, bcIsoDayWords, bcStampWords, sunLine, SPOT_WINDOW, weatherFigure } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -74,62 +73,8 @@ export const CHART_FAILED = "The chart could not be drawn. Try again later.";
 
 const esc = (s: string): string => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** the reading block: the value, its standing, its time; a stale reading said in so many words */
-export function readingHtml(f: Facts, now: number): string {
-  if (f.value === null) {
-    return `<p class="reading">No current reading</p>` +
-      `<p class="warn">${f.atText ? `This gauge last reported ${esc(f.atText)}.` : "The live feed has no reading for this gauge."} ` +
-      "It may be down, seasonal, or late reporting.</p>";
-  }
-  // (T622 G7, G8, G22, G24) the reading's time and how old OUR copy is, judged by core's `freshness` (the age of the feed's copy,
-  // not of the reading). (T908, owner 2026-11-19) three rows: the headline with the figure, the colour bar, one small line
-  const copy = freshness(f.fetchedAt ? Date.parse(f.fetchedAt) : null, now, f.staleAfterMs);
-  const summary = gaugeSummaryLine(rankOf(f), f.change, readingAgeBrief(copy, f.at ? Date.parse(f.at) : null, now));
-  return `<div class="headrow">${headlineHtml(f, now)}<p class="reading" aria-label="${f.parameter === "level" ? "water level" : "flow"}"><b>${esc(f.value)}</b></p></div>` +
-    colourBarHtml(f) + `<p class="${copy.state === "live" ? "asof" : "warn"} meta">${esc(summary)}</p>`;
-}
-
-const DAY = 86_400_000;
-
-/** core's rank half of the facts' standing line ("lower than 9 days in 10 for the date"), or null */
-function rankOf(f: Facts): string | null {
-  if (!f.standing) return null;
-  const lead = f.standing.split(" · ")[0]!;
-  return bandOfWord(lead) === null ? null : f.standing.slice(lead.length + 3) || null;
-}
-
-/**
- * (T908, owner 2026-11-19) THE HEADLINE: "Above normal for Nov 19 · rising", in the colour the map gives that standing (the Flow vs.
- * past years ramp; css `.b-<band>`). The band word is the one core said in the facts' standing line (`bandOfWord` reads it back to its
- * band); the day and the trend word are core's (`standingNowLine`, `observedTrend`); the trend is the measured line over the last
- * day. A standing that is none of the six bands is shown as core said it; no standing, nothing.
- */
-export function headlineHtml(f: Facts, now: number): string {
-  if (!f.standing) return "<span></span>";
-  const lead = f.standing.split(" · ")[0]!, band = bandOfWord(lead);
-  if (band === null) return `<p class="standing nowline">${esc(f.standing)}</p>`;
-  const last = f.week[f.week.length - 1];
-  let before: [number, number] | undefined;
-  if (last) for (const p of f.week) if (p[0] <= last[0] - DAY && (!before || p[0] > before[0])) before = p;
-  const trend = last && before ? observedTrend(before[1], last[1]) : null;
-  return `<p class="standing nowline b-${band}">${esc(standingNowLine(bandWord(band), bcDayWords(now), trend))}</p>`;
-}
-
-/**
- * (T908, owner 2026-11-19: "the same color bar ... like we have in condition tab") THE CONDITIONS TAB'S "Flow vs. past years" BAR,
- * with this gauge's reading marked on it: the map's ramp (css `--flow-ramp`, built from the style's own stops), Low and High at the
- * ends, the bracket over the middle half marked Normal (core's `NORMAL_BAND`), and the reading at its percentile. No percentile in
- * the facts (a file from before T908, or no record to rank by): no bar.
- */
-export function colourBarHtml(f: Facts): string {
-  const p = f.percentile;
-  if (typeof p !== "number" || !Number.isFinite(p) || p < 0 || p > 1) return "";
-  const title = FLOW_LEGEND.title[f.parameter === "level" ? "level" : "discharge"];
-  const pct = (x: number) => `${Math.round(x * 1000) / 10}%`;
-  return `<div class="ramp" role="img" aria-label="${esc(`${FLOW_LEGEND.scale(title, FLOW_LEGEND.low, FLOW_LEGEND.high, FLOW_LEGEND.mid)}. This gauge: ${daysNear(p)}`)}">` +
-    `<div class="rampbar"><span>${esc(FLOW_LEGEND.low)}</span><div class="bar"><i class="mark" style="left:${pct(p)}"></i></div><span>${esc(FLOW_LEGEND.high)}</span></div>` +
-    `<div class="rampnormal"><div style="left:${pct(NORMAL_BAND[0])};width:${pct(NORMAL_BAND[1] - NORMAL_BAND[0])}">${esc(FLOW_LEGEND.mid)}</div></div></div>`;
-}
+// (T1194) THE READING, ITS STANDING AND THE COLOUR BAR ARE THE SHARED PIECE'S (ui-native `GaugeReading`, mounted by gaugeChart.tsx):
+// this script draws only what the app does not: the credit, the weather and the sun.
 
 /** the credit under the chart: the readings', and the Province's for the forecast runs the facts name (the app's chart draws them) */
 export function creditHtml(f: Pick<Facts, "forecast" | "forecasts">): string {
@@ -218,7 +163,7 @@ async function readJson(fetchImpl: typeof fetch, url: string): Promise<unknown> 
   return await r.json();
 }
 
-/** the page's live half: fills #gauge-now, #gauge-credit and #gauge-weather (the chart is gaugeChart.tsx's); resolves when both reads have settled */
+/** the page's live half: fills #gauge-credit, #gauge-weather and #gauge-sun (the chart is gaugeChart.tsx's); resolves when both reads have settled */
 export async function gaugePage(doc: Document, now: () => number, fetchImpl: typeof fetch): Promise<void> {
   const cfgEl = doc.getElementById("gauge-config");
   if (!cfgEl?.textContent) throw new Error("gauge page: no #gauge-config");
@@ -232,9 +177,8 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
   const facts = readJson(fetchImpl, cfg.facts).then((raw) => {
     const f = raw as Facts;
     if (f.format !== "gauge-card/1") throw new Error(`${cfg.facts}: format ${String(f.format)}, not gauge-card/1`);
-    put("gauge-now", readingHtml(f, now()));
     put("gauge-credit", creditHtml(f));
-  }).catch((e) => failed("gauge-now", "The latest reading", e));
+  }).catch((e) => failed("gauge-credit", "The data credit", e));
   const sun = sunHtml(cfg.place ?? null, now());
   if (sun) put("gauge-sun", sun);
   const weather = cfg.weather === null

@@ -132,8 +132,11 @@ describe("T487 gauge pages", () => {
     expect(panel).toMatch(/<StationChart vm=\{sc\}/);
     expect(panel).toMatch(/useStationChart\(source, station,/);
     expect(panel).not.toMatch(/<Hydrograph\b/);
-    expect(page).toMatch(/h\(StationChart, \{ vm, palette/);
-    expect(page).toMatch(/useStationChart\(source, station,/);
+    // (T1194) the page mounts the shared reading + chart piece, which draws the chart through the same component and hook
+    const shared = readFileSync(new URL("../../packages/ui-native/src/GaugeReading.tsx", import.meta.url), "utf8");
+    expect(page).toMatch(/h\(GaugeReading, \{ source, station,/);
+    expect(shared).toMatch(/<StationChart vm=\{vm\}/);
+    expect(shared).toMatch(/useStationChart\(source, station,/);
   });
 
   it("(T1039) the chart's script may not read an environment variable a browser lacks; NODE_ENV and React's guarded checks pass", () => {

@@ -355,6 +355,38 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
     });
   });
 
+  it("(T1194) a gauge dot under the finger is the dot's: a 44 px box asked FIRST, that station opens, no water and no map point", async () => {
+    const gauge = vi.fn(), press = vi.fn(), point = vi.fn();
+    const dot = (station: string, lon: number) => ({ properties: { station }, geometry: { type: "Point", coordinates: [lon, 49.1] } });
+    // two dots in the box: the nearer to the press (-122.3) wins; a stream is under the finger too, and is not asked
+    answer = (layers) => (layers.includes("gauge-dot") ? [dot("08MH002", -122.31), dot("08MH001", -122.3005)]
+      : layers.includes("stream") ? [{ id: 311274 }] : []);
+    render(<P.Map {...base({ data: undefined, highlight: undefined, onPressGauge: gauge, onPressFeature: press, onMapPoint: point })} />);
+    await waitFor(() => expect(native.props ?? web.map).toBeTruthy());
+    log.length = 0;
+    P.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(gauge.mock.calls).toEqual([["08MH001"]]));
+    await act(async () => {});
+    expect({ press: press.mock.calls, point: point.mock.calls, queries: [...new Set(log.filter((l) => l.startsWith("query")))] })
+      .toEqual({ press: [], point: [], queries: ["query [[78,178],[122,222]] gauge-dot,gauge-label"] });
+  });
+
+  it("(T1194) no gauge dot in the box: the water is asked as before; no gauge prop: the dot layers are never asked", async () => {
+    const gauge = vi.fn(), press = vi.fn();
+    answer = (layers) => (layers.includes("stream") ? [{ id: 311274 }] : []);
+    render(<P.Map {...base({ data: undefined, highlight: undefined, onPressGauge: gauge, onPressFeature: press })} />);
+    await waitFor(() => expect(native.props ?? web.map).toBeTruthy());
+    P.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(press.mock.calls.length).toBe(1));
+    expect(gauge).not.toHaveBeenCalled();
+    cleanup(); log.length = 0;
+    render(<P.Map {...base({ data: undefined, highlight: undefined, onPressFeature: press })} />);
+    await waitFor(() => expect(native.props ?? web.map).toBeTruthy());
+    P.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(press.mock.calls.length).toBe(2));
+    expect(log.some((l) => l.includes("gauge-dot"))).toBe(false);
+  });
+
   it("no stream under the finger: still water next; nothing at all: no answer", async () => {
     const press = vi.fn();
     answer = (layers, phone) => (layers.includes("lake") ? [{ id: phone ? "1566515" : 1566515 }] : []);
