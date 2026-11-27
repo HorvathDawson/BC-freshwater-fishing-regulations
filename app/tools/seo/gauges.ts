@@ -25,7 +25,7 @@ import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
 import { gaugeFindForm } from "./gaugeFind";
 import type { SearchGauge } from "./gaugeSearch";
-import { bestServes, gaugePath, gaugeSubject, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
+import { authorityWeb, bestServes, gaugePath, gaugeSubject, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
 import type { StationClim } from "@app/data";
 import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
@@ -237,6 +237,8 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
     contact: STORE_CONTACT,
     // (T1039) where the day's sunrise and sunset are worked out (the gauge's own point; core `sunLine`, read time)
     place: g.lat === null || g.lon === null ? null : { lat: g.lat, lon: g.lon },
+    // (T1194) the readings' source, linked from the failure line
+    source: authorityWeb("eccc"),
   };
 }
 

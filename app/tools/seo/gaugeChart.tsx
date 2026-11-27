@@ -29,7 +29,7 @@ export type PageFeed = { observations?: GaugeFeed["observations"] };
 import { GetAppBlock } from "../../packages/ui-native/src/GetAppBlock";
 import { GaugeReading } from "../../packages/ui-native/src/GaugeReading";
 import { SPACE, THEMES } from "../../packages/ui-native/src/theme";
-import { CHART_FAILED, pageReporter, type GaugeConfig } from "./gaugeClient";
+import { CHART_FAILED, chartFailedHtml, pageReporter, type GaugeConfig } from "./gaugeClient";
 
 export { CHART_FAILED };
 
@@ -66,11 +66,14 @@ export function mountGaugeChart(doc: Document, fetchImpl: typeof fetch, now: () 
   // (T1039 review) ran: the page's own script (gaugeClient.ts) says the chart failed when this mark is missing at load; from
   // here on a failure is this script's to show AND report
   box?.setAttribute("data-mounted", "");
-  const shown = (where: Element | null) => { if (where) where.innerHTML = `<p class="warn">${CHART_FAILED}</p>`; };
+  // (T1194) said with the link to the source once the config is read (`cfg`); before it parses, the plain line
+  let cfgNow: GaugeConfig | null = null;
+  const shown = (where: Element | null) => { if (where) where.innerHTML = cfgNow ? chartFailedHtml(cfgNow) : `<p class="warn">${CHART_FAILED}</p>`; };
   let cfg: GaugeConfig;
   try {
     if (!cfgEl?.textContent) throw new Error("gauge chart: no #gauge-config on this page");
     cfg = JSON.parse(cfgEl.textContent) as GaugeConfig;
+    cfgNow = cfg;
   } catch (e) {
     // no config (or one that does not parse): said where the chart goes; there is no endpoint to report it to
     shown(box);

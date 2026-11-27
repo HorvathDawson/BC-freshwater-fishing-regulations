@@ -43,6 +43,8 @@ export interface GaugeConfig {
   readonly contact: string | null;
   /** (T1039) the gauge's point, for the day's sunrise and sunset; null: no position on file */
   readonly place: { readonly lat: number; readonly lon: number } | null;
+  /** (T1194) where the readings come from (core `authorityWeb("eccc")`): the failure line links it, so a page with no reading still points at the source */
+  readonly source: { readonly name: string; readonly url: string };
 }
 
 export interface Run { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string; horizonDays?: number }
@@ -69,7 +71,12 @@ export interface Facts {
 }
 
 /** (T1039) what the page says where the chart goes when it could not be drawn (gaugeChart.tsx says the same) */
-export const CHART_FAILED = "The chart could not be drawn. Try again later.";
+export const CHART_FAILED = "Could not load this gauge's reading. Reload the page.";
+/** (T1194) how long the page waits for the chart's script before it says so (a hung script never fires `load`) */
+export const CHART_WAIT_MS = 15_000;
+/** the failure where the reading and chart go, with the link to the source (`cfg.source`) */
+export const chartFailedHtml = (cfg: Pick<GaugeConfig, "source">): string =>
+  `<p class="warn">${esc(CHART_FAILED)} <a href="${esc(cfg.source.url)}">${esc(cfg.source.name)}</a></p>`;
 
 const esc = (s: string): string => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -188,14 +195,17 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
   // (T1039 review, W46) THE CHART'S OWN SCRIPT (gaugeChart.tsx) marks #gauge-chart the moment it runs. Once the page has
   // loaded (every deferred script run, or failed), a box it never marked means that script did not load or did not parse:
   // said where the chart goes, and reported
+  // (T1194) ...or does not come at all: a script that hangs never fires `load`, so the same judgement also runs after `CHART_WAIT_MS`
+  let said = false;
   const chartRan = () => {
     const box = doc.getElementById("gauge-chart");
-    if (!box || box.hasAttribute("data-mounted")) return;
-    box.innerHTML = `<p class="warn">${esc(CHART_FAILED)}</p>`;
+    if (said || !box || box.hasAttribute("data-mounted")) return;
+    said = true;
+    box.innerHTML = chartFailedHtml(cfg);
     report(new Error("gauge page: the chart's script did not run (not loaded, or did not parse)"));
   };
   // a document with no window (no load to wait for) is judged now
   const win = doc.defaultView;
-  if (doc.readyState === "complete" || !win) chartRan(); else win.addEventListener("load", chartRan, { once: true });
+  if (doc.readyState === "complete" || !win) chartRan(); else { win.addEventListener("load", chartRan, { once: true }); win.setTimeout(chartRan, CHART_WAIT_MS); }
   await Promise.all([facts, weather]);
 }

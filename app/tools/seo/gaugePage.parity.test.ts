@@ -275,7 +275,7 @@ describe("the gauge page shows what the app shows for one station", () => {
       doc.body.innerHTML = `<div id="gauge-chart"></div><div id="gauge-get-app"></div><script type="application/json" id="gauge-config">${JSON.stringify({
         station: ST, facts: "https://data.example/feeds/cards/08MH001.json", live: BASE, clim: [{ parameter: "discharge", bands: clim }],
         fonts: '@font-face{font-family:"Archivo_400Regular";src:url(/assets/fonts/A.woff2)}',
-        weather: null, weatherAttribution: "", sky: {}, crash: "https://c/crash", env: "staging", release: "r1", contact: STORE_CONTACT })}</script>`;
+        weather: null, weatherAttribution: "", sky: {}, crash: "https://c/crash", env: "staging", release: "r1", contact: STORE_CONTACT, source: { name: "Environment Canada", url: "https://wateroffice.ec.gc.ca/" } })}</script>`;
       const sent: string[] = [];
       const inner = feedFetch(station);
       const fetchImpl = (async (u: string, init?: RequestInit) => {
