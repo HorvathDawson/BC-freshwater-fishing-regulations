@@ -1510,11 +1510,6 @@
    "matched": [
     "gnis:11710"
    ],
-   "extents": [
-    {
-     "op": "whole"
-    }
-   ],
    "rules": [
     {
      "rule_id": "caycuse_river.r1",
