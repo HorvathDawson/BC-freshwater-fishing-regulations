@@ -1,20 +1,9 @@
-// @vitest-environment jsdom
 /**
- * T1201 — THE SHELL'S SCREENS AT A LARGER SYSTEM TEXT SIZE, walked: the Map tab (its search field, the Layers button and the
- * bottom bar; the map is blank, and the Trout / Salmon switch, legend and day bar draw only with live data, so they are NOT swept here: the switch is
- * held by `system-text-labels.test.ts`), Conditions, Runs, Spots and More with its pages, each laid out in headless Chrome at 320, 360 and
- * 412 wide. The same phone-text emulation as `regs-text-scale.test.ts` (size and line height x min(OS scale, the Text's own
- * cap); react-native-web drops both props), the same Chrome layout (`wide-measure.mjs`).
- *
- * Measured per screen: a word cut by a clamp or hidden overflow (`cut`), two lines of different words drawn over each
- * other (`over`), a text line past the window's edge (`wide`), sideways overflow, and a one-word label drawn on two lines
- * NOTE: the walkthrough's card is placed from a measured target, which a static render cannot give it: its words are in the page and its
- * dimmed map, rail and legend are walked, but where the card sits is for the phone check (T1203). (`broken`: "SALMO" / "N"). The gate is 1.3x (what a phone's labels follow, `LABEL_SCALE`): none of those. 1.15, 1.5 and
- * 2.0 are laid out too and reported (T1201_REPORT=<file.json>; T1201_SHOTS=<dir> saves each as a PNG): at 2.0 wrapping is
- * fine, loss is not, so a screen at 1.5 or 2.0 is judged by the report and the pictures, not by this gate.
+ * T1201 / T1203 — THE APP'S SCREENS AT A LARGER SYSTEM TEXT SIZE, walked (shared by the `system-text-sweep.*.test.ts` shards).
+ * Each shard file installs the phone-text emulation and the map stand-in (its `vi.mock`s must sit in the test file), then calls
+ * `walk(group, ids)` here. See the shards' header for the method and the exclusions.
  */
-import "./render-setup.ts";
-import { createElement as h, forwardRef, type ReactNode } from "react";
+import { createElement as h, type ReactNode } from "react";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -28,36 +17,7 @@ import { parseRunTimingIndex, RunTimingFacts, type PaintDoc, type RunsDoc, type 
 import { parseManifest, type RunTimingSource } from "@app/data";
 import { HOME, type PairingInput, type Route, type StatusSource } from "@app/ui";
 
-const SCALE = vi.hoisted(() => ({ v: 1 }));
-vi.mock("react-native", async (importOriginal) => {
-  const rn = await importOriginal<typeof import("react-native")>();
-  type P = React.ComponentProps<typeof rn.Text>;
-  const Text = forwardRef<unknown, P>(function Text(p, ref) {
-    const m = p.allowFontScaling === false ? 1 : Math.min(SCALE.v, p.maxFontSizeMultiplier ?? Infinity);
-    const flat = (rn.StyleSheet.flatten(p.style) ?? {}) as { fontSize?: number; lineHeight?: number };
-    const scaled = m === 1 ? p.style : [p.style, {
-      ...(flat.fontSize != null ? { fontSize: flat.fontSize * m } : {}),
-      ...(flat.lineHeight != null ? { lineHeight: flat.lineHeight * m } : {}),
-    }];
-    return h(rn.Text as never, { ...p, ref, style: scaled });
-  });
-  return { ...rn, Text };
-});
-// no WebGL in jsdom: the map itself is blank, the screen around it (rail, switch, legend, day bar) is the app's
-vi.mock("@app/map", async (importOriginal) => {
-  const { View, Pressable } = await import("react-native");
-  const { useEffect } = await import("react");
-  // a stand-in for the map canvas: a tinted card that fills its place and says its look is drawn (as the real map does), so the
-  // screen around it (legend, day bar, switch) is laid out as on a phone
-  const Map = (p: { lookKey?: string; onLookDrawn?: (k: string) => void; onPressFeature?: (l: string, id: number) => void }) => {
-    useEffect(() => { if (p.lookKey !== undefined) p.onLookDrawn?.(p.lookKey); }, [p.lookKey, p.onLookDrawn]);
-        // a one-pixel press target standing for "a tap on a stream" (no text, so it is no part of what is measured)
-    return h(View, { testID: "map-canvas", style: { flex: 1, backgroundColor: "#dfe5df" } },
-             h(Pressable, { accessibilityRole: "button", accessibilityLabel: "tap a stream", onPress: () => { void p.onPressFeature?.("streams", 15); }, style: { width: 1, height: 1 } }));
-  };
-  return { ...(await importOriginal<typeof import("@app/map")>()), Map };
-});
-vi.mock("../packages/ui-native/src/FishSpinner", () => ({ FishSpinner: () => null }));
+const SCALE = (globalThis as unknown as { __T1203_SCALE: { v: number } }).__T1203_SCALE;
 const { PixelRatio } = await import("react-native");
 vi.spyOn(PixelRatio, "getFontScale").mockImplementation(() => SCALE.v);
 const { snapshot } = await import("./wide-snapshot");
@@ -100,24 +60,35 @@ const MEASURE = `(() => {
     if (page && e.getAttribute('data-testid') === 'more-screen' && !e.contains(page)) return true;
     if (s.display === 'none' || s.opacity === '0' || s.visibility === 'hidden') return true; } return false; };
   const name = (e) => (e.closest('[data-testid]')?.getAttribute('data-testid') ?? '') + ' "' + (e.textContent ?? '').trim().replace(/\\s+/g, ' ').slice(0, 40) + '"';
-  const cut = [], broken = [];
+  const cut = [], broken = [], clamps = [];
+  // DESIGNED CLAMPS (header, exclusion 3): these Texts are cut to two lines with an ellipsis at every size on purpose (T214 / T875:
+  // "a longer name is cut; its full words are the accessible label"; the inbox row's first lines, the notice opens on a tap).
+  // They are not skipped: the clamp must be that clamp (two lines at most), and every OTHER element is judged as any other.
+  const DESIGNED = /water-map-(name|step-)|inbox-row/;
+  // an id (a tile version, a release) breaks where it must; a hyphenated word may break at its hyphen
+  const ID_LIKE = /^[0-9A-Za-z._-]{12,}$/, HYPHENATED = /^\\p{L}{3,}-\\p{L}{3,}$/u;
   for (const e of document.querySelectorAll('body *')) {
     if (gone(e) || !(e.textContent ?? '').trim()) continue;
-    const s = getComputedStyle(e);
-    const hides = /hidden|clip/.test(s.overflowY) || /hidden|clip/.test(s.overflowX) || s.webkitLineClamp !== 'none' && s.webkitLineClamp !== '';
-    // The glossary's rows are cells of a virtual list: this static render gives each cell a height measured for one text size, while the
-    // page (see its pictures) grows every row to its words, so a cell clamp or a row crossing another there is the harness's, not the app's.
-    // DESIGNED CLAMPS: the in-season inbox row's two-line first lines (the detail opens on a tap) and the water map's part name and step words are cut with an ellipsis at every size (two lines, T214 / T875:
-    // "a longer name is cut; its full words are the accessible label"), so a clamp there is not a larger-text fault
-    if (/water-map-(name|step-)|inbox-row|glossary-/.test(e.closest('[data-testid]')?.getAttribute('data-testid') ?? '')) continue;
+    const s = getComputedStyle(e), tid = e.closest('[data-testid]')?.getAttribute('data-testid') ?? '';
+    const clamp = s.webkitLineClamp !== 'none' && s.webkitLineClamp !== '';
+    if (clamp && DESIGNED.test(tid)) {
+      const lh = parseFloat(s.lineHeight) || 16, shown = Math.round(e.clientHeight / lh);
+      if (shown > 2) clamps.push(name(e) + ' shows ' + shown + ' lines (designed: 2)');
+      continue;
+    }
+    // NOT COVERED (header, exclusion 2): the glossary's rows are cells of a virtual list; this static render gives each cell a height
+    // measured for one text size, so a cell's clamp there says nothing about the app
+    if (/glossary-row/.test(tid)) continue;
+    const hides = /hidden|clip/.test(s.overflowY) || /hidden|clip/.test(s.overflowX) || clamp;
     if (hides && !/auto|scroll/.test(s.overflowY) && !/auto|scroll/.test(s.overflowX) && (e.scrollHeight > e.clientHeight + 1 || e.scrollWidth > e.clientWidth + 1))
       cut.push(name(e) + ' ' + e.scrollWidth + 'x' + e.scrollHeight + ' in ' + e.clientWidth + 'x' + e.clientHeight);
-    // a one-word leaf (no digit: an id such as a tile version breaks where it must) drawn on two lines is a word broken in the middle (counted from the text's own line rects: a leaf
-    // stretched tall by its flex row is not two lines)
-    if (!e.children.length && !/[\\s\\d-]/.test(e.textContent.trim()) && e.firstChild && e.firstChild.nodeType === 3) {
+    // a one-word leaf drawn on two lines is a word broken in the middle (counted from the text's own line rects: a leaf stretched
+    // tall by its flex row is not two lines)
+    const word = e.textContent.trim();
+    if (!e.children.length && !/\\s/.test(word) && !ID_LIKE.test(word) && !HYPHENATED.test(word) && e.firstChild && e.firstChild.nodeType === 3) {
       const r = document.createRange(); r.selectNodeContents(e.firstChild);
       const tops = new Set([...r.getClientRects()].map((q) => Math.round(q.top / 4)));
-      if (tops.size > 1) broken.push(name(e));
+      if (tops.size > 1) broken.push(name(e) + ' [' + word + ']');
     }
   }
   // a sheet over a page: the page's words under the sheet's panel are covered (its scrim does not take pointer events)
@@ -126,7 +97,11 @@ const MEASURE = `(() => {
   for (let n, i = 0; (n = walk.nextNode()); i++) {
     if (!n.textContent.trim() || gone(n.parentElement)) continue;
     range.selectNodeContents(n);
-    for (const q of range.getClientRects()) if (q.width > 1 && q.height > 1) {
+    // a text clipped by its own box (an ellipsis, a clamp) is drawn only inside it: its range rects run on past the box (reported as cut)
+    const own = n.parentElement, os = getComputedStyle(own), ob = /hidden|clip/.test(os.overflowX) || /hidden|clip/.test(os.overflowY) ? own.getBoundingClientRect() : null;
+    for (let q of range.getClientRects()) if (q.width > 1 && q.height > 1) {
+      if (ob) q = { left: Math.max(q.left, ob.left), right: Math.min(q.right, ob.right), top: Math.max(q.top, ob.top), bottom: Math.min(q.bottom, ob.bottom), width: 0, height: Math.min(q.bottom, ob.bottom) - Math.max(q.top, ob.top) };
+      if (!(q.right - q.left > 1 && q.height > 1)) continue;
       const pad = q.height / 5;
       // under another layer (a page's sheet over the tab beneath, scrolled content under the bar) it is not on screen
       const cx = (q.left + q.right) / 2, cy = (q.top + q.bottom) / 2;
@@ -145,21 +120,20 @@ const MEASURE = `(() => {
   for (let a = 0; a < boxes.length; a++) for (let b = a + 1; b < boxes.length; b++) {
     const A = boxes[a], B = boxes[b];
     if (A.i === B.i) continue;
-    if (/inbox-row/.test(A.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '') && /inbox-/.test(B.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '')) continue;   // the row's two-line clamp
     if (/glossary-/.test(A.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '') && /glossary-/.test(B.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '')) continue;
     if (panel && panel.contains(A.el) !== panel.contains(B.el)) continue;   // a sheet's words and the page's beneath it
     const x = Math.min(A.r.right, B.r.right) - Math.max(A.r.left, B.r.left), y = Math.min(A.r.bottom, B.r.bottom) - Math.max(A.r.top, B.r.top);
     if (x > 2 && y > 2) over.push(name(A.el) + ' x ' + name(B.el));
   }
-  return JSON.stringify({ cut, broken, over: [...new Set(over)], wide: [...new Set(wide)],
+  return JSON.stringify({ cut, broken, clamps, over: [...new Set(over)], wide: [...new Set(wide)],
     overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth), lines: boxes.length });
 })()`;
 
-const dir = mkdtempSync(join(tmpdir(), "t1201-sweep-"));
+const dir = mkdtempSync(join(tmpdir(), "t1203-walk-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 writeFileSync(join(dir, "measure.js"), MEASURE);
 
-type M = { min?: number; fonts: string; cut: string[]; broken: string[]; over: string[]; wide: string[]; overflow: number; lines: number };
+type M = { min?: number; fonts: string; clamps: string[]; cut: string[]; broken: string[]; over: string[]; wide: string[]; overflow: number; lines: number };
 
 // ---- what the Shell is handed: the T856 recipe (a proven tile pair, a day's status, salmon facts, the fixture release) ----
 const H = "d768d6e135e62b99";
@@ -244,6 +218,34 @@ const type = (label: string, value: string) => act(() => {
   const el = screen.getByLabelText(label);
   fireEvent.focus(el); fireEvent.change(el, { target: { value } });
 });
+
+// ---- real gauge rows for the Conditions views (T1203 review 7): the fixture has no panel, so the water's Conditions card read
+// "basin days failed". Here the Chilliwack's sections have a three-gauge panel (the fixture's own gauge as the lead), their
+// route, a reading and a year of series, and the feed carries the lead's standing: the real card, chart header, legend ramp and
+// Change panel are drawn. ----
+const FIX = makeFixtureSource();
+const SECS = (await FIX.water("gnis:8634" as never))!.sections;
+const LEAD = "08MH001";
+const PANEL = { areaKm2: 50, members: [
+  { station: LEAD, role: "up", areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true },
+  { station: "DAM", role: "down", areaKm2: 55, years: { discharge: 6, level: 6 }, regulated: true, sameRiver: true },
+  { station: "QUIET", role: "up", areaKm2: 300, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true },
+] };
+const WITH_GAUGES = {
+  ...FIX,
+  salmonFacts: async () => FACTS,
+  panelsFor: async (secs: readonly number[]) => new Map(secs.map((x) => [x, PANEL])),
+  panelRoutes: async () => [
+    { station: LEAD, name: "Chilliwack River at Vedder Crossing", lat: 49.1, lon: -122, role: "up", path: SECS },
+    { station: "DAM", name: "Dam Creek below the Dam", lat: 49.15, lon: -122.1, role: "down", path: SECS },
+    { station: "QUIET", name: "Quiet River", lat: 49.2, lon: -122.2, role: "up", path: SECS },
+  ],
+} as never;
+const GAUGE_FEED = { index: async () => ({ fetchedAt: new Date().toISOString(), stations: {
+  [LEAD]: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 },
+  DAM: { percentile: 0.8, parameter: "discharge" as const, discharge: 0.8 },
+} }) } as never;
+
 const SCREENS: Screen[] = [
   { id: "map", must: "regs-paint" },
   { id: "map-day-picker", must: /Today/, go: () => pressLabel(/Choose a day/) },
@@ -290,7 +292,7 @@ const SCREENS: Screen[] = [
   { id: "popup-join-test", must: /./, min: 3, node: () => h(JoinTestCard, { store: "android", ask: joinTestAsk("android", "contact@example.invalid"), palette: LIGHT, onClose() {}, copy: async () => true }) },
   { id: "card-developer", must: /./, node: () => h(DeveloperModal, { open: true, theme: "light", palette: LIGHT, info: { appBuild: null, contact: null } as never, release: "r-t1203", onClose() {} }) },
   { id: "water-regs", start: WATER("regs"), must: "regs-scroll", go: () => waitReg() },
-  { id: "water-conditions", start: WATER("conditions"), must: /./ },
+  { id: "water-conditions", start: WATER("conditions"), must: "reading-figure", go: () => waitFor(() => { if (!screen.queryByTestId("reading-figure")) throw new Error("no reading yet"); }, { timeout: 15_000 }) },
   { id: "water-map", start: WATER("map"), must: /./ },
 ];
 
@@ -301,10 +303,10 @@ async function arrive(sc: Screen) {
     render(h(GestureHandlerRootView, { style: { flex: 1 } }, h(View, { style: { flex: 1, backgroundColor: LIGHT.bg, padding: 12 } }, sc.node())));
     await settle(300);
   } else render(h(GestureHandlerRootView, null,
-    h(Shell, { source: { ...makeFixtureSource(), salmonFacts: async () => FACTS }, loader: openRegsFixtureWithLines(), palette: LIGHT, theme: "light", themeName: "light", onTheme() {},
+    h(Shell, { source: WITH_GAUGES, loader: openRegsFixtureWithLines(), palette: LIGHT, theme: "light", themeName: "light", onTheme() {},
                tiles: { atlas: "a", basemap: "b" } as never, initialRoute: sc.start ?? HOME, spots: sc.spots ? SPOTS : [], onSaveSpot() {},
                status: STATUS, pairing: PAIRING, locate: null, ...sc.props,
-               feed: { index: async () => ({ fetchedAt: new Date().toISOString(), stations: {} }) } as never })));
+               feed: GAUGE_FEED })));
   await settle();
   try { await sc.go?.(); } catch (e) { throw new Error(`${sc.id}: could not arrive (${(e as Error).message.split("\n")[0]}); the screen reads: ${document.body.textContent?.slice(0, 500)}`); }
   await settle(150);
@@ -315,10 +317,11 @@ async function arrive(sc: Screen) {
     "\nlabels:", [...document.querySelectorAll("[aria-label]")].map((e) => e.getAttribute("aria-label")).join(" | "));
 }
 
-async function sweep(scales: readonly number[], widths: readonly number[]): Promise<Record<string, M>> {
+/** the screens a shard walks, at each width and scale; the file for each is Chrome's laid-out page of it */
+async function sweep(ids: readonly string[], scales: readonly number[], widths: readonly number[]): Promise<Record<string, M>> {
   const jobs: { page: string; size: [number, number]; measure: string; shot?: string }[] = [];
   const keys: string[] = [], mins: number[] = [];
-  for (const scale of scales) for (const w of widths) for (const sc of SCREENS.filter((x) => !only || only.includes(x.id))) {
+  for (const scale of scales) for (const w of widths) for (const sc of SCREENS.filter((x) => ids.includes(x.id) && (!only || only.includes(x.id)))) {
     SCALE.v = scale; WIN.w = w; WIN.h = 800;
     window.dispatchEvent(new Event("resize"));
     await arrive(sc);
@@ -336,30 +339,44 @@ async function sweep(scales: readonly number[], widths: readonly number[]): Prom
   return Object.fromEntries(keys.map((k, i) => [k, { ...res[i]!, min: mins[i]! }]));
 }
 
-const faultsOf = (v: M): string[] => [
-  ...v.cut.map((c) => `cut ${c}`), ...v.broken.map((c) => `one word on two lines ${c}`),
-  ...v.over.map((c) => `overlap ${c}`), ...v.wide.map((c) => `past the edge ${c}`),
-  ...(v.overflow > 0 ? [`${v.overflow} px sideways overflow`] : []),
+type Kind = "cut" | "broken" | "over" | "wide" | "overflow" | "clamp";
+const faultsOf = (v: M): { kind: Kind; text: string }[] => [
+  ...v.cut.map((text) => ({ kind: "cut" as const, text })), ...v.broken.map((text) => ({ kind: "broken" as const, text })),
+  ...v.over.map((text) => ({ kind: "over" as const, text })), ...v.wide.map((text) => ({ kind: "wide" as const, text })),
+  ...v.clamps.map((text) => ({ kind: "clamp" as const, text })),
+  ...(v.overflow > 0 ? [{ kind: "overflow" as const, text: `${v.overflow} px sideways overflow` }] : []),
 ];
-/**
- * What a LARGER text size broke: a fault also present at the default size on the same screen and width is the screen's own
- * (a designed clamp, a static render's virtual list cell, a long id that cannot break), not the text size's.
- */
-const problems = (m: Record<string, M>): string[] => Object.entries(m).flatMap(([k, v]) => {
-  const at = /^(.*) (\d+) ([\d.]+)x$/.exec(k)!;
-  const norm = (f: string) => f.replace(/\d+(\.\d+)?/g, "#");
-  const own = new Set((at[3] === "1" ? [] : faultsOf(m[`${at[1]} ${at[2]} 1x`] ?? { ...v, cut: [], broken: [], over: [], wide: [], overflow: 0 })).map(norm));
-  return [...(/Archivo_400Regular/.test(v.fonts) ? [] : ["the body face did not load"]), ...faultsOf(v).filter((f) => at[3] === "1" || !own.has(norm(f)))]
-    .map((f) => `${k}: ${f}`);
-});
 
-describe("T1201 / T1203 the app's screens at a larger system text size, laid out in Chrome", () => {
-  it("at 1.3x, 320, 360 and 412 wide: no cut word, no overlap, nothing past the edge, no word broken in two (and the walk reached every screen)", async () => {
-    const m = await sweep(process.env.T1203_SCALES ? process.env.T1203_SCALES.split(",").map(Number) : process.env.T1201_REPORT ? [1, 1.15, 1.3, 1.5, 2] : [1, 1.3], process.env.T1203_WIDTHS ? process.env.T1203_WIDTHS.split(",").map(Number) : [320, 360, 412]);
-    if (process.env.T1201_REPORT) writeFileSync(process.env.T1201_REPORT, JSON.stringify(Object.fromEntries(Object.entries(m).map(([k, v]) => [k, problems({ [k]: v })])), null, 1));
-    if (!/1\.3x/.test(Object.keys(m).join())) return;   // a picture run at other scales (T1203_SCALES): no gate
-    expect(problems(m).filter((p) => / 1\.3x: /.test(p))).toEqual([]);
-    expect(Object.keys(m).length, "the walk ran").toBeGreaterThan(0);
-    expect(Object.entries(m).filter(([, v]) => v.lines < (v.min ?? 8)).map(([k]) => k)).toEqual([]);
-  }, 1_800_000);
-});
+/**
+ * THE FAULTS A SCREEN MAY CARRY, each with its reason (header, exclusion 5). A fault matching one of these is not reported at any
+ * scale; every other fault at 1x or 1.3x fails, and at 2.0x every LOSS (`over`, `wide`, `overflow`, `clamp`) fails.
+ */
+const ALLOWED: { screen: RegExp; kind: Kind; match: RegExp; why: string }[] = [
+  { screen: /^water-conditions$/, kind: "cut", match: /^chart-hint /, why: "the chart's zoom hint is one line with an ellipsis by design (Hydrograph.tsx PlotBand, numberOfLines 1): cut at 1x on a narrow phone in 0.9.0 too; a hint, nothing is lost" },
+];
+
+/** the faults of one walked page that the gate counts at its scale */
+function counted(key: string, v: M): string[] {
+  const at = /^(.*) (\d+) ([\d.]+)x$/.exec(key)!;
+  const scale = Number(at[3]);
+  const loss: Kind[] = ["over", "wide", "overflow", "clamp"];
+  return faultsOf(v)
+    .filter((f) => scale === 2 ? loss.includes(f.kind) : true)
+    .filter((f) => !ALLOWED.some((a) => a.screen.test(at[1]!) && a.kind === f.kind && a.match.test(f.text)))
+    .map((f) => `${key}: ${f.kind} ${f.text}`);
+}
+
+export function walk(group: string, ids: readonly string[]) {
+  describe(`T1203 the app's screens at a larger system text size, laid out in Chrome: ${group}`, () => {
+    it("1x holds only what its allowlist names, 1.3x is clean, 2.0x loses nothing (no press target off screen, no text over text)", async () => {
+      const scales = process.env.T1203_SCALES ? process.env.T1203_SCALES.split(",").map(Number) : process.env.T1201_REPORT ? [1, 1.15, 1.3, 1.5, 2] : [1, 1.3, 2];
+      const widths = process.env.T1203_WIDTHS ? process.env.T1203_WIDTHS.split(",").map(Number) : [320, 360, 412];
+      const m = await sweep(ids, scales, widths);
+      if (process.env.T1201_REPORT) writeFileSync(process.env.T1201_REPORT, JSON.stringify(Object.fromEntries(Object.entries(m).map(([k, v]) => [k, faultsOf(v).map((f) => `${f.kind} ${f.text}`)])), null, 1));
+      expect(Object.keys(m).length, "the walk ran").toBe(ids.filter((i) => !only || only.includes(i)).length * scales.length * widths.length);
+      expect(Object.entries(m).filter(([, v]) => !/Archivo_400Regular/.test(v.fonts)).map(([k]) => k), "the body face loaded").toEqual([]);
+      expect(Object.entries(m).filter(([, v]) => v.lines < (v.min ?? 8)).map(([k]) => `${k} drew ${m[k]!.lines} lines`), "no near-empty render").toEqual([]);
+      expect(Object.entries(m).flatMap(([k, v]) => counted(k, v))).toEqual([]);
+    }, 900_000);
+  });
+}

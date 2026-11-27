@@ -146,9 +146,10 @@ export function ViewTabs({ palette, views, on, onView }: {
     </View>
     {/* the measuring twin: the full words, one row, invisible, at the same text size. Its box is far wider than any row and the words
         are not clamped or shrunk, so the inner row's width is what the words need - whatever room the strip has (Yoga on a phone
-        measures a child at the parent's width at most; an unlimited box is how that limit is kept off the measure) */}
+        measures a child at the parent's width at most; an unlimited box is how that limit is kept off the measure). Zero height and
+        hidden overflow: the wide box adds nothing to the page's scroll. */}
     <View aria-hidden pointerEvents="none" importantForAccessibility="no-hide-descendants"
-          style={{ position: "absolute", left: 0, top: 0, width: 4000, opacity: 0 }}>
+          style={{ position: "absolute", left: 0, top: 0, width: 4000, height: 0, overflow: "hidden", opacity: 0 }}>
       <View testID="water-views-twin" onLayout={(e) => setNeed(e.nativeEvent.layout.width)}
             style={{ flexDirection: "row", gap: 22, alignSelf: "flex-start" }}>
         {shown.map((v) => <Text key={v} style={{ ...text, flexShrink: 0 }} maxFontSizeMultiplier={LABEL_SCALE}>{WATER_VIEW_LABEL[v]}</Text>)}
