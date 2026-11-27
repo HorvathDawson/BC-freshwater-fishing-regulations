@@ -1,6 +1,6 @@
 """(T1246, owner 2026-11-27 "Fix it properly now") A city creek with its own tidal mouth takes the DFO Area its mouth lies
-in; a mouth on the line between two Areas takes the lower Area number. On a GeoPackage the test builds: two Areas side
-by side (28 west, 29 east) and one FWA river."""
+in; a city mouth on the line between two Areas is refused by name; an FWA basin keeps its own answer. On a GeoPackage
+the test builds: two Areas side by side (28 west, 29 east) and one FWA river."""
 
 from __future__ import annotations
 
@@ -41,9 +41,15 @@ def test_a_city_creek_takes_the_area_its_own_mouth_lies_in(gpkg):
     assert P.area_of("900-200000-436900", got) == 28
 
 
-def test_a_mouth_on_the_line_between_two_areas_takes_the_lower_number(gpkg):
-    got = P.basin_areas((28, 29), gpkg, city_mouths=P.city_tidal_mouths([_creek("-1", "900-300000", (1000, 950))]))
-    assert got["900-300000-"] == 28
+def test_a_city_mouth_on_the_line_between_two_areas_is_refused_by_name(gpkg):
+    with pytest.raises(ValueError, match=r"900-300000-\).*Areas \[28, 29\]"):
+        P.basin_areas((28, 29), gpkg, city_mouths=P.city_tidal_mouths([_creek("-1", "900-300000", (1000, 950))]))
+
+
+def test_an_fwa_basin_keeps_its_own_mouths_area(gpkg):
+    # a city line still on the FWA river's code (T1150's seven) does not re-decide that basin's Area
+    got = P.basin_areas((28, 29), gpkg, city_mouths=P.city_tidal_mouths([_creek("-1", "900-100000", (500, 950))]))
+    assert got == {"900-100000-": 29}
 
 
 def test_only_a_line_that_drains_to_the_sea_has_a_mouth_of_its_own(gpkg):
@@ -54,15 +60,11 @@ def test_only_a_line_that_drains_to_the_sea_has_a_mouth_of_its_own(gpkg):
 
 
 def test_policy_pinned(gpkg, monkeypatch):
-    """Mutation pin: the two rules are named policy. Off, the city creek drains to no Area (the state before T1246)."""
-    assert P.OWN_MOUTH_TAKES_ITS_AREA is True and P.TIE_TAKES_LOWER_AREA is True
+    """Mutation pin: the rules are named policy. Off, the city creek drains to no Area (the state before T1246)."""
+    assert P.OWN_MOUTH_TAKES_ITS_AREA is True and P.CITY_MOUTH_ON_AN_AREA_LINE == "refuse"
     mouths = P.city_tidal_mouths([_creek("-1", "900-200000", (500, 950))])
     monkeypatch.setattr(P, "OWN_MOUTH_TAKES_ITS_AREA", False)
     assert "900-200000-" not in P.basin_areas((28, 29), gpkg, city_mouths=mouths)
-    monkeypatch.setattr(P, "OWN_MOUTH_TAKES_ITS_AREA", True)
-    monkeypatch.setattr(P, "TIE_TAKES_LOWER_AREA", False)
-    ties = [P._pick([(0.0, 29), (0.0, 28)]) for _ in range(3)]
-    assert ties == [(0.0, 29)] * 3                                    # off: the first row wins, whatever it is
 
 
 def test_the_registry_refuses_city_lines_without_their_mouths(monkeypatch):
