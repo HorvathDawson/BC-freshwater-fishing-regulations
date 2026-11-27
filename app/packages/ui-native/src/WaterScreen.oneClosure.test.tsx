@@ -22,10 +22,28 @@ vi.mock("./regs/RegsScreen", async (orig) => {
                    text: "No fishing for bull trout.", source: "https://www2.gov.bc.ca/x", waters: null, words: {} };
   return { ...m, RegsScreen: (p: RegsScreenProps) => m.RegsScreen(notice.on ? { ...p, inSeason: [inSeasonBanner(change, { where: null })] } : p) };
 });
+/** (T1207) conditions the fixture release cannot hold, handed to the REAL gate through the screen: each arrives at `closedWithSalmon`
+ *  as the page / the card / the rules would carry it (a park's "unless opened" rule, a merged "N stretches" banner, a DFO issue or
+ *  finfish closure on the card); the screen then draws what core decides */
+const inject = vi.hoisted(() => ({ unless: false, stretches: false, issue: false, finfish: false }));
+vi.mock("@app/core", async (orig) => {
+  const m = await orig<typeof import("@app/core")>();
+  const closedWithSalmon: typeof m.closedWithSalmon = (page, card, rules) => {
+    const banner = page.keep.banner;
+    const p = inject.stretches && banner ? { ...page, keep: { ...page.keep, banner: { ...banner, merged: { label: "Closed all year on 2 stretches", items: [] } } } } : page;
+    const c = card && (inject.issue || inject.finfish)
+      ? { ...card, issues: inject.issue ? [{} as never] : card.issues, finfish: inject.finfish ? ["Finfish closure"] : card.finfish } : card;
+    const r = inject.unless ? Object.assign(Object.create(rules), { byKey: (k: string) => {
+      const x = rules.byKey?.(k); return x ? { ...x, facts: { ...x.facts, unless_opened: "Closed unless opened by Parks Canada." } } : x ?? null;
+    } }) : rules;
+    return m.closedWithSalmon(p, c, r);
+  };
+  return { ...m, closedWithSalmon };
+});
 const { WaterScreen } = await import("./WaterScreen");
 const { LIGHT } = await import("./theme");
 
-afterEach(() => { cleanup(); notice.on = false; });
+afterEach(() => { cleanup(); notice.on = false; inject.unless = inject.stretches = inject.issue = inject.finfish = false; });
 const LOADED = { timeout: 20_000 } as const;
 const NOV_24 = new Date(2026, 10, 24, 12);
 const all = (v: number) => [[0, v], [0, v], [0, v], [0, v], [0, v]];
@@ -89,6 +107,16 @@ const WILKIE = "r4:wilkie_creek@4-30::wilkie_creek.r1";
 /** the block's whole text: headline, the closure's line and the level the banner gave it, its Source line */
 const ONE_BLOCK = (line: string, scope: string, page: number) => `Closed to all fishing all year, salmon included${line} ${scope}SourceB.C. Synopsis p.${page} ↗Who says so ›`;
 
+/** (T1207) the same book closure with DFO answering some days of the year (Apr 11–May 29): today (Nov 24) the book's, the year not */
+function bookAndDfoDays(rule: string, water: string, page: number): SalmonFacts {
+  const f = bookFacts(rule, water, page);
+  const ch = (f.payload as unknown as { chains: { sp: number[][]; a: number[][] }[] }).chains[1]!;
+  ch.sp = ch.sp.map(() => [0, 1, 100, 0, 150, 1]);
+  ch.a = ch.a.map(() => [0, 0, 100, -1, 150, 0]);
+  return f;
+}
+const JUN_15 = new Date(2027, 5, 15, 12);
+
 describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () => {
   it("one closure, all year, salmon included (Wilkie Creek, its own row \"No Fishing\"): one block, no Salmon row, ONE schedule (one status block, one bar)", async () => {
     await open("gnis:27735", 0, bookFacts(WILKIE, "Wilkie Creek", 40));
@@ -148,5 +176,56 @@ describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () 
   it("a release with no salmon: the game-fish banner as it was, no \"salmon included\"", async () => {
     await open("gnis:27735", 0, null);
     expect([said().banner?.startsWith("Closed all yearNo fishing for any game fish. This water"), said().banner?.includes("salmon")]).toEqual([true, false]);
+  }, 40_000);
+
+  // ── (T1207) ONE schedule exactly where core's gate holds: the screen draws `banner.schedule`, nothing else decides ──
+  const TWO = (what: string) => ({ what, calendars: [true, true], title: "Game fish" });
+  const twoBlocks = () => ({ what: "", calendars: said().calendars, title: said().block[0] });
+
+  for (const [what, set] of [
+    ["a closure another authority may lift (\"unless opened\")", () => { inject.unless = true; }],
+    ["a merged \"closed all year on N stretches\" banner", () => { inject.stretches = true; }],
+    ["a live DFO issue on the card", () => { inject.issue = true; }],
+    ["a DFO finfish closure on the card", () => { inject.finfish = true; }],
+  ] as const) {
+    it(`two status blocks, never the one: ${what}`, async () => {
+      set();
+      await open("gnis:27735", 0, bookFacts(WILKIE, "Wilkie Creek", 40));
+      expect({ ...twoBlocks(), what: "" }).toEqual({ ...TWO(""), what: "" });
+      expect(said().banner?.includes("Salmon and game fish")).toBe(false);
+    }, 40_000);
+  }
+
+  it("two status blocks: the salmon year is DFO's on some other day (today the book's), on every day walked", async () => {
+    const loader = withSalmon(bookAndDfoDays(WILKIE, "Wilkie Creek", 40));
+    const el = (day: Date) => <WaterScreen source={makeReleaseSource(loader)} item={"gnis:27735" as ItemId} palette={LIGHT} part={0} glance loader={loader} day={day} />;
+    const r = render(el(NOV_24));
+    await waitFor(() => expect(screen.getByTestId("salmon-block")).toBeTruthy(), LOADED);
+    expect([said().calendars, said().block[0]]).toEqual([[true, true], "Game fish"]);
+    r.rerender(el(JUN_15));
+    await waitFor(() => expect(screen.getByTestId("salmon-block")).toBeTruthy(), LOADED);
+    expect([said().calendars, said().block[0]]).toEqual([[true, true], "Game fish"]);
+  }, 60_000);
+
+  it("the day picker on a merged water: one block on every day walked (Nov 24, then Jun 15)", async () => {
+    const loader = withSalmon(bookFacts(WILKIE, "Wilkie Creek", 40));
+    const el = (day: Date) => <WaterScreen source={makeReleaseSource(loader)} item={"gnis:27735" as ItemId} palette={LIGHT} part={0} glance loader={loader} day={day} />;
+    const r = render(el(NOV_24));
+    await waitFor(() => expect(screen.getByTestId("keep-banner").textContent).toContain("salmon included"), LOADED);
+    expect([said().calendars, said().block]).toEqual([[false, true], ONE_SCHEDULE]);
+    r.rerender(el(JUN_15));
+    await waitFor(() => expect(screen.getByTestId("keep-banner").textContent).toContain("salmon included"), LOADED);
+    expect([said().calendars, said().block]).toEqual([[false, true], ONE_SCHEDULE]);
+  }, 60_000);
+
+  it("a notice arriving on a page that is already split: drawn first, the two blocks stay", async () => {
+    notice.on = true;
+    await open("gnis:27735", 0, DFO_ONLY);
+    expect([!!screen.queryByTestId("inseason-banners"), said().calendars, said().block[0]]).toEqual([true, [true, true], "Game fish"]);
+  }, 40_000);
+
+  it("a screen reader hears one header for the one block: both fish and the status", async () => {
+    await open("gnis:27735", 0, bookFacts(WILKIE, "Wilkie Creek", 40));
+    expect(screen.getByTestId("keep-strip-title").getAttribute("aria-label")).toBe("Salmon and game fish: closed all year");
   }, 40_000);
 });

@@ -20,7 +20,7 @@ const banner = (over: Partial<BannerVM> = {}): BannerVM => ({
 const page = (b: BannerVM | null = banner(), status = "closed"): RegsPage =>
   ({ status, keep: { banner: b, order: ["strip", "banner"] } }) as unknown as RegsPage;
 const card = (over: Partial<SalmonCardVM> = {}): SalmonCardVM => ({
-  todayBy: "book", closedOnly: true, issues: [], finfish: [], caveat: null, side: null,
+  todayBy: "book", year: { by: "book", bars: [] }, closedOnly: true, issues: [], finfish: [], caveat: null, side: null,
   book: [{ rule: NELSON, from: "B.C. Synopsis p.25 · Nelson Creek", words: "Closed to all fishing by the B.C. Synopsis (p.25): No Fishing (all year)",
            water: "Nelson Creek", pages: [{ printed: 25, pdf: null }] }],
   bookAllYear: [NELSON], ...over,
@@ -54,7 +54,7 @@ describe("(T1052) closedWithSalmon: one statement where one closure shuts every 
     // the closure's book line (its page and highlight) is the banner's own: the source line is unchanged
     expect(out.keep.banner!.chain[0]!.book).toBe(BOOK_LINE);
     // (T1207, owner 2026-11-26) ONE status block for both fish, tagged with the rule book that closes them (never "DFO")
-    expect(out.keep.banner!.schedule).toEqual({ title: "Salmon and game fish", tag: "B.C. Synopsis" });
+    expect(out.keep.banner!.schedule).toEqual({ title: "Salmon and game fish", tag: "B.C. Synopsis", label: "Salmon and game fish: closed all year" });
   });
 
   it("a walked tributary names the row it inherits; a book line ending its own sentence takes no second full stop", () => {
@@ -71,6 +71,9 @@ describe("(T1052) closedWithSalmon: one statement where one closure shuts every 
     ["closed for part of the year (the banner reopens)", (p) => closedWithSalmon(p, card(), RULES), page(banner({ reopen: { text: "Opens again Apr 16.", day: { month: 4, day: 16 } } }))],
     ["the salmon's book closure for part of its year only (not all year)", (p) => closedWithSalmon(p, card({ bookAllYear: [] }), RULES), page()],
     ["salmon closed by DFO (\"Not opened by DFO\"), game fish by the book: two sources", (p) => closedWithSalmon(p, card({ todayBy: "dfo", book: [], bookAllYear: [] }), RULES), page()],
+    // (T1207) the one block's year bar is the book's all year: DFO answering ANY day of the year splits it, not only today
+    ["the salmon's year is DFO's and the book's (today the book's)", (p) => closedWithSalmon(p, card({ year: { by: "both", bars: [] } }), RULES), page()],
+    ["the salmon's year is DFO's (today the book's)", (p) => closedWithSalmon(p, card({ year: { by: "dfo", bars: [] } }), RULES), page()],
     ["salmon by the book AND DFO on the page today", (p) => closedWithSalmon(p, card({ todayBy: "both" }), RULES), page()],
     ["salmon closed by ANOTHER book rule (Still Creek: Brunette River's row)", (p) => closedWithSalmon(p, card({ book: [{ ...card().book[0]!, rule: "r2:brunette_river@2-8::brunette_river.r1" }], bookAllYear: ["r2:brunette_river@2-8::brunette_river.r1"] }), RULES), page()],
     // (#131 review MED 1) NEVER DROP A SOURCE: the Salmon row's second closure is not on the banner, so merging would

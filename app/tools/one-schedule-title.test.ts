@@ -52,7 +52,7 @@ describe("T1207 the one block's title at a larger system text size, laid out in 
       const jobs: { page: string; size: [number, number]; measure: string }[] = [], keys: string[] = [];
       for (const scale of [1, 1.15, 1.3]) for (const w of [320, 360, 412]) {
         SCALE.v = scale;
-        render(h(View, { style: { flex: 1, padding: 16 } }, h(TaggedTitle, { text: SOURCE_WORDS.both, tag: SOURCE_WORDS.salmonTag.book, palette, testID: "t" })));
+        render(h(View, { style: { flex: 1, padding: 16 } }, h(TaggedTitle, { text: SOURCE_WORDS.both, tag: SOURCE_WORDS.salmonTag.book, palette, testID: "t", wrap: true })));
         const file = join(dir, `${theme}-${w}-${scale}.html`);
         writeFileSync(file, snapshot());
         cleanup();
@@ -78,3 +78,20 @@ describe("T1207 the one block's title at a larger system text size, laid out in 
     }, 120_000);
   }
 });
+
+describe("T1207 the wrap and the one-line tag are the merged block's alone: every other SourceTag / TaggedTitle is as it was", () => {
+  const row = (wrap: boolean) => {
+    render(h(TaggedTitle, { text: "Game fish", tag: "B.C.", palette: LIGHT, testID: "t", ...(wrap ? { wrap: true } : {}) }));
+    const title = document.querySelector("[data-testid=t]")!, tag = document.querySelector("[data-testid='t:tag']")!;
+    const out = { rowStyle: title.parentElement!.getAttribute("style") ?? "", tagText: tag.firstElementChild!.getAttribute("style") ?? "", tagClass: tag.firstElementChild!.className };
+    cleanup();
+    return out;
+  };
+  it("wrap: the row wraps and the tag is clamped to one line; default: neither (the Game fish / Salmon / row tags everywhere else)", () => {
+    const on = row(true), off = row(false);
+    expect([on.rowStyle.includes("flex-wrap: wrap"), off.rowStyle.includes("flex-wrap")]).toEqual([true, false]);
+    // numberOfLines 1 (`LABEL_PROPS`): react-native-web draws the one-line clamp as its own class, the default tag has none
+    expect(on.tagClass).not.toBe(off.tagClass);
+  });
+});
+
