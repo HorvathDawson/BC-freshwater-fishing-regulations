@@ -192,7 +192,7 @@ def test_pick_a_only_a_package_the_stage_imports_moves_its_key(scratch, config_c
 
 def test_pick_a_only_a_config_value_the_stage_reads_moves_its_key(scratch, config_copy):
     key, code, plan_key, _files = _keyed(scratch, "clim")
-    assert {"source.fwa_gpkg", "data_tree.source"} <= set(code["config"])
+    assert {"source.fwa_gpkg", "roots.source"} <= set(code["config"])
     config_copy("cache.dfo_salmon", "elsewhere/dfo")          # a path this stage never reads
     assert plan_key() == key
     config_copy("source.fwa_gpkg", "elsewhere.gpkg")
@@ -201,14 +201,15 @@ def test_pick_a_only_a_config_value_the_stage_reads_moves_its_key(scratch, confi
 
 def test_a_named_source_file_keys_its_own_name_and_the_source_root_only(scratch, config_copy):
     """(T1192) `SOURCE.fwa_gpkg` is the source root joined with the gpkg's name, and records exactly those two values:
-    a stage that reads only the gpkg is not keyed on the coast file, the other names or the generated root, and is
-    keyed on the root its gpkg sits under."""
+    a stage that reads only the gpkg is not keyed on the coast file, the other names or the other roots, and is keyed
+    on the root its gpkg sits under."""
     key, code, plan_key, _files = _keyed(scratch, "tiles")
-    assert {k for k in code["config"] if k.startswith(("source", "data_tree"))} == {"source.fwa_gpkg", "data_tree.source"}
-    for other in ("source.coast_gpkg", "source.synopsis_pdf", "source.fetch_temp", "data_tree.generated"):
+    assert {k for k in code["config"] if k.startswith(("source", "roots"))} == {"source.fwa_gpkg", "roots.source"}
+    for other in ("source.coast_gpkg", "source.synopsis_pdf", "source.fetch_temp", "roots.generated", "roots.release",
+                  "roots.curated", "roots.cache"):
         config_copy(other, "elsewhere")
         assert plan_key() == key, other
-    config_copy("data_tree.source", "elsewhere")
+    config_copy("roots.source", "elsewhere")
     assert plan_key() != key
 
 

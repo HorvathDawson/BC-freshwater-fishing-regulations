@@ -33,7 +33,7 @@ from pipeline.common.curated import GENERATED
 #: and dropped with it; the release ships its tables (water, regs-<region>, regs-sid) and every reader reads those
 #: (`pipeline.deliver.store.release.province_store`). A copy is kept only on request — `deliver all --debug-json`, or
 #: `deliver store` run alone — and goes here, never beside the bundle.
-DEBUG_OUT = GENERATED.base / "debug" / "regs.sqlite"
+DEBUG_OUT = GENERATED.debug / "regs.sqlite"
 
 #: 2 (S1): `place`, `akey.place`, and every section in B.C. keyed (`section_akey`).
 #: 3 (S1b): keys by content (no `akey.place`); `place` is a region set; `section_place`. MUs are

@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from pipeline.deliver.tiles import export, ladder, obstacles, tippe
-from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, ROOTS, SOURCE
 
 
 def no_archive_refusals(out_dir: Path, no_release: bool, tiles_only: bool) -> list[str]:
@@ -45,7 +45,7 @@ def parser() -> argparse.ArgumentParser:
                     help="(T173) write ONLY layers/obstacle.geojsonl (the fish obstacles, from "
                          "data/source/fish_obstacles/) and stop; `--tiles-only` then builds it into the atlas")
     ap.add_argument("--verbose", action="store_true")
-    ap.add_argument("--release-root", type=Path, default=GENERATED.release,
+    ap.add_argument("--release-root", type=Path, default=ROOTS.release,
                     help="where the released tile folder goes: <root>/tiles/<version>/ (default: data/release)")
     ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite",
                     help="the bundle the finished tiles are checked against (default: the live one)")
@@ -162,7 +162,7 @@ def main() -> None:
 
 
 def _version_and_release(build_dir: Path, out_dir: Path, archive: Path, no_release: bool,
-                         release_root: Path = GENERATED.release) -> None:
+                         release_root: Path = ROOTS.release) -> None:
     """P18: stamp the tile version into the archive, write the sidecar, and copy archive + mask into
     `data/release/tiles/<version>/` (the shipped set). The archive in `out_dir` stays where the dev server reads it."""
     from pipeline.deliver.tiles import version as V

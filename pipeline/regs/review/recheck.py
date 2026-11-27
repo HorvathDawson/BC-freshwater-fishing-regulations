@@ -18,9 +18,9 @@ from typing import Iterable, Mapping, Optional
 
 
 def path() -> Path:
-    """beside the marks store (moved with the whole tree by `CURATED_ROOT`)"""
+    """`CURATED.review.recheck` (moved with the whole tree by `CURATED_ROOT`); it may be absent"""
     from pipeline.common.curated import CURATED
-    return Path(CURATED.review.marks).parent / "recheck.json"
+    return Path(CURATED.review.recheck)
 
 
 def mark_digest(mark) -> str:
