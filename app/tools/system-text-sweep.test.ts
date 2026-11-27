@@ -19,7 +19,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
@@ -214,6 +214,8 @@ const WATER = (view: "regs" | "conditions" | "map", item = "gnis:8634"): Route =
   ({ mode: "water", stack: [{ item: item as never, part: null, tapSid: null, at: null, view }], from: HOME });
 
 const settle = (ms = 260) => act(async () => { await new Promise((r) => setTimeout(r, ms)); });
+/** a water's Regulations page has drawn (a loaded machine takes longer than a fixed wait) */
+const waitReg = async () => { await waitFor(() => { if (!screen.queryByTestId("regs-scroll")) throw new Error("regs not drawn"); }, { timeout: 15_000 }); await settle(200); };
 const press = (re: RegExp) => act(() => { fireEvent.click(screen.getAllByText(re)[0]!); });
 const pressLabel = (re: RegExp | string) => act(() => { fireEvent.click(screen.getAllByLabelText(re)[0]!); });
 const pressId = (id: string) => act(() => { fireEvent.click(screen.getByTestId(id)); });
@@ -264,12 +266,12 @@ const SCREENS: Screen[] = [
   { id: "more-report-a-problem", must: "menu-page-report", go: async () => { tab("More"); press(/^Report a problem$/); await settle(500); } },
   { id: "walkthrough", must: /1 of 5/, props: { walkthrough: { read: () => null, write() {} } }, go: () => settle(600) },
   { id: "first-run-notice", must: /Before you fish/, props: { firstRun: { read: () => null, write() {} } }, go: () => settle(600) },
-  { id: "water-regs-gear", start: WATER("regs"), must: "regs-scroll", go: async () => { await settle(900); press(/^Gear$/); await settle(300); } },
-  { id: "water-regs-methods", start: WATER("regs"), must: "regs-scroll", go: async () => { await settle(900); press(/^Methods$/); await settle(300); } },
-  { id: "water-regs-licence", start: WATER("regs"), must: "regs-scroll", go: async () => { await settle(900); press(/^Licence$/); await settle(300); } },
-  { id: "water-regs-fish-sheet", start: WATER("regs"), must: /Done/, go: async () => { await settle(900); pressLabel(/Kokanee — what it looks like/); await settle(500); } },
-  { id: "water-regs-sources-sheet", start: WATER("regs"), must: /Done/, go: async () => { await settle(900); pressId("otherfish-src:other:o0"); await settle(500); } },
-  { id: "water-regs-day-picker", start: WATER("regs"), must: "regs-scroll", go: async () => { await settle(900); pressLabel(/change date/); await settle(500); } },
+  { id: "water-regs-gear", start: WATER("regs"), must: "regs-scroll", go: async () => { await waitReg(); press(/^Gear$/); await settle(300); } },
+  { id: "water-regs-methods", start: WATER("regs"), must: "regs-scroll", go: async () => { await waitReg(); press(/^Methods$/); await settle(300); } },
+  { id: "water-regs-licence", start: WATER("regs"), must: "regs-scroll", go: async () => { await waitReg(); press(/^Licence$/); await settle(300); } },
+  { id: "water-regs-fish-sheet", start: WATER("regs"), must: /Done/, go: async () => { await waitReg(); pressLabel(/Kokanee — what it looks like/); await settle(500); } },
+  { id: "water-regs-sources-sheet", start: WATER("regs"), must: /Done/, go: async () => { await waitReg(); pressId("otherfish-src:other:o0"); await settle(500); } },
+  { id: "water-regs-day-picker", start: WATER("regs"), must: "regs-scroll", go: async () => { await waitReg(); pressLabel(/change date/); await settle(500); } },
   { id: "sheet-not-fishing", must: /./, min: 2, node: () => h(NotFishingSheet, { kind: "sewage", palette: LIGHT, onClose() {} }) },
   { id: "sheet-obstacle", must: /Done|Close/, node: () => h(ObstacleSheet, { palette: LIGHT, onClose() {}, props: { type: "dam", name: "Chilliwack Lake Road dam", water: "Chilliwack River", height_m: 4, year: 2008, source: "fiss", obstacle_id: "o1" } }) },
   { id: "sheet-sync-error", must: /./, min: 2, node: () => h(SyncErrorSheet, { open: true, palette: LIGHT, checking: false, onRetry() {}, onClose() {},
@@ -285,7 +287,7 @@ const SCREENS: Screen[] = [
   { id: "sheet-bell-news-detail", must: /./, node: () => h(InSeasonNotice, { open: true, palette: LIGHT, onClose() {}, inbox: { vm: inboxVM(INBOX, INBOX_TODAY), detail: inboxDetail(INBOX, "is-a", INBOX_TODAY), failure: null, pick() {}, back() {} } as never }) },
   { id: "popup-join-test", must: /./, node: () => h(JoinTestCard, { store: "android", ask: joinTestAsk("android", "contact@example.invalid"), palette: LIGHT, onClose() {}, copy: async () => true }) },
   { id: "card-developer", must: /./, node: () => h(DeveloperModal, { open: true, theme: "light", palette: LIGHT, info: { appBuild: null, contact: null } as never, release: "r-t1203", onClose() {} }) },
-  { id: "water-regs", start: WATER("regs"), must: "regs-scroll", go: () => settle(900) },
+  { id: "water-regs", start: WATER("regs"), must: "regs-scroll", go: () => waitReg() },
   { id: "water-conditions", start: WATER("conditions"), must: /./ },
   { id: "water-map", start: WATER("map"), must: /./ },
 ];
