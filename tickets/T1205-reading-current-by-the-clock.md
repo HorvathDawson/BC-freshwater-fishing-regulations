@@ -1,10 +1,10 @@
 # T1205 — A gauge reading is current by the clock, not by the feed's own stamp
 
-Status: IN PROGRESS (lane wt-T1205, branch fix/T1205-reading-current-by-the-clock).
+Status: PARTIAL — built and reviewed (three rounds); left (Claude): the before / after pictures of the Conditions map and a water card on a stale feed.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1205 | A gauge reading is current by the clock, not by the feed's own stamp | IN PROGRESS | 0188dd1 | built + tested (`ui/src/readingByClock.test.ts`); before/after pictures not taken (no heavy lane free for Expo web) |
+| T1205 | A gauge reading is current by the clock, not by the feed's own stamp | PARTIAL — built and reviewed (three rounds); left (Claude): the before / after pictures of the Conditions map and a water card on a stale feed | 0188dd1, acf8da5, 8b954d7, a277df2 | the two pictures (no web render was possible that night); T1194's gauge page switches to `readingCurrentNow` |
 
 Source: found 2026-11-26 building T1194: a local render over the 2026-10-27 feed (29 days old) drew every gauge as a live
 dot on the Conditions map. Owner 2026-11-26 (via the planning chat): "A new ticket, in the 0.10.0 re-cut (Recommended)".
