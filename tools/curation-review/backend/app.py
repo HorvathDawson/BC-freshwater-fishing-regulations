@@ -27,7 +27,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict
 
-import reuse
+from pipeline.common import curated as _curated
+
+#: (T1192) THE REVIEW TOOL MAY RUN ON A WHOLE GENERATED COPY (`GENERATED_ROOT`), the one process besides the tests that
+#: opts in. Only beside a whole curated copy: write-through and the input sync act on the curated tree, and from copied
+#: inputs they would write the owner's LIVE files (both are off under `CURATED_ROOT`).
+_curated.allow_generated_root()
+if _curated.generated_root() is not None and _curated.sandbox_root() is None:
+    raise RuntimeError(f"{_curated.GENERATED_ROOT_ENV} is set without {_curated.ROOT_ENV}: the tool would write the live "
+                       f"curated tree from copied generated inputs. Set {_curated.ROOT_ENV} to a whole curated copy "
+                       "too (curated.make_root), or unset both")
+
+import reuse                                                    # noqa: E402
 
 app = FastAPI(title="Curation Review")
 

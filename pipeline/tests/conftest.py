@@ -113,7 +113,9 @@ def generated_root(mp: pytest.MonkeyPatch, dst: Path, *names: str) -> Path:
     parts of this process's generated tree, none = empty) and `GENERATED_ROOT` pointed at it through `mp`, so every
     generated path the process reads is the copy, never a mix. A test writes its own inputs at the reader's own path
     (`tidal.path()`), asked AFTER this call. Returns the root."""
+    from pipeline.common import curated as C
     from pipeline.common.curated import GENERATED_ROOT_ENV, make_generated_root
+    mp.setattr(C, "_GENERATED_ROOT_ALLOWED", True)          # the opt-in (`allow_generated_root`), undone with `mp`
     root = make_generated_root(dst, names)
     mp.setenv(GENERATED_ROOT_ENV, str(root))
     return root

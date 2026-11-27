@@ -212,11 +212,14 @@ class Target:
 
     @classmethod
     def canonical(cls) -> "Target":
-        from pipeline.common.curated import CURATED, GENERATED, ROOTS
-        b = GENERATED.build()
+        """The live tree's target. Its outputs are the LIVE generated tree's (`load_generated`, never a
+        `GENERATED_ROOT` copy), so a rehearsal under a moved root is never classed canonical (T1192)."""
+        from pipeline.common.curated import CURATED, ROOTS, load_generated
+        gen = load_generated()
+        b = gen.build()
         return cls(entries=CURATED.regulations.synopsis, splits=CURATED.waters.cuts,
-                   build=b, reach=GENERATED.reaches / b.name, bundle=GENERATED.bundle / "bundle.sqlite",
-                   release=ROOTS.release, tiles=GENERATED.tiles)
+                   build=b, reach=gen.reaches / b.name, bundle=gen.bundle / "bundle.sqlite",
+                   release=ROOTS.release, tiles=gen.tiles)
 
     def _same(self, other: "Target", name: str) -> bool:
         return Path(getattr(self, name)).resolve() == Path(getattr(other, name)).resolve()

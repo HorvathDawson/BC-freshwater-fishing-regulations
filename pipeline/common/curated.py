@@ -1019,11 +1019,22 @@ RETIRED_ENV = {
 #: `GENERATED.<x>` (and `ROOTS.generated`) is the same name under `<dir>`, laid out as data/generated
 #: (`make_generated_root` copies the parts a test needs). The review app's tests run on such a copy, so the tool reads
 #: all its machine-written inputs from one tree, never a mix. The build products it SERVES (atlas, reach run, bundle,
-#: tiles) move with it unless its vintage is named (`CURATION_BUILD` and the rest, `vintage.Target`). REFUSED inside a
-#: traced build stage (`PIPELINE_TRACE`): a stage's key records `roots.generated` as config.yaml states it, so a stage
-#: under a moved root would be keyed on one tree while it read and wrote another. Side builds name their own
-#: directories (`--side`, `--out`) instead.
+#: tiles) move with it unless its vintage is named (`CURATION_BUILD` and the rest, `vintage.Target`). HONOURED ONLY BY A
+#: PROCESS THAT OPTED IN (`allow_generated_root`: the review backend at start, the tests' helper); any other process that
+#: finds it set refuses at its first generated read, so a build, a release, a deliver step or a gauge tool can never run
+#: on the copy without a word. Refused inside a traced build stage (`PIPELINE_TRACE`) even then: a stage's key records
+#: `roots.generated` as config.yaml states it. Side builds name their own directories (`--side`, `--out`) instead.
 GENERATED_ROOT_ENV = "GENERATED_ROOT"
+
+#: whether THIS process may honour `GENERATED_ROOT` (`allow_generated_root`)
+_GENERATED_ROOT_ALLOWED = False
+
+
+def allow_generated_root() -> None:
+    """Opt this process in to `GENERATED_ROOT`. Called only by the review backend at start (`app.py`) and the tests'
+    helper (`conftest.generated_root`); every other process refuses the variable."""
+    global _GENERATED_ROOT_ALLOWED
+    _GENERATED_ROOT_ALLOWED = True
 
 #: The review tool's per-file overrides `GENERATED_ROOT` replaced (T1192), and the file each one repointed. Set (even
 #: empty) = refused, as `RETIRED_ENV`.
@@ -1046,8 +1057,10 @@ RETIRED_GENERATED_ENV = {
     "CURATION_TIDAL_CANDIDATES": "GENERATED.review / tidal/tidal-candidates.json",
     "CURATION_TIDAL_PASS2": "GENERATED.review / tidal/pass2/proposals.json",
     "CURATION_TIDAL_PREVERIFY": "GENERATED.review / tidal/tidal-preverify.json",
-    "CURATION_TIDAL_GPKG": "SOURCE.fwa_gpkg, a source file: it has no override",
 }
+
+#: The one source-file override the review tool had (T1192): refused when set; a source file has no override at all.
+RETIRED_SOURCE_ENV = {"CURATION_TIDAL_GPKG": "SOURCE.fwa_gpkg"}
 
 
 def refuse_retired_env() -> None:
@@ -1061,6 +1074,10 @@ def refuse_retired_env() -> None:
                 f"retired {what}-path override(s) set: " + ", ".join(f"{k} (was {retired[k]})" for k in bad)
                 + f" — unset them; point {root} at a whole copy of the {what} tree instead "
                   f"(pipeline.common.curated.{how})")
+    bad = sorted(k for k in RETIRED_SOURCE_ENV if k in os.environ)
+    if bad:
+        raise RuntimeError("retired source-file override(s) set: " + ", ".join(
+            f"{k} (was {RETIRED_SOURCE_ENV[k]})" for k in bad) + " — unset them: a source file has no override")
 
 
 def sandbox_root() -> Path | None:
@@ -1171,6 +1188,10 @@ def generated_root() -> Path | None:
     v = os.environ.get(GENERATED_ROOT_ENV)
     if v is None:
         return None
+    if not _GENERATED_ROOT_ALLOWED:
+        raise RuntimeError(f"{GENERATED_ROOT_ENV}={v} is set: only the review tool and tests may move the generated "
+                           "tree (curated.allow_generated_root). Unset it; a build, release or deliver step names its "
+                           "directories with its own flags (--side, --out)")
     if os.environ.get("PIPELINE_TRACE") or _trace.directory() is not None:
         raise RuntimeError(f"{GENERATED_ROOT_ENV}={v} inside a traced build stage: the stage's key records "
                            "roots.generated from config.yaml, so it would be keyed on one tree while it reads and "
@@ -1210,37 +1231,50 @@ def _load_generated_under(config: Path | None, root: Path) -> Generated:
     return _bind(tree, "generated", blob["generated"], None) if _is_config(path) else tree
 
 
-#: what `make_generated_root` never copies: the build products, gigabytes each (one atlas build is 10 GB). A sandbox
-#: that needs one names the build it serves (`CURATION_BUILD`, `vintage.Target`).
-BUILD_PRODUCTS = ("atlas", "reaches", "bundle", "tiles", "side")
+#: what `make_generated_root` never copies: the build products (gigabytes each; one atlas build is 10 GB) and the run-timing
+#: base. A sandbox that needs a build names the one it serves (`CURATION_BUILD`, `vintage.Target`).
+BUILD_PRODUCTS = ("atlas", "reaches", "bundle", "tiles", "side", "runtiming")
+
+
+def _generated_names(block: dict, at: str = "") -> list[str]:
+    """Every declared name of the `generated:` block (`"review"`, `"regs/extraction"`), relative to its root."""
+    out = []
+    for v in block.values():
+        out += _generated_names(v, at) if isinstance(v, dict) else [f"{at}{v}"]
+    return out
 
 
 def make_generated_root(dst: Path, names: tuple[str, ...] = ()) -> Path:
     """A copy of the named parts of THIS PROCESS'S generated tree at `dst` (created), for `GENERATED_ROOT`: each name a
-    path under the generated root (`"review/tidal"`, `"sloughs"`); no names = an empty tree a test writes its own inputs
-    into. Never a build product (`BUILD_PRODUCTS`). A copy, never links: a write through the sandbox must not reach a
-    real file. Refuses a `dst` that overlaps the live tree or the copied one, and a name that is absent, absolute,
-    climbs out, or holds a build product."""
+    path at or under a declared generated key (`"review/tidal"`, `"sloughs"`); no names = an empty tree a test writes its
+    own inputs into. Never a build product (`BUILD_PRODUCTS`) and never an undeclared folder (`release/`,
+    `deliver-cache/`). A copy, never links: a symbolic link in what it would copy is refused (a copied link would point
+    back at a real file). Refuses a `dst` that overlaps the live tree or the copied one, and a name that is absent."""
     live = _roots()[1].generated.resolve()
     src = (generated_root() or live).resolve()
     dst = Path(dst).resolve()
     for tree, what in ((live, "the live generated tree"), (src, "the generated tree it copies")):
         if dst == tree or tree in dst.parents or dst in tree.parents:
             raise ValueError(f"{dst} overlaps {what} ({tree}): a sandbox root goes elsewhere")
-    dst.mkdir(parents=True, exist_ok=True)
+    keys = [k for k in _generated_names(parse_config()[0]["generated"]) if k.split("/")[0] not in BUILD_PRODUCTS]
     for name in names:
         p = PurePosixPath(name)
-        if p.is_absolute() or ".." in p.parts or not p.parts or p.parts[0] in BUILD_PRODUCTS:
-            raise ValueError(f"{name!r}: a part of the generated tree, relative and inside it, never a build product "
-                             f"({', '.join(BUILD_PRODUCTS)})")
+        if p.is_absolute() or ".." in p.parts or not any(str(p) == k or str(p).startswith(k + "/") for k in keys):
+            raise ValueError(f"{name!r}: not at or under a declared generated key, or a build product "
+                             f"({', '.join(BUILD_PRODUCTS)}); copyable: {', '.join(sorted(keys))}")
         got = src / p
+        if not (got.is_dir() or got.is_file()) or got.is_symlink():
+            raise FileNotFoundError(f"{got}: not a file or folder in the generated tree (a link is never copied)")
+        if got.is_dir() and (links := [x for x in got.rglob("*") if x.is_symlink()]):
+            raise ValueError(f"{got} holds a symbolic link ({links[0]}): a sandbox copies files, never links")
+    dst.mkdir(parents=True, exist_ok=True)
+    for name in names:
+        got = src / name
         if got.is_dir():
-            shutil.copytree(got, dst / p, dirs_exist_ok=True)
-        elif got.is_file():
-            (dst / p).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(got, dst / p)
+            shutil.copytree(got, dst / name, dirs_exist_ok=True)
         else:
-            raise FileNotFoundError(f"{got}: not in the generated tree, so nothing to copy")
+            (dst / name).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(got, dst / name)
     return dst
 
 
