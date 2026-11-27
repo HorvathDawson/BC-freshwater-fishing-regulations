@@ -229,10 +229,14 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
 14. **Every rule ends bound, or unresolved with a typed reason**: never absent, bound-and-empty, or unexplained.
     Enforced in `RuleBinding.__post_init__`.
 15. **`tributaries_pending` means the tributary walk could not run, and a pending binding is never complete.**
-    "Tributaries" walks streams only (p.80); "watershed" keeps lakes. A rule bound to its WHOLE water climbs through
-    the lake that water flows out of, walking the lake but never covering it
-    (`tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`, RULINGS T18); stretch rules, DFO places and licensing
-    records stop there.
+    "Tributaries" walks streams only (p.80); "watershed" keeps lakes. EVERY INFLOW of a lake a rule binds is its
+    tributary, the river on the lake's own line too (a row of its own or not), and the walk climbs through every
+    lake above, walking each but never covering it (`tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`,
+    RULINGS T19); only a printed exception keeps water out (a carve-out, the rule's words; a lake row's carve-out
+    also stops every walk through that lake, `build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`). A rule
+    bound to its WHOLE water climbs through the lake that water flows out of
+    (`tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`, RULINGS T18); a stretch rule stops at the lake at its top
+    (a stream is not a tributary of itself); DFO places and licensing records stop there too.
 16. **The review app and the builder share one implementation.** `entry_reaches` calls `pipeline.atlas.reach.classify`
     (pinned by `test_review_reaches.py`). Never give the review app its own resolver: it is where a human signs off,
     so divergence stays invisible until an angler hits it.

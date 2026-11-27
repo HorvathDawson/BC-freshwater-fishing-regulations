@@ -5,7 +5,7 @@ handles belongs in its comments. Data files and tests cite these headings: keep 
 
 ## Which "including tributaries" rule a stream answers to
 
-The RULINGS T4, T14 and T18 amendments (T1053; the all-year part is proposed until the owner reads its list):
+The RULINGS T4, T14, T18 amendments (T1053; all-year part proposed) and T19 (T1177: item 1 is "most upstream wins"):
 
 1. **A stream's own row, or the nearer ✱ row, wins on each thing both speak to** (a quota, a release, gear, bait):
    the Duncan's tributaries keep the Duncan's bull trout 2, not Kootenay Lake's tributaries' release
@@ -21,6 +21,11 @@ The RULINGS T4, T14 and T18 amendments (T1053; the all-year part is proposed unt
    unnamed widening): it is the stream. Bowman Slough takes Williston Lake's Zone A rule with its streams.
 5. **A whole-water ✱ rule climbs through its head lake** (RULINGS T18): Eagle Creek's "No Fishing" reaches Dick Creek
    above Dick Lake. A stretch rule, a DFO place and a licensing record stop at the lake.
+6. **A lake's tributaries are EVERY inflow, through every lake above** (RULINGS T19): the river FWA draws down through
+   the lake on one blue line too, even with a row of its own (it gets both; item 1 decides). Chehalis Lake's "No
+   Fishing" binds the Chehalis River above the lake (180 km); John Hart Lake's closure climbs into Buttle and Upper Campbell
+   lakes' creeks. Only a printed exception keeps water out; a lake row's exception also stops lower rows there
+   (proposed: the Columbia above Kinbasket). A stretch ("A from x to y") never takes A above x. Inlet rows = the walk.
 
 ## Questions the owner will put to BC Fish and Wildlife
 
