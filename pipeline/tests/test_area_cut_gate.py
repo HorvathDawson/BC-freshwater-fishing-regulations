@@ -2,7 +2,7 @@
 
 G1 a member with more than floor - band of line beyond the band; G2 an open piece with line deeper than 5 m inside;
 G3 a piece under the floor an area cut made; G4 a non-member partly inside, or a member the geometry does not
-confirm. Synthetic pieces and polygons, no gpkg.
+confirm; G5 a run of member pieces with no real inside water. Synthetic pieces and polygons, no gpkg.
 """
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ def test_a_clean_cut_passes_and_writes_its_numbers(tmp_path):
     """Out to 1000, in from there (the cut ON the edge): every check passes, and the file says so."""
     g, geoms = _graph(("X:0", 0, 1000, False, None, CUT), ("X:1000", 1000, 1600, True, CUT, None))
     res = _run(g, geoms, tmp_path)
-    assert res["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0}
+    assert res["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0}
     got = json.loads((tmp_path / G.FILENAME).read_text())
     assert got["worst"]["shortest_area_piece_m"] == 600.0 and got["allowed_beyond_band_m"] == 50.0
 
@@ -91,7 +91,25 @@ def test_g4_a_non_member_partly_inside_or_a_member_far_from_the_area():
 def test_g4_a_dip_under_5m_is_positional_error():
     """An open piece reaching 4 m in: under the dip, so neither G2 nor G4."""
     g, geoms = _graph(("X:0", 0, 1004, False, None, None))
-    assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0}
+    assert G.measure(g, geoms, [(AID, NAME, RESERVE)])["counts"] == {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0}
+
+
+def test_g5_a_member_run_with_no_real_inside_water_stops_the_build():
+    """Review of T1199: a creek beside the edge, 20 m out, that touches the polygon by a 2 m graze is a line that never
+    crosses. Made inside (the band joined from the graze), its member run holds no inside run of 5 m: G5. The same
+    run reaching 6 m in passes."""
+    def graph_along(x_in):
+        g, geoms = StreamGraph(), {}
+        line = LineString([(980, 100), (980, 500), (x_in, 501), (980, 502), (980, 1600)])
+        for nid, lo, hi, geom in (("Y:0", 0, 401, LineString(list(line.coords)[:3])),
+                                  ("Y:401", 401, 1500, LineString(list(line.coords)[2:]))):
+            g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.stream, blk="Y", down_m=lo, up_m=hi,
+                                      length_m=hi - lo, in_areas=(AID,), lower_bound=CUT if lo else None)
+            geoms[nid] = geom
+        return g, geoms
+    res = G.measure(*graph_along(1001.0), [(AID, NAME, RESERVE)])
+    assert res["counts"]["G5"] == 1 and res["checks"]["G5"][0]["from_m"] == 0
+    assert G.measure(*graph_along(1003.0), [(AID, NAME, RESERVE)])["counts"]["G5"] == 0
 
 
 def test_the_gate_reads_the_cut_rules_numbers():

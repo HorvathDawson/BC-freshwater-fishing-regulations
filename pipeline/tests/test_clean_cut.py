@@ -281,6 +281,7 @@ def test_the_edge_band_and_floor_are_the_tolerances_modules():
     from pipeline.common import tolerances as T
     assert (CC.EDGE_M, CC.MIN_PIECE_M) == (T.AREA_EDGE_M, T.AREA_MIN_PIECE_M) == (50.0, 100.0)
     assert CC.EDGE_WATER_IS_INSIDE and CC.NO_PIECE_UNDER_THE_FLOOR and CC.A_CUT_NEAR_A_BOUNDARY_MOVES_ONTO_IT
+    assert CC.GRAZES_ARE_NOT_CROSSINGS
 
 
 def _hug(out_m, along=1500.0):
@@ -401,6 +402,31 @@ def test_a_line_that_never_crosses_is_never_inside():
     assert _area(beside) == ([], [], [])
     within = LineString([(1100, 100), (1900, 900)])
     assert _area(within) == ([], [(0.0, within.length)], [])
+
+
+#: Beside TALL's west edge 20 m out for 2 km, after one graze 2.2 m long (1 m deep) near its start: positional error.
+_GRAZE_THEN_HUG = LineString([(500, 100), (999, 100), (1001, 101), (999, 102), (980, 110), (980, 2100)])
+
+
+def test_a_graze_then_a_hug_is_a_line_that_never_crosses():
+    """Review of T1199: a run inside under the dip is dropped BEFORE the band joins anything, so a creek beside the
+    edge that grazes it once by positional error stays outside its whole length ("Never inside")."""
+    cuts, inside, dips = _area(_GRAZE_THEN_HUG)
+    assert cuts == [] and inside == [] and len(dips) == 1
+
+
+def test_mutation_joining_before_the_dip_closes_the_hugging_creek(monkeypatch):
+    monkeypatch.setattr(CC, "GRAZES_ARE_NOT_CROSSINGS", False)
+    cuts, inside, _ = _area(_GRAZE_THEN_HUG)
+    assert len(cuts) == 1 and _len(inside) > 1900.0, "the 2 km the reviewer's probe closed"
+
+
+def test_two_grazes_with_a_hug_between_stay_outside():
+    """Two 2 m grazes 1.5 km apart, 20 m out between them: neither is an entry, so the band has nothing to join."""
+    g = LineString([(500, 100), (999, 100), (1001, 101), (999, 102), (980, 110), (980, 1600), (999, 1610),
+                    (1001, 1611), (999, 1612), (500, 1612)])
+    cuts, inside, dips = _area(g)
+    assert cuts == [] and inside == [] and len(dips) == 2
 
 
 def test_a_cut_near_another_boundary_moves_outward_onto_it():
