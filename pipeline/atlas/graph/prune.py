@@ -688,28 +688,99 @@ def _tail_plan(graph: StreamGraph, comp: set[str], river: set[str], foreign: lis
 _BLK_IN_TEXT = r"(?<![\d.])-?\d{8,10}(?![\d.])"
 
 
-def loop_keeps(exemptions, structural: dict) -> dict[str, list[str]]:
+#: `waters/loop_exemptions.json`: the document's keys, and each row's (all required but `reading`; `words` may be "")
+EXEMPTION_TOP_KEYS = ("_about", "format", "rows")
+EXEMPTION_ROW_KEYS = ("water", "blks", "why", "id", "words", "date")
+EXEMPTION_ROW_OPTIONAL = ("reading",)
+
+
+def exemption_problems(doc) -> list[str]:
+    """Every way `waters/loop_exemptions.json` is malformed (empty: well formed). For `loop_keeps` (the build stops on
+    any) and `check_curated --waters`. A row names blue-line keys only (a lake is never a loop), a unique id, a reason,
+    the words that name the water (the book's or DFO's printed text, whole; the owner's words for his own rows) and a
+    date; an unknown key is refused, never ignored."""
+    import re as _re
+    if not isinstance(doc, dict):
+        return ["loop_exemptions: the file must be a JSON object"]
+    out = [f"loop_exemptions: unknown key {k!r}" for k in doc if k not in EXEMPTION_TOP_KEYS]
+    out += [f"loop_exemptions: no `{k}`" for k in EXEMPTION_TOP_KEYS if k not in doc]
+    rows = doc.get("rows")
+    if not isinstance(rows, list):
+        return out + ["loop_exemptions: `rows` must be a list"]
+    seen: set = set()
+    for i, r in enumerate(rows):
+        where = f"loop_exemptions.rows[{i}]"
+        if not isinstance(r, dict):
+            out.append(f"{where}: not an object")
+            continue
+        where = f"loop_exemptions.rows[{r.get('id') or i}]"
+        out += [f"{where}: unknown key {k!r}" for k in r if k not in EXEMPTION_ROW_KEYS + EXEMPTION_ROW_OPTIONAL]
+        out += [f"{where}: no `{k}`" for k in EXEMPTION_ROW_KEYS if k not in r]
+        blks = r.get("blks")
+        if not isinstance(blks, list) or not blks:
+            out.append(f"{where}: `blks` must be a non-empty list")
+        else:
+            out += [f"{where}: {b!r} is not a blue-line key (digits; a lake is never a loop)" for b in blks
+                    if not (isinstance(b, str) and b.lstrip("-").isdigit())]
+        for k in ("water", "why", "id"):
+            if k in r and not (isinstance(r[k], str) and r[k].strip()):
+                out.append(f"{where}: `{k}` must be a non-empty string")
+        for k in ("words", "reading"):
+            if k in r and not isinstance(r[k], str):
+                out.append(f"{where}: `{k}` must be a string")
+        if "date" in r and not (isinstance(r["date"], str) and _re.fullmatch(r"\d{4}-\d{2}-\d{2}", r["date"])):
+            out.append(f"{where}: `date` must be YYYY-MM-DD")
+        if r.get("id") in seen:
+            out.append(f"{where}: the id is used twice")
+        seen.add(r.get("id"))
+    return out
+
+
+def loop_keeps(exemptions, structural: dict, blk_sets: dict | None = None) -> dict[str, list[str]]:
     """THE ONLY THINGS THAT KEEP A LOOP (owner 2026-11-27: "the simplification should happen at the build level before
     regulations apply"), all read in the map build itself, never from a rules run: {blk: [reasons]}.
 
       * `exemptions`: the curated `waters/loop_exemptions.json`, one row per water kept BY NAME (a book row or DFO place
-        names it, or the owner holds it), its blue lines listed;
+        names it, or the owner keeps it), its blue lines listed. Malformed (`exemption_problems`): the build stops;
       * `structural`: {reason: curated file} whose blue lines a loop must keep because something is placed ON it: a
-        curated cut, a tidal limit, a gauge, an owner call. Any blue-line key the file names counts (over-inclusive by
-        design: keeping a loop too many is safe, removing one a cut stands on is not).
+        tidal limit, a gauge, an owner call. Any blue-line key the file names counts (over-inclusive by design:
+        keeping a loop too many is safe, removing one a cut stands on is not);
+      * `blk_sets`: {reason: blue lines} the build works out itself: the lines its curated and gauge cuts RESOLVE onto
+        (every anchor kind, placed by the cut placement itself), the lines an accepted found name labels.
 
     Loops that touch a lake and loops that are part of a longer blue line are kept by `small_loops` itself."""
     import json as _json
     import re as _re
     out: dict[str, list[str]] = {}
     doc = _json.loads(open(exemptions, encoding="utf-8").read())
+    bad = exemption_problems(doc)
+    if bad:
+        raise SystemExit("waters/loop_exemptions.json is malformed:\n  " + "\n  ".join(bad))
     for row in doc["rows"]:
         for b in row["blks"]:
             out.setdefault(str(b), []).append(f"named: {row['id']}")
     for reason, path in sorted(structural.items()):
         for b in sorted(set(_re.findall(_BLK_IN_TEXT, open(path, encoding="utf-8").read()))):
-            out.setdefault(b, []).append(reason)
+            if reason not in out.setdefault(b, []):
+                out[b].append(reason)
+    for reason, blks in sorted((blk_sets or {}).items()):
+        for b in sorted({str(x) for x in blks}):
+            if reason not in out.setdefault(b, []):
+                out[b].append(reason)
     return out
+
+
+#: a blue-line key named in free text that also holds hex digests (the review marks): digits standing alone, not
+#: inside a longer word (a sha's digit run is never matched)
+_BLK_IN_PROSE = r"(?<![\w.])-?\d{8,10}(?![\w.])"
+
+
+def marked_removed_lines(removed_blks, marks_text: str) -> list[str]:
+    """(T1242 review) The removed loops' blue lines the owner's review marks name, sorted. Marks are no keep by design
+    (E31 keeps by name and structure); a removed line a mark names is a refusal, never a quiet removal."""
+    import re as _re
+    named = set(_re.findall(_BLK_IN_PROSE, marks_text))
+    return sorted({str(b) for b in removed_blks} & named)
 
 
 def _mains(graph: StreamGraph, fwa_main) -> dict[str, str]:

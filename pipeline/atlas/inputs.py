@@ -83,8 +83,9 @@ LISTED_AFTER: dict[str, str] = {"curated:regulations.book_name_links": "T1229, 2
 
 #: curated keys named in the atlas build's modules that are NOT recorded, and why
 NOT_ATLAS_INPUTS: dict[str, str] = {
-    "curated:gauges.matches": "guarded by its own record, `gauge_matches.json` (cut-set digest, T159): a row that is "
-                              "no cut does not change the graph (`gauges.matches.check_record`)",
+    "curated:gauges.matches": "guarded by its own record, `gauge_matches.json` (cut-set digest, T159; and the file's "
+                              "whole sha, which the creek-less loop pass's gauge keep also reads, T1242): a row that "
+                              "is no cut does not change the graph otherwise (`gauges.matches.check_record`)",
     "curated:gauges.match_calls": "read only for the printed trust mix of the gauge cuts; shapes nothing",
     "curated:waters.added_stream_calls": "(T679 #13) read only by the added-streams GENERATOR (`added_streams.clean."
                                          "calls`), never by the atlas build: its reviewed output, added_streams.json, "
@@ -180,6 +181,11 @@ def build_paths(args) -> dict[str, Path | str | None]:
         out["curated:waters.added_streams"] = Path(args.added_streams)
     if not flowing.FOLD_CONFIRMED:
         out["curated:waters.slough_calls"] = not_read("flowing.FOLD_CONFIRMED off")
+    # (T1242) the creek-less loop pass reads the exemptions only when it runs; its other keeps read the files above as
+    # the build does (`build.loop_keep_inputs`: the cuts as placed, none under --no-splits; the slough calls only with
+    # FOLD_CONFIRMED)
+    if getattr(args, "drop_small_loops", float("inf")) is None:
+        out["curated:waters.loop_exemptions"] = not_read("--keep-small-loops")
     return out
 
 
@@ -233,7 +239,22 @@ def behind(build_dir: Path, now: dict[str, str] | None = None) -> list[str]:
                        f"rebuild: {how}")
         else:
             out.append(f"{name} ({key}): changed since the atlas was built — rebuild: {how}")
-    return out + code_behind(build_dir)
+    return out + loop_pass_behind(build_dir) + code_behind(build_dir)
+
+
+def loop_pass_behind(build_dir: Path) -> list[str]:
+    """(T1242 review) An atlas whose record says the creek-less loop pass did not run, or ran with a limit, is behind a
+    default build (`build.small_loops_fact`: on, any size). An atlas recorded before the fact existed says nothing here:
+    its `loop_exemptions` digest is missing (LISTED_AFTER) and `behind` names that."""
+    fact = (read_meta(build_dir).get("build") or {}).get("small_loops")
+    if not fact:
+        return []
+    if not fact.get("ran"):
+        return [f"{build_dir.name}: built with every braid loop kept (--keep-small-loops) — rebuild: {REBUILD}"]
+    if fact.get("max_offset_m") != "inf":
+        return [f"{build_dir.name}: the creek-less loop pass ran up to {fact.get('max_offset_m')} m, not at any size "
+                f"(--drop-small-loops) — rebuild: {REBUILD}"]
+    return []
 
 
 # -------------------------------------------------------------------------------------------------------------- code

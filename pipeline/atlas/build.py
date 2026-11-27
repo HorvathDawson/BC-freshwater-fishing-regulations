@@ -521,8 +521,8 @@ def main(argv: list[str] | None = None) -> None:
     load_fwa(b)
     build_graph(b)
     add_waters(b)
+    gauge_cuts(b)           # (T1242) before the prune: the creek-less loop pass resolves the cuts to keep their loops
     prune_graph(b)
-    gauge_cuts(b)
     sectionize(b)
     build_registry(b)
     write_graph(b)          # T678 plan 5: after the registry, so graph.pkl carries the tidal owner on its nodes
@@ -843,26 +843,74 @@ def prune_graph(b: _Build) -> None:
     if args.drop_small_loops is not None:
         _small_loops(b, graph, geoms, fwa_mainstem_blks(fids))
         pruned_fids = set(pruned_fids) | b.loop_fids
+    else:
+        # THE RECORD SAYS SO (T1242 review): an atlas built with every loop kept never passes for one without them
+        # (`graph.pkl.meta.json` `build.small_loops`; `inputs.behind` reads it)
+        print("!! --keep-small-loops: every braid loop kept (the map before T1242; for comparisons only)")
+    b.build_facts = {**getattr(b, "build_facts", {}), "small_loops": small_loops_fact(args)}
     b.graph = graph
     b.pruned_fids = pruned_fids
 
 
+def small_loops_fact(args) -> dict:
+    """What the atlas record says about the creek-less loop pass (`graph.pkl.meta.json` `build`, `inputs.behind`)."""
+    m = getattr(args, "drop_small_loops", None)
+    return {"ran": m is not None, "max_offset_m": None if m is None else ("inf" if m == float("inf") else float(m))}
+
+
+#: (T1242 review) EVERY KIND OF THING THAT KEEPS A CREEK-LESS LOOP in a default build (`loop_keep_inputs`); a test pins
+#: that each is offered, so dropping one fails. Loops that touch a lake / are part of a longer blue line: `small_loops`.
+LOOP_KEEP_KINDS = ("named", "a found name", "a curated cut", "a gauge", "a tidal limit", "an owner call",
+                   "an owner call (pond)")
+#: the anchor kinds the loop pass resolves itself (where a cut lands on ONE line). A boundary anchor (unit, area, the
+#: B.C. border) cuts every line that crosses it, the main line too: removing a loop moves no such cut.
+_LOOP_RESOLVED_ANCHORS = ("point", "gauge", "line", "confluence", "lake")
+
+
+def loop_keep_inputs(b: _Build, graph) -> tuple[Path, dict, dict]:
+    """(exemptions file, {reason: curated file}, {reason: blue lines}) the creek-less loop pass keeps loops by, read as
+    THIS build reads them (`--splits` / `--no-splits`, `--no-gauge-splits`, `flowing.FOLD_CONFIRMED`), so
+    `inputs.build_paths` says truthfully what was read. A test hands its own files in `b.loop_keep_paths` = (file,
+    files); the blue lines the build works out (cuts as placed, found names) are worked out all the same."""
+    from pipeline.atlas.registry import flowing as _flowing
+    given = getattr(b, "loop_keep_paths", None)          # (a test's own files; the keeps the build works out stand)
+    files: dict = {"an owner call (pond)": CURATED.waters.pond_calls}
+    if _flowing.FOLD_CONFIRMED:
+        files["an owner call"] = CURATED.waters.slough_calls
+    # an owner-accepted found name is a LABEL, never a graph name (T224), so the prune cannot see it: its line is kept
+    sets: dict = {"a found name": {str(x) for e in (getattr(b, "_mined", None) or [])
+                                   for x in ((e.get("target") or {}).get("blks") or [])}}
+    splits = getattr(b, "splits", None)
+    if splits:
+        # THE CUTS WHERE THE CUT PLACEMENT PUTS THEM: the same resolver, chains and live lines `cut_curated` uses,
+        # asked before any loop goes. A cut anchored by coordinate, tributary code or lake lands on the nearest LIVE
+        # line, so a cut on a removed loop would otherwise land quietly on the main line beside it.
+        from pipeline.atlas.splits.anchors import resolve_split_defs
+        defs = [d for d in splits if str(getattr(d.anchor.type, "value", d.anchor.type)) in _LOOP_RESOLVED_ANCHORS]
+        pts = resolve_split_defs(defs, b.chains, live_blks={n.blk for n in graph.nodes.values() if n.blk})
+        sets["a curated cut"] = {p.blk for p in pts if p.source != "gauge"}
+        sets["a gauge"] = {p.blk for p in pts if p.source == "gauge"}
+        files["a tidal limit"] = CURATED.waters.tidal_limits          # its mouth rows are no cut, but stand on a line
+        if getattr(b, "matches_sha", None):
+            # every matched station, a cut or not (the bundle places them all); the file's whole identity is recorded
+            # beside the graph (`gauge_matches.json`)
+            from pipeline.gauges.matches import MATCH_FILE
+            files["a gauge"] = MATCH_FILE
+    if given:
+        return given[0], dict(given[1]), sets
+    return CURATED.waters.loop_exemptions, files, sets
+
+
 def _small_loops(b: _Build, graph, geoms, fwa_main) -> None:
-    """T1242 (ruling E31; off only under --keep-small-loops): remove the creek-less braid loops (`prune.small_loops`) and write every removed
-    line and every moved creek mouth to small_loops.json beside the graph. Sets `loop_fids` (the removed fids, excused by the integrity check)."""
+    """T1242 (ruling E31; off only under --keep-small-loops): remove the creek-less braid loops (`prune.small_loops`)
+    and write every removed line to small_loops.json beside the graph. Sets `loop_fids` (the removed fids, excused by
+    the integrity check)."""
     import hashlib
-    from pipeline.atlas.graph.prune import drop_small_loops, small_loops
+    from pipeline.atlas.graph.prune import drop_small_loops, loop_keeps, small_loops
     args = b.args
-    from pipeline.atlas.graph.prune import loop_keeps
-    from pipeline.gauges.matches import MATCH_FILE
-    # (a test hands its own files in `b.loop_keep_paths`; the build reads the curated ones). An atlas input
-    # (`atlas.inputs.ATLAS_INPUTS`, `curated:waters.loop_exemptions`); its sha256 is also in small_loops.json.
-    ex_path, structural = getattr(b, "loop_keep_paths", None) or (
-        CURATED.waters.loop_exemptions,
-        {"a curated cut": CURATED.waters.cuts, "a tidal limit": CURATED.waters.tidal_limits, "a gauge": MATCH_FILE,
-         "an owner call": CURATED.waters.slough_calls, "an owner call (pond)": CURATED.waters.pond_calls})
+    ex_path, structural, computed = loop_keep_inputs(b, graph)
     raw = Path(ex_path).read_bytes()
-    reasons = loop_keeps(ex_path, structural)
+    reasons = loop_keeps(ex_path, structural, computed)
     # A NAMED EXEMPTION THE ATLAS NO LONGER HAS IS AN ERROR, never a silent no-op: the row must be fixed or deleted
     blks_here = {n.blk for n in graph.nodes.values() if n.blk}
     missing = sorted({b for b, rs in reasons.items() if b not in blks_here and any(r.startswith("named:") for r in rs)})
@@ -870,30 +918,35 @@ def _small_loops(b: _Build, graph, geoms, fwa_main) -> None:
         raise SystemExit(f"waters/loop_exemptions.json lists blue line(s) the atlas does not have: {missing[:10]} — "
                          "fix or delete those rows")
     keep = set(reasons)
-    tail_river: set = set()
     why: dict = {}
-    loops = small_loops(graph, geoms, args.drop_small_loops, keep, fwa_main=fwa_main, why=why,
-                        tail_river_blks=tail_river)
+    loops = small_loops(graph, geoms, args.drop_small_loops, keep, fwa_main=fwa_main, why=why)
     moved: list = []
     graph, n, fids = drop_small_loops(graph, geoms, loops, moved)
+    # NOTHING A KEEP NAMES MAY GO (a backstop over `loop_nodes`' own skip): a found name, a cut, a call whose line was
+    # removed stops the build by name, never a silent skip downstream (`registry.mined` only counts an absent line)
+    gone = {blk for lp in loops for blk in lp["blks"]} - {nd.blk for nd in graph.nodes.values() if nd.blk}
+    hit = sorted((blk, reasons[blk]) for blk in gone if blk in reasons)
+    if hit:
+        raise SystemExit("the creek-less loop pass removed line(s) a keep names: "
+                         + "; ".join(f"{blk} ({', '.join(rs)})" for blk, rs in hit[:10]))
     b.loop_fids = fids
-    # put back = removing it would have stranded a source; a "tail" loop keeps its tail by design, so only the pieces
-    # outside its tail say whether it went
+    # put back = removing it would have stranded a source (a "tail" loop, never shipped, keeps its tail by design)
     kept = {lp_id for lp_id, lp in enumerate(loops)
             if any(x in graph.nodes for x in lp["nodes"] if x not in (lp.get("tail") or {}))}
-    print(f"T1242 loops without a creek < {args.drop_small_loops:.0f} m: {len(loops) - len(kept)} loop(s), {n} piece(s) "
-          f"removed ({len(kept)} put back: connectivity), {len(moved)} creek mouth(s) re-homed; not removed: "
-          f"{dict(sorted(why.items()))}")
+    kinds = sorted({("named" if r.startswith("named:") else r) for rs in reasons.values() for r in rs})
+    held = {k: sum(1 for rs in reasons.values() if any((r.startswith("named:") if k == "named" else r == k) for r in rs))
+            for k in kinds}
+    print(f"T1242 creek-less braid loops < {args.drop_small_loops:.0f} m: {len(loops) - len(kept)} loop(s), {n} "
+          f"piece(s) removed ({len(kept)} put back: connectivity); not removed: {dict(sorted(why.items()))}; keep "
+          f"lines by kind: {held}")
     b.out.mkdir(parents=True, exist_ok=True)
     (b.out / "small_loops.json").write_text(json.dumps({
-        "max_offset_m": args.drop_small_loops, "keep_file": str(ex_path),
-        "keep_sha256": hashlib.sha256(raw).hexdigest(), "keep_blks": len(keep), "tail_river_blks": len(tail_river),
-        "why": dict(sorted(why.items())),
+        "ran": True, "max_offset_m": args.drop_small_loops, "keep_file": str(ex_path),
+        "keep_sha256": hashlib.sha256(raw).hexdigest(), "keep_blks": len(keep),
+        "keep_by_kind": held, "why": dict(sorted(why.items())),
         "removed": [lp for i, lp in enumerate(loops) if i not in kept],
-        "put_back": [loops[i]["nodes"] for i in sorted(kept)],
-        "moved": [list(m) for m in moved]}, indent=1) + "\n", encoding="utf-8")
-    _tick = b.tick
-    _tick("T1242 creek-less braid loops")
+        "put_back": [loops[i]["nodes"] for i in sorted(kept)]}, indent=1) + "\n", encoding="utf-8")
+    b.tick("T1242 creek-less braid loops")
 
 
 def gauge_cuts(b: _Build) -> None:
@@ -1668,7 +1721,7 @@ def write_graph(b: _Build) -> None:
     # (T1029) each stream piece's compass banks from its own final geometry, before graph.pkl is written
     from pipeline.atlas.graph.graph import stamp_drawn_banks
     print(f"  drawn banks stamped on {stamp_drawn_banks(graph, geoms):,} stream pieces")
-    write_artifact(graph, str(out / "graph.pkl"), input_hashes=b.input_hashes)
+    write_artifact(graph, str(out / "graph.pkl"), input_hashes=b.input_hashes, build=getattr(b, "build_facts", None))
     write_artifact(geoms, str(out / "geometries.pkl"), input_hashes=b.input_hashes)
     b.out = out
 

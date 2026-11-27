@@ -1,6 +1,7 @@
 """T1242 (ruling E31): the creek-less braid loops every map build removes, and what it leaves (`--drop-small-loops`)."""
 
 import pytest
+from pathlib import Path
 from shapely.geometry import LineString
 
 from pipeline.atlas.graph import prune
@@ -268,7 +269,7 @@ def test_the_loop_pass_runs_after_the_leaf_prune(tmp_path, tail_mode):
     geoms["H1:0"] = LineString([(500, 1200), (800, 1200)])
     geoms["H2:0"] = LineString([(800, 1200), (1100, 1200)])
     ex = tmp_path / "loop_exemptions.json"
-    ex.write_text(_json.dumps({"rows": []}))
+    ex.write_text(_json.dumps(_doc([])))
     args = SimpleNamespace(simplify_braids=True, no_leaf_prune=False, drop_small_loops=100.0)
     b = SimpleNamespace(args=args, graph=g, geoms=geoms, fids=[], tick=lambda *_: None, out=tmp_path,
                         loop_keep_paths=(ex, {}))
@@ -280,10 +281,18 @@ def test_the_loop_pass_runs_after_the_leaf_prune(tmp_path, tail_mode):
 
 # ---- what keeps a loop: only names and structure, read in the map build (owner 2026-11-27) ------------------------
 
+def _row(water, blks, rid, **kw):
+    return {"water": water, "blks": blks, "why": "a book row names it", "id": rid, "words": "", "date": "2026-11-27", **kw}
+
+
+def _doc(rows):
+    return {"_about": "test", "format": 1, "rows": rows}
+
+
 def _files(tmp_path, exempt=(), **structural):
     import json as _json
     ex = tmp_path / "loop_exemptions.json"
-    ex.write_text(_json.dumps({"rows": [{"water": "x", "blks": list(exempt), "id": "r2:stave_river@2-8/stave_river.r1"}]}))
+    ex.write_text(_json.dumps(_doc([_row("x", list(exempt) or ["999999999"], "r2:stave_river@2-8/stave_river.r1")])))
     paths = {}
     for reason, blk in structural.items():
         f = tmp_path / f"{reason}.json"
@@ -323,7 +332,7 @@ def test_a_named_exemption_the_atlas_lacks_stops_the_build(tmp_path):
     from pipeline.atlas.build import prune_graph
     g, geoms = _river(creek=False)
     ex = tmp_path / "loop_exemptions.json"
-    ex.write_text(_json.dumps({"rows": [{"water": "gone", "blks": ["111111111"], "id": "x"}]}))
+    ex.write_text(_json.dumps(_doc([_row("gone", ["111111111"], "x")])))
     args = SimpleNamespace(simplify_braids=True, no_leaf_prune=False, drop_small_loops=float("inf"))
     b = SimpleNamespace(args=args, graph=g, geoms=geoms, fids=[], tick=lambda *_: None, out=tmp_path,
                         loop_keep_paths=(ex, {}))
@@ -332,10 +341,176 @@ def test_a_named_exemption_the_atlas_lacks_stops_the_build(tmp_path):
 
 
 def test_the_curated_exemptions_file_is_readable(tmp_path):
-    """The real file: every row has blue lines, an id and a reason; the Goat River hold is dated."""
+    """The real file is well formed (`exemption_problems`); the book's and DFO's words are stored whole, never cut."""
     import json as _json
     from pipeline.common.curated import CURATED
     doc = _json.loads(open(CURATED.waters.loop_exemptions, encoding="utf-8").read())
+    assert prune.exemption_problems(doc) == []
     assert doc["rows"] and all(r["blks"] and r["id"] and r["why"] for r in doc["rows"])
+    dfo = [r for r in doc["rows"] if r["id"].startswith("DFO/")]
+    assert dfo and all(r["words"] and r["words"] != r["id"].split("/", 1)[1] for r in dfo), "DFO's text, not the slug"
+    assert all(r["words"] and r["words"][-1] in ".,;)abcdefghijklmnopqrstuvwxyz0123456789"
+               for r in doc["rows"] if r["id"].startswith("r"))
     assert all(b.lstrip("-").isdigit() for r in doc["rows"] for b in r["blks"]), "blue-line keys only (a lake is no loop)"
     assert any(r["id"] == "owner:goat-river" and r["words"] for r in doc["rows"])
+
+
+# ---- the review of 2026-11-27 (T1242): found names, cuts as placed, the record, the marks ------------------------
+
+def _b(tmp_path, g, geoms, **kw):
+    import json as _json
+    from types import SimpleNamespace
+    ex = tmp_path / "loop_exemptions.json"
+    ex.write_text(_json.dumps(_doc([])))
+    args = SimpleNamespace(simplify_braids=True, no_leaf_prune=False, drop_small_loops=float("inf"))
+    return SimpleNamespace(args=args, graph=g, geoms=geoms, fids=[], tick=lambda *_: None, out=tmp_path,
+                           loop_keep_paths=(ex, {}), **kw)
+
+
+def test_a_loop_an_accepted_found_name_labels_stays(tmp_path):
+    """Shovel Creek (blk 355997438, MU 2-18): an owner-accepted found name is a label, not a graph name, so the prune
+    could not see it and the loop went. The build keeps a loop any found name labels (from found_names, no row)."""
+    from pipeline.atlas.build import _small_loops
+    g, geoms = _river(creek=False)
+    b = _b(tmp_path, g, geoms, _mined=[{"target": {"blks": ["L"]}, "names": [{"name": "Shovel Creek"}]}])
+    _small_loops(b, g, geoms, None)
+    assert "L:0" in g.nodes
+    g, geoms = _river(creek=False)
+    b = _b(tmp_path, g, geoms, _mined=[])
+    _small_loops(b, g, geoms, None)
+    assert "L:0" not in g.nodes, "without the found name the same loop goes"
+
+
+def test_a_keep_the_pass_removes_anyway_stops_the_build(tmp_path, monkeypatch):
+    """The backstop: a line a keep names (here a found name) that the pass removes stops the build by name, never a
+    silent skip downstream (`registry.mined` only counts an absent line)."""
+    from pipeline.atlas.build import _small_loops
+    real = prune.small_loops
+    monkeypatch.setattr(prune, "small_loops", lambda g, geoms, m, keep, **kw: real(g, geoms, m, set(), **kw))
+    g, geoms = _river(creek=False)
+    b = _b(tmp_path, g, geoms, _mined=[{"target": {"blks": ["L"]}, "names": [{"name": "Shovel Creek"}]}])
+    with pytest.raises(SystemExit, match=r"L \(a found name\)"):
+        _small_loops(b, g, geoms, None)
+
+
+def test_a_cut_is_kept_where_the_cut_placement_puts_it(tmp_path, monkeypatch):
+    """A cut anchored by coordinate, tributary code or lake names no blue line; the pass asks the cut placement's own
+    resolver (before any loop goes) and keeps the loop it lands on. Boundary anchors (unit, area, border) are not
+    asked: they cut every line that crosses, the main line too."""
+    from types import SimpleNamespace
+    from pipeline.atlas.build import loop_keep_inputs
+    from pipeline.atlas.splits import anchors
+    seen = {}
+
+    def fake(defs, chains, live_blks=None, **kw):
+        seen["types"] = sorted(d.anchor.type for d in defs)
+        seen["live"] = live_blks
+        return [SimpleNamespace(blk="L", source="curated"), SimpleNamespace(blk="G", source="gauge")]
+    monkeypatch.setattr(anchors, "resolve_split_defs", fake)
+    defs = [SimpleNamespace(anchor=SimpleNamespace(type=t)) for t in
+            ("point", "confluence", "lake", "line", "gauge", "mu_boundary", "area_boundary", "border")]
+    g, geoms = _river(creek=False)
+    b = _b(tmp_path, g, geoms, splits=defs, chains=[], matches_sha=None)
+    _ex, files, sets = loop_keep_inputs(b, g)
+    assert sets["a curated cut"] == {"L"} and sets["a gauge"] == {"G"}
+    assert seen["types"] == ["confluence", "gauge", "lake", "line", "point"]
+    assert seen["live"] == {"M", "L"}, "asked on the graph before any loop goes"
+    keep = prune.loop_keeps(_ex, {}, sets)
+    assert small_loops(g, geoms, float("inf"), set(keep)) == []
+
+
+def test_every_keep_kind_is_offered_in_a_default_build(tmp_path, monkeypatch):
+    """The build's REAL keep list (`loop_keep_inputs`, read as a default build reads it): drop any kind and this fails."""
+    from types import SimpleNamespace
+    from pipeline.atlas import build as B
+    from pipeline.atlas.registry import flowing
+    from pipeline.atlas.splits import anchors
+    monkeypatch.setattr(anchors, "resolve_split_defs", lambda *a, **k: [])
+    monkeypatch.setattr(flowing, "FOLD_CONFIRMED", True)
+    g, geoms = _river(creek=False)
+    b = SimpleNamespace(args=SimpleNamespace(), _mined=[], chains=[], matches_sha="x",
+                        splits=[SimpleNamespace(anchor=SimpleNamespace(type="point"))])
+    ex, files, sets = B.loop_keep_inputs(b, g)
+    assert {"named"} | set(files) | set(sets) == set(B.LOOP_KEEP_KINDS)
+    assert B.LOOP_KEEP_KINDS == ("named", "a found name", "a curated cut", "a gauge", "a tidal limit",
+                                 "an owner call", "an owner call (pond)")
+    from pipeline.common.curated import CURATED
+    assert Path(ex) == Path(CURATED.waters.loop_exemptions)
+
+
+@pytest.mark.parametrize("kind", ["a found name", "a curated cut", "a gauge"])
+def test_each_computed_keep_keeps_its_loop(tmp_path, kind):
+    g, geoms = _river(creek=False)
+    ex, _ = _files(tmp_path)
+    keep = prune.loop_keeps(ex, {}, {kind: {"L"}})
+    assert keep["L"] == [kind] and small_loops(g, geoms, float("inf"), set(keep)) == []
+
+
+def test_the_keeps_follow_the_build_flags(tmp_path, monkeypatch):
+    """--no-splits: no cut, tidal limit or gauge is read (as `inputs.build_paths` says); FOLD_CONFIRMED off: no slough
+    call; --no-gauge-splits (no matches_sha): the match file is not read."""
+    from types import SimpleNamespace
+    from pipeline.atlas import build as B
+    from pipeline.atlas.registry import flowing
+    from pipeline.atlas.splits import anchors
+    monkeypatch.setattr(anchors, "resolve_split_defs", lambda *a, **k: [])
+    g, _ = _river(creek=False)
+    monkeypatch.setattr(flowing, "FOLD_CONFIRMED", False)
+    _ex, files, sets = B.loop_keep_inputs(SimpleNamespace(_mined=[], splits=None), g)
+    assert set(files) == {"an owner call (pond)"} and set(sets) == {"a found name"}
+    _ex, files, sets = B.loop_keep_inputs(SimpleNamespace(_mined=[], chains=[], matches_sha=None,
+                                                          splits=[SimpleNamespace(anchor=SimpleNamespace(type="point"))]), g)
+    assert "a gauge" not in files and "a tidal limit" in files
+
+
+def test_the_atlas_record_says_whether_the_pass_ran(tmp_path):
+    """An atlas built with --keep-small-loops, or with a limit, never passes for a default one: `build.small_loops` in
+    graph.pkl.meta.json, read by `inputs.behind`; the exemptions are recorded as not read."""
+    import json as _json
+    from pipeline.atlas import inputs as I
+    from pipeline.atlas.build import _parse_args, small_loops_fact
+    from pipeline.common.io.serialize import write_artifact
+    assert small_loops_fact(_parse_args(["--full"])) == {"ran": True, "max_offset_m": "inf"}
+    off = _parse_args(["--full", "--keep-small-loops"])
+    assert small_loops_fact(off) == {"ran": False, "max_offset_m": None}
+    assert I.build_paths(off)["curated:waters.loop_exemptions"].startswith("not read (--keep-small-loops")
+    assert "curated:waters.loop_exemptions" not in I.build_paths(_parse_args(["--full"]))
+    for args, want in ((off, "every braid loop kept"), (_parse_args(["--full", "--drop-small-loops", "100"]), "100.0 m"),
+                       (_parse_args(["--full"]), None)):
+        d = tmp_path / str(len(list(tmp_path.iterdir())))
+        write_artifact({}, str(d / "graph.pkl"), input_hashes={"k": "v"}, build={"small_loops": small_loops_fact(args)})
+        assert _json.loads((d / "graph.pkl.meta.json").read_text())["build"]["small_loops"] == small_loops_fact(args)
+        got = I.loop_pass_behind(d)
+        assert (got == []) if want is None else (len(got) == 1 and want in got[0])
+
+
+def test_the_exemptions_file_is_validated(tmp_path):
+    good = _doc([_row("x", ["123456789"], "a")])
+    assert prune.exemption_problems(good) == []
+    assert any("unknown key 'note'" in p for p in prune.exemption_problems(_doc([_row("x", ["1"], "a", note="n")])))
+    assert any("no `why`" in p for p in prune.exemption_problems(
+        _doc([{k: v for k, v in _row("x", ["1"], "a").items() if k != "why"}])))
+    assert any("not a blue-line key" in p for p in prune.exemption_problems(_doc([_row("x", ["wbk:329"], "a")])))
+    assert any("used twice" in p for p in prune.exemption_problems(_doc([_row("x", ["1"], "a"), _row("y", ["2"], "a")])))
+    assert any("unknown key 'extra'" in p for p in prune.exemption_problems({**good, "extra": 1}))
+    import json as _json
+    ex = tmp_path / "e.json"
+    ex.write_text(_json.dumps(_doc([_row("x", ["1"], "a", note="n")])))
+    with pytest.raises(SystemExit, match="malformed"):
+        prune.loop_keeps(ex, {})
+
+
+def test_a_removed_loop_a_review_mark_names_refuses_the_promote(tmp_path):
+    """Marks are no keep by design (E31) and no build reads them (T266): promote refuses a candidate whose removed
+    loop line a mark names. READ ONLY: the store is never written. A sha's digit run is no blue line."""
+    import json as _json
+    from pipeline.atlas.promote import marked_loops
+    cand = tmp_path / "cand"
+    cand.mkdir()
+    (cand / "small_loops.json").write_text(_json.dumps({"removed": [{"blks": ["355997438"]}, {"blks": ["356000001"]}]}))
+    marks = tmp_path / "marks.jsonl"
+    marks.write_text(_json.dumps({"note": "the channel blk:355997438 is missing", "pdf_sha256": "a356000001b"}) + "\n")
+    before = marks.read_bytes()
+    assert marked_loops(cand, lambda *_: None, marks) == ["355997438"]
+    assert marks.read_bytes() == before
+    assert prune.marked_removed_lines(["356000001"], "sha 0356000001ff and 1234567890123456") == []
