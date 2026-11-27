@@ -14,7 +14,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const draw = (scale: number) => {
   vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(scale);
-  render(<DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={dayRange(NOW, null)} now={NOW} />);
+  render(<DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={dayRange(NOW, null)} now={NOW} anchor="regs-date" />);
 };
 
 describe("(T1203) the day sheet", () => {

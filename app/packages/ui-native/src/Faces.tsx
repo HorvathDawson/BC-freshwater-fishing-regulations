@@ -110,7 +110,7 @@ export function ViewTabs({ palette, views, on, onView }: {
   const shown = WATER_VIEWS.filter((v) => views.includes(v));
   const coach = useCoachRefs();   // (T293) the walkthrough points at Regulations and Conditions (`view:<view>`)
   // (T1203) THE WORDS FIT THE ROW OR SHORTEN: the row's room and the full words' width are MEASURED (an invisible twin row of the
-  // full words, as the place label's), and when the words are wider than the room "Regulations" is "Regs" (core
+  // full words, as the place label's), and when the words are wider than the room "Regulations" is "Rules" (core
   // `WATER_VIEW_SHORT`; the full word stays the accessible name). Decided from widths, not from a text-size threshold, so it holds
   // at any window width and any text size. The labels are a fixed row's: one line, capped at `LABEL_SCALE` (type.ts, the one rule).
   // THE FIRST PAINT IS DECIDED FROM AN ESTIMATE (`labelMinWidth`: the words' width at this text size; the window less the header's

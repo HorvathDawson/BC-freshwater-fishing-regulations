@@ -29,7 +29,7 @@ export const WATER_VIEW_LABEL: { readonly [V in WaterView]: string } = {
  * Only Regulations has a shorter form: "Conditions" and "Map" are kept whole.
  */
 export const WATER_VIEW_SHORT: { readonly [V in WaterView]: string } = {
-  regs: "Regs",
+  regs: "Rules",
   conditions: "Conditions",
   map: "Map",
 };

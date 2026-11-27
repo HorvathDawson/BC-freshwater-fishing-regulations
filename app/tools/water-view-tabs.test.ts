@@ -2,7 +2,7 @@
 /**
  * T1203 (owner 2026-11-26: "the regulations, conditions, map top tabs should be dynamic if they get too big with text increase
  * then regulations could become regs") — A WATER'S VIEW TABS NEVER CLIP OR WRAP: when the full words do not fit the row they
- * shorten ("Regulations" -> "Regs", core `WATER_VIEW_SHORT`), decided from the MEASURED widths, so it holds at any window
+ * shorten ("Regulations" -> "Rules", core `WATER_VIEW_SHORT`), decided from the MEASURED widths, so it holds at any window
  * width and any text size; the full word stays the accessible name.
  *
  * The strip measures itself with onLayout, which a static jsdom render never runs, so this test plays both halves: pass 1
