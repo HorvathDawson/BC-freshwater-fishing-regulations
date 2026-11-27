@@ -182,14 +182,16 @@ step "CI: generated files are current" ci_step "Generated files are current (gau
 # caught 2026-11-07: three test files merged with no smoke.txt id (test_dfo_tidal_water, test_lake_through_river,
 # test_tile_smooth), found only by the Tier 1 run after the merges; the guard was T432's test_smoke_coverage. Since T667 D6
 # (2026-11-14) the set is derived (pipeline/tests/smoke.py), so a new file is in it by construction; this pins the rule (~2 s)
-step "smoke set is derived by rule" "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_smoke_coverage.py
+# (T1193) every named-file pytest step below says its tier: `--with-data` (-m "not slow", what a plain pytest ran before
+# a plain pytest became the no-data tier) or CI's `-m "$markers"`; none leans on the default
+step "smoke set is derived by rule" "$PY" -m pytest -q -p no:cacheprovider --with-data pipeline/tests/test_smoke_coverage.py
 
 # caught (2026-11-09): a committed `pytest.skip` failed test_no_silent_skips only in the full suite. A changed pipeline
 # test file runs that guard here (~1 s)
 silent_skips() {
   grep -qE '^pipeline/(.*/)?(test_[^/]*|conftest)\.py$|^conftest\.py$' <<<"$CHANGED" \
     || { echo "   (no pipeline test file changed)"; return 0; }
-  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_no_silent_skips.py
+  "$PY" -m pytest -q -p no:cacheprovider --with-data pipeline/tests/test_no_silent_skips.py
 }
 step "no silent skips (a pipeline test file changed)" silent_skips
 
@@ -199,7 +201,7 @@ step "no silent skips (a pipeline test file changed)" silent_skips
 curated_writer() {
   grep -qE '^(pipeline|tools/curation-review/backend)/.*\.py$' <<<"$CHANGED" \
     || { echo "   (no pipeline Python file changed)"; return 0; }
-  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_curated_writer.py
+  "$PY" -m pytest -q -p no:cacheprovider --with-data pipeline/tests/test_curated_writer.py
 }
 step "one writer for curated data (a pipeline Python file changed)" curated_writer
 
@@ -208,7 +210,7 @@ step "one writer for curated data (a pipeline Python file changed)" curated_writ
 wsc_scan() {
   grep -qE '^(pipeline|tools/curation-review)/.*\.py$' <<<"$CHANGED" \
     || { echo "   (no pipeline Python file changed)"; return 0; }
-  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_wsc_relation.py
+  "$PY" -m pytest -q -p no:cacheprovider --with-data pipeline/tests/test_wsc_relation.py
 }
 step "watershed codes read only in wsc.py (a pipeline Python file changed)" wsc_scan
 
@@ -230,7 +232,7 @@ mini_inputs_changed() {
 }
 mini_chain() {
   mini_inputs_changed || { echo "   (no input of the mini chain changed: pipeline source, its fixtures, curated, config)"; return 0; }
-  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_mini_release.py pipeline/tests/test_mini_deliver_inputs.py \
+  "$PY" -m pytest -q -p no:cacheprovider --with-data pipeline/tests/test_mini_release.py pipeline/tests/test_mini_deliver_inputs.py \
     pipeline/tests/test_export_claims.py
   # (T667 slice 8) and the committed copy the app's tests read still matches a rebuild (~8 s, by content)
   "$PY" -m pipeline.tools.mini_release --check
@@ -291,7 +293,7 @@ step "every review test, CI's tier (a review module changed)" review_tests
 test_env_contract() {
   grep -qE '^scripts/(test-[^/]*|pytest-chunked|fast-fail|fresh-copy-tests)\.sh$|^pipeline/tests/(tiers|test_test_env|conftest)\.py$|^conftest\.py$|^\.github/workflows/pipeline-ci\.yml$' <<<"$CHANGED" \
     || { echo "   (no test-environment file changed)"; return 0; }
-  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_test_env.py
+  "$PY" -m pytest -q -p no:cacheprovider --with-data pipeline/tests/test_test_env.py
 }
 step "test-environment contract (a test-env file changed)" test_env_contract
 
@@ -331,7 +333,7 @@ step "changed Python compiles" py_compiles
 step "format pairs (Python writer = app / worker reader)" "$PY" scripts/check-format-pairs.py
 # caught (2026-11-13, T708): a cuts.json label naming no place outside its brackets stopped the atlas build after 9 min
 # (`splits.label_problem`); the corpus test runs in a second
-step "every curated cut label names a place" "$PY" -m pytest -q -p no:cacheprovider \
+step "every curated cut label names a place" "$PY" -m pytest -q -p no:cacheprovider --with-data \
   pipeline/tests/test_splits.py::test_every_curated_label_names_a_place
 
 # caught (2026-11-21, 0.8.5): core reworded the band words (T982 #3); `pnpm check` passed, but the feeds worker's card test
