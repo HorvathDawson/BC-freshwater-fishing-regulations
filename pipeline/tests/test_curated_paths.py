@@ -252,14 +252,18 @@ class TestGetPath:
         assert cfg.get_path("cache", "dfo_salmon").is_absolute()
 
 
-#: (T1192) one fresh process per entry: `dotenv.load_dotenv` stubbed to count its calls, then the reads
+#: (T1222) one fresh process per entry: `dotenv.load_dotenv` stubbed to count its calls, then the reads; prints the
+#: calls, then whether a real `dotenv` was imported (a second run with no stub: `sys.modules` after the reads)
 _ENV_PROBE = """
 import json, sys, types
 calls = []
-stub = types.ModuleType("dotenv")
-stub.load_dotenv = lambda path=None, *a, **k: calls.append(str(path))
-sys.modules["dotenv"] = stub
-for read in sys.argv[1:]:
+stubbed = sys.argv[1] == "stub"
+if stubbed:
+    stub = types.ModuleType("dotenv")
+    stub.load_dotenv = lambda path=None, *a, **k: calls.append(str(path))
+    sys.modules["dotenv"] = stub
+import pipeline.common.curated, project_config
+for read in sys.argv[2:]:
     if read == "source":
         from pipeline.common.curated import SOURCE
         SOURCE.fwa_gpkg
@@ -269,24 +273,26 @@ for read in sys.argv[1:]:
     elif read == "get_config":
         from project_config import get_config
         get_config()
-print(json.dumps(calls))
+print(json.dumps({"calls": calls, "dotenv_imported": not stubbed and "dotenv" in sys.modules}))
 """
 
 
 @pytest.mark.parametrize("reads", [["source"], ["curated"], ["get_config"], ["source", "curated", "get_config"]],
                          ids="+".join)
-def test_the_env_file_is_loaded_once_by_whichever_config_read_comes_first(reads):
-    """`.env` is loaded on the one config load path (`parse_config`), once per process: `get_config()` loaded it before
-    this change, and a process that reads config only through SOURCE / CURATED loads it too (its removal is T1222)."""
+def test_no_config_read_loads_a_dotenv_file(reads):
+    """(T1222, owner 2026-11-27) The pipeline reads no `.env`: no config read calls `load_dotenv`, and importing the
+    config modules and reading config does not import `dotenv` at all. Until T1222 `parse_config` loaded the repo's
+    `.env` (T1192); a run-time setting now comes from the shell environment. Mutation: put the load back -> fails."""
     import json
     import os
     import subprocess
     import sys
     env = {k: v for k, v in os.environ.items() if k != C.ROOT_ENV}
     env["PYTHONPATH"] = str(C.REPO_ROOT)
-    got = subprocess.run([sys.executable, "-c", _ENV_PROBE, *reads], cwd=C.REPO_ROOT, env=env, check=True,
-                         capture_output=True, text=True)
-    assert json.loads(got.stdout.strip().splitlines()[-1]) == [str(C.REPO_ROOT / ".env")]
+    for mode in ("stub", "real"):
+        got = subprocess.run([sys.executable, "-c", _ENV_PROBE, mode, *reads], cwd=C.REPO_ROOT, env=env, check=True,
+                             capture_output=True, text=True)
+        assert json.loads(got.stdout.strip().splitlines()[-1]) == {"calls": [], "dotenv_imported": False}, mode
 
 
 class TestNamedSourceFiles:

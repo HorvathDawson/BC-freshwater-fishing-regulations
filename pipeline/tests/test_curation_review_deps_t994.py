@@ -14,7 +14,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "tools" / "curation-review" / "backend"
 #: import name -> distribution name, where they differ
-DIST = {"PIL": "pillow", "yaml": "pyyaml", "dotenv": "python-dotenv"}
+DIST = {"PIL": "pillow", "yaml": "pyyaml"}
 #: the repo's own modules the backend imports (not distributions)
 OWN = {"pipeline", "project_config"}
 
