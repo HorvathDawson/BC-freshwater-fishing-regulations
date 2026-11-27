@@ -343,8 +343,8 @@ def test_a_named_exemption_the_atlas_lacks_stops_the_build(tmp_path):
 def test_the_curated_exemptions_file_is_readable(tmp_path):
     """The real file is well formed (`exemption_problems`); the book's and DFO's words are stored whole, never cut."""
     import json as _json
-    from pipeline.common.curated import CURATED
-    doc = _json.loads(open(CURATED.waters.loop_exemptions, encoding="utf-8").read())
+    from pipeline.tests import under_test
+    doc = _json.loads(open(under_test.curated().waters.loop_exemptions, encoding="utf-8").read())
     assert prune.exemption_problems(doc) == []
     assert doc["rows"] and all(r["blks"] and r["id"] and r["why"] for r in doc["rows"])
     dfo = [r for r in doc["rows"] if r["id"].startswith("DFO/")]
@@ -434,8 +434,8 @@ def test_every_keep_kind_is_offered_in_a_default_build(tmp_path, monkeypatch):
     assert {"named"} | set(files) | set(sets) == set(B.LOOP_KEEP_KINDS)
     assert B.LOOP_KEEP_KINDS == ("named", "a found name", "a curated cut", "a gauge", "a tidal limit",
                                  "an owner call", "an owner call (pond)")
-    from pipeline.common.curated import CURATED
-    assert Path(ex) == Path(CURATED.waters.loop_exemptions)
+    from pipeline.tests import under_test
+    assert Path(ex) == Path(under_test.curated().waters.loop_exemptions)
 
 
 @pytest.mark.parametrize("kind", ["a found name", "a curated cut", "a gauge"])
