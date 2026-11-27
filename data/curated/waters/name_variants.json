@@ -6551,18 +6551,18 @@
  {
   "target": {
    "wbks": [
-    "329292352"
+    "329303502"
    ]
   },
   "names": [
    {
     "name": "LOST LAKE",
     "source": "regulation",
-    "note": "Matched via base name: LOST LAKE; REGION 2 - Lower Mainland; MU 2-8"
+    "note": "LOST LAKE (near Whistler), printed MU 2-8 (a misprint: Whistler is MU 2-9); moved here from the Malcolm Knapp Lost Lake (wbk 329292352) with the row's binding (owner 2026-11-26, T1177 O3); REGION 2 - Lower Mainland; MU 2-8"
    }
   ],
   "_gnis": [
-   "18006"
+   "36000"
   ]
  },
  {

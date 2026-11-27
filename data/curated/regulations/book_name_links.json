@@ -5379,9 +5379,9 @@
     "2-8"
    ]
   },
-  "note": "Matched via base name: LOST LAKE",
-  "gnis_ids": [
-   "18006"
+  "note": "REBOUND to the Whistler lake (owner 2026-11-26, T1177 O3: \"Move it to the Whistler lake\"). Lost Lake at Whistler is wbk:329303502 (gnis 36000, MU 2-9; stocked as LOST LAKE). The book's 2-8 is a misprint: Whistler is in MU 2-9. The base-name match had bound gnis 18006, the small Lost Lake in the Malcolm Knapp forest (MU 2-8), which the row does not mean.",
+  "waterbody_keys": [
+   "329303502"
   ]
  },
  {
