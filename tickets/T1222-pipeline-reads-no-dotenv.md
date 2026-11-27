@@ -53,8 +53,6 @@ Found, not fixed here:
 - `deploy/staging/check-public.mjs:53-56`: the secret scan looks for `NOTIFY_EMAIL_TO`, `REPORT_SALT`, `AWS_ACCESS_KEY_ID`
   and `AWS_SECRET_ACCESS_KEY` by value from the environment; an unset one is skipped without a word, so the scan is
   narrower than it says.
-- `uvicorn[standard]`'s other extras (httptools, uvloop, watchfiles, websockets, PyYAML) are all pinned in
-  `constraints.txt` (checked 2026-11-27): nothing to add.
 - `constraints.txt` still pins `google-genai==2.10.0` and `google-auth==2.55.1`, which nothing in `requirements.txt`
   asks for (left from the Gemini parser; a constraint installs nothing, so it is harmless clutter).
 

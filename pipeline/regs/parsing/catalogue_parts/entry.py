@@ -238,8 +238,8 @@ class CatalogueEntry(BaseModel):
 
     @model_validator(mode="after")
     def _no_source_artefacts(self) -> "CatalogueEntry":
-        """A KNOWN SOURCE ARTEFACT IS NOT A RULE (`SOURCE_ARTEFACTS`): Goat River's "Leadville
-        Creek Cameron Creek" is two map labels printed into the row (user ruling 2026-09-30)."""
+        """A KNOWN SOURCE ARTEFACT IS NOT A RULE (`SOURCE_ARTEFACTS`, none known since T1177 O10 read
+        Goat River's "Leadville Creek Cameron Creek" as the release's stretch)."""
         bad = source_artefact_problems(self.entry_id, self.rules)
         if bad:
             raise ValueError(f"{self.entry_id}: " + "; ".join(bad))

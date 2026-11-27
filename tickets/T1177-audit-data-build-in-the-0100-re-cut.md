@@ -35,9 +35,10 @@ diff where a binding moves), listed for his look before the build ships. Related
    matches both, only the distance differs: "Our cut is the falls" stands), O17; their errors are on
    `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`.
 7. The D6 rebinds of T1118 ride the same build (Mosquito, Bear, McLennan, and the four lake rebinds he approved: McDonell 6-4, the Twin Lakes 4-34 versus Yankee and Canuck, Hall Lake 4-20 versus the 4-34 Hall lakes, the Malcolm Knapp Lost Lake versus the Whistler Lost Lake; Panther is only the name-variant pointer fix).
-8. **P7b (ruled, the strictest reading):** the Region 5 spring closure is lifted only where a row prints its own exemption or "open
-   all year" (whole or part); gear or quota rows keep it. Closes 330.9 km in spring, plus the lower Quesnel River below the Cariboo (owner: "Yes, close it too (Recommended)", about 100 km; Region 5 total about 431 km) (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2,
-   Little Horsefly 17.8, Mitchell 15.4, Canim 9.2); opens nothing. GOTCHAS entry written; the Region 5 question is BOOK-ERRORS entry 19.
+8. **P7b (ruled, the strictest reading):** the Region 5 spring closure is lifted only where a row prints its own closure or "open
+   all year" (whole or part), on that stretch; gear or quota rows keep it. Closes about 430.8 km in spring (Cariboo 143.7, Quesnel below
+   the Cariboo 99.9, Moffat 88.1, McKinley 38.5, Blue Lead 18.2, Little Horsefly 17.8, Mitchell 15.4, Canim 9.2); opens nothing. GOTCHAS
+   entry written; the Region 5 question is BOOK-ERRORS entry 19. The lower Quesnel (owner, batch 3): "Yes, close it too (Recommended)".
 9. O16 is confirmed (no change). The Oxbows label follows the general label rule (the final table goes to him).
 10. **The tributary walk (own work item; a walk change, needs a reach rerun and a rule-bindings diff):** "everything in is a tributary and only shouldnt be if an exception is listed
     saying otherwise". A lake's tributaries row covers every inflow, climbing through every lake, even a river with its own row; a stream is not a tributary of itself (a row "stream A
@@ -50,10 +51,32 @@ diff where a binding moves), listed for his look before the build ships. Related
 13. Not in this build, cross-link only: the owner's ~17:35 rulings on #312's final side-channel table (Snehumption: "Plain \"2 side
     channels\" (Recommended)"; Klinaklini / MacMillan: "Plain \"Side channel\" / \"3 side channels\" (Recommended)"; "Shorten Ecological
     Reserve to \"Eco Reserve\"") are PR #312's words (T1172, round 4); the area in the app subtitle is T1181.
+14. **The release build (O10):** the two Goat cuts in `cuts.json` need the ATLAS build; a reach-only rerun leaves `goat_river.r1`
+    unresolved (no catch and release on the Goat at all). The Goat answers diff is shown to the owner again after the from-nothing build.
+
+## Owner answers, 2026-11-26 evening (batch 1, verbatim in `docs/OWNER-RULINGS.md`)
+Routing: answers relayed word for word from the planning chat count as his yes for merges (irreversible deletes still need him).
+Yes to O13 (5.05 km opens above Healy Lake), O10 (76.8 km opens to the Region 4 quota; the measured answers diff is shown
+again after the release build), D6 Mosquito Creek, the four lake rebinds and McLennan (both closed, ask the Province). O4 Hatton:
+fly-only all year on the main stem and the tributaries under it (lane D checked: the rule carries no dates; it binds the Caycuse
+above the confluence and Hatton Creek only, the row printing no tributary mark). On his words "make sure this is also to the mainstem
+and other tribs that they all get all year" he was asked back (batch 2) and answered: "Only Hatton Creek and the main stem, as the book prints
+(Recommended)" (as built). Asked whether "upstream of and including Hatton Creek" scopes the Jul 15-Aug 31 closure too, he answered: "Keep as now"
+(the closure on the whole Caycuse and not on Hatton Creek; Hatton stays open Jul 15-Aug 31, fly only). Both in RULINGS E29.
+Release: "Yes, merge both (Recommended)" (this branch, PR #330). Away rule from now on: "Yes, approved items merge (Recommended)":
+anything he already picked or answered merges after its full check and a second agent's review; only NEW openings, new looks and
+open questions wait for him.
 
 ## Acceptance
 Each change has its answers diff and every moved binding is explained; unchanged items are proved unchanged; he has seen
 the lists before the re-cut ships. Severity: medium (several are "A": an angler could break the law). Model: Opus. Size: L.
+
+## Batch 3 answers (the owner, 2026-11-26 night, verbatim; the lower Quesnel's is in item 8)
+- Stellako (opens 16.5 km May 15-Jun 30; Region 6 steelhead only Jun 16-30): "Yes, open May 15 as built (Recommended)".
+- Little River (3.6 km; lift for rainbow trout and char only; catch and release Jul 1-Dec 31): "yes we want the strictest here."
+- Blue Lead Creek below the falls (0.9 km, kept lifted by its Aug 15-Oct 31 closure): "Keep it open in spring (Recommended)" (as built).
+- The annual quota under its own row's release (T1243): "Hide the annual quota while release applies (Recommended)".
+- Strathcona-Westmin Park as "Strathcona Park" for the rules that name it: "Yes, treat it as Strathcona Park (Recommended)" (T1240).
 
 ## Owner
 
