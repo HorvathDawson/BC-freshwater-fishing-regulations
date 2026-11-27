@@ -352,6 +352,7 @@ const faultsOf = (v: M): { kind: Kind; text: string }[] => [
  * scale; every other fault at 1x or 1.3x fails, and at 2.0x every LOSS (`over`, `wide`, `overflow`, `clamp`) fails.
  */
 const ALLOWED: { screen: RegExp; kind: Kind; match: RegExp; why: string }[] = [
+  { screen: /^walkthrough$/, kind: "overflow", match: /sideways overflow/, why: "exclusion 1: the card is placed from a measured target, which this static render does not give it: it sits off the page (the whole window's width past the edge) at every size, 1x included" },
   { screen: /^water-conditions$/, kind: "cut", match: /^chart-hint /, why: "the chart's zoom hint is one line with an ellipsis by design (Hydrograph.tsx PlotBand, numberOfLines 1): cut at 1x on a narrow phone in 0.9.0 too; a hint, nothing is lost" },
 ];
 

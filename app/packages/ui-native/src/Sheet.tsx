@@ -34,6 +34,7 @@ const DONE_HIT = hitProps({ w: 34, h: TYPE.bodyStrong.lineHeight });
  *  the app (map and regs alike). It was "DONE", 11 px caps — the only all-caps control on a regs sheet, against the
  *  prototype's own rule (#7: caps only on section kickers; `.done { text-transform: none }`) and the smallest word in it. */
 const DONE_WORD = TYPE.bodyStrong;
+const BREAK_ANYWHERE = { overflowWrap: "anywhere" } as Record<string, unknown>;
 const OPTION_HIT = hitProps({ w: 44, h: 44 });
 /**
  * (T82 O5, Claude 2026-10-23) THE SHEET'S TITLE: the screen face at 19 px on a 23 px line. It spread TYPE.screen (23 on
@@ -128,7 +129,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const shown = open ? { title, sub, children, icon, head } : kept.current;
   // (T405) the web's Modal is a role=dialog: named by its title (aria-labelledby; a label on it would swallow its content)
   const titleId = useId();
-  const titleText = <Text nativeID={titleId} accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
+  // (T1203) a word wider than the title's share (a long name at 2x on a 320 px window) breaks where it must, never over Done
+  const titleText = <Text nativeID={titleId} accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1, minWidth: 0, ...BREAK_ANYWHERE } as never}>{shown.title}</Text>;
   const titleEl = shown.icon
     ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 }}>{shown.icon}{titleText}</View>
     // (T1203) the title yields to Done: at a large text size a long title wraps inside its share, never pushing Done off the sheet
