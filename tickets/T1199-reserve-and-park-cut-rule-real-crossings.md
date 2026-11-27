@@ -50,17 +50,18 @@ Depends: the cut rule lands before T1240's folds can be checked. Severity: mediu
 rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the data and release chat.
 
 ## Build notes (lane E, 2026-11-26)
-- Built as `clean_cut.decide_area` (commits 93b42f7ea, fccc926d5, 04b1ef0ff, and the review fix after them). On the
-  side build: 1,151 closure cuts; no piece under 100 m an area cut made; the area-cut gate passes.
-- Review fix: a run inside under 5 m (a graze) is dropped BEFORE the band joins anything, so a line beside the edge
-  that grazes it stays outside. The gate's G5 now refuses a member run with no inside run of 5 m.
-- `strathcona_park_waters.r1` binds 9.7 m more (Megin River ER, blk 354092551). The stage move does not cause this;
-  the floor does. The reserve's 9.7 m mouth piece (inside the reserve, outside Strathcona Park) grew to 100 m, so it
-  merged with 90.3 m of park water. The park's overlap membership (more than 1 m inside) then holds the whole 100 m
-  piece, and the reserve's closure covers it too.
-- Moving the closure cuts after the coast cut changed no coast cut. The 170 coast cuts are identical, and so is the
-  tidal water: the section 354101341 0-290 was two sections, now one. `shore_cuts.json` drops four "not cut, the
-  mouth is the coast crossing" rows (Schmidt, Lost Shoe, Camper and Clanninick creeks); the cause was not traced.
+- Built as `clean_cut.decide_area`; side builds pass the area-cut gate (no piece under 100 m made by an area cut).
+- A graze (an inside run under 5 m) is dropped BEFORE the band joins anything: a line beside the edge stays outside.
+  Gate G5 refuses a member run with no 5 m inside run, unless the run lies wholly inside (`RUN_WHOLLY_INSIDE_M`:
+  FWA's 1.5-3.8 m lines between lakes in a park). G6 stops the build on an open line hugging the edge for over 100 m
+  with 2+ grazes (a boundary river drawn wiggling on the edge): none today; one appearing is an owner question.
+- Strathcona's rule binds 9.7 m more (Megin River ER): the floor grew the reserve's 9.7 m mouth piece to 100 m, merged
+  with park water; the park's overlap membership now holds the whole piece.
+- Coast: moving the closure cuts after the coast cut hid four sea ends (a channel leaving the lowest piece 5-9 km up:
+  Schmidt, Lost Shoe, Camper, Clanninick). Fixed in cce1cd50a (`shore.leaves_at_mouth`): the four rows are back
+  byte-identical, and 488 more lines are now recorded "not cut: the mouth is the coast crossing"; coast cuts and
+  tidal water unchanged; records only (no consumer reads row counts).
+- Follow-up: two constants are both `STUB_M` (`coast.STUB_M` 25 m, `tolerances.STUB_M` 100 m); rename one later.
 
 ## Owner
 
