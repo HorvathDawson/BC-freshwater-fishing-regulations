@@ -1,10 +1,10 @@
 # T1202 — A water with no salmon shows "Salmon · DFO · Open today"
 
-Status: OPEN — owner: see ## Owner (no change until he answers)
+Status: DROPPED — the owner: leave it as it is (2026-11-26)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1202 | A water with no salmon shows "Salmon · DFO · Open today" | OPEN — owner: see ## Owner | — | the owner's call on A / B / C; default: no change |
+| T1202 | A water with no salmon shows "Salmon · DFO · Open today" | DROPPED — the owner: leave it as it is (2026-11-26) | — | — |
 
 Source: seen by the tester feedback chat, 2026-11-26, in a closed tester's picture of a water page (app 0.9.0; the
 tester did not mention it). Feedback log D22.
@@ -38,6 +38,6 @@ Depends: the owner's answer. Size: M (B) / M–L (C). Model: Opus (data). Owner:
 
 ## Owner
 
-- [ ] 2026-11-26 — a water with no salmon (Dease Lake, Arctic drainage) leads with "Salmon · DFO · Open today".
+- [x] 2026-11-26 — a water with no salmon (Dease Lake, Arctic drainage) leads with "Salmon · DFO · Open today".
   A: leave it. B: move the block below game fish with a "no salmon known here" line. C: hide it there.
-  Default we build with: A (no change), since nothing may be filtered without your word.
+  → "Leave it as it is (Recommended)" (2026-11-26)
