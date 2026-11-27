@@ -315,7 +315,7 @@ def test_an_owner_carry_is_for_one_mark_only(tmp_path):
 def test_the_curated_owner_carries_are_whole():
     """Every listed carry names its mark, the decision (ticket, item, commit) and the owner's words (refused if not)."""
     from pipeline.regs.review import owner_carry as OC
-    rows = OC.load(Path(under_test.curated().review.marks).parent / "owner_carries.json")
+    rows = OC.load(Path(under_test.curated().review.owner_carries))
     assert rows and all({"ticket", "item", "commit"} <= set(r["decision"]) for r in rows)
 
 

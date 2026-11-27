@@ -110,8 +110,7 @@ def fresh_review(root: Path) -> Path:
     live = C.load_repo()
     (root / Path(live.review.marks).relative_to(live.base)).write_text("", encoding="utf-8")
     (root / Path(live.review.closed).relative_to(live.base)).unlink(missing_ok=True)
-    (root / Path(live.dfo_salmon.places).relative_to(live.base)).parent.joinpath("closed_areas.json").unlink(
-        missing_ok=True)
+    (root / Path(live.dfo_salmon.closed_areas).relative_to(live.base)).unlink(missing_ok=True)
     return root
 
 
@@ -281,12 +280,12 @@ def pytest_configure(config):
     if STATE.sandbox is not None:            # configured once per process (a pytester run in-process re-enters)
         return
     from pipeline.common import curated as C
-    gen = C.load_generated()
+    roots = C.load_roots()
     STATE.curated = _prefixes(Path(C.load_repo().base))
-    STATE.generated = _prefixes(Path(gen.base)) + _prefixes(Path(gen.release))
+    STATE.generated = _prefixes(Path(roots.generated)) + _prefixes(Path(roots.release))
     # the repo paths as named, never resolved: a worktree that links data/release (or data/generated) to the main
     # checkout's resolves outside this repo, and configure stopped the run with an INTERNALERROR (T777 review)
-    rels = [Path(os.path.abspath(p)).relative_to(ROOT).as_posix() for p in (gen.base, gen.release)]
+    rels = [Path(os.path.abspath(p)).relative_to(ROOT).as_posix() for p in (roots.generated, roots.release)]
     tracked = [os.path.abspath(ROOT / f) for f in _git_files(*rels)]
     STATE.tracked = frozenset(tracked)
     STATE.live_env = os.environ.get(C.ROOT_ENV)

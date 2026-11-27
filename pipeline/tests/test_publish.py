@@ -33,7 +33,7 @@ def test_the_manifest_goes_last_and_tiles_first(tmp_path):
 
 def test_without_yes_nothing_is_sent(tmp_path, monkeypatch, capsys):
     r = _release(tmp_path)
-    monkeypatch.setattr(PUB, "GENERATED", type("G", (), {"release": tmp_path})())
+    monkeypatch.setattr(PUB, "ROOTS", type("R", (), {"release": tmp_path})())
     assert PUB.main(["--release", str(r)]) == 0
     assert "nothing sent" in capsys.readouterr().err
 
@@ -45,7 +45,7 @@ def test_t994_yes_is_refused_and_nothing_is_sent_or_stamped(tmp_path, monkeypatc
     import sys
     r = _release(tmp_path)
     before = (r / "manifest.json").read_bytes()
-    monkeypatch.setattr(PUB, "GENERATED", type("G", (), {"release": tmp_path})())
+    monkeypatch.setattr(PUB, "ROOTS", type("R", (), {"release": tmp_path})())
     made = []
     monkeypatch.setitem(sys.modules, "boto3", type("B", (), {"client": staticmethod(lambda *a, **k: made.append(a))}))
     for k in ("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"):
