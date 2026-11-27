@@ -216,7 +216,7 @@ class Review(BaseModel):
     #: `marks`: the key must be stated, the file may be absent.
     closed: Path
 
-    _abs = field_validator("marks", "proposal_overrides", "closed", mode="before")(_absolute)
+    _abs = field_validator("*", mode="before")(_absolute)
 
 
 class Regulations(BaseModel):
@@ -327,7 +327,7 @@ class Curated(BaseModel):
     inseason: InSeason
     dfo_salmon: DfoSalmon
 
-    _abs = field_validator("base", mode="before")(_absolute)
+    _abs = field_validator("*", mode="before")(_absolute)
 
 
 class DataTree(BaseModel):
@@ -360,6 +360,7 @@ class GeneratedAtlas(BaseModel):
     #: directory and read another with nothing saying so. The value is config.yaml's alone (no code default).
     default_build: str
 
+    #: `builds` only: `default_build` is a build NAME, never a path (`"*"` would turn it into one and fail its `str`).
     _abs = field_validator("builds", mode="before")(_absolute)
 
 
@@ -455,8 +456,9 @@ class Generated(BaseModel):
     #: `basemap/`.
     release: Path
 
-    _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
-                           "runtiming", "inseason", "review", "sloughs", "side", "release", mode="before")(_absolute)
+    #: Every field (T1192: a list of names left a new Path field relative, silently); `_absolute` passes the sub-blocks'
+    #: dicts through untouched.
+    _abs = field_validator("*", mode="before")(_absolute)
 
     # --- builds -----------------------------------------------------------------------
 
@@ -576,12 +578,45 @@ def _validate(model: type[BaseModel], blob: object, path: Path, prefix: tuple = 
         raise ConfigError("\n".join(f"{where}{note}: {line}" for line in lines)) from e
 
 
+class _Duplicate(Exception):
+    pass
+
+
+class UniqueKeyLoader(yaml.SafeLoader):
+    """`yaml.SafeLoader` that REFUSES a key stated twice in one mapping (T1192 review): PyYAML keeps the last one without a
+    word, so a second `cuts:` under `curated.waters` silently repointed the cuts. Used by `read_yaml`, for every reader of
+    config.yaml (`parse_config` and the build record's `stepcache.config_now`), so both read by the same rules."""
+
+    def __init__(self, stream):
+        super().__init__(stream)
+        self._at: dict = {}                       # a mapping node -> its dotted place (parents are built first)
+
+    def construct_mapping(self, node, deep=False):
+        at, seen = self._at.get(node, ()), set()
+        for k, v in node.value:
+            key = self.construct_object(k, deep=True)
+            if key in seen:
+                raise _Duplicate(f"duplicate key {'.'.join(map(str, (*at, key)))} (line {k.start_mark.line + 1})")
+            seen.add(key)
+            if isinstance(v, yaml.MappingNode):
+                self._at[v] = (*at, key)
+        return super().construct_mapping(node, deep=deep)
+
+
+def read_yaml(path: Path):
+    """`path` parsed by `UniqueKeyLoader`, or `ConfigError` naming a duplicate key."""
+    try:
+        return yaml.load(Path(path).read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
+    except _Duplicate as e:
+        raise ConfigError(f"{_where(path)}: {e}") from None
+
+
 def parse_config(config: Path | None = None) -> tuple[dict, Config]:
     """(the parsed YAML, the validated `Config`) of config.yaml — THE one load path. The raw values are what the build's
     stage keys digest (`_config_read`); the model is what every reader gets. Not cached itself: each loader caches its
     own view (and `load_generated.__wrapped__()` reads the file afresh)."""
     path = config or CONFIG
-    blob = yaml.safe_load(path.read_text(encoding="utf-8"))
+    blob = read_yaml(path)
     if not isinstance(blob, dict):
         raise ConfigError(f"{_where(path)}: not a mapping of blocks (got {type(blob).__name__})")
     return blob, _validate(Config, blob, path)

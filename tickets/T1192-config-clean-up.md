@@ -32,10 +32,13 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
 3. One `source:` block (the FWA gpkg has three names today); the fetcher writes through it.
 4. Relative paths under `roots`; rename `waters.areas` → `area_closures`, `waters.tidal` → `tidal_limits`; declare the
    unlisted curated files (`closed_areas.json`, `owner_carries.json`, `recheck.json`, bathymetry, stocking) and the
-   generated folders; `release` becomes a root.
+   generated folders; `release` becomes a root. (From PR 2's review) Point `check_curated`'s stocking / bathymetry
+   entries at `pipeline/bathymetry/accept.py`'s frozen paths (`frozen_path`), not `None`: today's report says "not
+   declared in config.yaml", which is awkward once they are declared.
 5. Per-leaf C lines (a stage keys on the config leaves it reads, not the whole block).
 6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused.
-7. Option A: the file list moves into the schema; config.yaml about 12 lines.
+7. Option A: the file list moves into the schema; config.yaml about 12 lines. The file names live as schema-side names
+   under the roots, NEVER as pydantic field defaults, so `test_no_field_has_a_default` (PR 2) stays as it is.
 
 ## Acceptance
 Each PR proves, in its body: every resolved path (`CURATED`, `GENERATED`, `SOURCE`, every `get_config()` accessor)

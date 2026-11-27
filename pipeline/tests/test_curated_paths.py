@@ -12,6 +12,9 @@ quiet"**.
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import yaml
 import pytest
 from pydantic import ValidationError
@@ -182,6 +185,37 @@ class TestTheWholeFileIsStrict:
     def test_the_real_file_is_named_as_config_yaml(self):
         with pytest.raises(C.ConfigError, match=r"^config\.yaml: missing key curated$"):
             C._validate(C.Config, {k: v for k, v in _real_blob().items() if k != "curated"}, C.CONFIG)
+
+    def test_a_key_stated_twice_is_refused_by_every_reader(self, tmp_path, monkeypatch):
+        # PyYAML keeps the LAST of two equal keys without a word: a second `cuts:` repointed the cuts (T1192 review).
+        text = C.CONFIG.read_text(encoding="utf-8")
+        line = next(l for l in text.splitlines() if l.strip().startswith("cuts:"))
+        p = tmp_path / "config.yaml"
+        indent = line[: len(line) - len(line.lstrip())]
+        other = _real_blob()["curated"]["waters"]["name_variants"]
+        p.write_text(text.replace(line, f"{line}\n{indent}cuts: {other}", 1), encoding="utf-8")
+        assert yaml.safe_load(p.read_text())["curated"]["waters"]["cuts"] == other     # what PyYAML alone would load
+        want = f"{p}: duplicate key curated.waters.cuts"
+        with pytest.raises(C.ConfigError, match=re.escape(want)):
+            C.parse_config(p)
+        from pipeline.common import stepcache as SC
+        monkeypatch.setattr(SC, "config_path", lambda: p)
+        with pytest.raises(C.ConfigError, match=re.escape(want)):
+            SC.config_now(["curated"])
+
+    def test_every_path_of_the_model_is_absolute(self):
+        # A field left out of a model's `_abs` validator stays relative (resolved against the cwd) with nothing failing.
+        def leaves(m, at=""):
+            for name in type(m).model_fields:
+                v = getattr(m, name)
+                if isinstance(v, C.BaseModel):
+                    yield from leaves(v, f"{at}{name}.")
+                else:
+                    yield f"{at}{name}", v
+        got = dict(leaves(C.parse_config()[1]))
+        rel = [k for k, v in got.items() if isinstance(v, Path) and not v.is_absolute()]
+        assert not rel, rel
+        assert [k for k, v in got.items() if not isinstance(v, Path)] == ["generated.atlas.default_build"]
 
     def test_no_field_has_a_default(self):
         def walk(m, at=""):
