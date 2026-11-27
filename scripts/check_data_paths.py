@@ -16,9 +16,10 @@ WHAT IS NOT: a docstring (the first string of a module, class or function) and a
 its shape — a code line that happens to hold a backtick is code (the grep this replaced dropped every such line).
 
 A NAMED SOURCE FILE TYPED BY ITS FILE NAME (T1192) is refused too: the FWA GeoPackages are read as `SOURCE.fwa_gpkg` /
-`SOURCE.coast_gpkg` (config.yaml `source:`), so a string that IS one of their file names, or ends a path in one
-(`SOURCE / "bc_fisheries_data.gpkg"`, `f"{d}/fwa_coast.gpkg"`), is a second spelling of a name the config owns. Prose
-that mentions the file (`"copy into bc_fisheries_data.gpkg"`) is not a path and passes.
+`SOURCE.coast_gpkg` (the `source:` names: config.yaml's gpkg, the schema's coast file), so a string that IS one of
+their file names, or ends a path in one (`SOURCE / "bc_fisheries_data.gpkg"`, `f"{d}/fwa_coast.gpkg"`), is a second
+spelling of a name declared once. Prose that mentions the file (`"copy into bc_fisheries_data.gpkg"`) is not a path and
+passes; the schema that declares the names (`DECLARES`) is the one file that spells them.
 
 A STRING THAT ONLY NAMES A PATH (provenance written into an output, git pathspecs, a repo-relative name a repo-root
 command prints) carries `# path-label: <why>` (10+ characters) on one of its lines. The labels let through are printed,
@@ -47,8 +48,10 @@ UNDER = re.compile(r"^(\./)*(data|cache)/", re.I)
 BARE = re.compile(r"^(\./)*(data|cache)/?$", re.I)
 PATH_CALLS = {"Path", "PurePath", "PosixPath", "join"}
 #: (T1192) the named source files a string may not spell, and how they are read (`pipeline/tests/test_data_path_gate.py`
-#: pins this against config.yaml's `source:` block)
+#: pins this against the `source:` names, `curated.read_config`)
 NAMED = {"bc_fisheries_data.gpkg": "SOURCE.fwa_gpkg", "fwa_coast.gpkg": "SOURCE.coast_gpkg"}
+#: the schema, where the coast file's name is declared (`At`): the one place a `NAMED` string is the declaration
+DECLARES = "pipeline/common/curated.py"
 #: a string that is one of `NAMED`, or a path ending in one (a string with whitespace is prose that mentions the file:
 #: `"copy into data/source/bc_fisheries_data.gpkg"` names it, opens nothing)
 SPELLS = re.compile(r"(?:^|/)(" + "|".join(re.escape(n) for n in NAMED) + r")$")
@@ -118,7 +121,7 @@ def check(rel: str, src: str) -> tuple[list[tuple[str, str]], list[str], list[st
     seen = {id(n) for n, *_ in paths}
     named = [(node, text, NAMED_FILE, f"  (a named source file: read it as {NAMED[m.group(1)]})")
              for node, text in every_string(tree)
-             if (m := SPELLS.search(text)) and not re.search(r"\s", text) and id(node) not in seen]
+             if (m := SPELLS.search(text)) and not re.search(r"\s", text) and id(node) not in seen and rel != DECLARES]
     for node, text, kind, note in sorted(paths + named, key=lambda x: (x[0].lineno, x[0].col_offset)):
         if id(node) in docs:
             continue

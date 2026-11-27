@@ -129,16 +129,18 @@ def test_each_offender_carries_its_kind():
 
 
 def test_the_gate_names_the_gpkg_files_config_yaml_declares():
-    """The gate is standard library only, so it holds the two file names itself: pinned to config.yaml's `source:`
-    block (every .gpkg there), so a renamed file moves the gate too."""
+    """The gate is standard library only, so it holds the two file names itself: pinned to the `source:` names
+    (config.yaml's and the schema's, `read_config`: every .gpkg there), so a renamed file moves the gate too; the
+    schema that declares them is the one file allowed to spell them."""
     import importlib.util
-    from pipeline.common.curated import CONFIG
+    from pipeline.common.curated import read_config
     spec = importlib.util.spec_from_file_location("check_data_paths", REPO / "scripts" / "check_data_paths.py")
     cdp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(cdp)
-    declared = {Path(v).name: f"SOURCE.{k}" for k, v in yaml.safe_load(CONFIG.read_text())["source"].items()
-                if v.endswith(".gpkg")}
+    declared = {Path(v).name: f"SOURCE.{k}" for k, v in read_config()["source"].items() if v.endswith(".gpkg")}
     assert cdp.NAMED == declared
+    assert cdp.check(cdp.DECLARES, 'X = "fwa_coast.gpkg"\n')[0] == []
+    assert [k for k, _ in cdp.check("pipeline/x.py", 'X = "fwa_coast.gpkg"\n')[0]] == [cdp.NAMED_FILE]
 
 
 def test_the_gate_takes_comments_docs_tests_labels_and_other_words(tmp_path):

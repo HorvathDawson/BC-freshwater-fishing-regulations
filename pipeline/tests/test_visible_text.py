@@ -4,6 +4,7 @@ Each PDF is written here byte by byte (no PDF library writes it), so these tests
 `visible.py` reads with. Page 200 x 100 pt, Helvetica 12 pt, text at x 20, baseline y 50 (PDF coordinates: y up).
 The real book's pages are pinned in `test_visible_text_book.py`.
 """
+import json
 import re
 
 import pdfplumber
@@ -339,11 +340,15 @@ def test_the_extractor_command_starts():
     assert e.value.code == 0
 
 
+BOOK = "a" * 64
+
+
 def test_a_gated_hit_on_a_page_with_rows_is_on_one_line_and_new_unless_the_owner_listed_it():
     from pipeline.regs.extraction.extract_synopsis import load_known_unsure, unsure_report
-    hits = [{"pdf_page": 19, "kind": "possible-strike", "text": "Oct 15"},
-            {"pdf_page": 24, "kind": "image-clip-unknown", "text": "REGION 2"}]
-    line, new = unsure_report(hits, [{"pdf_page": 24, "kind": "image-clip-unknown", "text": "REGION 2"}])
+    hits = [{"pdf_page": 19, "kind": "possible-strike", "text": "Oct 15", "pdf_sha256": BOOK},
+            {"pdf_page": 24, "kind": "image-clip-unknown", "text": "REGION 2", "pdf_sha256": BOOK}]
+    line, new = unsure_report(hits, [{"pdf_page": 24, "kind": "image-clip-unknown", "text": "REGION 2",
+                                      "pdf_sha256": BOOK}])
     assert "\n" not in line and line.startswith("[unsure] 2 kept-but-unjudged item(s) on pages with rows, 1 NEW")
     assert "PDF p.19 possible-strike 'Oct 15' NEW" in line and "PDF p.24 image-clip-unknown 'REGION 2';" not in line
     assert new == hits[:1] and unsure_report([], []) == (None, [])
@@ -355,3 +360,68 @@ def test_the_gated_hits_never_reach_the_rows_file():
     r = PageResult(metadata=PageMetadata(page_number=19, region="R"), rows=[],
                    unsure=[{"pdf_page": 19, "kind": "possible-strike", "text": "x"}])
     assert r.to_dict() == {"context": {"page_number": 19, "region": "R"}, "rows": []}
+
+
+def test_a_hit_accepted_for_one_book_is_new_in_another_and_a_hit_without_its_book_is_refused():
+    from pipeline.regs.extraction.extract_synopsis import unsure_report
+    hit = {"pdf_page": 19, "kind": "possible-strike", "text": "Oct 15", "pdf_sha256": BOOK}
+    assert unsure_report([hit], [dict(hit)])[1] == []
+    assert unsure_report([hit], [dict(hit, pdf_sha256="b" * 64)])[1] == [hit]
+    with pytest.raises(ValueError, match="without its PDF's sha"):
+        unsure_report([{k: v for k, v in hit.items() if k != "pdf_sha256"}], [])
+
+
+@pytest.mark.parametrize("bad", [
+    {"pdf_page": 19, "kind": "possible-strike", "text": "15"},                                  # no book
+    {"pdf_page": 19, "kind": "possible-strike", "text": "15", "pdf_sha256": "0" * 63},          # not a sha
+    {"pdf_page": "19", "kind": "possible-strike", "text": "15", "pdf_sha256": BOOK},            # a string page
+    {"pdf_page": 19, "kind": "possible-strike", "text": "  ", "pdf_sha256": BOOK},              # blank text
+    {"pdf_page": 19, "kind": "covered", "text": "15", "pdf_sha256": BOOK},                      # not a gated kind
+])
+def test_the_owners_list_refuses_an_item_it_could_not_match_exactly(tmp_path, bad):
+    from pipeline.regs.extraction.extract_synopsis import load_known_unsure
+    p = tmp_path / "k.json"
+    p.write_text(json.dumps({"items": [bad]}))
+    with pytest.raises(ValueError, match="an item needs"):
+        load_known_unsure(p)
+
+
+def test_a_hit_of_spaces_only_is_named_by_where_it_is(tmp_path):
+    # a space alone under an image whose clip is a guess: its hit has a place, never an empty text
+    content = "BT /F1 12 Tf 20 50 Td (A ) Tj ET 0 g " + _text("C", x=150) + "q 30 0 100 100 re W n " + IMAGE + "Q"
+    notes = _notes(tmp_path, content)
+    assert any(n.startswith("kept, image-clip-unknown: '") for n in notes) and all("''" not in n for n in notes)
+
+
+def test_the_gate_fails_on_an_unlisted_hit_on_a_page_with_rows(tmp_path, monkeypatch):
+    """The wiring, end to end with a stubbed extraction (the re-review's gate probe): `baseline check` returns 1 on a
+    hit not on the owner's list for this book, 0 when it is, 1 when the listed item names another book or a page as
+    a string."""
+    from pipeline.regs.extraction import baseline as B
+    from pipeline.regs.extraction import extract_synopsis as E
+    pdf = tmp_path / "x.pdf"
+    pdf.write_bytes(b"%PDF fake")
+    book = B.file_sha(pdf)
+    row = {"water": "A LAKE", "mu": ["1-1"], "raw_regs": "No Fishing", "symbols": [], "page": 17, "pdf_page": 19,
+           "region": "R1", "image": "page_019_row_001.png"}
+    got = [{"key": B.row_key(19, [1, 2, 3, 4]), "box": [1, 2, 3, 4], "row": row}]
+    m = B.manifest_from_reading(got, book, book="x", commit="c", note="")
+    B.write_json(m, tmp_path / "m.json")
+    B.write_json({"_about": "t", "baseline": "m.json", "baseline_rows": B.rows_digest(m), "accepted": []},
+                 tmp_path / "a.json", one_line_key=None)
+    hit = {"pdf_page": 19, "kind": "possible-strike", "text": "15"}
+
+    def run(hits, known):
+        def fake_extract(p, pages, workers, unsure=None):
+            if unsure is not None:
+                unsure.extend(dict(h) for h in hits)
+            return got
+        monkeypatch.setattr(B, "extract", fake_extract)
+        monkeypatch.setattr(E, "load_known_unsure", lambda: known)
+        return B.check(tmp_path / "m.json", tmp_path / "a.json", pdf, workers=1)
+
+    assert run([], []) == 0
+    assert run([hit], []) == 1
+    assert run([hit], [dict(hit, pdf_sha256=book)]) == 0
+    assert run([hit], [dict(hit, pdf_sha256="0" * 64)]) == 1
+    assert run([hit], [dict(hit, pdf_sha256=book, pdf_page="19")]) == 1
