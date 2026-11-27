@@ -15,7 +15,8 @@ import { Pressable } from "./Pressable";
 import { GestureDetector, GestureHandlerRootView, ScrollView as GHScrollView, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@app/ui";
 import { SHEET_WORDS } from "@app/core";
-import { TYPE } from "./type";
+import { LABEL_SCALE, TYPE } from "./type";
+import { useCappedScale } from "./textScale";
 import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
 import { hitProps } from "./regs/hit";
@@ -367,17 +368,20 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
   /** (T237) pills on a page that sets its own gutter: no inset of their own */
   flush?: boolean;
 }) {
+  // (T1203) past LABEL_SCALE the equal segments cannot hold their words side by side: they stack, one to a line (at or under it, as before)
+  const stacked = useCappedScale() > LABEL_SCALE;
   if (variant === "segmented")
     return (
       <View accessibilityRole="radiogroup" accessibilityLabel={label}
-            style={{ flexDirection: "row", borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.box, marginBottom: 8 }}>
+            style={{ flexDirection: stacked ? "column" : "row", borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.box, marginBottom: 8 }}>
         {options.map((o, i) => {
           const on = o.k === value;
           return (
             <Pressable key={o.k} testID={`btn:${o.k}`} onPress={() => onChange(o.k)} accessibilityRole="radio" aria-checked={on} accessibilityLabel={o.t} {...OPTION_HIT}
                        style={{ flex: 1, minHeight: 44, paddingVertical: 4, paddingHorizontal: 6, alignItems: "center", justifyContent: "center",
                                 backgroundColor: on ? palette.ink : "transparent",
-                                borderLeftWidth: i ? 1.5 : 0, borderLeftColor: palette.ink }}>
+                                ...(stacked ? { borderTopWidth: i ? 1.5 : 0, borderTopColor: palette.ink }
+                                            : { borderLeftWidth: i ? 1.5 : 0, borderLeftColor: palette.ink }) }}>
               <Text style={{ ...TYPE.regsTab, textAlign: "center", color: on ? palette.card : palette.sub }}>{o.t}</Text>
             </Pressable>
           );
