@@ -21,9 +21,9 @@ def test_a_matched_id_the_registry_lacks_stops_the_run():
     """Mutation: drop the `gone_refs` refusal in `build_reaches` — `covered_ids` filters the id out and the
     row binds the rest of its waters with no word said."""
     g, reg = _river()
-    assert build_reaches([("1", _entry())], reg, g).report.n_rules == 1         # clean: runs
+    assert build_reaches([("1", _entry())], reg, g, steelhead_barriers=()).report.n_rules == 1         # clean: runs
     with pytest.raises(SystemExit, match=r"r1:x_river@1-1 matched: gnis:404"):
-        build_reaches([("1", _entry(matched=["gnis:1", "gnis:404"]))], reg, g)
+        build_reaches([("1", _entry(matched=["gnis:1", "gnis:404"]))], reg, g, steelhead_barriers=())
 
 
 def test_an_extent_or_carve_out_id_the_registry_lacks_is_named_too():
@@ -34,7 +34,7 @@ def test_an_extent_or_carve_out_id_the_registry_lacks_is_named_too():
     assert gone_refs([e], reg) == ["r1:x_river@1-1 item_ids: wbk:404",
                                    "r1:x_river@1-1 outside_items: wbk:405"]
     with pytest.raises(SystemExit, match="2 record id"):
-        build_reaches([("1", e)], reg, g)
+        build_reaches([("1", e)], reg, g, steelhead_barriers=())
 
 
 def test_an_absorbed_id_is_not_counted_as_gone():
@@ -55,7 +55,7 @@ def _scoped(*scope, rules=True):
 
 def test_a_good_scope_still_clips():
     g, reg = _river()
-    res = build_reaches([("1", _scoped({"op": "upstream_of", "splits": ["x_river__lake_1"]}))], reg, g)
+    res = build_reaches([("1", _scoped({"op": "upstream_of", "splits": ["x_river__lake_1"]}))], reg, g, steelhead_barriers=())
     b = res.bindings[0]
     assert b.outcome.value == "bound" and "r0" not in b.sections and res.report.scope_unresolved == []
 
@@ -69,7 +69,7 @@ def test_a_scope_that_fails_holds_every_rule_unresolved_and_stops_the_run(scope)
     one stretch spread along all of it) or narrows to the part that resolved, and the run passes."""
     from pipeline.atlas.reach.build import ScopeGateError, scope_gate
     g, reg = _river()
-    res = build_reaches([("1", _scoped(*scope))], reg, g)
+    res = build_reaches([("1", _scoped(*scope))], reg, g, steelhead_barriers=())
     b = res.bindings[0]
     assert (b.outcome.value, b.reason.value, b.sections) == ("unresolved", "scope_unresolved", ())
     assert res.report.scope_unresolved == ["r1:x_river@1-1"]
@@ -89,7 +89,7 @@ def test_a_scope_placing_no_section_is_a_failed_scope():
 def test_a_pointer_row_with_a_failed_scope_is_listed_but_does_not_stop_the_run():
     from pipeline.atlas.reach.build import scope_gate
     g, reg = _river()
-    res = build_reaches([("1", _scoped({"op": "upstream_of", "splits": ["no_such_cut"]}, rules=False))], reg, g)
+    res = build_reaches([("1", _scoped({"op": "upstream_of", "splits": ["no_such_cut"]}, rules=False))], reg, g, steelhead_barriers=())
     assert res.report.scope_unresolved == ["r1:x_river@1-1"]
     scope_gate(res.bindings)                                     # no rule held: passes
 
@@ -139,7 +139,7 @@ def test_a_scope_unclassified_piece_carries_reasons_so_the_straddle_gate_sees_it
             why["c1"] = "straddles_the_cut"
         return ["c1"]
     monkeypatch.setattr(B, "scope_unclassified", fake)
-    res = build_reaches([("1", e)], reg, g)
+    res = build_reaches([("1", e)], reg, g, steelhead_barriers=())
     d = [x for x in res.diagnostics if x.kind == "scope_unclassified"][0]
     assert d.payload["reasons"] == {"c1": "straddles_the_cut"}
     assert res.report.unplaced == [{"entry_id": "r1:x_river@1-1", "rule_id": "", "piece": "c1",

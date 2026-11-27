@@ -27,6 +27,8 @@ lakes and ponds on the way 67,762.
   and the Skagit above Ross Dam (970-106243).
 - Ross Dam (Washington) has no fish passage: every B.C. section of the Skagit lies above it. Basin 970's other branch
   (970-030628: Bertrand, Fishtrap, Pepin creeks, to the Nooksack) is not held. Source still to attach.
+- `upstream_of` walks the graph up from the pieces wholly above its measure: a tributary joining exactly at the
+  measure goes with whichever piece the graph attaches it to. Proven only on the mini world (review 3).
 - The Columbia (300): its sea-run fish are stopped downstream in Washington (Chief Joseph and Grand Coulee on the
   Columbia; Enloe Dam on the Similkameen, below the B.C. reach). Sources still to attach.
 

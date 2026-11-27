@@ -205,6 +205,16 @@ class Barrier(BaseModel):
         return self
 
 
+class BarrierList(BaseModel):
+    """The file: `barriers` REQUIRED (a misspelled or missing key is refused, never read as no rows), `$comment`
+    allowed, nothing else."""
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    comment: object = Field(default=None, alias="$comment")
+    barriers: List[Barrier]
+
+
 def load_barriers(path: Path | None = None) -> list[Barrier]:
     """The curated barrier list, validated (an unknown kind or field, a missing field, a bad selector, an id twice
     are refused by name). A missing file RAISES (AGENTS 37)."""
@@ -214,8 +224,7 @@ def load_barriers(path: Path | None = None) -> list[Barrier]:
     path = Path(path)
     if not path.is_file():
         raise FileNotFoundError(f"the steelhead barrier list {path} is missing")
-    doc = json.loads(path.read_text(encoding="utf-8"))
-    rows = [Barrier.model_validate(r) for r in doc.get("barriers") or []]
+    rows = list(BarrierList.model_validate(json.loads(path.read_text(encoding="utf-8"))).barriers)
     ids = [r.id for r in rows]
     if len(ids) != len(set(ids)):
         raise ValueError(f"{path}: a barrier id twice: {sorted(i for i in set(ids) if ids.count(i) > 1)}")

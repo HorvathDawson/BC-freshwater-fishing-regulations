@@ -67,7 +67,7 @@ class ReachResult:
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
-                  covered_fn=None, steelhead_list=(), tidal_record=None, steelhead_barriers=()) -> ReachResult:
+                  covered_fn=None, steelhead_list=(), tidal_record=None, steelhead_barriers) -> ReachResult:
     """Resolve every rule in `entries` against one build.
 
     `entries` is an iterable of ``(region, entry_dict)`` — the shape
@@ -83,7 +83,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     steelhead (`anadromous`, user ruling 2026-10-03); it binds no rule (`reach.steelhead`).
 
     `steelhead_barriers` is the curated barrier list (`steelhead.load_barriers`; the CLI passes the curated file):
-    its rows' streams stay "possible" under RULINGS S14 (`Presence.add_barriers`).
+    its rows' streams stay "possible" under RULINGS S14 (`Presence.add_barriers`). REQUIRED, no default: a run
+    that forgot the list would make the Columbia and the Skagit known silently; a test passes `()` on purpose.
 
     `tidal_record` is THE ATLAS'S TIDAL WATER, `{section: owner}` (`atlas.splits.coast.read_tidal`, T678: the piece
     below each tidal boundary, the whole tidal waters, the lines tidal for their length, the pieces below a coast cut),
@@ -147,7 +148,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # THE CURATED KNOWN-STEELHEAD LIST: a presence indicator (each water's own sections), no rule.
     presence.add_list(_steelhead.resolve_list(list(steelhead_list or ()), registry), outside)
     # THE CURATED BARRIER LIST (T1250, `steelhead.load_barriers`): water held out of the Pacific-stream presence.
-    presence.add_barriers(list(steelhead_barriers or ()))
+    presence.add_barriers(list(steelhead_barriers))
     #: rules / licensing records bound to the known steelhead waters (`Op.STEELHEAD_WATERS`): a
     #: fact of the whole corpus, resolved after every row has bound (`_bind_steelhead_waters`)
     steelhead_rules: list[tuple[dict, dict]] = []

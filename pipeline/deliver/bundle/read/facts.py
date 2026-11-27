@@ -120,15 +120,22 @@ def rows_rainbow_cap(rule: dict) -> bool:
     if not (A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD and eid and not EID.is_table(eid) and bands
             and "RB" in expand_species(list(rule.get("species") or []))):
         return False
-    if rule.get("origin"):
-        # a cap printed for ONE origin is the row's own split of that fish, not a cap of the steelhead: Muchalat's
-        # "(none over 50 cm), wild only" says nothing of a hatchery fish (and every wild steelhead is released
-        # already); Kitimat's "hatchery rainbow ... (none over 50 cm), hatchery only" stands beside its own
-        # "hatchery steelhead (>50 cm) daily quota = 2"
+    if rule.get("origin") == "wild":
+        # a cap printed for wild fish only says nothing of a hatchery steelhead, and every wild steelhead is
+        # released already (the provincial set): Muchalat's "(none over 50 cm), wild only"
+        return False
+    if rule.get("origin") and rule.get("row_names_steelhead"):
+        # an origin-scoped cap on a row that prints its own steelhead line is that row's split of the fish:
+        # Kitimat's "hatchery rainbow ... (none over 50 cm), hatchery only" beside its own "hatchery steelhead
+        # (>50 cm) daily quota = 2"
         return False
     top = max(bands, key=lambda b: float(b.get("min_cm") or 0))
     take = top.get("take", rule.get("take"))
-    return top.get("min_cm") is not None and top.get("max_cm") is None and take == 0
+    # the cap's floor at 50 cm or under: then every steelhead length (over 50 cm) lies in the take-0 band, so the
+    # whole rule speaking for the steelhead says only "none". A higher cap ("none over 70 cm") would hand a 55 cm
+    # steelhead the row's rainbow quota below it: it stays a rainbow rule (S12)
+    return (top.get("min_cm") is not None and float(top["min_cm"]) <= ROWS_CAP_MAX_FLOOR_CM
+            and top.get("max_cm") is None and take == 0)
 
 
 #: A WATER'S OWN RAINBOW CAP HOLDS FOR ITS STEELHEAD (T1250, owner 2026-11-27, Buckley Creek: "Release: the row's
@@ -136,12 +143,16 @@ def rows_rainbow_cap(rule: dict) -> bool:
 #: "over N cm: none" says no rainbow that size may be kept there, and a steelhead is a rainbow trout longer than 50 cm
 #: (p.80): the cap speaks for the steelhead over its band, so a hatchery steelhead over N is released (Buckley Creek's
 #: "Rainbow trout — 1 per day (none over 50 cm)", Jul 1-Oct 31). Any N: a cap under 50 cm ("none over 35 cm") covers
-#: every steelhead length too. A cap printed for one origin is the row's own split, no cap of the steelhead
-#: (Muchalat's "(none over 50 cm), wild only"; Kitimat's "hatchery only" rainbow beside its "hatchery steelhead 2"). The owner's general words ("if rainbows over 50cm are ever referred to it always
+#: every steelhead length too; a cap over a higher floor ("none over 70 cm") stays a rainbow rule
+#: (`ROWS_CAP_MAX_FLOOR_CM`). A wild-only cap is no cap of the hatchery fish (Muchalat); an origin-scoped cap on a row
+#: that prints its own steelhead line is that row's split (Kitimat's "hatchery only" rainbow beside "hatchery
+#: steelhead 2"); a hatchery-only cap on a row with no steelhead line caps the hatchery steelhead. The owner's general words ("if rainbows over 50cm are ever referred to it always
 #: implies the rule is on steelhead too") are measured, not built: this predicate is where that rule would replace it.
 #: False:
 #: S12 alone — a size-banded rainbow rule stays a rainbow rule and the zone's steelhead keep stands.
 A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD = True
+#: The highest cap floor `rows_rainbow_cap` reads as a cap of the steelhead (the steelhead's own floor, p.80, 50 cm).
+ROWS_CAP_MAX_FLOOR_CM = 50
 
 
 #: A RAINBOW RULE WITH NO SIZE CONSTRAINT SPEAKS FOR STEELHEAD TOO (owner 2026-11-11, T623 F12,

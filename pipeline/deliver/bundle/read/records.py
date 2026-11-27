@@ -60,6 +60,11 @@ def rules_from(db: sqlite3.Connection, where: str = "the bundle") -> List[dict]:
         d["entry_name"] = names.get(d["entry_id"]) or ""
         d.setdefault("extents", [])
         out.append(d)
+    # (T1250, RULINGS S15) whether the rule's ROW prints a steelhead line of its own (a rule naming `ST`): such a
+    # row's origin-scoped rainbow cap is its own split of the fish, not a cap of the steelhead (Kitimat)
+    naming = {d["entry_id"] for d in out if "ST" in (d.get("species") or [])}
+    for d in out:
+        d["row_names_steelhead"] = d["entry_id"] in naming
     return out
 
 

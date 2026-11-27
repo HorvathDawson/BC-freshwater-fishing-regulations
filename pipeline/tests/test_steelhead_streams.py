@@ -1078,6 +1078,19 @@ def test_the_barrier_file_refuses_an_id_twice_and_a_row_that_holds_nothing(tmp_p
         pr.add_barriers(SH.load_barriers(p))
     with pytest.raises(FileNotFoundError):
         SH.load_barriers(tmp_path / "missing.json")
+    # review 3, item 3: a missing or misspelled `barriers` key is refused, never read as no rows
+    for bad in ({}, {"barrier": [row]}, {"barriers": [], "extra": 1}):
+        p.write_text(json.dumps(bad))
+        with pytest.raises(ValueError):
+            SH.load_barriers(p)
+
+
+def test_the_reach_build_must_be_given_the_barrier_list():
+    """No default: a run that forgot the list would make the Columbia and the Skagit known silently (review 3)."""
+    import inspect
+    from pipeline.atlas.reach.build import build_reaches
+    p = inspect.signature(build_reaches).parameters["steelhead_barriers"]
+    assert p.default is inspect.Parameter.empty and p.kind is inspect.Parameter.KEYWORD_ONLY
 
 
 def test_an_upstream_of_row_holds_everything_above_its_point():
@@ -1946,7 +1959,9 @@ def _rb(entry_id="r6:buckley_creek@6-21", lengths=({"max_cm": 50}, {"min_cm": 50
     (_rb(lengths=({"max_cm": 35}, {"min_cm": 35, "take": 0})), True),           # "(none over 35 cm)"
     (_rb(species=("TROUT_CHAR",)), True),                                       # a trout/char line names rainbow
     ({**_rb(), "origin": "wild"}, False),                                       # Muchalat's "wild only" cap
-    ({**_rb(), "origin": "hatchery"}, False),                                   # Kitimat's "hatchery only" split
+    ({**_rb(), "origin": "hatchery", "row_names_steelhead": True}, False),      # Kitimat's "hatchery only" split
+    ({**_rb(), "origin": "hatchery"}, True),                                    # a hatchery-only cap, no own ST line
+    (_rb(lengths=({"max_cm": 70, "take": 2}, {"min_cm": 70, "take": 0})), False),   # "(none over 70 cm)": stays rainbow
     (_rb(entry_id="z6:daily_quotas"), False),                                   # a zone's clause keeps S12
     (_rb(lengths=({"min_cm": 50, "take": 1},)), False),                         # "1 over 50 cm": no cap
     (_rb(lengths=({"min_cm": 30, "max_cm": 50},)), False),                      # a band with a ceiling
@@ -1961,6 +1976,28 @@ def test_a_rows_rainbow_cap_speaks_for_its_steelhead(rule, want):
     from pipeline.deliver.bundle.read import facts as F
     assert F.rows_rainbow_cap(rule) is want
     assert F.speaks_for(rule, "ST") is (want or F.size_free_rainbow(rule) or "ST" in C.expand_species(rule["species"]))
+
+
+def test_mutation_a_cap_over_a_higher_floor_would_hand_the_steelhead_the_rainbow_quota(monkeypatch):
+    """MUTATION (review 3, item 1): with the floor check lifted, "2 per day (none over 70 cm)" would speak for a 55 cm
+    steelhead through its take-2 band below the cap — looser than the zone's keep. The floor keeps it a rainbow rule."""
+    from pipeline.deliver.bundle.read import facts as F
+    seventy = _rb(lengths=({"max_cm": 70, "take": 2}, {"min_cm": 70, "take": 0}))
+    assert not F.rows_rainbow_cap(seventy)
+    monkeypatch.setattr(F, "ROWS_CAP_MAX_FLOOR_CM", 100)
+    assert F.rows_rainbow_cap(seventy)
+
+
+def test_the_basket_engine_reads_the_same_cap(monkeypatch):
+    """S15 in the answers' basket engine (`answers.engine._covers`): a water row's capped rainbow line covers the
+    steelhead; with the policy off it does not (mutation)."""
+    from types import SimpleNamespace as NS
+    from pipeline.deliver.answers import engine as EN
+    from pipeline.deliver.bundle.read import facts as F
+    r = NS(except_=set(), species={"RB"}, x=_rb())
+    assert EN._covers(r, "ST")
+    monkeypatch.setattr(F, "A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD", False)
+    assert not EN._covers(r, "ST")
 
 
 def test_mutation_without_s15_a_capped_rainbow_line_is_rainbow_only(monkeypatch):

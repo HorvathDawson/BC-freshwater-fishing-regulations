@@ -530,7 +530,7 @@ def test_the_corpus_loader_is_the_one_read_point_and_everything_else_refuses(tmp
     # the reach refuses what the loader did not map
     from pipeline.atlas.reach.build import build_reaches
     with pytest.raises(SystemExit, match="folded into another"):
-        build_reaches([("1", e)], out, g)
+        build_reaches([("1", e)], out, g, steelhead_barriers=())
 
 
 def test_the_steelhead_list_maps_an_absorbed_id_and_refuses_the_duplicate_it_makes():

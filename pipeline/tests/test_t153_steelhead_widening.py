@@ -86,7 +86,7 @@ def _river_row(steelhead: bool):
 
 def _steelhead(pond=UNNAMED, reg=REG, steelhead=True) -> dict:
     """{section: (steelhead, kind, rules apply, anadromous)} — every presence row of the run."""
-    got = build_reaches([_province(), _river_row(steelhead)], reg, _graph(pond))
+    got = build_reaches([_province(), _river_row(steelhead)], reg, _graph(pond), steelhead_barriers=())
     return {r["section_id"]: (r["steelhead"], r["kind"], r["rules"], r["anadromous"]) for r in got.steelhead}
 
 
@@ -134,5 +134,5 @@ def test_one_function_decides_it():
 
 
 def test_the_report_counts_the_pond():
-    got = build_reaches([_province(), _river_row(True)], REG, _graph(UNNAMED))
+    got = build_reaches([_province(), _river_row(True)], REG, _graph(UNNAMED), steelhead_barriers=())
     assert (got.report.steelhead["anadromous"], got.report.steelhead["known_lakes"]) == (3, 1)
