@@ -61,7 +61,15 @@ Actions.
 | --- | --- | --- |
 | `app/workers/feeds/.run-token` | The local copy of staging's `RUN_TOKEN` | `deploy/staging/rotate-run-token.sh` |
 | `app/apps/mobile/android/app/debug.keystore` | Signs the staging sideload APK; the same key every build, so an update installs over the last one | Expo's standard debug keystore. If lost, any new debug keystore works, but every phone must uninstall the staging app once. Back it up |
-| `.env` (repo root) | Exists on the owner's Mac only; never opened for this list. Nothing in the code or the docs reads a root `.env` (checked 2026-11-25), so its purpose is unknown | Owner: say what it holds and whether it can go; until then it is not needed to set up, test or build |
+
+## The shell environment (no `.env` is read, T1222)
+
+Do not make a `.env`. A step that needs one of these stops when it is unset: `R2_ENDPOINT` (by name) with
+`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` for the AWS CLI (`pipeline.runtiming.feed.publish --via aws`,
+`check-public.mjs` without rclone; the feeds workflows take them from the GitHub secrets above), and `FEEDS_URL` (by name:
+a rehearsal bucket's `pieces_gate` and `input-formats.sh`; the staging and production scripts set it). Optional:
+`MIN_APP_VERSION` (else the manifest's stamp; one too old is refused by name), `FEED_NOTIFY_URL` (else off, one printed
+line). The owner's root `.env` held only Gemini keys for the parser removed in 2026-08: nothing reads it; delete it.
 
 ## Logins kept by tools
 
