@@ -211,6 +211,14 @@ conflict (for example multiple quotas on same species upstream is the one that t
 include all inflows; a stream "from x to y, incl. tributaries" does not include itself above x; tributary rules stack and on a conflict about the same item the MOST UPSTREAM row wins.
 A walk change: needs a reach rerun and a rule-bindings diff (T1177 item 10).
 
+### Batch 1 answers on the measured diffs (evening, relayed verbatim by the planning chat)
+- **Routing:** "Yes, answers given here count (Recommended)": answers given in the planning chat and relayed word for word count as his yes for merges; irreversible deletes still need him directly.
+- **O13 Healy** (opens the South Englishman above Healy Lake, 5.05 km; the 21.6 km below stays closed): "Yes, open the 5.05 km above the lake (Recommended)".
+- **O10 Goat** (release on km 33.1-42.6; 76.8 km opens to the Region 4 quota: 67.8 km main stem + six side channels 9.0 km): "Yes, open the 76.8 km to the regional quota (Recommended)"; the measured answers diff is shown to him again after the release build.
+- **D6 Mosquito Creek** (closes 32.4 km at Arrow Park, opens 1.37 km by Kootenay Lake): "Yes, move it (Recommended)".
+- **The four lake rebinds** (McDonell 6-4; Twin Lakes 4-34 vs Yankee / Canuck; Hall Lake 4-20 vs 4-34; Malcolm Knapp Lost Lake vs Whistler Lost Lake): "Yes to all four (Recommended)". **McLennan Creek 2-8:** "Both creeks closed, ask the Province (Recommended)".
+- **O4 Hatton:** "it is all year and make sure this is also to the mainstem and other tribs that they all get all year".
+
 ### OPEN, not ruled
 - **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
 

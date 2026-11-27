@@ -51,6 +51,13 @@ diff where a binding moves), listed for his look before the build ships. Related
     channels\" (Recommended)"; Klinaklini / MacMillan: "Plain \"Side channel\" / \"3 side channels\" (Recommended)"; "Shorten Ecological
     Reserve to \"Eco Reserve\"") are PR #312's words (T1172, round 4); the area in the app subtitle is T1181.
 
+## Owner answers, 2026-11-26 evening (batch 1, verbatim in `docs/OWNER-RULINGS.md`)
+Routing: answers relayed word for word from the planning chat count as his yes for merges (irreversible deletes still need him).
+Yes to O13 (5.05 km opens above Healy Lake), O10 (76.8 km opens to the Region 4 quota; the measured answers diff is shown
+again after the release build), D6 Mosquito Creek, the four lake rebinds and McLennan (both closed, ask the Province). O4 Hatton:
+fly-only all year on the main stem and the tributaries under it (lane D checked: the rule carries no dates; it binds the Caycuse
+above the confluence and Hatton Creek only, the row printing no tributary mark).
+
 ## Acceptance
 Each change has its answers diff and every moved binding is explained; unchanged items are proved unchanged; he has seen
 the lists before the re-cut ships. Severity: medium (several are "A": an angler could break the law). Model: Opus. Size: L.
