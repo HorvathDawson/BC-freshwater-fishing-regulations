@@ -6,7 +6,7 @@ library only.
 | script | what |
 |---|---|
 | `bootstrap.sh` | a fresh clone to a machine that can build: tools check, `.venv`, the pinned source data (`data/source/pins.json`) |
-| `heavy.sh` | run ONE memory-heavy job at a time per lane, with a free-memory guard: every build goes through it (AGENTS 18, A5) |
+| `heavy.sh` | run ONE memory-heavy job at a time per lane, with a free-memory guard: every build goes through it (AGENTS 18, A5). Waiters are served first come, first served (T1225). A server that never ends (`expo start`, a dev server) does not belong on a heavy lock: `--status` marks a holder past an hour as a long holder |
 | `before_push.py` | what the PR's required checks ask, asked here first (`--list`, `--changed`); the pre-push hook runs it. `before_pr.sh --title "<title>"` the PR title with its suffix, then the two suites left to the PR |
 | `ci_paths.py`, `ci_status.py` | the branches and CI's areas, typed once (the workflows' `changes` jobs run it); the status of a commit's checks |
 | `fast-fail.sh` | the cheap checks that stop a doomed long job in a minute or two |

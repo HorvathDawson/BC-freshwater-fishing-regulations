@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Shell test for scripts/heavy.sh (T536, T638): fake jobs, a stubbed `memory_pressure` and `footprint`, scratch lanes.
 # No real build runs and the live lanes (~/.claude/heavy-job*.lock) are never touched: every call gets
-# HEAVY_LANES_DIR=<scratch>. Run by scripts/fast-fail.sh when heavy.sh or this file changes (~40 s).
+# HEAVY_LANES_DIR=<scratch>. Run by scripts/fast-fail.sh when heavy.sh or this file changes (~1 min).
+# (T1225) The first-come tests (13-17) also run the heavy.sh from before T1225 (HEAVY_OLD, else `git show
+# 118d8e4f8:scripts/heavy.sh`) beside this one, on the same scratch lanes, for the mixed-version cases.
 #
 #   bash scripts/tests/heavy.test.sh [path/to/heavy.sh]
 set -uo pipefail
@@ -65,12 +67,28 @@ exec env -u HEAVY_HELD PATH="$T/bin:\$PATH" HEAVY_LANES_DIR="$T" HEAVY_LOCK="\${
 EOF
 chmod +x "$T/H"
 H() { "$T/H" "$@"; }
+# (T1225) $T/O = the heavy.sh from before T1225, run the same way: old and new copies run side by side for days
+if [[ -n ${HEAVY_OLD:-} ]]; then cp "$HEAVY_OLD" "$T/old-heavy.sh"
+else git -C "$ROOT" show 118d8e4f8:scripts/heavy.sh > "$T/old-heavy.sh" \
+  || { echo "heavy.test: FAIL cannot read the old heavy.sh (git show 118d8e4f8:scripts/heavy.sh; HEAVY_OLD=<path>)"; exit 1; }
+fi
+sed "s|bash \"$HEAVY\"|bash \"$T/old-heavy.sh\"|" "$T/H" > "$T/O" && chmod +x "$T/O"
+grep -q old-heavy.sh "$T/O" || { echo "heavy.test: FAIL could not make the old-script wrapper $T/O"; exit 1; }
+# hold.sh <name>: holds the lock until $T/go.<name> exists; logs start and end
+cat > "$T/hold.sh" <<EOF
+#!/bin/bash
+echo \$\$ > "$T/\$1.pid"
+echo "start \$1" >> "$T/events"
+until [[ -e "$T/go.\$1" ]]; do sleep 0.05; done
+echo "end \$1" >> "$T/events"
+EOF
+chmod +x "$T/hold.sh"
 until_() { local i=0; until eval "$1"; do sleep 0.1; i=$((i + 1)); (( i > ${2:-100} )) && return 1; done; }
 ok() { echo "  ok   $1"; }
 bad() { echo "  FAIL $1"; fails=$((fails + 1)); }
 check() { local name=$1; shift; if "$@"; then ok "$name"; else bad "$name"; fi; }
 alive() { kill -0 "$1" 2>/dev/null; }
-reset() { rm -rf "$T"/heavy-job*.lock* "$T"/*.pid "$T/events" "$T"/*.out "$T/disk_tmp" "$T/caffeinate.args"; echo 80 > "$T/free"; echo 1000 > "$T/fp"
+reset() { rm -rf "$T"/heavy-job*.lock* "$T"/*.pid "$T/events" "$T"/*.out "$T"/go.* "$T/disk_tmp" "$T/caffeinate.args"; echo 80 > "$T/free"; echo 1000 > "$T/fp"
           echo $((100 * 1048576)) > "$T/disk"; }
 L=$T/heavy-job.lock
 
@@ -250,6 +268,134 @@ check "mid-run below the kill floor: exit 73 + message" \
 check "  … job gone, lock gone" bash -c "! kill -0 $j 2>/dev/null && [ ! -d '$L' ]"
 H --status > "$T/st2.out" 2>&1
 check "--status shows free disk, once" grep -q 'free disk: 1 GB on /System/Volumes/Data   pause file' "$T/st2.out"
+
+# ── (T1225) first come, first served ────────────────────────────────────────────────────────────────────────────────
+events() { paste -sd' ' - < "$T/events"; }
+queued() { H --status 2>/dev/null | grep -c '^   queued'; }
+go() { local n; for n in "$@"; do touch "$T/go.$n"; done; }
+started_() { until_ "grep -q 'start $1' $T/events 2>/dev/null"; }
+
+echo "13. (T1225) five waiters get the lock in the order they queued; --status lists them in that order, with labels"
+reset
+"$T/H" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & pids=($!)
+started_ h
+for n in w1 w2 w3 w4 w5; do
+  sleep 1.05   # the order is kept to the second; a tie goes to the lower pid
+  "$T/H" "lbl-$n" 10 -- "$T/hold.sh" "$n" > "$T/$n.out" 2>&1 & pids+=($!)
+done
+until_ "[[ \$(queued) == 5 ]]" 50
+H --status > "$T/st13.out" 2>&1
+got=$(grep '^   queued' "$T/st13.out" | sed -E 's/^   queued ([0-9]): [0-9]+ ([a-z0-9-]+)  waiting [0-9]+h[0-9]{2}m \(since .*/\1 \2/' | paste -sd' ' -)
+check "status: the line in order, each with its label and wait (got: $got)" \
+  [ "$got" = "1 lbl-w1 2 lbl-w2 3 lbl-w3 4 lbl-w4 5 lbl-w5" ]
+go h w1 w2 w3 w4 w5
+wait "${pids[@]}"
+check "served first come, first served (got: $(events))" \
+  [ "$(events)" = "start h end h start w1 end w1 start w2 end w2 start w3 end w3 start w4 end w4 start w5 end w5" ]
+check "the line is empty afterwards" bash -c "! ls '$L.queue'/* >/dev/null 2>&1"
+
+echo "14. (T1225) a dead, a stopped and a reused-pid entry never block the lane"
+reset
+"$T/H" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
+started_ h
+then_=$(( $(date +%s) - 100 ))
+dead=$(bash -c 'echo $$')
+printf '%s\n%s\nsince: %s\n' "$(date -r "$then_" '+%F %T')" "dead :: / :: x" "$then_" > "$L.queue/$dead"
+sleep 30 & reused=$!   # a live pid that started AFTER its entry was written: the entry's waiter is dead
+printf '%s\n%s\nsince: %s\n' "$(date -r "$then_" '+%F %T')" "reused :: / :: x" "$then_" > "$L.queue/$reused"
+"$T/H" stopped 10 -- "$T/hold.sh" s > "$T/s.out" 2>&1 & sp=$!
+until_ "[[ -f $L.queue/$sp ]]"; kill -STOP "$sp"
+sleep 1.05
+"$T/H" x 10 -- "$T/hold.sh" x > "$T/x.out" 2>&1 & xp=$!
+until_ "[[ -f $L.queue/$xp ]]"
+H --status > "$T/st14.out" 2>&1
+check "status: the live waiter is first; the dead, stopped and reused entries are not in the line" \
+  bash -c "grep -q '^   queued 1: $xp x ' '$T/st14.out' && [[ \$(grep -c '^   queued' '$T/st14.out') == 1 ]]"
+go h x
+until_ "grep -q 'end x' $T/events" 50
+check "the live waiter ran past them (got: $(events))" [ "$(events)" = "start h end h start x end x" ]
+kill -CONT "$sp"; kill -TERM "$sp"; wait "$sp" "$hp" "$xp" 2>/dev/null; kill "$reused" 2>/dev/null; wait "$reused" 2>/dev/null
+
+echo "15. (T1225) the first in line waits for memory holding the lane: a smaller job behind it does not overtake"
+reset
+"$T/H" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
+started_ h
+"$T/H" big 30 -- "$T/hold.sh" big > "$T/big.out" 2>&1 & bp=$!
+sleep 1.05
+"$T/H" small 0 -- "$T/hold.sh" small > "$T/small.out" 2>&1 & smp=$!
+until_ "[[ \$(queued) == 2 ]]" 50
+echo 10 > "$T/free"; go h
+until_ "grep -q 'free 10% < 30% — waiting' $T/big.out" 50
+sleep 1
+H --status > "$T/st15.out" 2>&1
+check "big holds the lane waiting for memory; small is queued 1 behind it, not started" \
+  bash -c "grep -q 'holder: $bp big' '$T/st15.out' && grep -q '^   queued 1: $smp small ' '$T/st15.out' && ! grep -q 'start small' '$T/events'"
+echo 80 > "$T/free"; go big small
+wait "$hp" "$bp" "$smp"
+check "then big, then small (got: $(events))" [ "$(events)" = "start h end h start big end big start small end small" ]
+
+echo "16. (T1225) mixed versions on one lane (old = the heavy.sh before T1225)"
+reset   # a: new holder, old waiters: they take it on their own polls, one at a time
+"$T/H" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
+started_ h
+"$T/O" o1 10 -- "$T/hold.sh" o1 > "$T/o1.out" 2>&1 & o1=$!
+"$T/O" o2 10 -- "$T/hold.sh" o2 > "$T/o2.out" 2>&1 & o2=$!
+until_ "[[ \$(queued) == 2 ]]" 50
+"$T/O" --status > "$T/st16o.out" 2>&1
+check "a: the old --status reads the new holder and lists the old waiters" \
+  bash -c "grep -q 'holder: $hp holder' '$T/st16o.out' && [[ \$(grep -c '^   queued: ' '$T/st16o.out') == 2 ]]"
+H --status > "$T/st16n.out" 2>&1
+check "a: the new --status marks them as older heavy.sh" [ "$(grep -c 'older heavy.sh' "$T/st16n.out")" = 2 ]
+go h o1 o2; wait "$hp" "$o1" "$o2"
+check "a: both old waiters ran, never overlapping (got: $(events))" \
+  bash -c "[[ \$(awk '{print \$1}' '$T/events' | paste -sd' ' -) == 'start end start end start end' ]]"
+reset   # b: old holder, new waiters: served in their order; the old script reads their entries (status, duplicates)
+"$T/O" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
+started_ h
+pids=()
+for n in n1 n2 n3; do sleep 1.05; "$T/H" "lbl-$n" 10 -- "$T/hold.sh" "$n" > "$T/$n.out" 2>&1 & pids+=($!); done
+until_ "[[ \$(queued) == 3 ]]" 50
+"$T/O" --status > "$T/st16b.out" 2>&1
+check "b: the old --status lists the new entries by their date line" \
+  bash -c "[[ \$(grep -cE '^   queued: [0-9]+ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]{8}\$' '$T/st16b.out') == 3 ]]"
+"$T/O" lbl-n2 10 -- "$T/hold.sh" n2 > "$T/dup.out" 2>&1; rc=$?
+check "b: the old duplicate check still refuses a new waiter's twin (exit 3)" \
+  bash -c "[ $rc = 3 ] && grep -q 'already waiting' '$T/dup.out'"
+go h n1 n2 n3; wait "$hp" "${pids[@]}"
+check "b: new waiters behind an old holder go in order (got: $(events))" \
+  [ "$(events)" = "start h end h start n1 end n1 start n2 end n2 start n3 end n3" ]
+reset   # c: an old waiter first in line, polling slowly (3 s): the new one behind it waits its turn on a free lock
+sed 's/HEAVY_WAIT_POLL=0.2/HEAVY_WAIT_POLL=3/' "$T/O" > "$T/O3" && chmod +x "$T/O3"
+"$T/H" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
+started_ h
+"$T/O3" o1 10 -- "$T/hold.sh" o1 > "$T/o1.out" 2>&1 & o1=$!
+sleep 1.05
+"$T/H" n1 10 -- "$T/hold.sh" n1 > "$T/n1.out" 2>&1 & n1=$!
+until_ "[[ \$(queued) == 2 ]]" 50
+go h o1 n1; wait "$hp" "$o1" "$n1"
+check "c: old waiter first, then the new one (got: $(events))" [ "$(events)" = "start h end h start o1 end o1 start n1 end n1" ]
+check "c: the new one said who it waited for" grep -q 'first in line is pid [0-9]* (o1), an older heavy.sh' "$T/n1.out"
+reset   # d: a new waiter first, an old one behind (it may jump the line, as today): no deadlock, no overlap
+"$T/O" holder 10 -- "$T/hold.sh" h > "$T/h.out" 2>&1 & hp=$!
+started_ h
+"$T/H" n1 10 -- "$T/hold.sh" n1 > "$T/n1.out" 2>&1 & n1=$!
+sleep 1.05
+"$T/O" o1 10 -- "$T/hold.sh" o1 > "$T/o1.out" 2>&1 & o1=$!
+until_ "[[ \$(queued) == 2 ]]" 50
+go h o1 n1; wait "$hp" "$o1" "$n1"
+check "d: both ran, never overlapping (got: $(events))" \
+  bash -c "[[ \$(awk '{print \$1}' '$T/events' | paste -sd' ' -) == 'start end start end start end' ]]"
+
+echo "17. (T1225) --status marks a holder past HEAVY_LONG_HOLD as a long holder"
+reset
+"$T/H" server 10 -- "$T/hold.sh" srv > "$T/srv.out" 2>&1 & sv=$!
+started_ srv; sleep 1.1
+HEAVY_LONG_HOLD=0 H --status > "$T/st17.out" 2>&1
+check "long holder flagged, with the reason" \
+  grep -q 'LONG HOLDER: held 0h00m, past 0h00m (HEAVY_LONG_HOLD); a server that never ends does not belong on a heavy lock' "$T/st17.out"
+H --status > "$T/st17b.out" 2>&1
+check "not flagged under the default (1 h)" bash -c "! grep -q 'LONG HOLDER' '$T/st17b.out'"
+go srv; wait "$sv"
 
 echo "heavy.test: $fails failed in $((SECONDS - t0)) s"
 (( fails == 0 ))
