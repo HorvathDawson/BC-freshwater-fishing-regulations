@@ -67,13 +67,16 @@ export function RunRect({ x, w, bits, palette }: { x: number; w: number; bits: n
 }
 
 /** (T227) The bar's name above its status line when a second (salmon) bar is drawn under it: "Game fish (B.C. rules)". */
-function BarTitle({ text, palette, testID, tag = null }: { text: string; palette: Palette; testID: string; tag?: string | null }) {
+function BarTitle({ text, palette, testID, tag = null, one = null }: { text: string; palette: Palette; testID: string; tag?: string | null;
+  /** (T1207) the merged block: its screen-reader label (the name wraps) */ one?: string | null }) {
   // a block's name and whose rules it is, the tag its rows wear
-  if (tag) return <TaggedTitle text={text} tag={tag} palette={palette} testID={testID} />;
+  if (tag) return <TaggedTitle text={text} tag={tag} palette={palette} testID={testID} wrap={one !== null} label={one ?? undefined} />;
   return <Text testID={testID} accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginBottom: 2 }]}>{text}</Text>;
 }
 
-export function YearStrip({ strip, dateLabel, palette, title = null, hours = null, tag = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
+export function YearStrip({ strip, dateLabel, palette, title = null, hours = null, tag = null, one = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
+  /** (T1207) the ONE block for both fish (core `banner.schedule.label`): its title row wraps and a screen reader hears this */
+  one?: string | null;
   /** whose rules the bar is, beside its name */
   tag?: string | null;
   /** (T473) a daylight-only closure's real hours on the day, said with the status ("Daylight only · fishing 7:04–18:37") */
@@ -89,7 +92,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
   const coach = useCoachTarget("regs:answer");   // (T293) the walkthrough: today's answer and the year
   return (
     <View ref={coach} collapsable={false} style={{ paddingTop: 10, paddingHorizontal: GUTTER, paddingBottom: 2 }} testID="keep-strip">
-      {title && <BarTitle text={title} palette={palette} testID="keep-strip-title" tag={tag} />}
+      {title && <BarTitle text={title} palette={palette} testID="keep-strip-title" tag={tag} one={one} />}
       <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 8 }}>
         <Text testID={`st:${strip.status}`} style={[TYPE.answer, { color: tone }]}>{(strip.status === "open" ? WORDS.CHECK.trim() : WORDS.CLOSED_MARK) + (status?.text ?? "")}</Text>
         {rest.map((l, i) => l.kind === "when"
