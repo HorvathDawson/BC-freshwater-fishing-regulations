@@ -241,7 +241,8 @@ def ladder(pick) -> dict:
                             "printed dates silences the same row's '5 per licence year' for the "
                             "fish on those dates, as it does the row's daily number; outside "
                             "them, and where no dated release of the row binds, the annual "
-                            "quota speaks as printed. Another water's row never silences it.",
+                            "quota speaks as printed. Another water's dated release never silences "
+                            "it by this step.",
         "zone_release_any_water": "A ZONE RELEASE WITH NO WATER KIND EMPTIES ITS TABLE'S 'FROM "
                                   "STREAMS' CLAUSE (RU-4, 2026-10-04). Region 5's 'you must "
                                   "release: ALL STEELHEAD' displaces its own table's keeping "
