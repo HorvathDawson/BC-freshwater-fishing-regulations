@@ -54,3 +54,8 @@ Style tests over the built `style.json` (each fails without its change); picture
 Only style-spec features MapLibre and Mapbox share (T1154).
 
 Depends: none. Size: M. Owner: no.
+
+## Owner
+
+- [x] 2026-11-26 — look A built (the built sheet): merge it? → "Merge, and fix the opening frame so Haida Gwaii is fully in view (Recommended)" (2026-11-26)
+  So: approved; the same branch also frames the opening whole-province view with Haida Gwaii fully in view.
