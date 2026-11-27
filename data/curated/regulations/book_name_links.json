@@ -3402,10 +3402,9 @@
     "6-9"
    ]
   },
-  "note": "GNIS name: McDonell Lake. Two lakes with same name in zone 6 (GNIS 22882 and 30846). Spelling correction.",
+  "note": "The 6-9 McDonell Lake only (owner 2026-11-26, T1118 D6: \"is the proper name in the right unit?\" It is): gnis 22882, wbk 329682393, 224.9 ha near Smithers, MU 6-9; the book's MCDONNEL is a misspelling. Dropped: gnis 30846 (wbk 329075564), a different 21.9 ha McDonell Lake near Burns Lake in MU 6-4 with no book row; the row has been printed only under 6-9 in the 2015-17, 2019-21 and 2025-27 books.",
   "gnis_ids": [
-   "22882",
-   "30846"
+   "22882"
   ]
  },
  {
