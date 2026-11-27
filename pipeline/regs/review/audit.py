@@ -280,14 +280,14 @@ def load(*, marks: Optional[Path] = None, places: Optional[Path] = None, cuts: O
     marks = Path(marks or CURATED.review.marks)
     places = Path(places or CURATED.dfo_salmon.places)
     cuts = Path(cuts or CURATED.waters.cuts)
-    tidal_limits = Path(tidal_limits or CURATED.waters.tidal)
+    tidal_limits = Path(tidal_limits or CURATED.waters.tidal_limits)
     synopsis = Path(synopsis or CURATED.regulations.synopsis)
     mtext = marks.read_text(encoding="utf-8")
     pl, wa = read_places(places)
     cdoc = json.loads(cuts.read_text(encoding="utf-8"))
     cut_by = {s["id"]: {**s, "_water": w.get("name")} for w in cdoc["waterbodies"] for s in w["splits"]}
     ttext = tidal_limits.read_text(encoding="utf-8")
-    ca = places.parent / "closed_areas.json"             # beside the places files, as `closed_areas.path()` says
+    ca = places.parent / "closed_areas.json"             # beside `places`: dfo_salmon.closed_areas unless overridden
     catext = ca.read_text(encoding="utf-8") if ca.exists() else ""
     stext = "\n".join(p.read_text(encoding="utf-8") for p in sorted(synopsis.glob("region-*.json")))
     inp = Inputs(lines=read_marks(marks), places=pl, waters=wa, cuts=cut_by, synopsis_text=stext,

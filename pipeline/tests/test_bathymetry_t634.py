@@ -328,3 +328,19 @@ def test_stocking_code_picks_name_confirms_never_name_alone():
     assert got["2"]["rule"] == "name_disagrees"
     assert got["3"]["rule"] == "no_lake" and got["4"]["rule"] == "no_code"
     assert all(r["licence"].startswith("owner says OGL") for r in out["proposals"])
+
+
+def test_the_accept_reads_and_writes_the_declared_files():
+    """(T1192) the frozen files the accept writes and the proposals it reads are config.yaml keys (`CURATED.bathymetry`,
+    `CURATED.stocking`, `GENERATED.bathymetry`, `GENERATED.stocking`), never a root joined with a literal; and the
+    freshness gate (`check_curated`) watches those same frozen files, not "not declared"."""
+    from pipeline.tests import under_test
+    from pipeline.tools.audit import check_curated as CC
+    cur, gen = under_test.curated(), under_test.generated()
+    assert {w: (acc.proposals_path(w), acc.frozen_path(w)) for w in acc.SETS} == {
+        "charts": (gen.bathymetry / "proposals.json", cur.bathymetry.matches),
+        "contours": (gen.bathymetry / "contour_proposals.json", cur.bathymetry.contour_matches),
+        "stocking": (gen.stocking / "proposals.json", cur.stocking.matches)}
+    frozen = {a.name: a.frozen for a in CC.ARTIFACTS}
+    assert frozen["stocking waterbody match"] == acc.frozen_path("stocking")
+    assert frozen["bathymetry sheet match"] == acc.frozen_path("charts")

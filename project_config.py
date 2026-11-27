@@ -75,9 +75,13 @@ class ProjectConfig:
                 value = None
                 found = False
                 break
-        # (T1171) a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`)
+        # (T1171) a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`);
+        # a path of a block with a root is that root joined with the value, so the root is read too (`curated.TREES`)
         from pipeline import _trace
+        from pipeline.common.curated import TREES
         _trace.config_read(".".join(keys), value, missing=not found)
+        if found and keys[0] in TREES and len(keys) > 1:
+            _trace.config_read(f"roots.{keys[0]}", self._config["roots"][keys[0]])
 
         node = self._model
         for key in keys:
@@ -122,10 +126,10 @@ class ProjectConfig:
 
     @property
     def dfo_salmon_cache(self) -> Path:
-        """DFO's saved salmon region pages (`cache.dfo_salmon`): raw/ (the newest per region), history/ (every page
-        fetched), manifest.json. Gitignored machine state outside data/, written by `pipeline.regs.dfo_salmon.fetch` /
-        `churn`; one name for every reader. Never typed as a literal: a relative `cache/dfo_salmon` is a second tree
-        from any other working directory."""
+        """DFO's saved salmon region pages (`cache.dfo_salmon`, under `roots.cache`): raw/ (the newest per region),
+        history/ (every page fetched), manifest.json. Gitignored machine state outside data/, written by
+        `pipeline.regs.dfo_salmon.fetch` / `churn`; one name for every reader. Never typed as a literal: a relative
+        `cache/dfo_salmon` is a second tree from any other working directory."""
         return self.get_path("cache", "dfo_salmon")
 
 

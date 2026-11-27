@@ -71,7 +71,7 @@ class Artifact:
 
     name: str
     roster: Path            # the fetched list of things that need a decision
-    frozen: Path | None     # the committed answers; None = not declared in config.yaml yet (it reports `absent`)
+    frozen: Path            # the committed answers (absent: it reports `not built`)
     regenerate: str         # the command a human runs; `{stations}` is filled by `fix_command`
     roster_ids: str         # see `ids` for the three spellings
     frozen_ids: str
@@ -101,7 +101,7 @@ class Artifact:
             "stations.station"    `blob["stations"]` is a LIST; take this field
             "stations.*"          `blob["stations"]` is a MAP; the ids are its keys
         """
-        if path is None or not path.exists():          # None: not declared in config.yaml yet (T435: no made-up path)
+        if path is None or not path.exists():          # None: no candidates file declared for it
             return None
         blob = json.loads(path.read_text(encoding="utf-8"))
         container, _, field = spec.partition(".")
@@ -120,8 +120,8 @@ class Artifact:
 
 #: Every artifact that is generated once, reviewed by a human, and then only read.
 #:
-#: the gauge match (`CURATED.gauges.matches`) is live. The other two are NOT BUILT (and not in config.yaml) — they are named
-#: here on purpose, so the day somebody wires the FIDQ or bathymetry fetch the freshness gate is
+#: the gauge match (`CURATED.gauges.matches`) is live. The other two are NOT BUILT (declared in config.yaml, not written
+#: yet) — they are named here on purpose, so the day somebody wires the FIDQ or bathymetry fetch the freshness gate is
 #: already waiting for them rather than being remembered afterwards. A missing file reports
 #: as `not built` and never fails CI.
 ARTIFACTS = [
@@ -151,9 +151,8 @@ ARTIFACTS = [
     Artifact(
         name="stocking waterbody match",
         roster=SOURCE / "bc_stocked_waterbodies.json",
-        # T1192: not declared in config.yaml until it ships (`pipeline.bathymetry.accept` SETS writes
-        # CURATED.base/stocking/matches.json); the `null` placeholder that stood here contradicted that
-        frozen=None,
+        # the file `pipeline.bathymetry.accept --set stocking` writes (`accept.SETS`); absent until the first accept
+        frozen=_C.stocking.matches,
         regenerate="python -m pipeline.stocking.generate.match  (not wired yet)",
         roster_ids="waterbody_id",
         frozen_ids="waterbodies.waterbody_id",
@@ -161,7 +160,7 @@ ARTIFACTS = [
     Artifact(
         name="bathymetry sheet match",
         roster=SOURCE / "bc_bathymetry_sheets.json",
-        frozen=None,                # T1192: not declared in config.yaml until it ships (as stocking above)
+        frozen=_C.bathymetry.matches,   # the chart matches `pipeline.bathymetry.accept` writes; absent until then
         regenerate="no matcher yet: write pipeline/bathymetry/generate/match.py (pipeline/bathymetry/README.md)",
         roster_ids="waterbody_identifier",
         frozen_ids="sheets.waterbody_identifier",
@@ -171,8 +170,6 @@ ARTIFACTS = [
 
 def _short(p: Path) -> str:
     """Repo-relative when it can be — a test's tmp_path is not, and must not crash."""
-    if p is None:
-        return "(not declared in config.yaml)"
     try:
         return str(p.relative_to(ROOT))
     except ValueError:
@@ -320,7 +317,7 @@ def check_waters(waters=None, registry: Path | None = None) -> tuple[list[str], 
                         "last atlas, or a typo): " + "; ".join(unbuilt[:12]) + (" …" if len(unbuilt) > 12 else ""))
 
     # area_closures: {areas: [{id, cut, tile_layer, layer | file …}]}
-    ac = load("areas")
+    ac = load("area_closures")
     if ac is not None:
         areas = ac.get("areas") if isinstance(ac, dict) else None
         if not isinstance(areas, list) or not areas:
@@ -453,7 +450,7 @@ def check_waters(waters=None, registry: Path | None = None) -> tuple[list[str], 
                                "(an angler reads it in the part's name): keep the place's name; how sure the cut is "
                                "goes in `confidence`, a review note in `note` / `_note`")
     # the tidal limits' cut labels are the same kind of name (owner 2026-11-20 reworded the last one, Sheldens Creek)
-    td = load("tidal")
+    td = load("tidal_limits")
     if td is not None:
         for r in (td.get("waters") if isinstance(td, dict) else None) or []:
             hit = REVIEW_WORDS.search(str(((r or {}).get("at") or {}).get("label") or ""))

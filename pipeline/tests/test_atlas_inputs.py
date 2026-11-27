@@ -202,10 +202,27 @@ def test_every_curated_key_the_atlas_build_names_is_an_input_or_a_listed_non_inp
     for p in files:
         named |= {f"curated:{m}" for m in re.findall(r"CURATED\.(\w+\.\w+)", p.read_text(encoding="utf-8"))}
     named |= {"curated:waters.added_areas"}     # by name, from an areas.json def's `file` (`_resolve_area_file`)
-    missing = sorted(named - set(I.ATLAS_INPUTS) - set(I.NOT_ATLAS_INPUTS))
+    recorded = {f"curated:{I.RECORD_NAME_OF[k]}" if k in I.RECORD_NAME_OF else k for k in I.ATLAS_INPUTS}
+    missing = sorted(named - recorded - set(I.NOT_ATLAS_INPUTS))
     assert not missing, f"the atlas build reads curated key(s) it does not record: {missing} — add each to " \
                         "atlas.inputs.ATLAS_INPUTS, or to NOT_ATLAS_INPUTS with the reason"
     assert not set(I.ATLAS_INPUTS) & set(I.NOT_ATLAS_INPUTS)
+
+
+def test_a_renamed_key_keeps_its_record_name(tmp_path, gpkg):
+    """(T1192) `waters.areas` / `waters.tidal` became `area_closures` / `tidal_limits`. An atlas meta keeps the names its
+    inputs were recorded under, so the record names stay and resolve to the renamed keys (`RECORD_NAME_OF`): the live
+    atlas's record is not stranded as "records no digest" of files whose bytes never moved."""
+    from pipeline.common import curated as C
+    assert I.RECORD_NAME_OF == {"curated:waters.areas": "waters.area_closures",
+                                "curated:waters.tidal": "waters.tidal_limits"}
+    for record, key in I.RECORD_NAME_OF.items():
+        old, new = record.split(".", 1)[1], key.split(".", 1)[1]
+        assert record in I.ATLAS_INPUTS and new in C.Waters.model_fields and old not in C.Waters.model_fields
+        assert I.curated_path(record) == Path(getattr(CURATED.waters, new))
+    now = I.digests(_src(gpkg))
+    assert {"curated:waters.areas", "curated:waters.tidal"} <= set(now)
+    assert I.behind(_atlas(tmp_path, now), now) == []
 
 
 # --------------------------------------------------------------------------- T599 §4.4: no cheap step writes curated

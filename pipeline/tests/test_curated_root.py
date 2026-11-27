@@ -87,10 +87,13 @@ def test_the_root_moves_every_curated_path(tmp_path, monkeypatch):
     got = C.load()
     assert Path(got.base) == root.resolve()
     pairs = [(Path(getattr(getattr(live, g), k)), Path(getattr(getattr(got, g), k)))
-             for g in ("waters", "regulations", "review", "dfo_salmon", "inseason", "runtiming")
+             for g in type(live).model_fields
              for k in type(getattr(live, g)).model_fields]
     assert pairs and all(b == root.resolve() / a.relative_to(live.base) for a, b in pairs)
     assert Path(C.CURATED.review.marks) == root.resolve() / "review" / "marks.jsonl"
+    # (T1192) it moves ONE root: each path is the copy joined with the very name config.yaml states
+    names = C.parse_config()[0]["curated"]
+    assert all(Path(getattr(getattr(got, g), k)) == root.resolve() / v for g, b in names.items() for k, v in b.items())
     assert C.load_repo() == live                             # the guards still see the live tree
     monkeypatch.delenv(C.ROOT_ENV)
     assert C.load() == live

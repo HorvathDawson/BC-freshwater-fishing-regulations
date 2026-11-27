@@ -10,7 +10,7 @@ identifier first, names only as the fallback.
 | `generate/match.py` | which registry item each stocked waterbody is (identifier, then name + location) | written; NOT sound under the owner's rules (it picks by nearest and falls back to names): retire it when the feed is built |
 
 `fetch_fidq.py` and `propose.py` (PROTOTYPES, T634): FIDQ bulk preview per watershed group, lakes only, to `~/data-offgit/bc-stocking-fidq/`; code picks,
-name confirms, `wbk:` stored, to `GENERATED.base/stocking/proposals.json`, accepted with `python -m pipeline.bathymetry.accept --set stocking`.
+name confirms, `wbk:` stored, to `GENERATED.stocking/proposals.json`, accepted with `python -m pipeline.bathymetry.accept --set stocking`.
 
 - Licence: the Province's stocking records are "Access Only", GoFishBC's pages "All Rights Reserved". Nothing ships until the owner decides (T634).
 - To be fed it needs a fetch (no `data/fetch_data.py` step yet), an accepted match into `data/curated/stocking/` (`config.yaml`

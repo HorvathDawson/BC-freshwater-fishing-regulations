@@ -520,7 +520,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             raise FileNotFoundError(f"bundle: {_what} {_p} not found")
     if not data_dir.is_dir():
         raise FileNotFoundError(
-            f"source data not found: {data_dir} — check `data_tree.source` in config.yaml")
+            f"source data not found: {data_dir} — check `roots.source` in config.yaml")
     _need = ["bc_hydrometric_stations.json", "bc_places.json"]
     _missing = [n for n in _need if not (data_dir / n).exists()]
     if _missing:
