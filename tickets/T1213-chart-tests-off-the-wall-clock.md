@@ -1,10 +1,10 @@
 # T1213 — two chart render tests off the wall clock
 
-Status: IN PROGRESS (lane worktree wt-T1213, branch test/T1213-chart-tests-off-the-wall-clock).
+Status: DONE — bda55c4, 89a38ad, 16b61b7f1 (tests only; reviewed).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1213 | two chart render tests off the wall clock | IN PROGRESS | — | rewrite the two tests to wait on conditions, prove under CPU load, mutation-check |
+| T1213 | two chart render tests off the wall clock | DONE | bda55c4, 89a38ad, 16b61b7f1 | — |
 
 Source: planning chat 2026-11-26, from two lanes' full pre-PR runs the same day. `app/packages/ui/src/chart.render.test.tsx`:
 the "(T1043) a bandless 72 h chart …" tests failed once in a 10,096-test run (3/3 alone); "a switch draws each station
