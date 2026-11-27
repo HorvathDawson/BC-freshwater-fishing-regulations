@@ -789,6 +789,15 @@ class Config(BaseModel):
     #: directory and read another with nothing saying so. A build NAME under `GENERATED.atlas.builds`, never a path.
     atlas_build: str
 
+    @field_validator("atlas_build")
+    @classmethod
+    def _a_bare_build_name(cls, v: str) -> str:
+        """A NAME of one directory under the builds (`"full"`): never empty, `.` / `..`, or a path (a `/` or `\\`)."""
+        if v in ("", ".", "..") or "/" in v or "\\" in v:
+            raise ValueError("a bare build name under GENERATED.atlas.builds (as \"full\"), never a path, `.`, `..` or "
+                             "empty")
+        return v
+
     @model_validator(mode="after")
     def _default_build(self) -> "Config":
         self.generated._atlas_build = self.atlas_build
@@ -811,6 +820,47 @@ def _names(model: type[BaseModel]) -> dict:
 #: parsed file. Taken from the fields themselves, so a name cannot exist without its field.
 NAMES = _names(Config)
 
+#: Where files are declared now, said wherever config.yaml states a key in a block of the schema's names
+DECLARE_HERE = ("this block's file names are declared in pipeline/common/curated.py: a new file is a field there with "
+                "`At(\"<name>\")` and its note")
+
+
+def _schema_only(model: type[BaseModel], at: tuple = ()) -> set[tuple]:
+    """The dotted place of every block of `model` whose keys are ALL the schema's names (`At`): config.yaml has
+    nothing of its own to state in one (`curated`, `generated.atlas`, `cache`; not `source`, which holds the gpkg)."""
+    out = set()
+    for key, f in model.model_fields.items():
+        if isinstance(f.annotation, type) and issubclass(f.annotation, BaseModel):
+            sub = _schema_only(f.annotation, (*at, key))
+            out |= sub
+            if all(any(isinstance(m, At) for m in g.metadata) or (*at, key, k) in sub
+                   for k, g in f.annotation.model_fields.items()):
+                out.add((*at, key))
+    return out
+
+
+#: The blocks config.yaml has no key of its own in (`_schema_only`): stated empty or null, each is refused by name
+SCHEMA_ONLY = _schema_only(Config)
+
+
+def _names_block(at: tuple) -> bool:
+    """Is `at` a block the schema declares names in (`NAMES`)? An unknown key there is a file stated in the wrong place."""
+    node = NAMES
+    for k in at:
+        if not isinstance(node, dict) or k not in node:
+            return False
+        node = node[k]
+    return bool(at) and isinstance(node, dict)
+
+
+def declared_in(key: str) -> str:
+    """Where the dotted config key `key` is stated: `pipeline/common/curated.py` for a name the schema declares
+    (`NAMES`), else `config.yaml` (the roots, the gpkg's name, `atlas_build`)."""
+    node = NAMES
+    for k in key.split("."):
+        node = node.get(k) if isinstance(node, dict) else None
+    return "pipeline/common/curated.py" if isinstance(node, str) else CONFIG.name
+
 
 def _where(path: Path) -> str:
     return CONFIG.name if Path(path).resolve() == CONFIG.resolve() else str(path)
@@ -826,9 +876,11 @@ def _validate(model: type[BaseModel], blob: object, path: Path, prefix: tuple = 
     except ValidationError as e:
         lines = []
         for err in e.errors():
-            key = ".".join(str(k) for k in (*prefix, *err["loc"])) or "(the file)"
+            at = tuple(str(k) for k in (*prefix, *err["loc"]))
+            key = ".".join(at) or "(the file)"
             if err["type"] == "extra_forbidden":
-                lines.append(f"unknown key {key}")
+                # in a block of the schema's names, an unknown key is a new file stated where files are no longer named
+                lines.append(f"unknown key {key}" + (f" ({DECLARE_HERE})" if _names_block(at[:-1]) else ""))
             elif err["type"] == "missing":
                 lines.append(f"missing key {key}")
             elif err.get("input", ...) is None:
@@ -873,15 +925,25 @@ def read_yaml(path: Path):
 
 
 def _with_names(blob: dict, names: dict, path: Path, at: tuple = ()) -> dict:
-    """`blob` with `names` added; a key stated in both is refused, naming it (each file has one name, in one place)."""
+    """`blob` with `names` added; a key stated in both is refused, naming it (each file has one name, in one place). A
+    block stated empty or null where config.yaml has no key of its own (`SCHEMA_ONLY`) is refused by name: it states
+    nothing, so it is a leftover or a mistake, never a choice. A block stated as anything but a mapping is refused."""
     out = dict(blob)
     for k, v in names.items():
+        dotted, mine = ".".join((*at, k)), (*at, k) in SCHEMA_ONLY
         if k not in out:
             out[k] = copy.deepcopy(v)               # a reader's copy: editing it never edits `NAMES`
-        elif isinstance(v, dict) and isinstance(out[k], dict):
+        elif isinstance(v, dict) and isinstance(out[k], dict) and (out[k] or not mine):
             out[k] = _with_names(out[k], v, path, (*at, k))
+        elif isinstance(v, dict) and (out[k] is None or out[k] == {}):
+            what = "null" if out[k] is None else "an empty block"
+            raise ConfigError(f"{_where(path)}: {dotted} is {what}" + (
+                ": remove it (every name in it is declared in pipeline/common/curated.py)" if mine else
+                ": state its keys"))
+        elif isinstance(v, dict):
+            raise ConfigError(f"{_where(path)}: {dotted} is a block of keys, never a value (got {out[k]!r})")
         else:
-            raise ConfigError(f"{_where(path)}: unknown key {'.'.join((*at, k))} (its name is declared in "
+            raise ConfigError(f"{_where(path)}: unknown key {dotted} (its name is declared in "
                               f"pipeline/common/curated.py, not in config.yaml)")
     return out
 

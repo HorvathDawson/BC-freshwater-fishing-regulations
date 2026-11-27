@@ -15,6 +15,6 @@ as dead code, tidy it. It maps a survey sheet's waterbody identifier to the lake
 - Reads: `data/source/bc_bathymetry_sheets.json`, `data/source/wsa_bathymetry_maps.csv`. Writes proposals under `data/generated/`; chart zips and PDFs outside git.
 - Licence: only the open table (the chart PDFs) is Open Government Licence; the sheet layer, placed contours and vector zips are "Access Only". The owner
   said build on them (2026-11-11) and owes the licence link: every artefact carries the unconfirmed-licence flag; nothing ships until confirmed.
-- To be fed it needs the owner's accepts, `config.yaml` `curated.bathymetry.matches` set, a bundle writer for the waiting `chart` table
+- To be fed it needs the owner's accepts, `CURATED.bathymetry.matches` written, a bundle writer for the waiting `chart` table
   (`pipeline/deliver/bundle/schema.sql`; keep it, `app/tools/bundle-schema.test.ts` requires it) and lake values in `lakes/1` (`deliver/lake_facts.py`).
 - Tests: `pipeline/tests/test_bathymetry_t634.py` (synthetic inputs only); `test_doc_drift.py` keeps any `generate/<file>.py` row listed here real.

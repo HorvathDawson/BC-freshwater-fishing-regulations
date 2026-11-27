@@ -983,12 +983,15 @@ def test_pr5_the_atlas_is_behind_only_for_a_config_key_it_read(scratch, config_c
     _edit_unread(config_copy, read)
     assert I.code_behind(atlas) == []
     config_copy("curated.waters.area_closures", "t1192/moved")
-    assert I.code_behind(atlas) == ["config.yaml curated.waters.area_closures (code: config): changed since the atlas "
-                                    "was built"]
+    assert I.code_behind(atlas) == ["config key curated.waters.area_closures (code: config, pipeline/common/curated.py):"
+                                    " changed since the atlas was built"]
     config_copy("curated.waters.area_closures", GONE)
     assert SC.config_now(["curated.waters.area_closures"]) == {"curated.waters.area_closures": "missing"}
-    assert I.code_behind(atlas) == ["config.yaml curated.waters.area_closures (code: config): no longer in config.yaml "
-                                    "(renamed or deleted since the atlas was built)"]
+    assert I.code_behind(atlas) == ["config key curated.waters.area_closures (code: config): no longer in config.yaml "
+                                    "or pipeline/common/curated.py (renamed or deleted since the atlas was built)"]
+    config_copy("source.fwa_gpkg", "other.gpkg")            # a key config.yaml states is named as config.yaml's
+    assert I.code_behind(atlas)[-1] == ("config key source.fwa_gpkg (code: config, config.yaml): changed since the "
+                                        "atlas was built")
 
 
 def test_pr5_the_recorded_set_does_not_depend_on_the_run(scratch):

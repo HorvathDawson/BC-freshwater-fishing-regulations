@@ -26,5 +26,5 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `unplaced_piece_calls.json` | authored | the owner (`accepted`); Claude adds `proposed` rows, read by nothing | reach run (`build.unplaced_gate`, T632: any other unplaced piece stops it) |
 
 Hand-edited files are checked by `python -m pipeline.tools.audit.check_curated --waters` (the build's first step).
-Config keys: `CURATED.waters.<file stem>`, every one (config.yaml `curated.waters.<stem>: "waters/<file>"`, a name
-under `roots.curated`).
+Read as `CURATED.waters.<file stem>`. A new file is a field of `Waters` in `pipeline/common/curated.py`,
+`<stem>: Annotated[FilePath, At("waters/<file>")]` with its note (a name under `roots.curated`; never config.yaml).
