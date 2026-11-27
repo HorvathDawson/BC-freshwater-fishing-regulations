@@ -41,7 +41,7 @@ fails when one is not).
 ## Machine and data
 | script | what |
 |---|---|
-| `heavy.sh` | run ONE memory-heavy job at a time per lane, with a free-memory guard; every build goes through it (AGENTS 18, A5). `--status` shows the lanes |
+| `heavy.sh` | run ONE memory-heavy job at a time per lane, with a free-memory guard; every build goes through it (AGENTS 18, A5). Waiters are served first come, first served (T1225). `--status` shows the lanes and marks a holder past an hour as a long holder: a server that never ends (`expo start`, a dev server) does not belong on a heavy lock |
 | `start-workflow.sh` | start a GitHub workflow and print its run id (never a schedule) |
 | `hydat-fetch.sh` | one HYDAT release, downloaded resumably and checked, then extracted |
 | `update-hydat.sh` | the owner's one command when the feed says a newer HYDAT is out |
