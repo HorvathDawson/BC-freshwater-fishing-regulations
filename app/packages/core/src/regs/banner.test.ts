@@ -95,6 +95,12 @@ describe("chainOf: the run's closures, day by day, each once; the frames' unless
     const both = yearBy((md) => (md >= 1101 || md <= 614 ? [7, 10] : [7]));
     expect(chainOf(inputs({ byDay: both }), settled(both[0]!, [7, 10]), D(1, 10), null)).toEqual({ rules: [RULES[7]], unless: new Set(), run: null });
   });
+  it("(T1078) two closures each close the whole year: the one cited does not depend on the selected day; the water's own row comes before a region's", () => {
+    const two = yearBy(() => [11, 10]); // rule 11 is a region's (rank 3), rule 10 the water's own (rank 0): met 11 first
+    const banner = (day: Day) => { const b = rawBanner(inputs({ byDay: two, day }), settled(two[0]!, [9]))!; return [b.big, b.para, b.chain.map((c) => [c.text, c.scope, c.rule])]; };
+    expect(banner(D(1, 10))).toEqual(banner(D(7, 15)));
+    expect(banner(D(7, 15))).toEqual(["Closed all year", null, [["Nov 1–Jun 14.", "This water", "e10::r10"]]]);
+  });
   it("(T1078, owner 2026-11-26: keep one, the primary closure) the dated closure is the day's first, yet the one cited is the all-year closure", () => {
     const both = yearBy((md) => (md >= 1101 || md <= 614 ? [10, 7] : [7]));
     // Kirkup Creek on r-0aec88ed3edb: the day's first closer was the Nov 1–Jun 14 rule, the primary closure is the all-year one
