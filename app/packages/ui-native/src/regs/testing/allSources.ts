@@ -76,8 +76,8 @@ export interface ProbeIndex { has(i: number): boolean; get(i: number): { key: st
 
 /**
  * The rules the sheet must list, read off the view models the screen DRAWS (captured where it hands them to the Source row)
- * by the ticket's words, not by core's walk: each key on a drawn section Source line (a per-row gear line, `srcs:gl|…`, is not
- * drawn), each `rule` of a drawn line that shows a "Rule book p.N" or a cited page beside it, each rule index of the drawn
+ * by the ticket's words, not by core's walk: each key on a drawn section Source line (a per-row gear line, `srcs:gl|…`, and
+ * the bait list's, `srcs:bait`, are not drawn: T900, T1077), each `rule` of a drawn line that shows a "Rule book p.N" or a cited page beside it, each rule index of the drawn
  * trout table. A rule the index lacks is not listed (it is reported).
  */
 export function expectedKeys(drawn: unknown, index: ProbeIndex): string[] {
@@ -90,7 +90,7 @@ export function expectedKeys(drawn: unknown, index: ProbeIndex): string[] {
     if (Array.isArray(v)) { v.forEach((x) => go(x, field)); return; }
     const o = v as Record<string, unknown>;
     const open = typeof o.open === "string" ? o.open : "";
-    if (open.startsWith("srcs:") && !open.startsWith("srcs:gl|")) (o.keys as string[] | undefined)?.forEach(byKey);
+    if (open.startsWith("srcs:") && !open.startsWith("srcs:gl|") && open !== "srcs:bait") (o.keys as string[] | undefined)?.forEach(byKey);
     const runs = Object.values(o).filter(Array.isArray).flat() as { t?: string }[];
     if (typeof o.rule === "string" && runs.some((r) => r?.t === "book" || r?.t === "web")) byKey(o.rule);
     for (const [k, x] of Object.entries(o)) go(x, k);
