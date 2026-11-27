@@ -6,7 +6,7 @@
  * corner, level with the chip. Anywhere else it is a bar across the whole foot (Conditions' ramp, Runs, a water layer's
  * key), and the © stands just above it. The desktop draws every key as a card off the foot (`mapFootInset` is 0 there).
  *
- * `keyFloats` must say exactly when `MapLegend` draws `MapKey` (T1212.corner.test.tsx holds the two together).
+ * `keyFloats` must say exactly when `MapLegend` draws `MapKey` (`T1212.tidy.test.tsx` holds the two together).
  */
 export function keyFloats(o: { tab: string; tabsRail: boolean; statusOk: boolean; waterDrawn: string }): boolean {
   return o.tab === "map" && !o.tabsRail && o.statusOk && o.waterDrawn === "regulations";

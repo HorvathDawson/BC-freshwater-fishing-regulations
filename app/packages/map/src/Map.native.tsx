@@ -1085,7 +1085,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         </View>) : null}
       {/* (T424) THE CREDITS: the web's own component, bottom-right (Esri's "Powered by Esri" beside it while its imagery is
           drawn, T275); the scale bar is bottom-LEFT, so the two never meet */}
-      {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetCredits ?? insetBottom} onOpenLink={onOpenLink} useBackLayer={useBackLayer} modalBack={modalBack}
+      {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetCredits ?? insetBottom} footBottom={insetBottom} onOpenLink={onOpenLink} useBackLayer={useBackLayer} modalBack={modalBack}
                             onLongPress={LAB_ON ? onOpenLab : undefined} />}
       {bare || !SHOW_SCALE ? null : (
         // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-left (T424), a RULER — a hairline with a tick at

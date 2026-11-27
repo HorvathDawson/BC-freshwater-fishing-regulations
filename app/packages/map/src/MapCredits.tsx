@@ -30,6 +30,13 @@ const TEXT = "Archivo_400Regular", SEMI = "Archivo_600SemiBold";
 /** How long the startup credit shows before it folds to the chip (OSMF: "automatically after five seconds"). */
 export const STARTUP_MS = 5000;
 export const STARTUP_CREDIT = "© OpenStreetMap contributors";
+/**
+ * (T1212) the opening credit line's widest: from the © edge to `G.gap` past the scale bar's widest end (194 px at 320 wide;
+ * the line wraps inside it); never under 140, a window not yet measured
+ */
+export function startupMaxWidth(width: number): number {
+  return Math.max(140, width - GEOMETRY.right - (GEOMETRY.scaleLeft + GEOMETRY.scaleMax + GEOMETRY.gap));
+}
 /** One startup credit per session: true once any map has shown it. */
 let shownThisSession = false;
 /** Tests only: start a new session. */
@@ -52,8 +59,13 @@ const ownBack = (_open: boolean, close: () => void) => close;
 /** No platform back around the card (the map alone): its children as they are. */
 function NoWrap({ children }: { onBack: () => void; children: ReactNode }) { return <>{children}</>; }
 
-export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPress, useBackLayer = ownBack, modalBack: Back = NoWrap }: {
+export function MapCredits({ look, chrome, insetBottom = 0, footBottom = 0, onOpenLink, onLongPress, useBackLayer = ownBack, modalBack: Back = NoWrap }: {
   look: Pick<Look, "view" | "modes" | "groups" | "basemap">; chrome: MapChrome; insetBottom?: number;
+  /**
+   * (T1212) the height of the block over the map's foot (MapProps.insetBottom), when the © itself sits lower, beside a
+   * floating key: the opening credit line stands above that block, so it never meets the key chip or its isolate row
+   */
+  footBottom?: number;
   onOpenLink?: ((url: string) => void) | undefined;
   /** (T729) the app's one back for the open card (MapProps.useBackLayer); absent: the card's own close */
   useBackLayer?: ((open: boolean, close: () => void) => () => void) | undefined;
@@ -110,10 +122,14 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
         </Pressable>
       </View>
       {startup && !on && (
-        // above the chip, where the card opens: the bottom-left scale bar is never in reach, badge or not
+        // above the chip, where the card opens, and (T1212) above the foot block when the © sits beside a floating key, so
+        // it never touches the key chip or its isolate row; its width stops short of the bottom-left scale bar (it wraps
+        // rather than reach it, at any width or text size): the attribution stays whole and readable
         <Pressable testID="map-credits-startup" accessibilityRole="button" accessibilityLabel={STARTUP_CREDIT}
                    onPress={() => setStartup(false)}
-                   style={{ position: "absolute", right: G.right, bottom: bottom + G.chip + G.gap + (badge ? G.chip + out : 0), paddingHorizontal: 6,
+                   style={{ position: "absolute", right: G.right,
+                            bottom: Math.max(bottom + G.chip + G.gap + (badge ? G.chip + out : 0), footBottom + G.bottom),
+                            maxWidth: startupMaxWidth(width), paddingHorizontal: 6,
                             paddingVertical: 3, backgroundColor: chrome.card, borderWidth: 1, borderColor: chrome.ink }}>
           <Text style={{ color: chrome.ink, fontFamily: TEXT, fontSize: 11, lineHeight: 14 }}>{STARTUP_CREDIT}</Text>
         </Pressable>

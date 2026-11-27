@@ -160,7 +160,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
       </div>) : null}
     {/* (T424) THE CREDITS: our own chip and card, the phone's component (Esri's "Powered by Esri" beside it while its
         imagery is drawn); the renderer's own attribution control is off */}
-    {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetCredits ?? insetBottom} onOpenLink={onOpenLink} useBackLayer={useBackLayer} modalBack={modalBack}
+    {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetCredits ?? insetBottom} footBottom={insetBottom} onOpenLink={onOpenLink} useBackLayer={useBackLayer} modalBack={modalBack}
                          onLongPress={LAB_ON ? onOpenLab : undefined} />}
   </>;
 }
