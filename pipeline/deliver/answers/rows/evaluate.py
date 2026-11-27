@@ -17,10 +17,130 @@ def _stable_sort(xs, key):
     return sorted(xs, key=key)
 
 
-def _closure_cmp(a, b) -> int:
+#: POLICY (T1251, owner 2026-11-27: "The most upstream row, in 0.10.0"): THE MOST UPSTREAM ROW IS NAMED. Of two
+#: closures of two entries tied on rank that both close the day, the more upstream one governs and is the one the card
+#: names, and comes first in a closed day's banner (`display.section`, the same comparison: `upstream_cmp`): the
+#: water's OWN extent before an inherited one (the water itself is the most upstream), and of two INHERITED closures
+#: (both reaching the section by the tributary walk, `via` "trib") the one whose row's water is the more upstream
+#: (`read._upstream_of`, the bundle's `trib_upstream`: `trib_nearer` and the rows whose tributary walks nest). Words
+#: only: both still close (RULINGS T14: a closure is never beaten by a nearer row), the day, the fish and the status are
+#: the same. Two closures in two rows' own extents are ordered by `OWN_ROW_FIRST` (the water's own row first, then the
+#: most upstream). Asked before T206's year-round-before-dated and the fish count. False = T206's order alone (Lower Campbell Lake's creeks name John Hart
+#: Lake's closure by entry key, and the banner lists closures in rule order).
+THE_MOST_UPSTREAM_ROW_IS_NAMED = True
+
+
+#: POLICY (T1251, owner 2026-11-27, verbatim: "(a) Own row first, then most upstream (Recommended)"): ON ONE RUNG THE
+#: WATER'S OWN ROW FIRST. Of two closures that both close the day, the water's own row (the bundle's `set_own`: the row
+#: whose matched water holds the part) is named first, a closure printed by a row's own extent before one it inherits,
+#: and only then the most upstream: the North Alouette River names its own "No Fishing upstream of 216th Street (Fifth
+#: Ave), May 1-June 30", not the Alouette River's "(including North Alouette River)"; the Campbell River's 100 m below
+#: Strathcona Dam keeps its own all-year closure over Lower Campbell Lake's. False = the most upstream alone, two
+#: own-extent closures by T206's order (the mutation pin).
+OWN_ROW_FIRST = True
+
+
+def upstream_cmp(a, b, upstream: frozenset, own: frozenset = frozenset()) -> int:
+    """THE ONE comparison of two closures of two entries on one rung (`THE_MOST_UPSTREAM_ROW_IS_NAMED`, `OWN_ROW_FIRST`;
+    each has `entry_id` and `via`): the water's own row (`own`), then an own extent before an inherited one, then of two
+    closures reaching the water the same way the more upstream row (`upstream`, the (near, far) pairs). -1 / 1 when it
+    orders them, 0 when it has no say. The card's naming (`_closure_cmp`) and the banner's order
+    (`most_upstream_first`) both ask it; never recomputed per surface."""
+    if not THE_MOST_UPSTREAM_ROW_IS_NAMED:
+        return 0
+    va, vb = getattr(a, "via", None), getattr(b, "via", None)
+    if OWN_ROW_FIRST:
+        ao, bo = a.entry_id in own, b.entry_id in own
+        if ao != bo:
+            return -1 if ao else 1
+        if {va, vb} == {"reach", "trib"}:
+            return -1 if va == "reach" else 1      # a row's own extent before what the water inherits
+    if va == vb and (va == "trib" or OWN_ROW_FIRST) and upstream:
+        if (a.entry_id, b.entry_id) in upstream:
+            return -1
+        if (b.entry_id, a.entry_id) in upstream:
+            return 1
+    return 0
+
+
+def _upstream_first_in(items: list, upstream: frozenset, own: frozenset) -> list:
+    """`items` (one rung) with the one `upstream_cmp` puts first moved forward to the place of the one it must precede:
+    the next place takes the first remaining item, or the first remaining item that must precede it (and so on up the
+    chain); two closures no chain relates keep their order. A circle (which the bundle's `prove` refuses) keeps the
+    order given."""
+    rest, out = list(items), []
+    while rest:
+        x, seen = rest[0], set()
+        while id(x) not in seen:
+            seen.add(id(x))
+            y = next((y for y in rest
+                      if y is not x and y.entry_id != x.entry_id and upstream_cmp(y, x, upstream, own) < 0), None)
+            if y is None:
+                break
+            x = y
+        else:
+            x = rest[0]
+        rest.remove(x)
+        out.append(x)
+    return out
+
+
+def most_upstream_first(items: list, upstream: frozenset, own: frozenset = frozenset()) -> list:
+    """`items` (each with `entry_id`, `via`, `rank`), each RUNG reordered only within the places it already holds
+    (`_upstream_first_in`): a closure never moves across another rung's, so rung order and every other place stay. The
+    water's own row is no rung of its own: it is ordered first within its rung."""
+    places: Dict[int, List[int]] = {}
+    for i, x in enumerate(items):
+        places.setdefault(x.rank, []).append(i)
+    out = list(items)
+    for rank, idx in places.items():
+        for i, x in zip(idx, _upstream_first_in([items[i] for i in idx], upstream, own)):
+            out[i] = x
+    return out
+
+
+def upstream_pairs(B) -> frozenset:
+    """THE ONE READ of the (near, far) pairs for a bundle (`read._upstream_of`, the table `trib_upstream`): the card's
+    naming and the banner's order both take it here. A bundle object with no `path` (one a test builds in memory) has
+    no pairs: the documented empty case, never a fallback for a real bundle (a real one without the table is refused)."""
+    from pipeline.deliver.bundle import read
+    path = getattr(B, "path", None)
+    return frozenset() if path is None else read._upstream_of(path)
+
+
+def own_rows(B, set_id: int) -> frozenset:
+    """THE ONE READ of a rule set's own rows (`read._own_of`, the table `set_own`); no `path`: none, as `upstream_pairs`."""
+    from pipeline.deliver.bundle import read
+    path = getattr(B, "path", None)
+    return frozenset() if path is None else read._own_of(path).get(set_id, frozenset())
+
+
+def _lift_note_shared_or_refused(P, S: str, win, closed: list) -> None:
+    """(T1251) A LIFT NOTE ANOTHER CLOSURE ON THE SAME RUNG DOES NOT SHARE IS REFUSED, NOT SHOWN. The card names one
+    closure (own row first, then the most upstream) and shows that closure's qualified lift notes (`Part.lift_notes`); a
+    note there beside another closure of the same rung that closes the same fish without that lift would read as an
+    opening the other closure does not give. Refused by name: the rows, the fish, the day, the rule set."""
+    notes = P.lift_notes_of(win)
+    if not notes:
+        return
+    mine = sorted(json.dumps(n["q"], sort_keys=True) for n in notes)
+    for c in closed:
+        if c is win or c.rank != win.rank or c.entry_id == win.entry_id:
+            continue
+        theirs = sorted(json.dumps(n["q"], sort_keys=True) for n in P.lift_notes_of(c))
+        if theirs != mine:
+            name = lambda r: P.B.rules[tuple(r.key.split("::", 1))].get("entry_name", "")  # noqa: E731
+            raise AnswersError(
+                f"rows: {win.key} ({name(win)}) is named for {S} on {P.md} (rule set {getattr(P, 'set_id', '?')}) with "
+                f"the lift note(s) {mine}, beside {c.key} ({name(c)}), which closes {S} on the same rung without that "
+                "lift: the lift note would show beside a closure that still closes (T1251). Settle the two rows' lifts.")
+
+
+def _closure_cmp(a, b, upstream: frozenset = frozenset(), own: frozenset = frozenset()) -> int:
     """Which of two closures speaking for a fish governs (T206, owner 2026-10-26: never by entry key):
     the nearer rank; two rules of ONE entry keep the book's order (rule order), as before; between two
-    entries, a standing (year-round) closure before a dated one, then the one naming more fish:
+    entries, the more upstream (`upstream_cmp`: own extent before inherited, then the (near, far) pairs), then a
+    standing (year-round) closure before a dated one, then the one naming more fish:
     Region 4's invasive-species notice (bass, pike, walleye, perch) over the quota box's single
     "0, CLOSED" lines, which key order let win once `z4:species_quotas` became `z4:daily_quotas`,
     splitting the one folded row into five."""
@@ -28,6 +148,9 @@ def _closure_cmp(a, b) -> int:
         return -1 if a.rank < b.rank else 1
     if a.entry_id == b.entry_id:
         return 0                                   # one entry: the book's rule order
+    got = upstream_cmp(a, b, upstream, own)
+    if got:
+        return got
     da, db = bool(a.f.get("when")), bool(b.f.get("when"))
     if da != db:
         return 1 if da else -1
@@ -37,6 +160,13 @@ def _closure_cmp(a, b) -> int:
 
 
 closure_order = cmp_to_key(_closure_cmp)
+
+
+def closure_order_for(upstream: frozenset, own: frozenset = frozenset()):
+    """`closure_order` with the bundle's upstream pairs and the part's own rows (`upstream_pairs`, `own_rows`)."""
+    return cmp_to_key(lambda a, b: _closure_cmp(a, b, upstream, own))
+
+
 
 
 #: OWNER 2026-10-28 (Q87): a pool naming FEWER fish than the winning pool (a strict subset: the Liard's bull trout 1
@@ -84,13 +214,15 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     partly = [r for r in A if verdict[r.key][1]]
     steelhead = S == "RB" and P.steelhead_water
     pools = [r for r in A if r.k == "pool"]
-    closed = _stable_sort([r for r in A if is_closure_gate(r.f, r.k)], key=closure_order)
+    closed = _stable_sort([r for r in A if is_closure_gate(r.f, r.k)], key=closure_order_for(upstream_pairs(P.B), own_rows(P.B, P.set_id)))
     rel = _stable_sort([r for r in A if r.k == "gate" and not is_closure_gate(r.f, r.k)], key=lambda r: r.rank)
 
     def tk(r):
         return 1e9 if r.f.get("unlimited") else r.f.get("take")
     by_take = _stable_sort(pools, key=lambda r: (tk(r), r.rank))
     win = (closed or rel or by_take or [None])[0]
+    if closed and win is closed[0]:
+        _lift_note_shared_or_refused(P, S, win, closed)
     if win is None:
         win = _size_release(P, S, A)                       # decision F13
     if win is None:

@@ -19,7 +19,7 @@
  * anyway. The native renderer is a different file for exactly this reason.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MAP_UNAVAILABLE_WORDS } from "@app/core";
+import { mapUnavailableWords, type MapUnavailableReason } from "@app/core";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
 import { mapChrome } from "./chrome";
@@ -80,8 +80,9 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   /** MapLibre's own controls and markers, in this theme's chrome unless told otherwise. */
   const furniture = useMemo(() => chrome ?? mapChrome(theme), [chrome, theme]);
 
-  // (T1005) a browser that cannot draw a map (no WebGL) is told so on the map, not left with a blank box
-  const [unavailable, setUnavailable] = useState(false);
+  // (T1005) a browser that cannot draw a map (no WebGL) is told so on the map, not left with a blank box; (T1252) and so is
+  // a site whose GL worker did not load, in its own words
+  const [unavailable, setUnavailable] = useState<MapUnavailableReason | null>(null);
   useMapInstance(refs, { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError }, setUnavailable);
   useLabelsInBC(refs.map, outsideData);
   useLook(refs, { view, theme, modes, groups, hide, show, basemap, focus }, { lookKey, onLookDrawn });
@@ -140,12 +141,12 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
     {/* (T1212) no + / − on a phone-wide window: the stack is hidden by controls.css (`data-zoom-buttons`), keys still zoom */}
     <div ref={refs.host} data-zoom-buttons={zoomButtons ? undefined : "off"} style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />
     {unavailable ? (
-      <div role="alert" data-map-unavailable="" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center",
+      <div role="alert" data-map-unavailable={unavailable} style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center",
                                                           justifyContent: "center", padding: 24, background: furniture.card,
                                                           color: furniture.ink, textAlign: "center" }}>
         <div style={{ maxWidth: 420 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>{MAP_UNAVAILABLE_WORDS.title}</div>
-          <div>{MAP_UNAVAILABLE_WORDS.body}</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>{mapUnavailableWords(unavailable).title}</div>
+          <div>{mapUnavailableWords(unavailable).body}</div>
         </div>
       </div>
     ) : null}

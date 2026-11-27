@@ -21,8 +21,8 @@ the same generated style and are held to the same call sequence by `src/parity.t
 
 - Add or recolour a layer only in `layers.source.json` / `tokens.json`, then `pnpm style:build` (AGENTS 28, 29); the app
   addresses groups, never layers.
-- `maplibre-gl` v5 is pinned with `pmtiles@4` (a mismatch fails silently); the native binding is patched
-  (`app/patches/`, `app/deps.md`).
+- `maplibre-gl` 6's worker is its own file (`apps/mobile/gl-worker.js`, `src/web/glWorker.ts`: without it no tile loads); the native
+  binding is patched (`app/patches/`, `app/deps.md`).
 
 ## Tests
 

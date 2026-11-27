@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { JSDOM } from "jsdom";
 // @ts-expect-error a plain .mjs tool (no types)
 import { afterPaint as shellAfterPaint, bootCoho, cohoFacts, HOME_DESCRIPTION, HOME_DESCRIPTION_TAG, MARKED, paintFirst, shellExport, withBootCoho,
@@ -24,6 +25,13 @@ import { afterPaint, appDocument, BOOT_COHO } from "./seo/prerender";
 import { WEB_FONTS } from "../apps/mobile/src/webFonts.generated";
 
 const at = (p: string) => fileURLToPath(new URL(`../${p}`, import.meta.url));
+/** (T1252) the installed GL's worker files, and the folder gl-worker.js names for its version */
+const glRequire = createRequire(at("packages/map/package.json"));
+const GL_DIST = join(glRequire.resolve("maplibre-gl/package.json"), "../dist");
+const { glWorkerDir, glWorkerFiles } = createRequire(import.meta.url)("../apps/mobile/gl-worker.js") as {
+  glWorkerDir: (v: string) => string; glWorkerFiles: (dist: string) => string[] };
+const GL_DIR = glWorkerDir((JSON.parse(readFileSync(join(GL_DIST, "../package.json"), "utf8")) as { version: string }).version);
+const GL_FILES = glWorkerFiles(GL_DIST);
 /** an export's index.html as Expo writes it (the map's two stylesheets, the app's deferred script) */
 const EXPORT_APP = BARE_APP
   .replace("</head>", `<link rel="preload" href="/_expo/static/css/m-1.css" as="style"><link rel="stylesheet" href="/_expo/static/css/m-1.css"></head>`)
@@ -157,12 +165,14 @@ describe("the web's opening is the coho (T844)", () => {
     let dir = "";
     afterEach(() => { if (dir) rmSync(dir, { recursive: true, force: true }); dir = ""; });
     /** an export: its index.html, and a bundle naming `faces` (default: every face the web app loads) */
-    const exported = (faces: Record<string, string> = WEB_FONTS) => {
+    const exported = (faces: Record<string, string> = WEB_FONTS, worker = true) => {
       dir = mkdtempSync(join(tmpdir(), "web-shell-"));
       mkdirSync(join(dir, "assets"), { recursive: true });
       mkdirSync(join(dir, "_expo/static/js/web"), { recursive: true });
       writeFileSync(join(dir, "index.html"), EXPORT_APP);
       writeFileSync(join(dir, "_expo/static/js/web/index-1.js"), `var f=${JSON.stringify(faces)};`);
+      // (T1252) the GL worker folder Metro copies into public/ and the export carries
+      if (worker) { mkdirSync(join(dir, GL_DIR), { recursive: true }); for (const f of GL_FILES) writeFileSync(join(dir, GL_DIR, f), readFileSync(join(GL_DIST, f))); }
       return dir;
     };
     it("(T910) carries frame 0 in the page: `pnpm splash`'s files byte for byte, no request", () => {
@@ -188,6 +198,14 @@ describe("the web's opening is the coho (T844)", () => {
       rmSync(dir, { recursive: true, force: true });
       exported(); mkdirSync(join(dir, "assets/x"), { recursive: true }); writeFileSync(join(dir, "assets/x/A.ttf"), "");
       expect(() => shellExport(dir)).toThrow(/still carries 1 TTF/);
+    });
+    it("(T1252) checks GL's worker is in the export, the installed GL's own; refuses one without it or with another file", () => {
+      expect(shellExport(exported()).glWorker).toBe(`/${GL_DIR}/maplibre-gl-worker.mjs`);
+      rmSync(dir, { recursive: true, force: true });
+      expect(() => shellExport(exported(WEB_FONTS, false))).toThrow(new RegExp(`has no ${GL_DIR}/maplibre-gl-worker\\.mjs`));
+      rmSync(dir, { recursive: true, force: true });
+      exported(); writeFileSync(join(dir, GL_DIR, "maplibre-gl-worker.mjs"), "export {};");
+      expect(() => shellExport(dir)).toThrow(/is not maplibre-gl .*'s own/);
     });
   });
 

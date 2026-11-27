@@ -95,7 +95,8 @@ export function chainOf(inp: RegsInputs, settled: Settled, day: Day, reopen: Day
  * (T1078, Kirkup Creek: "Closed all year" cited only its Nov 1–Jun 14 closure) THE CLOSURES THAT CLOSE THE YEAR when nothing
  * reopens, read off the stored frames' decided `closers` (display 18; nothing is chosen here). A closure that is a closer
  * on every book day closes the year alone and is the one cited: the day's first (`settled.broad[0]`) when it is one, as
- * the banner has always cited it, else the lowest rank (the water's own row before a region's), then the rule index. When none does, the closures close it TOGETHER: every day's closers,
+ * the banner has always cited it, else the lowest rank (the water's own row before a region's), then the stored order (T1251: the
+ * most upstream row first). When none does, the closures close it TOGETHER: every day's closers,
  * from `day` round the year, each once, and the `unless_opened` of every frame met (`mark`), as a closed run is read.
  */
 function yearChain(inp: RegsInputs, settled: Settled, day: Day, mark: (f: DisplayFrame | null) => void): RuleView[] {
@@ -111,8 +112,10 @@ function yearChain(inp: RegsInputs, settled: Settled, day: Day, mark: (f: Displa
   const alone = met.filter((r) => days.get(r.rix) === BOOK_DAYS.length), first = settled.broad[0];
   if (alone.length) {
     // two closures may each close the whole year: the day's first when it is one, else the part's rank (as `broadOf` orders:
-    // the water's own row before a region's), then the rule index; never the order they were met in from the selected day
-    const byRank = [...alone].sort((a, b) => a.rank - b.rank || a.rix - b.rix);
+    // the water's own row before a region's), then the STORED order (T1251: the pipeline puts the most upstream row
+    // first), read off one fixed book day; never the order they were met in from the selected day
+    const stored = closersAt(inp, displayOnBookDay(inp, 0)).map((r) => r.rix);
+    const byRank = [...alone].sort((a, b) => a.rank - b.rank || stored.indexOf(a.rix) - stored.indexOf(b.rix));
     return [alone.find((r) => r.rix === first?.rix) ?? byRank[0]!];
   }
   for (const f of frames) mark(f);

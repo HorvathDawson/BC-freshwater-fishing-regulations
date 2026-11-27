@@ -53,6 +53,12 @@ describe("what a tool wrote is not source", () => {
             "tools/testbed/outline.mjs", "tools/testbed/lib/out/x.mjs", "packages/ui/src/out/x.ts"].map(isSource))
       .toEqual([false, true, true, true, true]);
   });
+  it("skips GL's worker copied into public/ (T1252), and only that folder shape", () => {
+    expect(["apps/mobile/public/maplibre-gl-6.19.0/maplibre-gl-worker.mjs", "apps/mobile/public/site.css",
+            "apps/mobile/public/maplibre-gl-worker.mjs", "apps/mobile/src/maplibre-gl-6.19.0/x.ts",
+            "packages/map/public/maplibre-gl-6.19.0/x.mjs"].map(isSource))
+      .toEqual([false, true, true, true, true]);
+  });
 });
 
 describe("the scanner catches every way a colour has been written here", () => {

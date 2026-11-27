@@ -14,7 +14,7 @@
     "@app/core": "workspace:*",
     "@maplibre/maplibre-react-native": "11.5.0",
     "@protomaps/basemaps": "^5.7.2",
-    "maplibre-gl": "^5.24.0",
+    "maplibre-gl": "^6.19.0",
     "pmtiles": "^4.5.0"
   },
   "peerDependencies": {
