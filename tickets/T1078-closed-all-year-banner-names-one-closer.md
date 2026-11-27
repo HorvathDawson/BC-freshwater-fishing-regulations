@@ -1,10 +1,10 @@
 # T1078 — A water closed all year by two rules names only one in its banner (Kirkup Creek)
 
-Status: IN PROGRESS — owner approved A (as built) 2026-11-26; what's left: the owner's look at the "together" wording (last ## Owner line), then the PR merge. Code f0e5f29ed (hardening lane): the all-year closer is cited alone; the "together" case is built (0 waters today).
+Status: IN PROGRESS — owner approved A (as built) 2026-11-26; what's left: the PR merge. Code f0e5f29ed (hardening lane): the all-year closer is cited alone; the "together" case is built (0 waters today).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1078 | A water closed all year by two rules names only one in its banner (Kirkup Creek) | IN PROGRESS (PR waits for the owner's look at the together wording) | f0e5f29ed | owner: approve the together wording, then the PR merge (the one primary closure is approved, 2026-11-26) |
+| T1078 | A water closed all year by two rules names only one in its banner (Kirkup Creek) | IN PROGRESS | f0e5f29ed | the PR merge (owner approved the one primary closure and the together wording as built, 2026-11-26) |
 
 Source: the 0.9.1 chat, 2026-11-24, PR #131 (T1052) census: Kirkup Creek (`gnis:12661`), the "Closed all year" banner cites only the Nov 1–Jun 14 closure; `banner.ts` lists only today's closer when nothing reopens.
 
@@ -50,4 +50,4 @@ lane checks which rule is primary on Kirkup Creek and on the other two-closer wa
 
 - [x] 2026-11-26 — Name every rule that closes the year, or one → "keep one just make sure it is the primary closure" (2026-11-26)
 - [x] 2026-11-26 — Kirkup Creek: A (as built, one closer) vs B (every closure) → "yes do primary closure. the as built is better then mockup" (2026-11-26)
-- [ ] 2026-11-26 — Where no single rule closes the whole year and several only do together, the banner reads "No fishing for any game fish all year. Together these closures cover it:" and lists each closure with its dates. Approve that wording? Default: built as proposed; applies to 0 waters today (a guard only), so no banner changes on today's data.
+- [x] 2026-11-26 — Where no single rule closes the whole year and several only do together, the banner reads "No fishing for any game fish all year. Together these closures cover it:" and lists each closure with its dates. Approve that wording? Default: built as proposed; applies to 0 waters today (a guard only), so no banner changes on today's data. Owner: "Approve as built (Recommended)" (2026-11-26).
