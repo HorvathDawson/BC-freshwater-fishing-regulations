@@ -6,7 +6,7 @@
  */
 import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
-import { ageWords, bcDayWords, bcIsoDayWords, bcStampWords, BC_TIME_LABEL, figure, freshness, readingAgeWords, STALE_AFTER_MS, sunLine, weatherFigure } from "@app/core";
+import { bcDayWords, bcIsoDayWords, bcStampWords, BC_TIME_LABEL, sunLine, weatherFigure } from "@app/core";
 import { CORE_INLINE, clientScript } from "./gauges";
 
 /** the script with its self-start replaced by an export of what it carries (the rest is the shipped text, unchanged) */
@@ -14,7 +14,7 @@ function carried(): Record<string, (...a: never[]) => unknown> & { BC_TIME_LABEL
   const src = clientScript();
   const start = /^gaugePage\(document,Date\.now,window\.fetch\.bind\(window\)\)\.catch\([^\n]*\n/m;
   expect(src, "the script calls gaugePage once, at the end").toMatch(start);
-  const names = ["figure", "bcDayWords", "bcIsoDayWords", "bcStampWords", "BC_TIME_LABEL", "freshness", "readingAgeWords", "ageWords", "sunLine", "weatherFigure"];
+  const names = ["figure", "bcDayWords", "bcIsoDayWords", "bcStampWords", "BC_TIME_LABEL", "sunLine", "weatherFigure"];
   const ctx: Record<string, unknown> = { document: {}, window: { fetch: () => { throw new Error("no network in this test"); } }, console };
   runInNewContext(src.replace(start, `globalThis.__carried={${names.join(",")}};\n`), ctx);
   return ctx.__carried as never;
@@ -38,10 +38,10 @@ describe("the gauge page's script is core's, written in (T622)", () => {
     const src = clientScript();
     expect(src).not.toMatch(/^\s*import\b/m);
     for (const [, names] of CORE_INLINE) for (const n of names) expect(src, n).toMatch(new RegExp(`(?:function|const) ${n}\\b`));
-    expect(src).toContain(`const STALE_AFTER_MS=${STALE_AFTER_MS};`);
+    // (T1194) the reading's words (figure, age, standing) are the shared piece's, no longer carried here
+    expect(src).not.toMatch(/(?:function|const) (?:freshness|readingAgeBrief|standingNowLine)\b/);
   });
-  it("says a figure, a B.C. day, a B.C. stamp and its label exactly as core does", () => {
-    for (const v of [0, 0.004, 0.123, 4.567, 22.24, 99.95, 100.4, 1060.4, -3.2]) expect(c.figure(v), String(v)).toBe(figure(v));
+  it("says a B.C. day, a B.C. stamp and its label exactly as core does", () => {
     for (const t of INSTANTS) {
       expect(c.bcDayWords(t), String(t)).toBe(bcDayWords(t));
       expect(c.bcStampWords(t), String(t)).toBe(bcStampWords(t));
@@ -57,16 +57,5 @@ describe("the gauge page's script is core's, written in (T622)", () => {
     }
     for (const k of ["temp", "rain", "wind", "cloud", "pressure", "humidity"] as const)
       for (const v of [0, 0.44, 12.5, 87.4, 1012.6]) expect(c.weatherFigure(k, v), `${k} ${v}`).toBe(weatherFigure(k, v));
-  });
-  it("words an age and the reading's line exactly as core does: seconds to days, every edge", () => {
-    const NOW = T("2026-11-09T18:00:00Z");
-    for (const ms of [0, 30_000, 59_999, 60_000, 3_599_000, 3_600_000, 5_400_000, 47 * 3_600_000, 48 * 3_600_000, 72 * 3_600_000, NaN])
-      expect(c.ageWords(ms), String(ms)).toBe(ageWords(ms));
-    for (const fetched of [NOW - 5_000, NOW - 600_000, NOW - 2 * 3_600_000, NOW - 2 * 3_600_000 - 1, NOW - 40 * 3_600_000, null]) {
-      const mine = c.freshness(fetched, NOW, 2 * 3_600_000);
-      expect(mine).toEqual(freshness(fetched, NOW, 2 * 3_600_000));
-      for (const at of ["2026-11-09 at 10:00 PT", null])
-        expect(c.readingAgeWords(mine, at)).toBe(readingAgeWords(freshness(fetched, NOW, 2 * 3_600_000), at));
-    }
   });
 });

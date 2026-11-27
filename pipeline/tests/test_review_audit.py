@@ -385,3 +385,19 @@ def test_F_a_tidal_channel_is_left_out_and_an_unplaced_window_says_so():
 def test_I_paths_are_cut_to_file_names():
     row = {"status": "refused", "domain": "tidal", "marks": [], "why": "/x/y/curated/waters/tidal_limits.json: would drop 11"}
     assert A.wait_category(row) == "refused: tidal_limits.json: would drop 11"
+
+
+def test_the_closed_areas_are_the_declared_file_or_beside_an_overridden_places(tmp_path, monkeypatch):
+    """(T1192 review) `load` reads `dfo_salmon.closed_areas`; beside `places` only when a caller overrides `places`."""
+    import shutil
+    from pipeline.common import curated as C
+    root = C.make_root(tmp_path / "curated")
+    monkeypatch.setenv(C.ROOT_ENV, str(root))
+    declared = C.CURATED.dfo_salmon.closed_areas
+    declared.write_text('{"declared": 1}')
+    other = tmp_path / "other" / "places"
+    shutil.copytree(C.CURATED.dfo_salmon.places, other)
+    (other.parent / declared.name).write_text('{"beside": 1}')
+    kw = dict(build=tmp_path / "no-atlas", with_graph=False, with_landed=False)
+    assert A.load(**kw).closed_areas_text == '{"declared": 1}'
+    assert A.load(places=other, **kw).closed_areas_text == '{"beside": 1}'

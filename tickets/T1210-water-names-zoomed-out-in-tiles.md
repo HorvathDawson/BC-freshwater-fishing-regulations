@@ -1,15 +1,15 @@
 # T1210 — Lake and river names zoomed out: a label layer in our tiles (one point per lake, one smoothed line per river)
 
-Status: IN PROGRESS — lane T1208 (worktree wt-T1210p); release 0.10.0 re-cut
+Status: PARTIAL — the tiles half merged (#356); the app half (the label style) is built on the look A branch (T1208); left (Claude): the 0.10.0 re-cut's tiles build carries the layers.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1210 | Lake and river names zoomed out: a label layer in our tiles (one point per lake, one smoothed line per river) | IN PROGRESS — 0.10.0 re-cut | 2c007fcda, 6bdff675d | the pipeline half proven (below), on feat/T1210-tile-label-layers; owed: the PR, then the re-cut's tiles build; the app half rides look A (T1208) |
+| T1210 | Lake and river names zoomed out: a label layer in our tiles (one point per lake, one smoothed line per river) | PARTIAL — the tiles half merged (#356); the app half (the label style) is built on the look A branch (T1208); left (Claude): the 0.10.0 re-cut's tiles build carries the layers | 2c007fcda, 6bdff675d, 1f991e377, 0d6d8633f | the re-cut's tiles build (the app half merges with look A, T1208) |
 
 Source: T1200 (owner 2026-11-26: "build A ..."). The prototype made these at run time from the drawn tiles; the build
 puts them in the tiles. TWO PRS (planning chat 2026-11-26): the pipeline half on `feat/T1210-tile-label-layers`, so the
 re-cut's tiles build carries the layers while the look waits on the owner (they draw nothing until the style asks: the
-proof is in this PR); the app half on `feat/T1210-water-names-in-tiles`, after look A (T1208).
+proof is in this PR); the app half on the look A branch (`feat/T1208-map-look-A`, T1208).
 
 ## Work
 

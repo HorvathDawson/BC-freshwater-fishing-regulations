@@ -22,7 +22,8 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
-import { HOME, type Route } from "@app/ui";
+import { HOME, openGauge, reduce, type Route } from "@app/ui";
+import type { StationId } from "@app/data";
 
 const SCALE = vi.hoisted(() => ({ v: 1 }));
 vi.mock("react-native", async (importOriginal) => {
@@ -39,6 +40,13 @@ vi.mock("react-native", async (importOriginal) => {
   });
   return { ...rn, Text };
 });
+// (T1194) the gauge page's release facts: long water names and every trust word, so the page's rows are laid out at their widest
+vi.mock("@app/ui", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@app/ui")>()),
+  useGaugePage: () => ({ state: "ready", error: null, value: { station: "08MH024", name: "Fraser River at Mission", tidal: true, backwater: false, diversion: false,
+    serves: [{ item: "a", name: "Chilliwack/Vedder River (Sardis to the Fraser confluence)", trust: "own" }, { item: "b", name: "Nicomen Slough", trust: "good" },
+             { item: "c", name: "Enterprise Channel near the Pitt River mouth", trust: "weak" }] } }),
+}));
 // no WebGL in jsdom: the map itself is blank, the screen around it (rail, switch, legend, day bar) is the app's
 vi.mock("@app/map", async (importOriginal) => ({ ...(await importOriginal<typeof import("@app/map")>()), Map: () => null }));
 vi.mock("../packages/ui-native/src/FishSpinner", () => ({ FishSpinner: () => null }));
@@ -120,6 +128,8 @@ const SCREENS: { id: string; start?: Route; go?: () => void }[] = [
   { id: "runs", go: () => tab("Runs") },
   { id: "spots", go: () => tab("Spots") },
   { id: "more", go: () => tab("More") },
+  // (T1194) a gauge's own page, over the Conditions map: Back, the name, the reading line, the waters it serves, the foot card
+  { id: "gauge-page", start: reduce(reduce(HOME, { type: "tab", tab: "conditions" }), openGauge("08MH024" as StationId)) },
   { id: "more-settings", go: () => { tab("More"); press(/^Settings$/); } },
   { id: "more-help", go: () => { tab("More"); press(/^Help$/); } },
   { id: "more-glossary", go: () => { tab("More"); press(/^Glossary$/); } },

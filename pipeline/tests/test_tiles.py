@@ -86,7 +86,7 @@ def test_normalise_is_what_search_compares():
 # ------------------------------------------------- areas.json <-> layers contract
 
 def _areas():
-    return json.loads(under_test.curated().waters.areas.read_text())["areas"]
+    return json.loads(under_test.curated().waters.area_closures.read_text())["areas"]
 
 
 def test_every_area_either_declares_a_real_tile_layer_or_says_why_not():

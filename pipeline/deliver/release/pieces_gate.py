@@ -171,14 +171,14 @@ def read_live(manifest: Path, releases: Path) -> tuple[Optional[dict], str, Opti
 
 
 def main(argv=None) -> int:
-    from pipeline.common.curated import GENERATED
+    from pipeline.common.curated import ROOTS
     from pipeline.deliver import salmon as S
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("manifest", type=Path, nargs="?")
     ap.add_argument("--feeds-url", default=os.environ.get("FEEDS_URL") or None)
     ap.add_argument("--worker-deploy", action="store_true", help="the worker-deploy mirror (T757 item 7)")
     ap.add_argument("--live-manifest", type=Path, help="--worker-deploy: the bucket's live release/manifest.json")
-    ap.add_argument("--releases", type=Path, default=Path(GENERATED.release),     # (T1021) generated.release
+    ap.add_argument("--releases", type=Path, default=Path(ROOTS.release),     # (T1021) roots.release
                     help="--worker-deploy: the release folders (the scripts pass RELEASES_DIR, default data/release)")
     ap.add_argument("--worker-shape", default="", help="--worker-deploy: deploy/lib/worker-shape.mjs's JSON line")
     a = ap.parse_args(argv)

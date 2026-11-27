@@ -77,7 +77,7 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 
 | what | code | note |
 |---|---|---|
-| synopsis rows | `regs/extraction/extract_synopsis.py` | PDF → rows (only when the synopsis changes) |
+| synopsis rows | `regs/extraction/extract_synopsis.py`, `visible.py` | PDF → rows (only when the synopsis changes); `visible.py` (T1190): which characters the PDF paints visibly (painter's model on MuPDF's display list; the only PyMuPDF import), and strike-throughs (`raw_regs_marked`, `known_strikes.json`) |
 | region / province highlight boxes | `regs/extraction/passage_boxes.py` | T1032: a zone, province or area rule's `book_box`, its words located in the release's PDF at answers build (`display.decided.book_boxes`; exact, once, on word bounds, else no box); `python -m pipeline.regs.extraction.passage_boxes` reports coverage per page and every rule not located; the build refuses unless the not-located rules are the list pinned per PDF in `passage_unlocated.json` (`--write-pin`) |
 | extractor change gate | `regs/extraction/baseline.py`, `baseline/<book>.json` + `accepted_diffs.json` | `extract_synopsis --check-against`: the current book re-read row by row (T426) |
 | a new synopsis | `tools/synopsis_book.py` (carry / replay), `tools/synopsis_diff.py` | the annual update: carry unchanged rows, diff two books; runbook `docs/runbooks/annual-synopsis.md` (T239) |

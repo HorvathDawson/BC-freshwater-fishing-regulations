@@ -212,11 +212,11 @@ class Target:
 
     @classmethod
     def canonical(cls) -> "Target":
-        from pipeline.common.curated import CURATED, GENERATED
+        from pipeline.common.curated import CURATED, GENERATED, ROOTS
         b = GENERATED.build()
         return cls(entries=CURATED.regulations.synopsis, splits=CURATED.waters.cuts,
                    build=b, reach=GENERATED.reaches / b.name, bundle=GENERATED.bundle / "bundle.sqlite",
-                   release=GENERATED.release, tiles=GENERATED.tiles)
+                   release=ROOTS.release, tiles=GENERATED.tiles)
 
     def _same(self, other: "Target", name: str) -> bool:
         return Path(getattr(self, name)).resolve() == Path(getattr(other, name)).resolve()
