@@ -1528,7 +1528,7 @@
    {
     "name": "MCLENNAN CREEK",
     "source": "regulation",
-    "note": "UNCERTAIN: Could be McLennan Creek (100-052188, MU 2-4) OR McLean Creek (100-025956-073866, MU 2-8). Currently matched to McLennan Creek but regulation specifies MU 2-8 which matches McLean Creek. User should verify correct creek and update if needed.; REGION 2 - Lower Mainland; MU 2-8"
+    "note": "MCLENNAN CREEK 2-8 binds BOTH McLennan Creek (this water, MU 2-4) and McLean Creek (gnis 37586, MU 2-8) until the Province answers (owner 2026-11-26: \"Both creeks closed, ask the Province\"; the question is in pipeline/docs/BOOK-QUESTIONS.md). McLean Creek is bound by the book_name_links override, not by this name; REGION 2 - Lower Mainland; MU 2-8"
    }
   ]
  },
