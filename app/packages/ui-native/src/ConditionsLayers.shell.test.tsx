@@ -133,7 +133,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
       "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Spots+ Gauges+ Flow arrows+",
       "Flow vs. past years, this date",
       { standing: "discharge", gauges: "flow" },
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 0`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region-band,region-names · show stream__arrows · ground map · changed 0`,
     ]);
   });
 
@@ -147,13 +147,13 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
       "Water level vs. past years, this date",
       { standing: "level", gauges: "level" },
       // the SAME modes object (#1), the same groups, hidden and shown layers and ground: nothing for the map to repaint
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 1`,
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 0`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region-band,region-names · show stream__arrows · ground map · changed 1`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region-band,region-names · show stream__arrows · ground map · changed 0`,
     ]);
     // and back to Flow: the flow roster again, still no new look
     pick("Flow");
     expect([asked, map()]).toEqual([{ standing: "discharge", gauges: "flow" },
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 0`]);
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region-band,region-names · show stream__arrows · ground map · changed 0`]);
   });
 
   it("the Conditions switches: gauges off stops the roster, arrows off leaves the view's own layer undrawn; each counts", async () => {
@@ -164,7 +164,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     expect([sheet(), asked.gauges, map()]).toEqual([
       "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Spots+ Gauges Flow arrows",
       "off",
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show - · ground map · changed 2`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region-band,region-names · show - · ground map · changed 2`,
     ]);
   });
 
@@ -185,7 +185,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
         + " | Spots+ Depth contours Private land Fish obstacles Pools and runs Relief",
       'modes #1 · groups {"depth":false,"ownership":true,"obstacles":false} · hide - · show - · ground map · changed 1',
       // (the fixture is no proven pair, so both tabs' modes are plain — the same object; the private land is the point)
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 1`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region-band,region-names · show stream__arrows · ground map · changed 1`,
       'modes #1 · groups {"depth":false,"ownership":true,"obstacles":false} · hide - · show - · ground map · changed 1',
     ]);
   });

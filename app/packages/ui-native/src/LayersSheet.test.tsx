@@ -129,7 +129,7 @@ describe("the Layers sheet, mounted", () => {
 
   it("the legend sits under the chosen colouring: the day's three statuses and (T54) no public access", () => {
     render(<Wired facts={NONE} out={{}} />);
-    expect(text("water-legend")).toBe("ClosedHas its own regulationsBase regulations onlyNo public access");
+    expect(text("water-legend")).toBe("ClosedIts own rulesRegion rules onlyNo public access");
   });
 
   it("no lake values: pressing a greyed tile or a coming-soon switch changes nothing", () => {

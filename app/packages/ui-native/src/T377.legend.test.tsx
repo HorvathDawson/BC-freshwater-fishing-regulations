@@ -18,8 +18,12 @@ const col = (regsLayer: "standard" | "salmon", isolated: string | null, isolate 
   salmonOffered: true, statusOk: true, salmonFacts: null, setRegsLayer: () => {}, isolated, isolate,
   layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles: false } } },
 }) as never;
-const show = (c: unknown) =>
-  render(<MapLegend col={c as never} conditions={false} palette={LIGHT} theme="light" mapDay={null} />);
+// (T1211) the Map tab's key floats behind its chip: drawn, then opened
+const show = (c: unknown) => {
+  const r = render(<MapLegend col={c as never} conditions={false} palette={LIGHT} theme="light" mapDay={null} />);
+  const chip = screen.queryByTestId("map-key-chip"); if (chip) fireEvent.click(chip);
+  return r;
+};
 const entry = (label: string) => screen.getAllByTestId("legend-entry").find((e) => e.textContent === label)!;
 
 describe("(T377) the tappable key", () => {

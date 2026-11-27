@@ -22,6 +22,8 @@ export function parse(xml) {
     const b = /\bbounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"/.exec(m[0]);
     if (!b) continue;
     out.push({ id: g('resource-id'), cls: g('class').split('.').pop(), text: g('text'), desc: g('content-desc'),
+               // (T1211) a radio's state (the rail's Trout | Salmon): uiautomator's own `checked`
+               checked: g('checked') === 'true',
                box: { x0: +b[1], y0: +b[2], x1: +b[3], y1: +b[4] } });
   }
   return out;

@@ -15,28 +15,32 @@ import { LIGHT } from "./theme";
 
 afterEach(cleanup);
 
+// (T1211 review) THE KEY AS THE APP DRAWS IT: the day's status in (`statusOk`), so the Map tab's key is the floating Map key
+// (`MapKey`), opened. A fake without `statusOk` drew the old bar, which the app no longer shows: the obstacles row vanished
+// from phones while this passed.
 const col = (obstacles: boolean) => ({
   flowParam: "discharge", horizon: 0, mm: { onConditions: false }, cond: { marks: [] }, gearMarked: true, regsLayer: "standard",
+  salmonOffered: true, statusOk: true, isolated: null, isolate: () => {},
   layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles } } },
 }) as never;
-const legend = (obstacles: boolean) => render(
-  <MapLegend col={col(obstacles)} conditions={false} palette={LIGHT} theme="light" mapDay={null} />);
+const legend = (obstacles: boolean) => {
+  render(<MapLegend col={col(obstacles)} conditions={false} palette={LIGHT} theme="light" mapDay={null} />);
+  fireEvent.click(screen.getByTestId("map-key-chip"));
+  return screen.getByTestId("map-key-card");
+};
 
 describe("the map key (T300)", () => {
   it("says its rows in few words", () => {
-    legend(false);
-    const t = screen.getByTestId("legend-strip").textContent!;
+    const t = legend(false).textContent!;
     for (const w of ["Closed", MAP_KEY.status.own, MAP_KEY.status.base, MAP_KEY.status.no_access, MAP_KEY.gear.fly, MAP_KEY.gear.bait, MAP_KEY.notFishing])
       expect(t).toContain(w);
     expect(t).not.toContain("regulations");
     expect(t.length).toBeLessThan(90);
   });
   it("lists the fish obstacles' marks, one icon and a word each, only while that layer is on", () => {
-    legend(false);
-    expect(screen.queryByTestId("legend-obstacles")).toBeNull();
+    expect(legend(false).querySelector('[data-testid="legend-obstacles"]')).toBeNull();
     cleanup();
-    legend(true);
-    const row = screen.getByTestId("legend-obstacles");
+    const row = legend(true).querySelector('[data-testid="legend-obstacles"]')!;
     expect(row.textContent).toBe(OBSTACLE_ICON_KINDS.map((k) => MAP_KEY.obstacle[k]).join(""));
     expect(row.querySelectorAll("svg").length).toBe(OBSTACLE_ICON_KINDS.length);
   });
