@@ -16,6 +16,9 @@ T1240, T1241, T1199.
 The parts C and D share (T1199, T1240, T1241) are built now, since they are in D either way. Only the loop removal is
 the trial.
 
+T1199 (the reserve and park cut rule) WAITS on this trial: his answer of 2026-11-27 to its opens/closes list was "Hold for
+the loop-removal trial"; he looks at both together after the report.
+
 ## Work
 1. **Why do 11,875 loops survive the prune?** They meet every condition the atlas prune states (the river's own
    watershed code, no name of their own, no creek on them), so the prune should have dropped them. Measure why not.

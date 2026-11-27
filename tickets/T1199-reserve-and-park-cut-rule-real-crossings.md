@@ -1,10 +1,10 @@
 # T1199 — Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside
 
-Status: OPEN — ruled by the owner; built by the data and release chat inside the 0.10.0 re-cut.
+Status: OPEN — ruled by the owner; HELD for the loop-removal trial (T1242), his answer of 2026-11-27; owner: see ## Owner
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — in the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | build the rule in the cutter (`clean_cut.py`), then the opens list to the owner before the re-cut closes |
+| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — held for the loop-removal trial (T1242, owner 2026-11-27); owner: see ## Owner | — | build the rule in the cutter (`clean_cut.py`), then the opens list to the owner before the re-cut closes |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim. On the cut rule: "we need to figure out a way that everything
 get simplified a lot.... like the skeena river er example is crazy... we want to maybe do braid simplification here
@@ -52,3 +52,4 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
 ## Owner
 
 - [ ] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him.
+  - 2026-11-27: the lane's list (26 stretches, 12.43 km open, plus 252 m on 10 lines that only graze an area; 254 stretches, 14.74 km close; figures may move up to 0.25 km) was put to him. His answer, verbatim: "Hold for the loop-removal trial". Reading: the rule and its list wait for the T1242 trial; he sees both in one look.

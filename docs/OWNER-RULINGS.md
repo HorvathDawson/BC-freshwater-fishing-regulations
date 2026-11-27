@@ -276,6 +276,87 @@ His words, verbatim. Answers given in the planning chat and relayed verbatim to 
 ### Review domains closed (the repo clean chat's seventh question)
 He selected Tidal, DFO and Sloughs, and added: "dfo might have more if future places come in so jsut make sure that plays nicely." The three domains' names and entries stay open to new places; the DFO one must accept a place that appears later.
 
+## Owner answers of the night of 2026-11-26/27 (docs batch 5, T1191)
+
+He came back at about 23:50 MST on 11-26 and answered in five batches, then a few single answers. Each answer is in
+his words (verbatim, his spelling); "Reading:" is the planning chat's plain reading, not his words.
+
+### Return batch 1 (23:50 MST)
+- **The while-away rule:** "Yes, approved items merge (Recommended)". Reading: anything he already picked or answered
+  merges after its full check and a second agent's review; only NEW openings, new looks and open questions wait.
+- **PR #312 (Eco Reserve words):** "Merge; names only (Recommended)". Reading: merged as built; the map area labels,
+  the notes, the rules' sentences and the book lines keep the full official name (T1245's owner line). #312 is merged.
+- **The two T1177 branches (one-offs, spring closures):** "Yes, merge both (Recommended)".
+- **Blue Lead Creek below the falls (0.9 km):** "Keep it open in spring (Recommended)". Reading: option (a), kept
+  lifted as built.
+
+### Return batch 2 (the map look, about 00:00 MST 11-27)
+- **Phone controls (Q19):** "do tiday with the attribution moved to botton corner now". Reading (the planning chat's
+  "my reading"): option A, Tidy, with the attribution "(c)" button moved to the bottom corner.
+- **Region border (Q20):** "1 · Dash-dot, heavier, light band (Recommended)".
+- **Water colour (Q21):** "Accept cyan water (Recommended)".
+- **Haida Gwaii on phones (Q22):** "Leave phones; fit all on wide screens (Recommended)".
+
+### Return batch 3 (about 00:10 MST)
+- **Larger text (Q23, T1203):** "Merge as shown (Recommended)". Four checks on his own phone are still owed:
+  Notifications page, walkthrough cards, the tab shortening, glossary rows.
+- **The short tab word:** "\"Rules\"". Reading: "Rules", NOT the built "Regs".
+- **T1078 banner (all-year closure with no single closure covering the year):** "Approve as built (Recommended)".
+- **Little River annual quota (T1243):** "Hide the annual quota while release applies (Recommended)".
+
+### Return batch 4 (about 00:25 MST)
+- **Lake zones (T1180), round 3 (options A, B, C):** "i like B HOWEVER, it needs a few changes first the search
+  having all parts is too much ssay somehting like fraser with 10+ parts will become crazy. maybe it will have a clean
+  way in the search to expand or click on it which then opens the map in the card instead where the user can select the
+  specific section if that makes sense? like in A? this needs more work but something like that. also lakes arent the
+  sam eupstream/downstream it should have different text when navigating. or even better only a parts selector / user
+  able to click and hide the up/downstream on lakes?" Reading: B is the direction; round 4 designs a search that does
+  not list every part (expand, or a tap that opens the card's map to pick the section) and lakes with no
+  upstream/downstream (different words, or a parts selector only). Still design only.
+- **The T1199 cut rule:** "Hold for the loop-removal trial". Reading: the rule and its opens/closes list wait for
+  the T1242 trial; he sees both in one look.
+- **The .env load:** he pasted the names: only GOOGLE_API_KEY and GOOGLE_API_KEY_2..7 (the Gemini keys of the old
+  parsing step), and said "so nothing matters". Reading: remove the automatic .env load.
+- **Strathcona-Westmin:** "Yes, treat it as Strathcona Park (Recommended)". Reading: the Strathcona Park rule applies
+  in Strathcona - Westmin Park (T1240's question; Thelwood Creek).
+
+### Return batch 5a, naming (about 00:40 MST)
+- **No access on the card (Q4):** "i dont understand the cottoinwood river example but i like the layout in p3-5
+  access. i dont understand the salmon stretch tag either. also the tag for noons creek is weird too. i think for noon
+  creek as a side note since fwa and city have 2 different streams in same area same name they should both get noons
+  creek regs for safety". Reading: he likes the chip layout of sheet P3-5; the status-pill version (b) was not chosen;
+  the Cottonwood River example, the salmon stretch tag and the Noons Creek tag were not clear to him (the planning
+  chat owes him an explanation). Noons Creek: the FWA stream and the city stream of the same name in the same area
+  BOTH get the Noons Creek regulations, for safety.
+- **Which land counts (Q5):** "all no access in that layer. also we seperatiely want a tag for tags that is like
+  indegenous except \"crosses private land\" as another tag". Reading: all closed land in the layer keeps "No public
+  access" (no filtering); NEW, a separate tag "Crosses private land", like the Indigenous one.
+- **Indigenous chips (Q6):** "chip replaces the banner and no when wholyl yes and make it if the water goes through
+  indegenous at all it will get part tag". Reading (the planning chat's "my reading"; the "no" was ambiguous): the
+  chip replaces the banner; a chip when wholly on; a part tag on ANY crossing. Confirmed in batch 5b, below.
+- **The 14 side parts (Q-R2):** "Fold by the rule, in the re-cut (Recommended)".
+
+### Return batch 5b, naming (about 00:55 MST)
+- **Klinaklini / MacMillan DFO salmon side channels (Q-R1):** "why do tey not get reached? that seems like an issue not
+  something that needs a tag". Reading: no tag; a defect: the DFO salmon stretch must reach the river's side channels
+  (the channels take the host's salmon chain). Goes to T1240.
+- **Noons Creek / Turner Creek:** "Show me the map first" (then the next section).
+- **Indigenous chips, the reading:** "Yes, that is right". Reading: the chip replaces the banner; a chip when wholly on
+  reserve land; a "crosses" chip on ANY touch (no 5% floor).
+- **Words (Q7 and Q10):** "options one except if it is the only section it doesnt need a locator at all". Reading:
+  "Cowichan 1 reserve" and "Main channel"; BUT a water with only one section or part gets no locator line at all.
+
+### Later single answers (about 01:05 MST)
+- **Lake zones (T1180), round 4 (B1, B2, B3):** "B1 is good except it needs care for making sure buttons dont move
+  around navigating up and down etc. otherwise it looks good! it can be explored more". Reading: B1 (the count chip)
+  is the direction; the controls must not move while stepping between parts; more exploration welcome; still design
+  only, nothing built until he says.
+- **Trend word on Level gauges:** "Yes, on Level too (Recommended)".
+- **Turner Creek (after the map; it is a separate creek that the city file lists as an alternative name of Noons
+  Creek):** "Make it its own water (Recommended)". Reading: "Turner Creek" stops being an alias of Noons Creek; it is
+  its own water with the region and area rules; nothing opens or closes (T1246). Other city-supplied alias names are
+  checked for the same fault.
+
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".
 - Waters whose rules bind nowhere (Squirrel Lake 6-1, Frog, Redfern) are the known unfound waters.
