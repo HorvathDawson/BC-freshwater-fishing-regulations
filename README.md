@@ -37,13 +37,16 @@ pnpm 9, tippecanoe + pmtiles (the whole path: `docs/runbooks/fresh-machine.md`).
 
 ```bash
 make setup         # once per clone: git hooks, .venv, the app's install; fetches nothing (about 35 s)
-make test          # CI's no-data tier, green on a fresh clone: pipeline in chunks (~14 min), app vitest (~5 min); a part: make test-py ARGS="<file>"
+make test          # CI's no-data tier, green on a fresh clone: pipeline in chunks (~14 min), app vitest (~5 min)
+make test-py ARGS="<file>"   # a part: plain pytest is the no-data tier, its NOT RUN line counts the data tests; --with-data adds them
 make build-first   # the first data build, after `make fetch-data` (a 16 GB download): ~1h15, ~24 GB free memory; later: make build
 make app           # the app in a browser (http://localhost:39218): tile server + Expo web, Ctrl-C stops both; the map needs a build
 make release       # prints the steps of docs/runbooks/release-by-hand.md (the person's page), then the cut's dry run
 ```
 
-Elsewhere a heavy verb prints the command to run. Production is the owner's (`make prod` only prints it); the synopsis parse spends credits: **a person runs it** (AGENTS A1).
+Elsewhere a heavy verb prints the command to run. `make check` is what a PR's required checks ask; the release's flags are
+`docs/runbooks/release.md`. Production is the owner's (`make prod` only prints it). The synopsis parse spends credits: **a person
+runs it**, never an agent (AGENTS A1; `pipeline/regs/parsing/README.md`).
 
 ## Contributing
 

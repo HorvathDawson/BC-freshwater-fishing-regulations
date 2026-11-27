@@ -19,8 +19,11 @@ MAKEFILE = ROOT / "Makefile"
 
 
 def _make(*args: str) -> subprocess.CompletedProcess:
+    """`make` as a person runs it: PIPELINE_PY unset (CI sets it to `python`; the Makefile's PY follows it), so the
+    recipes print the checkout's `.venv/bin/python`."""
+    env = {k: v for k, v in os.environ.items() if k != "PIPELINE_PY"}
     return subprocess.run(["make", "--no-print-directory", "-C", str(ROOT), *args], capture_output=True, text=True,
-                          timeout=60)
+                          timeout=60, env=env)
 
 
 def _verbs() -> list[str]:
@@ -127,8 +130,10 @@ def test_make_app_refuses_a_taken_tile_port():
         s.bind(("127.0.0.1", 0))
         s.listen()
         port = s.getsockname()[1]
-        out = subprocess.run(["make", "--no-print-directory", "-C", str(ROOT), "app"], capture_output=True, text=True,
-                             timeout=60, env=os.environ | {"TILE_PORT": str(port)})
+        # APP_MODULES=app: the guard for the app's install passes on a runner without one (pipeline-ci installs none)
+        out = subprocess.run(["make", "--no-print-directory", "-C", str(ROOT), "app", "APP_MODULES=app"],
+                             capture_output=True, text=True,
+                             timeout=60, env=os.environ | {"TILE_PORT": str(port)})          # refused before any start
     assert out.returncode != 0, out.stdout + out.stderr
     # the port check needs no tool (bash's /dev/tcp); the PID is named when lsof is there, and its absence is said
     who = f"PID {os.getpid()}" if shutil.which("lsof") else "PID unknown: lsof is not installed"
