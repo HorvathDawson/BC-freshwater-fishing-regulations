@@ -39,6 +39,7 @@ const NATIVE_NOT: Record<string, string> = {
   onRegion: "web only by design: it feeds the web's tile prefetch; a phone holds the release installed",
   onImageryError: "web only by design: the binding has no per-tile error event; a phone learns of unreachable imagery from useImageryReach's probe",
   insetLeft: "web only by design (T856): the desktop's nav rail floats over the web map's left edge; a phone never floats it, so 0",
+  zoomButtons: "web only by design (T1212): the phone's browse map never drew + / −; it zooms by pinch and double tap",
   // `trace` is honoured since T831 (T608B G5 closed): its pins, and its lines read from the installed atlas through the
   // app's byte-range reader (`TileEndpoints.readRange`).
 };

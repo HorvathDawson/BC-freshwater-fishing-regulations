@@ -296,6 +296,23 @@ def _rowed_waters() -> dict[str, tuple[str, ...]]:
     return rowed_waters([e for _, e in _all_entries()])
 
 
+def _lake_stops() -> tuple:
+    """Every lake tributaries row's printed exception (T1177, `build.lake_row_stops`), read from the corpus as it is NOW
+    — the same derivation the reach CLI makes, so a walk through a lake stops where it ships. Resolving them walks the
+    carve-outs (the Columbia above Kinbasket, the Kootenay above Kootenay Lake), so the answer is kept per what decides
+    it (`build.lake_row_stop_inputs`: the rows' rules with carve-outs and their `matched`, an edited row re-resolves),
+    and dropped with the build (`_BUILD_CACHES`: a promote reloads the graph and registry)."""
+    from pipeline.atlas.reach.build import lake_row_stop_inputs
+    ents = [e for _, e in _all_entries()]
+    return _lake_stops_for(json.dumps(lake_row_stop_inputs(ents), sort_keys=True, default=str))
+
+
+@lru_cache(maxsize=1)
+def _lake_stops_for(_key: str) -> tuple:
+    from pipeline.atlas.reach.build import lake_row_stops
+    return lake_row_stops([e for _, e in _all_entries()], _registry(), _graph())
+
+
 def _tidal() -> dict[str, str]:
     """ALL THE TIDAL WATER the reach CLI takes out of every binding (`outside.tidal_water`), `{section: owner}`: the rows
     marked `tidal` (Nitinat Lake) read from the corpus as it is NOW, then the atlas's tidal water (T678: its one tidal
@@ -750,6 +767,7 @@ def entry_reaches(entry_id: str) -> dict:
         shared = _shared_waters()
         tidal = _tidal()
         owned = _rowed_waters()
+        stops = _lake_stops()
 
         out: dict = {}
         per_rule: dict[str, list] = {}
@@ -763,7 +781,7 @@ def entry_reaches(entry_id: str) -> dict:
         verdict: dict = {}
         for r in e.get("rules") or []:
             binding, diags = _build_reach(e, r, _registry(), _graph(), covered=covered, clip=clip,
-                                          shared=shared, tidal=tidal, owned=owned)
+                                          shared=shared, tidal=tidal, owned=owned, stops=stops)
             verdict[r["rule_id"]] = {
                 "outcome": binding.outcome.value,
                 "reason": binding.reason.value if binding.reason else None,
@@ -1936,7 +1954,7 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
 
     binding, _diags = _build_reach(entry, rule, reg, graph, covered=covered, clip=clip,
                                    shared=_shared_waters(), tidal=_tidal(),
-                                   owned=_rowed_waters())
+                                   owned=_rowed_waters(), stops=_lake_stops())
     total = set(binding.sections)
     if any((ex or {}).get("op") == "rest" for ex in rule.get("extents") or []):
         # "OTHER PARTS" (op `rest`) resolves only against its siblings, so no extent alone says
@@ -2894,7 +2912,8 @@ def extent_preview(entry_id: str, fix, limit: int = 6000) -> dict | None:
     outcomes = {}
     for r in targets:
         binding, _d = _build_reach(e, r, reg, graph, covered=covered, clip=clip,
-                                   shared=_shared_waters(), tidal=_tidal(), owned=_rowed_waters())
+                                   shared=_shared_waters(), tidal=_tidal(), owned=_rowed_waters(),
+                                   stops=_lake_stops())
         outcomes[r.get("rule_id")] = binding.outcome.value
         if fix.scope != "entry":
             total |= set(binding.sections)
@@ -2961,7 +2980,8 @@ def binding_change(entry_id: str, changes: list[dict]) -> dict | None:
         out = {}
         for r in e.get("rules") or []:
             b, _d = _build_reach(e, r, reg, graph, covered=covered, clip=clip,
-                                 shared=_shared_waters(), tidal=_tidal(), owned=_rowed_waters())
+                                 shared=_shared_waters(), tidal=_tidal(), owned=_rowed_waters(),
+                                 stops=_lake_stops())
             out[r.get("rule_id")] = (set(b.sections), b.outcome.value)
         return out
     return _json_safe(_binding_rows(bind(before), bind(after)))
@@ -3067,7 +3087,7 @@ def check_entry(entry_dict: dict) -> dict:
 
 
 #: Every cache read from the served build — what `invalidate_caches` drops.
-_BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs, _tidal_pieces_for,
+_BUILD_CACHES = (_registry, _place_namer_for, _lake_stops_for, _splits_meta, _split_points_attrs, _tidal_pieces_for,
                  _blk_to_item, _section_owner, _region_rows, region_ends, _graph, _geoms, _wbk_polys,
                  _border_rows, border_end, border_ends,      # T755 follow-up: the BC-border cuts
                  _raw_registry_for,                          # T755 follow-up: registry.json for `applied_keys`
