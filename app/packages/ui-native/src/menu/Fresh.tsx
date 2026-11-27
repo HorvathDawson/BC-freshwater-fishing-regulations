@@ -38,9 +38,10 @@ export function FreshDot({ palette, kind, size = FRESH_DOT }: { palette: Palette
 export function FreshBadge({ palette, badge, testID }: { palette: Palette; badge: FreshnessVM; testID?: string }) {
   const stale = badge.kind === "stale";
   return (
-    <View testID={testID} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+    <View testID={testID} style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
       <FreshDot palette={palette} kind={badge.kind} />
-      <Text style={{ ...(stale ? TYPE.metaBold : TYPE.metaSemi), color: stale ? palette.ink : palette.sub }}>
+      {/* (T1201) reading text: at a large text size the badge wraps inside its row, never off the edge */}
+      <Text style={{ ...(stale ? TYPE.metaBold : TYPE.metaSemi), color: stale ? palette.ink : palette.sub, flexShrink: 1 }}>
         {badge.label}
       </Text>
     </View>
