@@ -4,7 +4,7 @@ Status: OPEN — the hardening release, all 11 lines, scoped then (owner 2026-11
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1150 | Added city streams that drain to the sea are filed under the nearest FWA river (Noons, Seymour, Squatters): own code, own water | OPEN — the hardening release, all 11 lines, scoped then (owner 2026-11-25 evening); out of 0.10.0 | — | scoping pass in the hardening release: all 11 shared codes, the regenerated curated file, the registry id resync, his two leave-out rows; 0.10.0 ships only T1140's stopgap name (a proposal) |
+| T1150 | Added city streams that drain to the sea are filed under the nearest FWA river (Noons, Seymour, Squatters): own code, own water | OPEN — the hardening release, all 11 lines, scoped then (owner 2026-11-25 evening); out of 0.10.0 | — | Turner, Tunnel, Capitol done in T1246; the hardening release: the other 7 shared codes, the regenerated curated file, the registry id resync, his two leave-out rows; 0.10.0 ships only T1140's stopgap name (a proposal) |
 
 Source: the 0.10.0 chat's T1140 naming lane, 2026-11-25. Noons Creek p4 and Seymour River p3 are added municipal
 stream lines filed under those rivers but lying 693 m and 1,068 m from them, touching other creeks; they have no
@@ -104,6 +104,15 @@ Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `T1150-scoping.md` (the e
   2026-10-29; an owner-reviewed Aliceville continuation has been stale (held) since then.
 - The build check belongs at `atlas/build.py:559` with a twin in the generator; simulated on today's file it
   refuses exactly the 11 lines and passes Sheldens.
+
+## 2026-11-27: Turner, Tunnel and Capitol creeks done in T1246
+The owner ("All three now, in the re-cut"): T1246 gave the three codes of their own by hand (Turner 900-057238,
+Tunnel 900-078371, Capitol 900-053686; tributaries under them), removed his Noons leave-out row, and closed the hole:
+the coastal estimate skips FWA codes, and the atlas build and the generator refuse a city line on an FWA code by name
+(`added_streams/validate.py` `fwa_code_collisions`). Left here: the seven other lines, named in
+`FWA_CODE_SHARED_PENDING` (Kask's Camp, Village, Mamquam Blind Channel Wetland, Kyle, Wilkes, Aliceville, Rainbow);
+"keep earlier codes" (a regeneration still re-mints every coastal code in order, so it would move hand-set codes);
+the Seymour leave-out row (T1246's owner line).
 
 ## Owner
 

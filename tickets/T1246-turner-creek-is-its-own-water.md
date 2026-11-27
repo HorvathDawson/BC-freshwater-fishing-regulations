@@ -1,10 +1,10 @@
 # T1246 — Turner Creek is filed under Noons Creek by a code fault; it is its own water
 
-Status: BLOCKED — stopped before any data change; waits for the owner (the fix and its timing); owner: see ## Owner
+Status: IN REVIEW — built on fix/T1246-city-creeks-own-water; owner: see ## Owner
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1246 | Turner Creek is filed under Noons Creek by a code fault; it is its own water | BLOCKED — no data change; owner: see ## Owner | — | the owner picks (a), (b) or (c); then the curated added-streams fix |
+| T1246 | Turner Creek is filed under Noons Creek by a code fault; it is its own water | IN REVIEW — owner: see ## Owner | 9ca5edb50, 17ac1714e | STOPPED at the proof: two answer changes need the owner (## Owner); then the main chat's PR |
 
 Source: the owner, 2026-11-27 (planning chat), verbatim. First "Show me the map first"; after the map: "Make it its own
 water (Recommended)". Earlier, on Noons Creek (T1191, Q4): the FWA stream and the city stream of the same name in the
@@ -31,6 +31,36 @@ or removed).
 - Tunnel Creek (Burnaby, 0.22 km), filed under the Seymour River; the mouths are 1.07 km apart.
 - Capitol Creek (Burnaby, 0.72 km), filed under "Squatters Creek"; the mouths are 0.29 km apart.
 
+## Done (lane M, 2026-11-27; owner: "All three now, in the re-cut")
+- `added_streams.json`, by hand (A2, 7 lines, `wsc` / `receiver_wsc` of five records): Turner 900-057239 -> 900-057238,
+  Turner Creek Trib.1 -> 900-057238-436900, Tunnel 900-078372 -> 900-078371, Capitol 900-053687 -> 900-053686, Capitol
+  Trib.1 -> 900-053686-249200. Each is the nearest Level-2 no FWA line, city line, earlier added-streams file or
+  committed id holds (no FWA line is coded under it either).
+- His 2026-11-11 Noons/Turner leave-out row removed from `unplaced_piece_calls.json`. Tunnel's Seymour row is KEPT (not
+  approved): once Tunnel leaves the Seymour it names no piece, and a stale row stops the reach run (owner line below).
+  Capitol has no row.
+- Ids: new waters wsc:900-057238 (Turner), wsc:900-078371 (Tunnel), wsc:900-053686 (Capitol); moved:
+  wsc:900-057239-436900 -> wsc:900-057238-436900, wsc:900-053687-249200 -> wsc:900-053686-249200 (their two URLs in
+  `app/seo/slug-map.json` follow). No owner mark, match, gauge, bathymetry, in-season or name-variant row names a moved
+  id; the Sheldens note in `name_variants.json` no longer cites Squatters Creek as a shared code.
+- The hole closed: `coastal.estimate_coastal_wsc` bumps past every code an FWA line holds; `validate.fwa_code_collisions`
+  refuses by name a city line on an FWA code (atlas build and generator); 7 lines still share one, named in
+  `FWA_CODE_SHARED_PENDING` for T1150. Tests: `pipeline/tests/test_added_streams_fwa_codes.py`, `test_coastal.py`.
+
+## Proof: STOPPED, two answers change (bbox side atlases, Port Moody and Burnaby, base vs branch)
+Items as planned: new wsc:900-057238 Turner, wsc:900-078371 Tunnel, wsc:900-053686 Capitol; the two tributaries'
+ids moved; Noons Creek, the Seymour River and "Squatters Creek" each lose exactly that one section and that one alias;
+no other item in either box changes. But two answers change, so the lane stopped before any PR:
+1. **Salmon, 3.92 km**: the five sections leave `area:drains_to:pfma_28`, so DFO's "no fishing for salmon in waters of
+   Region 2 flowing into Areas 28 and 29" (`2:default:areas-28-29`) no longer reaches them. The drains-to areas are
+   found from FWA's own basin mouths (`splits/pfma_drainage.py`), so a city creek with a code of its own is in no
+   area: the 27 coastal city creeks that already had their own codes (Suter Brook, Mill, Pigeon creeks ...) are
+   outside it today; the three were inside only because they borrowed an FWA river's code.
+2. **Tidal, 21 m**: Turner, no longer under the Noons owner limit (T685), takes the coast cut at 21.3 m; its lowest
+   piece becomes tidal (federal, no provincial rule), as every other city creek's is. Tunnel and Capitol take none.
+Proof harness: a bbox build stops in `registry.outside_area_items` (areas named outside the box), so both sides
+ran through one scratch harness that hands that pass only what the box holds. Not run: a reach run on the boxes.
+
 ## Report only
 25 items answer to a city-supplied name that is not their own (Port Moody 4, Burnaby 15, Squamish 6). Only these 3 are
 separate creeks; the other 22 are classed by which lines each item holds, not checked for connection one by one.
@@ -43,4 +73,7 @@ Does not block the re-cut. Depends: T1150. Owner: yes (below).
 
 ## Owner
 
-- [ ] 2026-11-27 — Turner Creek and its two kin (Tunnel Creek, Capitol Creek): (a) fix all three together in T1150, in the hardening release (the data chat's recommendation; the re-cut ships Turner as a part of Noons with its right rules); (b) Turner only now, in the re-cut, removing his 2026-11-11 leave-out row; (c) all three now, in the re-cut. No data change until he answers.
+- [x] 2026-11-27 — Turner Creek and its two kin (Tunnel Creek, Capitol Creek): (a) fix all three together in T1150, in the hardening release (the data chat's recommendation; the re-cut ships Turner as a part of Noons with its right rules); (b) Turner only now, in the re-cut, removing his 2026-11-11 leave-out row; (c) all three now, in the re-cut. No data change until he answers. → "All three now, in the re-cut" (2026-11-27)
+- [ ] 2026-11-27 — The three creeks (3.92 km) leave DFO's Region 2 "flowing into Areas 28 and 29" salmon closure, because a city creek with its own code drains to no Area today (27 others already do not): (a) give city creeks their Area from their own mouth (a fix in `pfma_drainage`; it also closes salmon on the 27, km to measure), (b) ship the three outside it like the 27, (c) hold T1246. Default: none; ask.
+- [ ] 2026-11-27 — Turner Creek's lowest 21 m becomes tidal (the coast cut every city creek gets): yes / hold. Default: none; ask.
+- [ ] 2026-11-27 — Your 2026-11-11 Seymour leave-out row (Tunnel Creek's piece): it names nothing once Tunnel is its own water, and a stale row stops the reach run. Remove it / keep it (the re-cut's reach run stops). Default: none; ask.
