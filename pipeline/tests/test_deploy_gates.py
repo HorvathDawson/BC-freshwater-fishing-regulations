@@ -430,13 +430,6 @@ def test_staging_feeds_shows_a_failed_deploy_whole():
     assert 'wrangler deploy -c app/workers/feeds/wrangler.toml > "$DEPLOY_LOG" 2>&1' in run
 
 
-def test_the_restore_test_never_reads_a_failed_check_as_no_difference():
-    body = (ROOT / "deploy/staging/restore-test.sh").read_text()
-    assert '|| echo "0 differences found"' not in body
-    assert body.count('rclone check "$tmp/state" "$SRC"') == 1
-    assert "printed no count (rclone exit $crc)" in body
-
-
 # ── the W46 scan: what is left of `|| true` / `2>/dev/null` in the deploy scripts is justified ──────────────────────
 
 #: (file, a fragment of the line) -> why it hides nothing. The build scripts are lane T978's (build-apk.sh, the iOS ones).

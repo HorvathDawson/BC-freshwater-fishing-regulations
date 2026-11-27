@@ -16,7 +16,7 @@ script) and most files are small; the naming says what a file is.
 Folders: `testbed/` (the Android emulator test bed, its own README), `seo/` (the static SEO site build, `build-seo.mjs` and
 `pnpm seo`), `maplibre-android/` (the pinned MapLibre Android build, README), `regs-recut/` (re-cuts the release-backed
 golden fixtures: `sync.mjs`), `regs-web/` (browser drivers for the regs page), `fish-loader/`, `fish-sprite/`,
-`fish-sources/` (art builders), `perfetto/` (trace queries, README), `store-shots/`, `store-video/`.
+`fish-sources/` (art builders), `perfetto/` (`pinch.py`, the zoom-pinch trace reader, README), `store-shots/`, `store-video/`.
 
 Shared config: `versioning.json` and `commits-contract.json` (the commit format the release bump also reads),
 `commitlint.config.mjs`, `vitest-shards.mjs`, `render-setup.ts` (the vitest render setup).
