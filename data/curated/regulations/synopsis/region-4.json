@@ -5269,7 +5269,7 @@
     {
      "rule_id": "goat_river.r1",
      "type": "retention_limit",
-     "verbatim": "Trout/char catch and release (mainstem only)",
+     "verbatim": "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek",
      "species": [
       "TROUT_CHAR"
      ],
@@ -5278,7 +5278,11 @@
      "includes_tributaries": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "splits": [
+        "goat_river__leadville_creek_into_goat_river",
+        "goat_river__cameron_creek_into_goat_river"
+       ]
       }
      ]
     },
