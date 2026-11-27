@@ -178,9 +178,63 @@ function keyBesideRail(): Record<string, { card: number; rail: number; w: number
   return Object.fromEntries(keys.map((k, i) => [k, res[i]!]));
 }
 
+/**
+ * (T1211 review) A CLASS SHOWN ALONE: the chip says "Showing: <class>" with "Show all" beside it. Laid out at 320, 360 and
+ * 412 wide, text 1x and 1.3x, with the longest class word ("Region rules only"): each word one line and whole, each
+ * target at least 44 x 44, the two side by side or wrapped but never on each other, and both inside the window.
+ */
+const ISO = `JSON.stringify((() => { const q = (id) => document.querySelector('[data-testid="' + id + '"]');
+  const box = (e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width, h: r.height }; };
+  const word = (e) => { const t = [...e.querySelectorAll('*')].find((x) => !x.children.length && x.textContent.trim());
+    const s = getComputedStyle(t), r = t.getBoundingClientRect();
+    return { text: t.textContent.trim(), lines: Math.round(r.height / (parseFloat(s.lineHeight) || r.height)), cut: t.scrollWidth > t.clientWidth + 0.5 }; };
+  const c = q("map-key-chip"), a = q("map-key-show-all");
+  return { chip: box(c), all: box(a), chipWord: word(c), allWord: word(a), w: innerWidth }; })())`;
+writeFileSync(join(dir, "iso.js"), ISO);
+type Box = { l: number; r: number; t: number; b: number; w: number; h: number };
+function keyIsolated(): Record<string, { chip: Box; all: Box; chipWord: { text: string; lines: number; cut: boolean };
+                                        allWord: { text: string; lines: number; cut: boolean }; w: number }> {
+  const jobs: { page: string; size: [number, number]; measure: string; shot?: string }[] = [];
+  const keys: string[] = [];
+  for (const scale of [1, 1.3]) for (const w of WIDTHS) {
+    SCALE.v = scale; WIN.w = w;
+    render(h(View, { style: { flex: 1, justifyContent: "flex-end" } },
+             h(MapKey, { palette: LIGHT, rows: [], samples: [], onShowAll() {},
+                         isolated: { label: MAP_KEY.status.base, colour: LIGHT.waterStatus.base } })));
+    const file = join(dir, `iso-${w}-${scale}.html`);
+    writeFileSync(file, snapshot());
+    cleanup();
+    const shot = process.env.T1201_SHOTS ? { shot: join(process.env.T1201_SHOTS, `iso-${w}-${scale}.png`) } : {};
+    jobs.push({ page: file, size: [w, 200], measure: join(dir, "iso.js"), ...shot });
+    keys.push(`${w} wide, text ${scale}x`);
+  }
+  SCALE.v = 1; WIN.w = 1024;
+  const out = execFileSync(process.execPath, [join(process.cwd(), "tools", "wide-measure.mjs"), JSON.stringify({ jobs })],
+                           { encoding: "utf8", timeout: 120_000 });
+  const res = JSON.parse(out);
+  return Object.fromEntries(keys.map((k, i) => [k, res[i]]));
+}
+
 describe("T1211 the floating Map key's chip (T1201's rule)", () => {
   it("its word is one line and whole at 1, 1.15 and 1.3, 320 to 412 wide; the chip grows round it", () => {
     expect(faults(laidOut("key"), [`${MAP_KEY.chip.word} ▴`])).toEqual([]);
+  }, 120_000);
+
+  it("a class shown alone: \"Showing: Region rules only\" and Show all, whole, 44 px each, apart, inside the window", () => {
+    const m = keyIsolated();
+    if (process.env.T1201_DEBUG) console.log(JSON.stringify(m));
+    const bad: string[] = [];
+    for (const [k, r] of Object.entries(m)) {
+      for (const [n, wd] of [["chip", r.chipWord], ["show all", r.allWord]] as const)
+        if (wd.lines !== 1 || wd.cut) bad.push(`${k}: ${n} "${wd.text}" ${wd.lines} lines${wd.cut ? ", cut" : ""}`);
+      if (r.chipWord.text !== `Showing: ${MAP_KEY.status.base} ▴` || r.allWord.text !== MAP_KEY.chip.showAll) bad.push(`${k}: words ${r.chipWord.text} / ${r.allWord.text}`);
+      for (const [n, b] of [["chip", r.chip], ["show all", r.all]] as const) {
+        if (b.h < 44 - 0.5 || b.w < 44 - 0.5) bad.push(`${k}: ${n} ${b.w}x${b.h}`);
+        if (b.l < 0 || b.r > r.w) bad.push(`${k}: ${n} outside the window (${b.l}-${b.r} of ${r.w})`);
+      }
+      if (r.chip.l < r.all.r && r.chip.r > r.all.l && r.chip.t < r.all.b && r.chip.b > r.all.t) bad.push(`${k}: chip and Show all overlap`);
+    }
+    expect(bad).toEqual([]);
   }, 120_000);
 
   it("opened at its widest, the card stops short of the rail at 320, 360 and 412 wide, text 1x and 1.3x (measured)", () => {

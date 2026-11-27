@@ -18,8 +18,12 @@ export const MAP_KEY = {
   status: { own: "Its own rules", base: "Region rules only", no_access: "No access" } satisfies Record<Exclude<WaterStatus, "closed">, string>,
   /** (T1211) the key floating over the map: its chip's word, what it says aloud, and what a press does */
   chip: { word: "Map key", label: "Map key", hintOpen: "Shows what the colours and lines mean", hintClose: "Hides the map key",
-          /** (T1211) a class shown alone (T377) is said ON the chip, open or closed, so a grey map is never unexplained */
-          only: (label: string) => `${label} only`, showAll: "Show all", showAllHint: "Shows every class on the map again" },
+          /** (T1211) a class shown alone (T377) is said ON the chip, open or closed, so a grey map is never unexplained.
+           *  A PREFIX, never a suffix: "Region rules only only", "Closed Oct 10 only" (closed ONLY on Oct 10) misstated the rules */
+          showing: (label: string) => `Showing: ${label}`,
+          /** what the chip says aloud while one class is shown alone */
+          showingAloud: (label: string) => `Map key. Showing ${label} alone on the map`,
+          showAll: "Show all", showAllHint: "Shows every class on the map again" },
   /** (T1208) the region boundary's entry: the dash-dot grey line with its band, the line between two regulation regions */
   region: "Region boundary",
   gear: { fly: "Fly only", bait: "Bait ban" } satisfies Record<GearMark, string>,

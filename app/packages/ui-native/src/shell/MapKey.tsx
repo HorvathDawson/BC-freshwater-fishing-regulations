@@ -13,9 +13,9 @@
  *
  * A CLASS SHOWN ALONE IS NEVER HIDDEN (T377's isolate, the review of T1211). A tap on an entry greys every other class on
  * the map; with the key closed nothing else on screen would say why. So the chip itself says it, open or closed: the one
- * class's sample and "<class> only", with "Show all" beside it, one tap to every class again. Closing the key KEEPS the
- * class alone: the isolate exists to look at the map, which the open card partly covers, so clearing it on close would make
- * it useless on a phone; the chip's words are what keep it honest.
+ * class's sample and "Showing: <class>" (a prefix: "<class> only" read as a rule), with "Show all" beside it, one tap
+ * to every class again. Closing the key KEEPS the class alone: the isolate exists to look at the map, which the open
+ * card partly covers, so clearing it on close would make it useless on a phone; the chip's words keep it honest.
  *
  * CLOSING. A second press on the chip, the one back (Android's back, the browser's: `useBackLayer`, app/BACK.md), or a tap
  * on the map (`noteMapTap`, called by the map's own tap: a tap anywhere on the map, never only inside the foot, which on
@@ -62,7 +62,7 @@ export function MapKey({ palette, rows, lines, samples, isolated = null, onShowA
     return () => { mapTapped.delete(close); };
   }, [keyOpen, close]);
   const { width } = useWindowDimensions();
-  const word = isolated ? MAP_KEY.chip.only(isolated.label) : MAP_KEY.chip.word;
+  const word = isolated ? MAP_KEY.chip.showing(isolated.label) : MAP_KEY.chip.word;
   const chipSamples = isolated ? [isolated.colour] : samples;
   return (
     <View testID="map-key" pointerEvents="box-none" style={{ paddingHorizontal: 10, paddingBottom: 10, rowGap: 8, alignItems: "flex-start" }}>
@@ -77,7 +77,7 @@ export function MapKey({ palette, rows, lines, samples, isolated = null, onShowA
       <View pointerEvents="box-none" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 8,
                                               maxWidth: Math.max(200, width - RAIL_CLEAR - 10) }}>
         <Pressable testID="map-key-chip" accessibilityRole="button"
-                   accessibilityLabel={isolated ? `${MAP_KEY.chip.label}, ${word}` : MAP_KEY.chip.label}
+                   accessibilityLabel={isolated ? MAP_KEY.chip.showingAloud(isolated.label) : MAP_KEY.chip.label}
                    accessibilityHint={keyOpen ? MAP_KEY.chip.hintClose : MAP_KEY.chip.hintOpen} aria-expanded={keyOpen}
                    onPress={() => setKeyOpen(!keyOpen)}
                    style={{ minHeight: KEY_TARGET, minWidth: KEY_TARGET, flexDirection: "row", alignItems: "center", columnGap: 6,

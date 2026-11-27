@@ -8,7 +8,9 @@ import { act, useState } from "react";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { MAP_KEY, WATER_STATUS } from "@app/core";
+import { closedKey, MAP_KEY, WATER_STATUS } from "@app/core";
+import { readFileSync } from "node:fs";
+import { waterMapStatus } from "./shell/WaterModeHost";
 import { BackLayerContext, type BackLayers } from "@app/ui";
 import { MapLegend } from "./shell/MapLegend";
 import { KEY_TARGET, noteMapTap } from "./shell/MapKey";
@@ -24,10 +26,10 @@ const col = (regsLayer: "standard" | "salmon", over: Record<string, unknown> = {
 const show = (mode: "standard" | "salmon" = "standard", obstacles = false) =>
   render(<MapLegend col={col(mode, {}, obstacles)} conditions={false} palette={LIGHT} theme="light" mapDay={null} />);
 /** the key over a map whose isolate is real state (useMapColouring's toggle: the same class again shows all) */
-function Isolating() {
+function Isolating({ mode = "standard", day = null }: { mode?: "standard" | "salmon"; day?: Date | null }) {
   const [isolated, setIsolated] = useState<string | null>(null);
   const isolate = (c: string) => setIsolated((p) => (p === c ? null : c));
-  return <MapLegend col={col("standard", { isolated, isolate })} conditions={false} palette={LIGHT} theme="light" mapDay={null} />;
+  return <MapLegend col={col(mode, { isolated, isolate })} conditions={false} palette={LIGHT} theme="light" mapDay={day} />;
 }
 const chipWord = () => screen.getByTestId("map-key-word").textContent;
 const words = () => screen.queryAllByTestId("legend-entry").map((e) => e.textContent);
@@ -66,8 +68,8 @@ describe("(T1211) the floating Map key", () => {
     fireEvent.click(screen.getAllByTestId("legend-entry").find((e) => e.textContent === "Its own rules")!);
     fireEvent.click(screen.getByTestId("map-key-chip"));                    // the key closed: the isolate stays
     expect(words()).toEqual([]);
-    expect(chipWord()).toContain(MAP_KEY.chip.only("Its own rules"));
-    expect(screen.getByTestId("map-key-chip").getAttribute("aria-label")).toContain("Its own rules only");
+    expect(chipWord()).toBe("Showing: Its own rules ▴");
+    expect(screen.getByTestId("map-key-chip").getAttribute("aria-label")).toBe("Map key. Showing Its own rules alone on the map");
     const all = screen.getByTestId("map-key-show-all");
     expect([all.getAttribute("role"), parseFloat(all.style.minHeight)]).toEqual(["button", KEY_TARGET]);
     fireEvent.click(all);
@@ -75,6 +77,38 @@ describe("(T1211) the floating Map key", () => {
     expect(screen.queryByTestId("map-key-show-all")).toBeNull();
     fireEvent.click(screen.getByTestId("map-key-chip"));
     expect(screen.getAllByTestId("legend-entry").filter((e) => e.getAttribute("aria-pressed") === "true")).toEqual([]);
+  });
+
+  // (review) "<class> only" misstated the rules ("Region rules only only"; "Closed Oct 10 only": closed ONLY that day)
+  const DAY = new Date(2026, 9, 10, 12);
+  for (const [mode, day, label] of [
+    ["standard", null, "Closed"], ["standard", null, "Its own rules"], ["standard", null, "Region rules only"],
+    ["standard", null, "No access"], ["standard", DAY, closedKey(DAY)],
+    ["salmon", null, MAP_KEY.salmon.open], ["salmon", null, MAP_KEY.salmon.release], ["salmon", null, MAP_KEY.salmon.closed],
+    ["salmon", null, MAP_KEY.salmon.check],
+  ] as const) {
+    it(`${mode}${day ? ", a picked day" : ""}: "${label}" shown alone reads "Showing: ${label}", seen and heard`, () => {
+      render(<Isolating mode={mode} day={day} />);
+      fireEvent.click(screen.getByTestId("map-key-chip"));
+      fireEvent.click(screen.getAllByTestId("legend-entry").find((e) => e.textContent === label)!);
+      fireEvent.click(screen.getByTestId("map-key-chip"));
+      expect(chipWord()).toBe(`Showing: ${label} ▴`);
+      expect(screen.getByTestId("map-key-chip").getAttribute("aria-label")).toBe(`Map key. Showing ${label} alone on the map`);
+      expect(screen.getByTestId("map-key-show-all").getAttribute("aria-label")).toBe(MAP_KEY.chip.showAll);
+    });
+  }
+  it("the dated Closed reads as a day's status, not a rule (\"Showing: Closed Oct 10\")", () => {
+    expect(MAP_KEY.chip.showing(closedKey(DAY))).toBe("Showing: Closed Oct 10");
+  });
+
+  it("a water's own Map view draws every class: a main-map isolate never greys the water opened (review)", () => {
+    const status = { day: "2026-10-10", only: "own" as const };
+    expect(waterMapStatus(status)).toEqual({ day: "2026-10-10", only: null });
+    expect(waterMapStatus(null)).toBeNull();
+    // and it is what the water's view is handed
+    const host = readFileSync(`${process.cwd()}/packages/ui-native/src/shell/WaterModeHost.tsx`, "utf8");
+    expect(host).toContain("status: waterMapStatus(mapStatus)");
+    expect(host).not.toMatch(/status: mapStatus\b/);
   });
 
   it("fish obstacles on: their marks are in the opened key (the bar had them; T300)", () => {
