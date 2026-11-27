@@ -82,7 +82,8 @@ function runs(suite, files, dir) {
   const env = { ...process.env, PIN_RECORD: dir, REGS_STORE_REQUIRED: '1' };
   const [cmd, args] = suite === 'app'
     ? ['pnpm', ['-C', path.join(REPO, 'app'), 'exec', 'vitest', 'run', ...files.map((f) => path.relative('app', f))]]
-    : [path.join(REPO, '.venv/bin/python'), ['-m', 'pytest', '-q', '-p', 'no:cacheprovider', ...files]];
+    // (T1193) --with-data: the pinned tests read the release (a plain pytest is the no-data tier and would leave them out)
+    : [path.join(REPO, '.venv/bin/python'), ['-m', 'pytest', '-q', '-p', 'no:cacheprovider', '--with-data', ...files]];
   try {
     execFileSync(cmd, args, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'], env });
     return 0;
