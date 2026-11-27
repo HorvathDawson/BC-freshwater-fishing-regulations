@@ -461,12 +461,10 @@ def test_the_lake_name_pass_drops_no_point_tippecanoe_would_thin(tmp_path):
     is never thinned, so the built archive lost none; a point without one is (60 points from z4: 4 / 10 / 25 / 60 kept
     at z4-z7 by default). The alone pass (`tippe.alone_flags`, what `build` runs) sets `--drop-rate=1`, so no point is
     thinned either way: which lakes show is the export's choice (`lake_name_zoom`), never tippecanoe's. The fixture's
-    points carry NO minzoom, so the test fails without the flag."""
-    import json as _json, shutil, subprocess
-    import pytest
+    points carry NO minzoom, so the test fails without the flag. Tippecanoe is a build tool every tier has (CI installs
+    it, pipeline-ci.yml "Tile tools"), as test_basemap_zoom_audit runs it: missing, this fails, never skips."""
+    import json as _json, subprocess
     from pipeline.deliver.tiles import tippe
-    if shutil.which("tippecanoe") is None or shutil.which("tippecanoe-decode") is None:
-        pytest.skip("tippecanoe is not installed")
     assert "--drop-rate=1" in tippe.alone_flags(4, 7, points=True) and "--drop-rate=1" not in tippe.alone_flags(4, 7)
     src = tmp_path / "lake_name.geojsonl"
     src.write_text("".join(_json.dumps({"type": "Feature", "properties": {"name": f"Lake {i}", "area_m2": 1e6},
