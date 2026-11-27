@@ -92,8 +92,9 @@ def owner_limited(graph: StreamGraph, tidal, limit_rows, waters=()) -> frozenset
     """The blks the coast cut never cuts because the owner's own limit governs them: every line of a WATER (same gnis,
     or one registry water: `waters`, each the set of blks of one stream item) one of whose lines carries a `split` or
     `whole` row (`limit_rows`: `blk`, `limit`, as dicts or `tidal.Limit`) or holds a section of `tidal`. The registry
-    waters are what joins an added line with no gnis to its water (T685: Port Moody's Turner Creek line is Noons Creek,
-    which the owner's railway-bridge boundary governs; by gnis alone the coast rule cut it a second time)."""
+    waters are what joins an added line with no gnis to its water (T685: Port Moody's Turner Creek line was then filed
+    in Noons Creek, which the owner's railway-bridge boundary governs; since T1246 it is its own water with its own
+    rail-line limit)."""
     def val(r, k):
         return r.get(k) if isinstance(r, Mapping) else getattr(r, k, None)
     gnis_of: dict[str, str] = {}

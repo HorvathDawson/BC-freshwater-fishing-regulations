@@ -363,6 +363,13 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   Reading: Turner Creek becomes its own water (T1246). The data chat then found the cause is Noons Creek's watershed
   code on the city line, not an alias; how to fix it (Turner only, or with Tunnel and Capitol creeks, now or in the
   hardening release) is a new question for him; no data change until he answers.
+- **Turner, Tunnel and Capitol creeks (T1246):** "All three now, in the re-cut". Built: each its own water with a
+  code of its own; the build refuses a city line on an FWA code.
+- **Their salmon Area (T1246):** "(a) Fix it properly now (Recommended)". Built: a city creek that drains to the sea
+  takes the DFO Area its own mouth lies in; 25 more city creeks (21.98 km) come under Area 28's salmon closure.
+- **Turner Creek's tidal limit (T1246):** "tidal limit is rail bridge again I think. like noons". Built: the lowest
+  126 m, below the Ioco Spur crossing, is tidal (OSM shows no bridge there: it may be a culvert).
+- **Tunnel Creek's Seymour leave-out row (T1246):** "(a) Remove the row too (Recommended)". Removed.
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".
