@@ -57,6 +57,6 @@ skip them. Tickets are in `../tickets/` (`../tickets/README.md`). Rules for work
 | `sloughs/`, `curation-review/` | the owner's slough marks and the name-variant and tidal working files for the review tool |
 
 ## Pictures
-Screenshots sit beside the page or ticket that cites them: `app-integration/T*-shots/`, `ios/shots/`,
-`../tickets/shots/` and the ticket folders. `views/` is built by `node app/tools/ledger.mjs` (git-ignored): the open
+Screenshots sit beside the page or ticket that cites them: `app-integration/T*-shots/`, `ios/shots/`
+and the ticket folders (`../tickets/shots/` was removed 2026-11-27; it is in git history at 9337319f7). `views/` is built by `node app/tools/ledger.mjs` (git-ignored): the open
 ledger and the owner's open asks.
