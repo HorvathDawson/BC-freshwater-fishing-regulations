@@ -409,7 +409,9 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
 63. **A tributary walk never enters the entry's own water**
     (`tributaries.THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`): every non-area item the entry matches is governed by
     the rule's extents, even when FWA codes it as a tributary; a piece on the reach's own watershed code is a side
-    channel, not own water. **Before promoting any split or name change, diff the reach run's per-rule bindings
+    channel, not own water. A lake-only reach walks PAST the own stream flowing into its lake, never collecting it (what
+    joins it is the lake's: `build.WATER_JOINING_THE_ROWS_OWN_STREAM_ABOVE_ITS_LAKE_IS_THE_LAKES_TRIBUTARY`).
+    **Before promoting any split or name change, diff the reach run's per-rule bindings
     against live**; atlas parity cannot see this. A dead end of a water the walk collected wholly goes with that
     water (never on the reach's own code, never past a carve-out) and flows where its water flows, never read as
     the sea (`A_DEAD_END_GOES_WITH_ITS_WATER`, `A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS`).

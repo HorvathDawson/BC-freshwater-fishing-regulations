@@ -210,6 +210,12 @@ upstream of x is not included. lakes include all. and tribuatries stack so that 
 conflict (for example multiple quotas on same species upstream is the one that takes over) if that makes sense". Read as: the walk climbs through every lake; lakes
 include all inflows; a stream "from x to y, incl. tributaries" does not include itself above x; tributary rules stack and on a conflict about the same item the MOST UPSTREAM row wins.
 A walk change: needs a reach rerun and a rule-bindings diff (T1177 item 10).
+- **Merge order, the walk and the gear wording (2026-11-27 ~10:45):** "Wording fix first, then the walk, both in 0.10.0 (Recommended)" (T1249 first, then PR #365, T1177).
+- **A lake's printed exception stops the rows of the lakes below it (2026-11-27 ~10:45, Kinbasket and Buttle):** "wait so you mean kibasket lake will stop other tributaries from below the lake from walking up as well as not havign its own walk up columbia? thatr seems like a fair assumption and add to gotcha" (RULINGS T19, GOTCHAS item 6).
+- **Kootenay Lake's exception (2026-11-27 ~11:00, with the map):** "the does not include exception really intends to means upstream of lake (all upstream)": all of the Kootenay above the lake stays out, as built (RULINGS T19).
+- **Whiteswan's feeders above the lake (2026-11-27 ~11:00):** "Include them: No Fishing all year (Recommended)" (RULINGS T19, E26).
+- **Upper Arrow climbs to Kinbasket (2026-11-27):** "it should climb all the way to kinbasket lake i think?"; confirmed: "yes it doesnt matter anyways because lake revelstoke has same regs for its tributaries but yes this is what we do" (RULINGS T19).
+- **DFO places walk like the book (2026-11-27):** "Yes, in 0.10.0" (built on branch `fix/T1177-dfo-one-logic`; RULINGS T19).
 
 ### OPEN, not ruled
 - **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
