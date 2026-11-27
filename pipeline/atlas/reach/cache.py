@@ -136,7 +136,7 @@ from __future__ import annotations
 #:     STOPS_THE_RUN`, `reach.word_reads`). D1 (the river's widening pond is the river) is decided in the atlas registry
 #:     (`registry.flowing.fold_widening_ponds`), so no classify.py outcome changed for it; the bump marks the diff.
 #: 39: (T743, 2026-11-15) A DFO LAKE PLACE'S THROUGH-RIVER ABOVE THE LAKE STAYS OUT unless DFO's words name it
-#:     (`build.DFO_THROUGH_RIVER_STAYS_OUT`; D5's reason applied to T468: a DFO place has no rows, so every through-river
+#:     (`build.DFO_THROUGH_RIVER_STAYS_OUT`, retired at 53; D5's reason applied to T468: a DFO place has no rows, so every through-river
 #:     read as unrowed). Redsand Lake 2,639 -> 4 sections, Kitsumkalum Lake loses the 1,643 of the river above it; no
 #:     place of the 11-13 reach run changes. No classify.py outcome changed; the bump marks the binding diff.
 #: 40: (T753, owner 2026-11-15) A LAKE'S LOOP IS THE LAKE'S: a nameless line that leaves a lake and comes back into the
@@ -223,5 +223,12 @@ from __future__ import annotations
 #:     and a lake at a stretch's top is no lake the rule binds (`build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS`).
 #:     Round 2: a stop holds for the water a walk reaches THROUGH its lake, never for the rest of the walk, so the edge
 #:     order cannot decide it (`tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE`); the book run's bindings are unchanged by it.
-POLICY_VERSION = "52"
+#: 53: (T1177, owner 2026-11-26: "unless you have exact dfo words saying what they mean by tributaries we should have a
+#:     single tributary logic that is the saame across the board") ONE TRIBUTARY LOGIC FOR THE BOOK AND DFO
+#:     (`build.ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES`, retiring T743's `DFO_THROUGH_RIVER_STAYS_OUT` and T1053's DFO
+#:     refusal in `climbs_head_lakes`): DFO prints no definition of "tributaries", so a DFO place's lake takes its
+#:     through-river and a whole-water place climbs its head lake as the book's rows do, and the lake rows' printed
+#:     exceptions stop its walks too (`dfo_salmon.resolve_all(stops=)`). No classify.py outcome changed; the bump marks
+#:     the binding diff.
+POLICY_VERSION = "53"
 

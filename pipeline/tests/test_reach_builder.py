@@ -397,7 +397,8 @@ def test_policy_version_is_bumped_when_classify_changes():
         "a_stop_holds_through_its_lake": tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE,
         "a_failed_scope_unbinds_the_row": reach_build.A_FAILED_SCOPE_UNBINDS_THE_ROW,
         "dfo_joining_water_stays_out": reach_build.DFO_JOINING_WATER_STAYS_OUT,
-        "dfo_through_river_stays_out": reach_build.DFO_THROUGH_RIVER_STAYS_OUT,
+        # (T1177) pinned at 53: replaces T743's "dfo_through_river_stays_out"
+        "one_tributary_logic_for_dfo_places": reach_build.ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES,
         "verbatim_reads_are_guarded": reach_build.A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN,
         "lake_loops_leave_river_items": lake_loops.LAKE_LOOPS_LEAVE_RIVER_ITEMS,
         "lake_loops_join_their_lake": lake_loops.LAKE_LOOPS_JOIN_THEIR_LAKE,
@@ -445,7 +446,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_stop_holds_through_its_lake": True,
                      "a_failed_scope_unbinds_the_row": True,
                      "dfo_joining_water_stays_out": True,
-                     "dfo_through_river_stays_out": True,
+                     "one_tributary_logic_for_dfo_places": True,
                      "verbatim_reads_are_guarded": True,
                      "lake_loops_leave_river_items": True,
                      "lake_loops_join_their_lake": True,
@@ -466,7 +467,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_whole_waters_walk_climbs_its_head_lake": True,
                      "licensing_climbs_head_lakes": False,
                      "a_side_channel_goes_with_its_water": True})
-    assert cache.POLICY_VERSION == "52", "update this pin with the version it was taken at"
+    assert cache.POLICY_VERSION == "53", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

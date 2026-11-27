@@ -63,6 +63,9 @@ class ReachResult:
     #: (T973) THE UNITS CARRIED THROUGH A ROWED NO-UNIT WATER (`licensing.CarriedUnit`), one per section, beside the
     #: placements: never in `licensing`, never in `licensing_digest` (`io.write_run`: `licensing_carried.jsonl`).
     licensing_carried: list = field(default_factory=list)
+    #: (T1177) every lake tributaries row's printed exception (`lake_row_stops`), handed to the DFO places' walks too
+    #: (`dfo_salmon.resolve_all`): one tributary logic for the book and DFO
+    stops: tuple = ()
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
@@ -326,7 +329,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     lic_diags.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
     steelhead, report.steelhead = presence.finish(bindings, twins)
     return ReachResult(bindings, diagnostics, report, licensing, lic_diags, steelhead,
-                       tidal=tidal_of, outside=outside, licensing_carried=carried)
+                       tidal=tidal_of, outside=outside, licensing_carried=carried, stops=stops)
 
 
 def tidal_limit(entry: dict, tidal):
@@ -950,16 +953,27 @@ DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND = True
 #: `{behind: {listed id: [sections]}}` — lifted into the place's reach row (`reach.dfo_salmon.resolve_all` `behind`),
 #: where `deliver.salmon` puts the rest after those places in the chain
 REST_BEHIND = "rest_behind"
-#: POLICY (T743, 2026-11-15; D5's reason applied to T468): A DFO LAKE PLACE'S THROUGH-RIVER ABOVE THE LAKE STAYS OUT
-#: unless DFO's words name it. T468 takes a lake row's through-river in when it has "no row of its own", and a DFO place
+#: ONE TRIBUTARY LOGIC FOR THE BOOK AND DFO (T1177, owner 2026-11-26: "unless you have exact dfo words saying what they
+#: mean by tributaries we should have a single tributary logic that is the saame across the board"). DFO prints no
+#: definition of "tributaries": its sport fishing glossary (`fm-gp/rec/definitions-eng.html`, the copies of 2026-10-28
+#: and 2026-11-11 under `data/source/dfo_tidal_areas/`) has none, its salmon glossary (`fm-gp/salmon-saumon/gloss-eng.html`)
+#: only "Head water tributaries: Streams located where runoff begins", and no freshwater region page says what its
+#: "including tributaries" takes in. So a DFO place walks as the book's rows do: its lake's through-river is its
+#: tributary unless DFO's words keep it out (`_through_rivers`), and a whole-water place climbs its head lake
+#: (`climbs_head_lakes`). Which places walk at all is still DFO's words for each place (RULINGS T16, `side_streams`), and
+#: the joining water at a DFO confluence cut stays out unless its words add it (T679 D5, `DFO_JOINING_WATER_STAYS_OUT`:
+#: a stretch's end, the owner's own ruling for DFO). False = the mutation pin: T743 and T1053's DFO refusals below.
+ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES = True
+#: HISTORY (T743, 2026-11-15; D5's reason applied to T468; retired by `ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES`): A DFO LAKE
+#: PLACE'S THROUGH-RIVER ABOVE THE LAKE STAYED OUT unless DFO's words named it. T468 takes a lake row's through-river in when it has "no row of its own", and a DFO place
 #: is resolved with no table of rows (`owned` None), so EVERY through-river read as unrowed: "Redsand Lake, including
 #: tributaries" (a lake on the Kitsumkalum mainstem 2 km below Kitsumkalum Lake) took the Kitsumkalum River above it,
 #: Kitsumkalum Lake's whole basin with it — 2,635 of its 2,639 sections, 3,086 km — and "Kitsumkalum Lake, including
 #: tributaries" took the 1,643 sections of the river above the lake; the Kitsumkalum River has DFO places of its own on
 #: the same page. Keyed on the same rule key as D5 (`JOINING_WATER_STAYS_OUT_KEY`), so the reach run and the review app
 #: (both shape the rule in `dfo_salmon.entries.to_reach_input`) agree by construction. Reported in the `through_river`
-#: diagnostic (`stays_out`). False = every DFO through-river goes with the lake, as before (the mutation pin).
-DFO_THROUGH_RIVER_STAYS_OUT = True
+#: diagnostic (`stays_out`). Its switch `DFO_THROUGH_RIVER_STAYS_OUT` is gone: `ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES` off
+#: is that behaviour (the mutation pin).
 
 
 def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, done, *,
@@ -1335,10 +1349,10 @@ HEAD_LAKE = "head_lake"
 
 def climbs_head_lakes(rule: dict) -> bool:
     """Does this rule's walk climb its water's head lakes (`tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`,
-    T1053)? A rule of the book bound to its WHOLE water: extents, every one `whole`. A stretch ("downstream of Y Lake")
-    never does, and neither does a DFO place (`JOINING_WATER_STAYS_OUT_KEY`): DFO prints no rows to say which waters
-    are its own, so its walks stay as they were (as T743 keeps its through-rivers out)."""
-    if rule.get(JOINING_WATER_STAYS_OUT_KEY):
+    T1053)? A rule bound to its WHOLE water: extents, every one `whole` — a book row's, and since T1177 a DFO place's
+    too (`ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES`: DFO prints no meaning of its own for "tributaries"). A stretch
+    ("downstream of Y Lake") never does. With the policy off a DFO place (`JOINING_WATER_STAYS_OUT_KEY`) does not."""
+    if rule.get(JOINING_WATER_STAYS_OUT_KEY) and not ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES:
         return False
     extents = rule.get("extents") or []
     return bool(extents) and all(isinstance(ex, dict) and ex.get("op") == "whole" for ex in extents)
@@ -1459,12 +1473,12 @@ def _through_rivers(graph, registry, owned, entry, rule, reach, own_water, block
     `(inflows, drop, rows)`: the inflows the walk takes as tributaries; what is taken out of the walk with a through-river
     that stays out (`A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS`); one `through_river` diagnostic row per inflow
     (`joined` is filled after the walk). Only a printed exception keeps an inflow out: a carve-out (`blocked`), the rule's
-    words ("not including X River"), a DFO place's T743 (`DFO_THROUGH_RIVER_STAYS_OUT`); the entry's own water is its
+    words ("not including X River"), a DFO place's T743 with one logic off (`ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES`); the entry's own water is its
     extents' (AGENTS 63). A row of its own is reported (`own_row`), and keeps the river out only with the policy off (the
     mutation pin: T468's rule)."""
     words = " ".join(str(rule.get(k) or "") for k in ("verbatim", "extent_text"))
     # T743: a DFO place has no rows to say which through-river is a water of its own — it stays out unless named
-    stays_out = bool(rule.get(JOINING_WATER_STAYS_OUT_KEY)) and DFO_THROUGH_RIVER_STAYS_OUT
+    stays_out = bool(rule.get(JOINING_WATER_STAYS_OUT_KEY)) and not ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES
     every = _tribs.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY
     inflows: set[str] = set()
     drop: set[str] = set()
