@@ -4,7 +4,7 @@
  * sources & dates page (`sourceFreshness`, menu/freshness.ts), the top bar's sync dot (`syncVM`, more.ts), a gauge reading's age
  * line (`freshness` / `STALE_AFTER_MS`, freshness.ts) and a forecast run's line (`forecastRunLine`, conditions.ts).
  *
- * Each line is set from the feed's REAL publish cadence (handoff/PLAN/app-integration/decisions.md, "Gauges and flow",
+ * Each line is set from the feed's REAL publish cadence (docs/app-integration/decisions.md, "Gauges and flow",
  * "CLAUDE 2026-10-22 (owner delegated) — staleness per feed"):
  *
  *   by "age"      past `ms` the feed is LIKELY out of date (a cadence is an expectation, not a promise)

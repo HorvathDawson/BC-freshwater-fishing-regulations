@@ -48,7 +48,7 @@ _NUMBER = re.compile(r"""["'](1000|1050|1100|1150|1200|1250|1300|1350|1400|1410|
 def test_no_module_outside_names_an_edge_type_number():
     """M2: no module but `fwa_edge_types.py` writes an EDGE_TYPE number as a string (comments aside)."""
     bad = []
-    for top in ("pipeline", "curation-review"):
+    for top in ("pipeline", "tools/curation-review"):
         for p in sorted((ROOT / top).rglob("*.py")):
             rel = p.relative_to(ROOT).as_posix()
             if "/tests/" in rel or "/archive/" in rel or rel == "pipeline/common/fwa_edge_types.py":

@@ -347,7 +347,7 @@ def test_the_old_tidal_records_are_gone_and_unread():
     assert Path(under_test.curated().waters.tidal).name == "tidal_limits.json" and not hasattr(under_test.curated().waters, "tidal_waters")
     assert '"tidal"' not in Path(under_test.curated().waters.cuts).read_text()
     src = "\n".join(p.read_text() for p in (REPO_ROOT / "pipeline").rglob("*.py") if "tests" not in p.parts)
-    src += "\n".join(p.read_text() for p in (REPO_ROOT / "curation-review/backend").glob("*.py"))
+    src += "\n".join(p.read_text() for p in (REPO_ROOT / "tools/curation-review/backend").glob("*.py"))
     for gone in ("tidal_waters.json", "owner-decisions.json", "TIDAL_DECISIONS =", "under_test.curated().waters.tidal_waters"):
         assert gone not in src, gone
     rows = TA.load()

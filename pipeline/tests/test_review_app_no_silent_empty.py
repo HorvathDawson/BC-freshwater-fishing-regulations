@@ -15,7 +15,7 @@ import pytest
 from pipeline.regs.review import proposals as P
 from pipeline.tests.conftest import curated_root, no_served_build
 
-BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 
 
 @pytest.fixture()

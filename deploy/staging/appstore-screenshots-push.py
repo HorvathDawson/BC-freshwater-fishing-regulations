@@ -12,7 +12,7 @@ Three modes, the default sends nothing:
   deleted, the new ones are reserved, uploaded in the parts Apple names, committed with their MD5, waited on until Apple
   has processed them, and put in file-name order.
 
-Sets (folders under ROOT, default handoff/PLAN/app-integration/store/graphics/store/light, as app/tools/store-shots.mjs
+Sets (folders under ROOT, default docs/app-integration/store/graphics/store/light, as app/tools/store-shots.mjs
 writes them): appstore-6.9 -> APP_IPHONE_67 (Apple's 6.9" slot, 1320x2868 / 1290x2796 / 1260x2736) and appstore-6.5 ->
 APP_IPHONE_65 (1242x2688 / 1284x2778) and appstore-6.3 -> APP_IPHONE_61 (the "iPhone with Dynamic Island (medium display)"
 slot Apple's 2026-11-25 spec requires, 1206x2622 / 1179x2556). UNCONFIRMED: the API display-type name for the 6.3" slot is
@@ -49,7 +49,7 @@ from store_shots_list import pictures
 
 API = "https://api.appstoreconnect.apple.com/v1"
 ROOT = Path(__file__).resolve().parents[2]
-SHOTS = ROOT / "handoff/PLAN/app-integration/store/graphics/store/light"
+SHOTS = ROOT / "docs/app-integration/store/graphics/store/light"
 #: folder -> (display type, the sizes Apple takes)
 SETS = {
     "appstore-6.9": ("APP_IPHONE_67", {(1320, 2868), (1290, 2796), (1260, 2736)}),

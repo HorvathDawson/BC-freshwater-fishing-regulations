@@ -193,13 +193,13 @@ def check_vintage(report_json: Mapping, corpus_digest: str, handles: str, regist
 
 
 def _load_app(build: Path, root: Path | None):
-    """The review app's data layer (`curation-review/backend/reuse.py`) over `build` and the curated tree at `root`
+    """The review app's data layer (`tools/curation-review/backend/reuse.py`) over `build` and the curated tree at `root`
     (a whole copy, `CURATED_ROOT`, T422; None = the live tree) — the code a reviewer's screen runs, imported as the
     app imports it."""
     os.environ["CURATION_BUILD"] = str(build)
     if root is not None:
         os.environ["CURATED_ROOT"] = str(root)
-    backend = Path(__file__).resolve().parents[3] / "curation-review" / "backend"
+    backend = Path(__file__).resolve().parents[3] / "tools" / "curation-review" / "backend"
     sys.path.insert(0, str(backend))
     import reuse                                               # noqa: E402
     # The corpus does not change during the run: read it once (the app re-reads it per request).

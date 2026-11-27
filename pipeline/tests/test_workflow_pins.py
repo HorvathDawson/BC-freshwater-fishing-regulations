@@ -88,11 +88,11 @@ def test_ci_paths_cover_what_the_jobs_read():
             assert p in paths, (ev, p)
         # a docs-only push runs the ledger / docs guard alone, never the app's jobs — but for the one runbook an app
         # test reads (no-silent-skips.test.ts, T995 review; privacy-manifest.test.ts, T1099): named files, never a handoff folder
-        handoff = [p for p in _on(_load("app-ci.yml"))[ev]["paths"] if p.startswith("handoff")]
+        handoff = [p for p in _on(_load("app-ci.yml"))[ev]["paths"] if p.startswith(("docs", "tickets"))]
         # (the second file is compared by name: a literal path here would make the PIPELINE area claim to read it)
-        assert [h for h in handoff if h.endswith("/release.md")] == ["handoff/PLAN/runbooks/release.md"], ev
+        assert [h for h in handoff if h.endswith("/release.md")] == ["docs/runbooks/release.md"], ev
         assert sorted(h.rsplit("/", 1)[1] for h in handoff) == ["APP-STORE-SUBMISSION.md", "release.md"], ev
-        assert "handoff/**" in _on(_load("docs-ci.yml"))[ev]["paths"], ev
+        assert {"docs/**", "tickets/**"} <= set(_on(_load("docs-ci.yml"))[ev]["paths"]), ev
 
 
 def test_pnpm_version_is_read_from_package_json_not_typed_here():
@@ -278,7 +278,7 @@ def test_the_changes_action_reads_ci_paths_and_takes_no_event_field_through_shel
 # skipped every job and passed all four `ok` checks (feeds-hydat.yml, deploy/staging/upload.sh: false green). Derived
 # from the test sources: quoted repo-relative paths, and `ROOT / "a" / "b"` / `join(REPO, "a", "b")` chains, that exist
 # in the tree (a file, a folder, or a glob that matches). Only these may stay out, each with why:
-_TOP = r"(?:\.github|\.githooks|app|data|deploy|scripts|curation-review|handoff|pipeline)"
+_TOP = r"(?:\.github|\.githooks|app|data|deploy|scripts|tools/curation-review|docs|tickets|pipeline)"
 _FILES = (r"(?:README\.md|AGENTS\.md|config\.yaml|project_config\.py|requirements\.txt|constraints\.txt|pytest\.ini"
           r"|conftest\.py|\.gitignore)")
 _LIT = re.compile(rf"""["']({_TOP}/[\w./*{{}}-]*|{_FILES})["']""")
@@ -286,14 +286,15 @@ _CHAIN = re.compile(r"""(?:ROOT|REPO|REPO_ROOT|_ROOT|parents\[\d\])\s*((?:/\s*["
 _JOIN = re.compile(r"""join\(\s*(?:REPO|ROOT)\s*,\s*((?:["'][^"'\n]+["']\s*,?\s*)+)\)""")
 NOT_READ = {
     ("test_before_push.py", "AGENTS.md"): "a made-up changed path (the --changed plan)",
-    ("test_before_push.py", "handoff/PLAN/STATUS.md"): "a made-up changed path (the --changed plan)",
+    ("test_before_push.py", "docs/STATUS.md"): "a made-up changed path (the --changed plan)",
     ("test_ci_paths.py", "AGENTS.md"): "a made-up path the glob and the areas are matched against",
-    ("test_ci_paths.py", "handoff/PLAN/STATUS.md"): "a made-up path the areas are matched against",
-    ("test_release_command.py", "handoff/PLAN/STATUS.md"): "a made-up committed path (the rebuild decision)",
-    ("test_ci_status.py", "handoff/PLAN/STATUS.md"): "a made-up changed path (the --strict area rule)",
-    ("test_workflow_pins.py", "handoff/**"): "the docs filter's own entry, compared as text",
+    ("test_ci_paths.py", "docs/STATUS.md"): "a made-up path the areas are matched against",
+    ("test_release_command.py", "docs/STATUS.md"): "a made-up committed path (the rebuild decision)",
+    ("test_ci_status.py", "docs/STATUS.md"): "a made-up changed path (the --strict area rule)",
+    ("test_workflow_pins.py", "docs/**"): "the docs filter's own entry, compared as text",
+    ("test_workflow_pins.py", "tickets/**"): "the docs filter's own entry, compared as text",
     ("test_workflow_pins.py", "AGENTS.md"): "a key of this table",
-    ("test_workflow_pins.py", "handoff/PLAN/STATUS.md"): "a key of this table",
+    ("test_workflow_pins.py", "docs/STATUS.md"): "a key of this table",
     ("check-test-anchors.test.ts", "data/curated/waters/cuts.json"): "the scanner's own input text, never read",
     ("check-size.test.ts", "pipeline/atlas"): "a made-up package folder in the guard's lean fixture tree",
     ("maplibre-pin.test.ts", "README.md"): "a file name in the archive-t420/ listing, not the root README",

@@ -15,7 +15,7 @@ from pipeline.deliver.answers import gear as G
 from pipeline.deliver.bundle.read.facts import not_yet_mapped
 from pipeline.regs.parsing.io import read_all_entries
 
-#: the ten "close wording" rules of curation-review/on-parts.md, with the words the app's chip ends with
+#: the ten "close wording" rules of tools/curation-review/on-parts.md, with the words the app's chip ends with
 TEN = {
     ("r2:alouette_lake@2-8", "alouette_lake.r2"): "in swimming areas, as buoyed and signed",
     ("r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18", "harrison_river.r3"):

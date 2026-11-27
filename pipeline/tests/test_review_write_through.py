@@ -31,7 +31,7 @@ from pipeline.tests import under_test
 from pipeline.tests.conftest import curated_root, no_served_build
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 SHA = "0" * 64
 COWICHAN = "1:cowichan-river:from-66-mile-trestle-downstream-to"
 HATZIC = "r2:hatzic_lake_and_slough@2-8"

@@ -48,7 +48,7 @@ described there, or the build stops); the frame models are `pipeline/deliver/ans
   non-resident alien, sentence composed here) and `gear.bait[].allowances` (each distinct allowance once, `by` its clauses).
 - **The `trout` section** (required by the store): per part key and segment a `TroutFrame` {table, dates, covers} or
   null, composed once per key from the post-pass `rows`, the `display` frame and the `licence` answer
-  (`Section.compose_key`). Contract: `handoff/PLAN/design/trout-table-contract.md`. Code: `pipeline/deliver/answers/trout/`.
+  (`Section.compose_key`). Contract: `docs/design/trout-table-contract.md`. Code: `pipeline/deliver/answers/trout/`.
 - **Judgment calls** are the `DECISIONS` tables in `gear.py`, `licence.py`, `display/decisions.py` and
   `rows/decisions.py` (what, why, effect, how to undo), except those in §9; the rulings they implement are
   `pipeline/docs/RULINGS.md`.

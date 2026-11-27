@@ -132,6 +132,24 @@
       "url": "https://build.canifishthis.ca/source/73befc72a74a0877/fish_obstacles.gpkg",
       "upstream": "data/fetch_data.py WFS (fish_obstacles_fiss/dams/pscis), Mac copy of 2026-10"
     },
+    "fwa_coast.gpkg": {
+      "bytes": 586203136,
+      "sha256": "b3b695ea9bee9fb218e81a8036cf14d6c0799729c7c8c12ddf98f5afb4450411",
+      "url": "https://build.canifishthis.ca/source/b3b695ea9bee9fb2/fwa_coast.gpkg",
+      "upstream": "FWA river polygons + land mass (data/fetch_data.py layers fwa_rivers, fwa_land, from the province's FWA_BC.zip; fwa_coast.source.json): the coast cut's input since T678. The owner's Mac copy as of 2026-11-26.",
+      "layer_dates": {
+        "land": {
+          "date": "2024-03-26",
+          "basis": "FWA publication: https://nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified",
+          "rows": 19479
+        },
+        "rivers": {
+          "date": "2024-03-26",
+          "basis": "FWA publication: https://nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified",
+          "rows": 37083
+        }
+      }
+    },
     "generated/regs/extraction/row_boxes.json": {
       "bytes": 320063,
       "sha256": "5cdef13c55a5b2017e377bbe85b422c6e09ebc61b8acd362f4e7efd9912f9f92",

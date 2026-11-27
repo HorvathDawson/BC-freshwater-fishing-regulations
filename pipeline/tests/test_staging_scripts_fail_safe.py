@@ -121,6 +121,14 @@ def test_sync_inputs_only_verifies_matches_on_another_release(sync_tree):
     assert not (sync_tree / "rclone.log").exists()
 
 
+def test_sync_inputs_refuses_a_first_builds_resolution(sync_tree):
+    """(T1120) a first build's resolution (`resolve --first-build`, made before any release existed) names an atlas,
+    never a release: it is never LATEST's, so nothing is put."""
+    (sync_tree / "data/generated/inseason/resolved.json").write_text('{"release": "first-build:h"}')
+    r = _sync(sync_tree, 0)
+    assert r.returncode != 0 and "resolved on first-build:h, LATEST is r-1 — nothing was put" in r.stderr
+    assert not (sync_tree / "rclone.log").exists()
+
 def test_sync_inputs_from_the_review_app_never_rewrites_the_matches(sync_tree):
     """(T520) from the review app, matches on another release are REFUSED (re-resolve there; T679 #11: no commit) — the
     curated file is never rewritten outside its writes.commit."""
@@ -642,7 +650,7 @@ def test_build_links_frontend_fails_on_a_git_error_never_skips(tmp_path):
     """(T978 review, lane G3) a failed `git merge-base` / `git diff` once returned quietly, skipping the check: now each
     is a failed item naming its cause; a real frontend change with no node_modules asks for `npm ci`; none, nothing."""
     repo = tmp_path / "r"
-    (repo / "curation-review/frontend").mkdir(parents=True)
+    (repo / "tools/curation-review/frontend").mkdir(parents=True)
     git = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
     subprocess.run([*git, "init", "-q"], cwd=repo, check=True)
     (repo / "f").write_text("x")
@@ -655,11 +663,11 @@ def test_build_links_frontend_fails_on_a_git_error_never_skips(tmp_path):
     got = _links(repo, "build_links_frontend deadbeefdeadbeef")
     assert "FAIL cannot tell whether fast-fail typechecks the review app: git diff --name-only deadbeef" in got.stdout
     assert _links(repo, f"build_links_frontend {one}").stdout == ""   # nothing of the frontend changed
-    (repo / "curation-review/frontend/a.ts").write_text("x")
+    (repo / "tools/curation-review/frontend/a.ts").write_text("x")
     subprocess.run([*git, "add", "."], cwd=repo, check=True)
     subprocess.run([*git, "commit", "-qm", "two"], cwd=repo, check=True)
     got = _links(repo, f"build_links_frontend {one}")
-    assert "FAIL no curation-review/frontend/node_modules" in got.stdout and "npm ci" in got.stdout
+    assert "FAIL no tools/curation-review/frontend/node_modules" in got.stdout and "npm ci" in got.stdout
 
 
 def test_testflight_precheck_lists_every_missing_secret_before_the_lock(tmp_path):

@@ -136,7 +136,7 @@ const native: { props: Record<string, unknown> | null; camera: Record<string, un
                 images?: Record<string, unknown>; fitOpts?: unknown[]; easeOpts?: unknown[];
                 onLog?: (e: { level: string; tag: string; message: string }) => boolean } =
   { props: null, camera: null, geojson: {}, holdRender: false };
-vi.mock("@maplibre/maplibre-react-native", () => ({
+const maplibreSdk = () => ({
   // (T418) MapLibre Native's log: the map installs one handler (the style-asset watch)
   LogManager: { onLog: (h: (e: { level: string; tag: string; message: string }) => boolean) => { native.onLog = h; } },
   Map: ({ ref, children, ...props }: { ref?: unknown; children?: ReactNode } & Record<string, unknown>) => {
@@ -198,7 +198,16 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
   },
   // a view annotation draws its children over the map
   Marker: ({ children }: { children?: ReactNode }) => <>{children}</>,
-}));
+});
+/**
+ * (T1154) THE PHONE MAP'S ENGINES, as a table of `{ id, sdk, sdkMock }`: one row today (MapLibre Native,
+ * `native/maplibre/`), and only that row is read — its `sdkMock` is the module mock below, so every native case runs
+ * over it. A second engine is NOT run by adding a row: it needs per-row module mocking (`vi.doMock` of its SDK and
+ * `vi.resetModules` before importing `./Map.native` again, under the engine its build would alias), which this file
+ * does not do yet.
+ */
+const ENGINES = [{ id: "maplibre", sdk: "@maplibre/maplibre-react-native", sdkMock: maplibreSdk }] as const;
+vi.mock("@maplibre/maplibre-react-native", () => ENGINES[0].sdkMock());
 
 const { Map: WebMap } = await import("./Map.web");
 const { Map: NativeMap } = await import("./Map.native");

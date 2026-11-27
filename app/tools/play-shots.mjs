@@ -11,7 +11,7 @@ import { assertStoreShotsSite, describeSite } from './store-shots/site.mjs';
 import { needsBuild, NEEDS_STORE_BUILD } from './store-shots/scenes.mjs';
 const args = process.argv.slice(2);
 const ONLY = args.includes('--only') ? args[args.indexOf('--only') + 1].split(',') : null;
-const OUT = path.resolve(args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--only') ?? '../handoff/PLAN/app-integration/store/graphics');
+const OUT = path.resolve(args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--only') ?? '../docs/app-integration/store/graphics');
 // (T1076) no default: a scene that needs the store-shots build (store-shots/scenes.mjs) is shot from STORE_SHOTS_SITE, which must be a store-shots build
 // (store-shots/site.mjs builds and serves one; store-shots.mjs / run.mjs pass it); anything without the marker is refused before the first scene.
 // (T1072, owner 2026-11-25 "could use website too for most pictures much quicker") STORE_SHOTS_WEB is a DEPLOYED site (staging or production): every scene

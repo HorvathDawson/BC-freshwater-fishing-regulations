@@ -2,7 +2,7 @@
  * (T723 F7) The modal's left-edge back: on iOS a drag from the edge calls the modal's own back, once; on Android (its
  * system back reaches the Modal through `onRequestClose`) and the web the drag is never taken and the content is drawn
  * as it is. The responder's callbacks are driven by hand (the browser has no touch responder to drive): how it feels
- * under a thumb is the device's (handoff/PLAN/ios/shots/t723/).
+ * under a thumb is the device's (docs/ios/shots/t723/).
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";

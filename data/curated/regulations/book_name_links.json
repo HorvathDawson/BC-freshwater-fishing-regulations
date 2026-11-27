@@ -1598,7 +1598,7 @@
     "4-7"
    ]
   },
-  "note": "FWA has MU 4-8, regulation has MU 4-7 (boundary issue)",
+  "note": "KEPT: a true line case (owner 2026-11-26, P10). The only Bridal Lake in BC Geographical Names (38881) and the Freshwater Atlas is this lake (wbk:329262703, 4.8 ha, in Stagleap Park on Kootenay Pass, MU 4-8, 0.08 km from the 4-7 line). Vessel Operation Restriction Regulations, Schedule 2 item 11: \"Bridal Lake, near Creston, 49 03 37 N 117 02 24 W\" (no powered boats). Stocking record 00411LARL (aliases BRIDAL, SUMMIT). BC Parks: a small stocked water at the summit of the pass, 34 km west of Creston. Printed 4-7 in every edition since 2006-07.",
   "gnis_ids": [
    "37990"
   ]
@@ -1626,7 +1626,7 @@
     "4-3"
    ]
   },
-  "note": "FWA has MU 4-4, regulation has MU 4-3 (boundary issue)",
+  "note": "KEPT: the book's unit is off (owner 2026-11-26, P10; identity high, the reason for 4-3 medium). The only Hiawatha Lake in BC Geographical Names (14595, north of Moyie Lake) and the Freshwater Atlas is this lake (wbk:329246408, MU 4-4, 6.9 km from 4-3). First printed in the 2009-11 book as 4-3 beside Haha Lake 4-3 (same perch suite), unchanged since; likely a copied unit. Origin: the Kootenay Region Angling Regulations Review 2009-10 lists Hiawatha among lakes to tolerate a perch fishery with generous quotas (no unit given there). Stocking record 00637KOTL. No federal listing (a quota, not a vessel rule), so perch in this lake are not confirmed by coordinates. Listed for the Province.",
   "gnis_ids": [
    "21359"
   ]
@@ -3492,7 +3492,7 @@
     "7-30"
    ]
   },
-  "note": "FWA has MUs 7-28, 7-29, regulation has MU 7-30 (boundary issue)",
+  "note": "KEPT as a pointer (owner 2026-11-26, P10). The only Nation River in BC (BC Geographical Names 9120; gnis:7893, 242.5 km: 213.2 km in 7-28, 29.3 km in 7-29, none in 7-30). The row reads \"See Nation Arm (Williston Lake)\", and 7-30 is the Nation Arm's unit, so the unit names the water the row points to, not the river. The Nation Arm closure line (a line between two signs about 500 m downstream of the Nation River Bridge on the Finlay Forest Service Road, Apr 1-June 30) is on the river: the bridge is the FINLAY-NATION road crossing at 55.3727 N 123.6897 W, MU 7-29, 16.4 km up the river from Williston Lake (owner confirmed, marked in the lake split). Rule reaching the river: T1178.",
   "fwa_watershed_codes": [
    "200-948755-937012-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
   ]
@@ -3576,7 +3576,7 @@
     "7-15"
    ]
   },
-  "note": "FWA has MU 7-16, regulation has MU 7-15 (boundary issue). Confirmed correct location via stocked lake maps - lake is in MU 7-16.",
+  "note": "KEPT: the book's unit is off (owner 2026-11-26, P10). This is the lake: wbk:329102641, MU 7-16, 22 km from 7-15, stocking record 01100CRKD (Omineca 2004 report, 13.6 ha, 63 km north of Prince George). Vessel Operation Restriction Regulations, Schedule 2 item 61: \"Emerald Lake, approximately 57 km north of Prince George, 54 25 35 N 122 36 32 W\" (no powered boats). The row sits directly under Eena Lake 7-15 in the book, so the unit may be copied from it. Other Emerald Lakes (BC Geographical Names 38165 in 5-13, 28125 in 5-2) carry no rule. Printed 7-15 in every edition since 2006-07. Listed for the Province.",
   "gnis_ids": [
    "31097"
   ]
@@ -3604,7 +3604,7 @@
     "7-10"
    ]
   },
-  "note": "FWA has MU 7-8, regulation has MU 7-10 (boundary issue - neighboring MUs but lake not close to border, likely mislabeled MU)",
+  "note": "KEPT: the book's unit is off (owner 2026-11-26, P10). The only Chubb Lake in BC Geographical Names (5961) and the Freshwater Atlas is this lake (wbk:329097617, MU 7-8, 12.6 km from 7-10; nothing named Chubb is in 7-10). Vessel Operation Restriction Regulations, Schedule 4 item 38: \"Chubb Lake, Prince George, 53 16 38 N 122 33 54 W, 7.45 kW\". The Omineca 2004 stocked-lake report for 00681COTR names the rule: \"engine power restriction of 7.5 KW or 10 HP\". Printed 7-10 in every edition since 2006-07. Listed for the Province: pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md.",
   "gnis_ids": [
    "13840"
   ]
@@ -3661,7 +3661,7 @@
     "7-15"
    ]
   },
-  "note": "FWA has MU 7-10, regulation has MU 7-15 (boundary issue - neighboring MUs but lake is 21km from border, likely mislabeled MU in regulations)",
+  "note": "KEPT: the book's unit is off (owner 2026-11-26, P10). The only Lynx Lake in BC Geographical Names (12179) and in the Freshwater Atlas is this lake (wbk:329547767, MU 7-10, 20 km from 7-15; nothing named Lynx is in 7-15). The federal Vessel Operation Restriction Regulations, Schedule 3 item 90, list \"Lynx Lake, south of Prince George, 53 37 29 N 122 54 24 W\" (electric motor, 7.5 kW): the point of this lake. Printed 7-15 in every edition since 2006-07. Stocking record 00728TABR (Omineca). Listed for the Province: pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md.",
   "gnis_ids": [
    "19238"
   ]
@@ -4126,7 +4126,7 @@
     "8-8"
    ]
   },
-  "note": "FWA has MU 8-10, regulation has MU 8-8 (boundary issue - lake likely mislabeled MU)",
+  "note": "KEPT: the book's unit is off (owner 2026-11-26, P10). The only Ellison Lake in BC (BC Geographical Names 9500; wbk:329459126, 201.9 ha, MU 8-10, 23.7 km from 8-8). New in the 2025-27 book, printed under Eneas Creek 8-8. The Province's own proposal page (archived 2025-02-09), \"Ellison (Duck) Lake proposed angling regulations\", gives Management unit 8-10, yellow perch quota of 20, \"a known presence of perch in Ellison Lake\". Duck Lake is its local name. Listed for the Province.",
   "gnis_ids": [
    "16910"
   ]

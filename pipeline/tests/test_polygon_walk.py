@@ -1,5 +1,5 @@
 """The panel walk reads the WATER's kind — OWNER 2026-10-22 (late), "a polygon-only slough or canal gets gauges like a
-stream" (handoff/PLAN/app-integration/decisions.md, "Gauges and flow").
+stream" (docs/app-integration/decisions.md, "Gauges and flow").
 
 "if a slough or canal is fully polygon only it should still be able to get gauge info of neighbours if the propagation
 means it would have values if it was just a stream itself."

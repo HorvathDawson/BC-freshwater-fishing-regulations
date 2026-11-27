@@ -11,7 +11,7 @@ bundle's digests:
 | `ui-rules-answers.json` | the decided answers for every part, day, fish and angler (Part 8) | `pipeline/deliver/answers/ANSWERS-SPEC.md` |
 
 How the app turns the answers into its page (the view model, its inputs, the golden comparison) is
-`handoff/PLAN/app-integration/contracts.md`.
+`docs/app-integration/contracts.md`.
 
 `python -m pipeline.deliver` is the chain bundle -> verdicts -> status index -> export -> answers; each step also runs
 alone (`python -m pipeline.deliver [all|bundle|status_index|export] …`).

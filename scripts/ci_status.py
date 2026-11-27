@@ -42,7 +42,7 @@ import ci_paths as CP  # noqa: E402  (T995) the trunk and the areas, typed once:
 from ci_paths import TRUNK  # noqa: E402
 
 # (T993) app-ci split into jobs of one workflow (their conclusions roll up to the run) and two small workflows with
-# their own path filters: the ticket ledger / docs guard (docs-ci.yml, on handoff/**) and the feeds worker's suites
+# their own path filters: the ticket ledger / docs guard (docs-ci.yml, on docs/**) and the feeds worker's suites
 # (feeds-worker-ci.yml). A workflow with no run for the sha falls back to its newest finished run, as below.
 WORKFLOWS = ("app-ci.yml", "pipeline-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml")
 RED = {"failure", "timed_out", "startup_failure", "action_required"}

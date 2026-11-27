@@ -14,7 +14,7 @@ Code names these paths through `pipeline.common.curated` (`CURATED` / `GENERATED
 ## Getting the source data
 
 On a fresh clone, `bash scripts/bootstrap.sh` fetches the exact bytes the live release was built from, checked against
-`source/pins.json` (runbook: `handoff/PLAN/runbooks/fresh-machine.md`). Refreshing from upstream is a separate choice:
+`source/pins.json` (runbook: `docs/runbooks/fresh-machine.md`). Refreshing from upstream is a separate choice:
 
 ```bash
 python data/fetch_data.py --help     # the BC Freshwater Atlas layers and the other upstream sources
@@ -33,8 +33,7 @@ from, read by `pipeline/tools/audit/tidal_pass2.py`): keep them, they are the ev
 ## The scripts here
 
 - `fetch_data.py` — the upstream fetcher (above).
-- `build_tidal_boundary.py`, `process_tidal_boundary.py` — the DFO tidal polygon, processed once and stored on R2 (each
-  file's docstring has its steps).
+- `build_tidal_boundary.py` — the DFO tidal polygon, processed once and stored on R2 (its docstring has the steps).
 
 Licences: third-party material and its terms are listed in the root `NOTICE`; the OpenStreetMap-derived data is ODbL,
 `LICENSE-ODbL.md`.

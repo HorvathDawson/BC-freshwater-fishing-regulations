@@ -241,7 +241,7 @@ export function noaccessPaint(mode: string, tokens: Tokens, values: ChannelValue
  * and a thin EDGE in `color.gear.edge` (ink: no hue, so it reads the same for every reader) is drawn under it: SOLID for
  * fly fishing only, DASHED (`dash.gear.bait`) for a bait ban. Picked over breaks in the line (read as the no-access
  * dots, and bait bans cover most of some regions) and symbols along it (clutter at z11):
- * handoff/PLAN/app-integration/T213-shots/variants/.
+ * docs/app-integration/T213-shots/variants/.
  *
  * Runtime layers for the same reason as the dots (`line-dasharray` cannot vary per feature): one per mark over every
  * stream (under the stream line, over the selection casing, so a selected water keeps both rings) and one per mark round

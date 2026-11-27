@@ -95,6 +95,13 @@ describe("chainOf: the run's closures, day by day, each once; the frames' unless
     const both = yearBy((md) => (md >= 1101 || md <= 614 ? [7, 10] : [7]));
     expect(chainOf(inputs({ byDay: both }), settled(both[0]!, [7, 10]), D(1, 10), null)).toEqual({ rules: [RULES[7]], unless: new Set(), run: null });
   });
+  it("(T1078, owner 2026-11-26: keep one, the primary closure) the dated closure is the day's first, yet the one cited is the all-year closure", () => {
+    const both = yearBy((md) => (md >= 1101 || md <= 614 ? [10, 7] : [7]));
+    // Kirkup Creek on r-0aec88ed3edb: the day's first closer was the Nov 1–Jun 14 rule, the primary closure is the all-year one
+    for (const day of [D(1, 10), D(7, 15)]) {
+      expect(chainOf(inputs({ byDay: both, day }), settled(both[0]!, [10, 7]), day, null).rules.map((r) => r.rix)).toEqual([7]);
+    }
+  });
 });
 
 describe("chainText: the prototype's closechain rewrite", () => {

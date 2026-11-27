@@ -1,5 +1,5 @@
 """'SEE X' GROUP ENTRIES, MEMBER LAKES UNDER THEIR OWN NAMES, AND ONE RULE FROM TWO ROWS (owner 2026-10-22,
-handoff/PLAN/app-integration/decisions.md, "Waters, names and curation").
+docs/app-integration/decisions.md, "Waters, names and curation").
 
   1. A row that only says "See …" (TEE PEE LAKES "See Friday, Saturday, and Sunday Lakes"; CAMERON LAKES "See North
      and South Cameron lakes"; GARBUTT LAKE "See Norbury Lake") is a POINTER: it binds nothing and is never drawn as a

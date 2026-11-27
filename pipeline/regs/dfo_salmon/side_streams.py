@@ -1,7 +1,7 @@
 """T807: A DFO PLACE'S SIDE STREAMS ARE DERIVED FROM DFO'S OWN WORDS — the place's line, else the EXACT heading its row
 sits under — and a saved value is only a stated exception.
 
-Owner 2026-11-16 (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch"): "this depends if the name has tributraries included
+Owner 2026-11-16 (`docs/OWNER-TODO.md`, "Answers by batch"): "this depends if the name has tributraries included
 in it. if it doesnt then no tribs otrherwise yes tribs"; "The heading counts"; "the locations should be matched only to
 their exact naming then"; the ten disagreeing places "river only for all ten"; (11-16 "A named creek keeps its side streams", replaced:)
 the Kitimat outfall strip "Heading counts here too"; 2026-11-17 17:01, on the Tatshenshini's named creeks: "only

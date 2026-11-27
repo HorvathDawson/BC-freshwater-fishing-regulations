@@ -1,5 +1,5 @@
 """A stream water's polygons take that water's flow answer — OWNER 2026-10-22 (late), "sloughs and canals look
-like streams in Conditions" (handoff/PLAN/app-integration/decisions.md, "Gauges and flow").
+like streams in Conditions" (docs/app-integration/decisions.md, "Gauges and flow").
 
 The colouring follows the WATER'S KIND, never the geometry type. Nicomen Slough is a stream item with four polygon
 sections on its stem; Vedder River carries 4.7 km of Vedder Canal as one polygon section. The panel walk sizes a

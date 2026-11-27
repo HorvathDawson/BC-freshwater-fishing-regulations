@@ -1,6 +1,6 @@
 /**
  * (T759, `@app/core/regs/testing`) A release and a live feed carrying `issues`, built by hand in the shape of the T759 ticket's example
- * (`handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz:T759-*.md`, "For the worker and app"): no fixture of a feed with issues exists
+ * (`tickets/archive/closed-2026.tar.gz:T759-*.md`, "For the worker and app"): no fixture of a feed with issues exists
  * yet (the worker lane's vectors will give real ones). Shared by the core and render tests.
  *
  * Sections: 10, 11 the Campbell River (chains 1, 2; item gnis:100); 20 Babine Lake (chain 3, whose `u` lists the

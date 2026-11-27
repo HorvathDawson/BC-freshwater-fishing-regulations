@@ -115,11 +115,11 @@ build_links_frontend() {
     if (( rc )); then bad "cannot tell whether fast-fail typechecks the review app: git merge-base HEAD origin/$trunk failed (rc=$rc: ${out: -200}); git fetch origin $trunk"; return 0; fi
     base=$out
   fi
-  out=$(git diff --name-only "$base" -- curation-review/frontend 2>&1); rc=$?
+  out=$(git diff --name-only "$base" -- tools/curation-review/frontend 2>&1); rc=$?
   if (( rc )); then bad "cannot tell whether fast-fail typechecks the review app: git diff --name-only $base failed (rc=$rc: ${out: -200})"; return 0; fi
   grep -qE '\.(ts|tsx|json)$' <<<"$out" || return 0
-  if [[ -x curation-review/frontend/node_modules/.bin/tsc ]]; then ok "curation-review/frontend/node_modules"
-  else bad "no curation-review/frontend/node_modules (fast-fail typechecks the review app: a frontend file changed since ${base:0:12}): (cd curation-review/frontend && npm ci)"; fi
+  if [[ -x tools/curation-review/frontend/node_modules/.bin/tsc ]]; then ok "tools/curation-review/frontend/node_modules"
+  else bad "no tools/curation-review/frontend/node_modules (fast-fail typechecks the review app: a frontend file changed since ${base:0:12}): (cd tools/curation-review/frontend && npm ci)"; fi
 }
 
 # ── (T993 plan 5, T661 item 3) THE GATES BOTH STORE BUILDS RUN BEFORE THE HEAVY LOCK, here once so build-apk.sh and

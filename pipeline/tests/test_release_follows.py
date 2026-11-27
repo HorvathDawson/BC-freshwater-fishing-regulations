@@ -28,7 +28,7 @@ def test_every_row_names_paths_that_exist_and_no_two_rows_share_one():
             assert p not in seen, f"{p} is in two rows ({seen.get(p)}, {row.name})"
             seen[p] = row.name
         assert row.refresh in (RF.RECUT, RF.INSEASON, RF.DATA_TIER, None)
-    assert [r.name for r in RF.FOLLOWS] == ["goldens", "page-oracle", "regs-fixture", "golden-pages", "inseason",
+    assert [r.name for r in RF.FOLLOWS] == ["goldens", "page-oracle", "regs-fixture", "golden-pages", "pins", "inseason",
                                             "data-tier", "baseline"]
 
 
@@ -71,7 +71,8 @@ def test_the_tests_that_compared_with_latest_are_found_by_the_rule():
     assert {"conformance/src/regs/golden.test.ts", "tools/release-boot.test.ts"} <= set(app)
     assert all(not a.startswith("app/") and "node_modules" not in a for a in app)
     assert RF.app_tests_cmd(app)[:6] == ["pnpm", "-C", "app", "exec", "vitest", "run"]
-    assert RF.test_env(Path("/r/r-x")) == {"RELEASE_DIR": "/r/r-x", "REGS_STORE_REQUIRED": "1"}
+    # (T1135) the pins compare in the follows, whatever the shell exported: record mode is the re-cut's alone
+    assert RF.test_env(Path("/r/r-x")) == {"RELEASE_DIR": "/r/r-x", "REGS_STORE_REQUIRED": "1", "PIN_RECORD": ""}
 
 
 def test_a_new_test_that_asks_for_the_release_needs_no_list_edit(tmp_path):

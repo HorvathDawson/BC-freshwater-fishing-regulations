@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 import pytest
 
-BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 BLK = "356364114"
 #: the Fraser mainstem's region crossings in the served atlas (route measure, m)
 CROSSINGS = [("area:5", 418405.42), ("area:3", 452701.47), ("area:7A", 674465.15), ("area:5", 703745.58)]

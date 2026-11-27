@@ -167,7 +167,7 @@ const WHY = {
               "little more visible'), its own layer (`stream-noaccess`); the stream line under it is hidden. A neutral " +
               "shares no hue with any status, so it parts from them by LIGHTNESS alone, which a thin line over a pale or " +
               "dark ground washes toward; the dot pattern is the main cue and the grey the second (searched over every " +
-              "neutral: handoff/PLAN/app-integration/T165-shots/grey.mjs, inside the style build's ΔE76 12). Dark binds " +
+              "neutral: docs/app-integration/T165-shots/grey.mjs, inside the style build's ΔE76 12). Dark binds " +
               "worst: the rose closed sits at the grey's own lightness for a protanope (8.5 as lines, 12.8 as tokens) — " +
               "every lighter grey meets the boundary and missing greys, every darker one the ground",
   greyPermit: "no public access's grey against the permit hatch's plum / lilac (T165): the hatch is thin strokes laid over " +

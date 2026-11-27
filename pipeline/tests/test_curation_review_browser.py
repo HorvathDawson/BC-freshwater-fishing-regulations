@@ -31,8 +31,8 @@ from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, need, sandbox_tree
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
-FRONTEND = REPO / "curation-review" / "frontend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
+FRONTEND = REPO / "tools" / "curation-review" / "frontend"
 ADAM = "r1:adam_river_except_eve_river@1-10"
 OWNER_PORTS = {39217, 39218, 8787, 5173}
 

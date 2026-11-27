@@ -384,7 +384,7 @@ def test_a_dry_run_lands_nothing(src, tmp_path, monkeypatch, capsys):
 
 # --------------------------------------------------------------------------- the app
 
-BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo", "review",
          "evidence")
 

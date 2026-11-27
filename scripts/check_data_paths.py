@@ -4,7 +4,7 @@ step runs this. Standard library only.
 
     python3 scripts/check_data_paths.py            # every offender (file:line: the string), then the labels let through
 
-WHAT IS REFUSED: in the tracked pipeline / curation-review / project_config.py code (tests exempt: they pin the real
+WHAT IS REFUSED: in the tracked pipeline / tools/curation-review / project_config.py code (tests exempt: they pin the real
 files), any STRING THAT STARTS A PATH UNDER data/ OR cache/ — read by the AST, so a string is a string however it is
 written: `"data/source/x.json"`, `"./data/x"`, `f"data/{x}"`, `"data/" + "source/x"`, `Path("data")`,
 `os.path.join("data", "source", …)`, `"Cache/dfo"` (any case). (`ROOT / "data" / …` is anchored at the repo root:
@@ -31,7 +31,7 @@ import tokenize
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DIRS = ("pipeline", "data", "curation-review", "project_config.py")
+DIRS = ("pipeline", "data", "tools/curation-review", "project_config.py")
 SKIP = re.compile(r"(^|/)(archive|\.venv|node_modules|__pycache__|graphify-out)/")
 EXEMPT = re.compile(r"^pipeline/tests/")
 LABEL = re.compile(r"#\s*path-label:\s*(\S.{9,})$")

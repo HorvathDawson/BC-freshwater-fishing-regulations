@@ -33,7 +33,7 @@ function ticketsInLedger(parsed) {
   const named = [...new Set(ticketsIn(parsed.header ?? ""))];
   const missing = named.filter((id) => !inLedger(id));
   return [!missing.length, `${missing.join(", ")} ${missing.length > 1 ? "have" : "has"} no ledger row ` +
-    "(the row table in its file, handoff/PLAN/app-integration/tickets/Tnnn-*.md, T1041): add the ticket file and its row first, or fix the id"];
+    "(the row table in its file, tickets/Tnnn-*.md, T1041): add the ticket file and its row first, or fix the id"];
 }
 
 /** @public — `@commitlint/load` reads it by file path (tools/check-commits.mjs), which knip cannot see. */
