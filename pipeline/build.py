@@ -34,7 +34,7 @@ Every stage runs as its own process. `--jobs N` (default 2, at most 4: memory `h
 runs independent stages side by side — clim and reach start together, tiles as soon as a slot frees —
 each logging to `build-logs/<run>/<stage>.log` beside the manifest; `--jobs 1` is one after another, on
 the console. A stage is UP TO DATE when its key — a digest of everything it reads:
-the atlas's handles and registry, the corpus, the curated tree, the source stamps, its own code —
+the atlas's handles and registry, the corpus, the curated tree, the source files' sha256 (T1220), its own code —
 equals the key of its last successful run in the manifest and its outputs exist. Any stage that
 runs makes every later stage run. The atlas is never rebuilt to check it (it is deterministic for the same
 inputs — T65 / N12 — but a rebuild takes hours and a promoted atlas is immutable: every derivative is keyed
@@ -252,10 +252,60 @@ def not_build_inputs(dotted_keys: tuple[str, ...] | None = None) -> set[Path]:
     return out
 
 
-def stamp(path: Path) -> list:
-    """A big source file's identity without reading it: size and mtime. A missing one raises."""
-    st = Path(path).stat()
-    return [str(path), st.st_size, int(st.st_mtime)]
+#: (T1220) THE SOURCE HASHES CACHE, beside the manifest (so a `--side` run and a test keep their own): {"format": 1,
+#: "files": {file: {"size", "mtime_ns", "sha256"}}}, `file` repo-relative (absolute only for a file outside the repo).
+#: A cache, never a key input: the key holds only the sha256.
+HASHES_NAME = "source-hashes.json"
+HASHES_FORMAT = 1
+
+
+def hashes_path() -> Path:
+    return MANIFEST.with_name(HASHES_NAME)
+
+
+def stamp(path: Path) -> str:
+    """(T1220) A big source file's identity: `sha256:<hex>` of its BYTES — no path and no time, so a moved checkout, a
+    fresh clone, a copy or a re-download of the same bytes keys the same, and a one-byte change moves the key. (Before
+    T1220 it was [absolute path, size, mtime]: moving the checkout reran clim, tiles and deliver.) Hashed once per
+    (file, size, mtime_ns), cached in `hashes_path()`: a touch costs one rehash, then matches. A missing file raises
+    (FileNotFoundError, naming it); an unreadable cache raises, naming it."""
+    path = Path(path)
+    st = path.stat()
+    try:
+        name = str(path.resolve().relative_to(REPO_ROOT.resolve()))
+    except ValueError:
+        name = str(path.resolve())
+    known = _read_hashes()
+    have = known.get(name)
+    if have and have.get("size") == st.st_size and have.get("mtime_ns") == st.st_mtime_ns:
+        return "sha256:" + have["sha256"]
+    with path.open("rb") as f:
+        digest = hashlib.file_digest(f, "sha256").hexdigest()
+    known = _read_hashes()                # another process may have added one meanwhile: keep it
+    known[name] = {"size": st.st_size, "mtime_ns": st.st_mtime_ns, "sha256": digest}
+    _write_hashes(known)
+    return "sha256:" + digest
+
+
+def _read_hashes() -> dict:
+    p = hashes_path()
+    if not p.exists():
+        return {}
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    if not isinstance(doc, dict) or doc.get("format") != HASHES_FORMAT or not isinstance(doc.get("files"), dict):
+        raise SystemExit(f"build: {p} is not a source-hash cache of format {HASHES_FORMAT}: it is only a cache of the "
+                         "source files' sha256 — remove it and the next key rehashes them")
+    return doc["files"]
+
+
+def _write_hashes(known: dict) -> None:
+    """Atomically (a per-process temp file + `os.replace`); two writers at once lose at most an entry (a rehash)."""
+    p = hashes_path()
+    p.parent.mkdir(parents=True, exist_ok=True)                 # the writer creates its directory (AGENTS 41)
+    tmp = p.with_name(f"{p.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps({"format": HASHES_FORMAT, "files": known}, indent=1, sort_keys=True) + "\n",
+                   encoding="utf-8")
+    os.replace(tmp, p)
 
 
 def sources() -> dict:
@@ -268,7 +318,8 @@ def sources() -> dict:
 
 def deliver_sources(missing_ok: bool = False) -> dict:
     """What the deliver step reads from OUTSIDE the atlas and the corpus (N7, F06): every source
-    stamp — the raw gpkg too (the bundle fits its catchment-area model and drainage groups from it)
+    file's sha256 (`stamp`, T1220) — the raw gpkg too (the bundle fits its catchment-area model and drainage groups
+    from it)
     — and the gauge envelope `clim.json` by CONTENT: the `clim` stage writes it, and a rewrite need
     not change its size or time. A missing one raises; only the PLAN passes `missing_ok` (the `clim`
     stage is about to make it, and deliver is keyed again after it runs — `READS_CONTENT`)."""

@@ -18,7 +18,9 @@ VALUES: `sha256:<hex>` of the file's bytes, except
   - `curated:waters.cuts` is `anchors:<hex>`, the digest of every cut's ANCHOR (`splits.anchor_digests`, the record
     `split_anchors.json` already keeps, T133): a label, note or confidence edit moves no cut and reaches the bundle
     through `splits.resolved.json` / the sidecars, so it is no reason to refuse;
-  - `source:fwa_gpkg` is `stamp:<size>:<mtime>` (9.5 GB; `pipeline.build.stamp` identifies it the same way);
+  - `source:fwa_gpkg` (and `source:fwa_coast`) is `stamp:<size>:<mtime>` (9.5 GB). Since T1220 the stage keys pin
+    these files by sha256 (`pipeline.build.stamp`); this record still uses mtime, so a copy with the same bytes reads
+    as "changed" here (T1220 says why it was left: switching it would mark every recorded atlas behind);
   - `not read (<flag>)` when the build was told to skip the file (`--no-splits`, `--no-added-lakes`, …): an atlas
     built without a curated input is behind it.
 
