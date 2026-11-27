@@ -300,6 +300,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       // (T354) the rule book in the app, full screen (native); the web's draws nothing (COVERED)
       "packages/ui-native/src/regs/PdfViewer.native.tsx#PdfViewer: a Modal",
       "packages/ui-native/src/regs/PdfViewer.web.tsx#PdfViewer: draws PdfViewer",
+      // (T1211) the floating Map key, open: a back layer (back closes the card; a tap on the map does too, `noteMapTap`)
+      "packages/ui-native/src/shell/MapKey.tsx#MapKey: opens keyOpen",
       "packages/ui-native/src/spot/Confirm.tsx#Confirm: takes onCancel",
       "packages/ui-native/src/spot/ParkingPick.tsx#ParkingPick: takes onCancel",
     "packages/ui-native/src/spot/PhotoViewer.tsx#PhotoViewer: a Modal",

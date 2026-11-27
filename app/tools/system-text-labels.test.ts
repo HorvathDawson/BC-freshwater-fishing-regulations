@@ -16,9 +16,11 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 const SCALE = vi.hoisted(() => ({ v: 1 }));
+/** (T1211 review) the window width components read (`useWindowDimensions`): jsdom's is 0, so a page is drawn for the width it is laid out at */
+const WIN = vi.hoisted(() => ({ w: 1024 }));
 vi.mock("react-native", async (importOriginal) => {
   const rn = await importOriginal<typeof import("react-native")>();
   type P = React.ComponentProps<typeof rn.Text>;
@@ -31,7 +33,7 @@ vi.mock("react-native", async (importOriginal) => {
     }];
     return h(rn.Text as never, { ...p, ref, style: scaled });
   });
-  return { ...rn, Text };
+  return { ...rn, Text, useWindowDimensions: () => ({ width: WIN.w, height: 915, scale: 1, fontScale: SCALE.v }) };
 });
 const { PixelRatio, View } = await import("react-native");
 vi.spyOn(PixelRatio, "getFontScale").mockImplementation(() => SCALE.v);
@@ -42,6 +44,7 @@ const { MapRail } = await import("../packages/ui-native/src/MapRail");
 const { RegsLayerToggle } = await import("../packages/ui-native/src/shell/RegsLayerToggle");
 const { TABS } = await import("../packages/ui-native/src/TabBar");
 const { MapKey } = await import("../packages/ui-native/src/shell/MapKey");
+const { MapLegend } = await import("../packages/ui-native/src/shell/MapLegend");
 const { MAP_KEY, SALMON_WORDS } = await import("@app/core");
 
 /** every text-holding leaf: its words, how many lines it drew, whether it is cut (ellipsis or hidden overflow), its width and its cell's */
@@ -137,8 +140,54 @@ describe("T1201 the switch in place: the whole map rail (T1201_SHOTS saves its p
   }, 120_000);
 });
 
+/**
+ * (T1211, review) THE OPEN KEY BESIDE THE RAIL, AS LAID OUT: the Map key opened at the map's foot (every entry, the fish
+ * obstacles on: its widest) and the map's rail at the right, one page per width and text size, the window that wide when
+ * the key is drawn (`useWindowDimensions`, `WIN`); Chrome reports both boxes. The card's right edge must stop short of the rail's
+ * left edge — measured, so a wider rail at a larger text size, or a wider card, fails here whatever RAIL_CLEAR says.
+ */
+const RECTS = `JSON.stringify((() => { const r = (id) => document.querySelector('[data-testid="' + id + '"]')?.getBoundingClientRect();
+  const c = r("map-key-card"), m = r("map-rail-column"); return { card: c && c.right, rail: m && m.left, w: innerWidth }; })())`;
+writeFileSync(join(dir, "rects.js"), RECTS);
+function keyBesideRail(): Record<string, { card: number; rail: number; w: number }> {
+  const jobs: { page: string; size: [number, number]; measure: string }[] = [];
+  const keys: string[] = [];
+  const col = { flowParam: "discharge", horizon: 0, mm: { onConditions: false }, cond: { marks: [] }, gearMarked: true,
+                regsLayer: "standard", salmonOffered: true, statusOk: true, salmonFacts: null, setRegsLayer() {}, isolated: null,
+                isolate() {}, layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles: true } } } };
+  for (const scale of [1, 1.3]) for (const w of WIDTHS) {
+    SCALE.v = scale;
+    WIN.w = w;
+    render(h(View, { style: { flex: 1 } },
+             h(MapRail, { palette: LIGHT, onLayers() {}, me: { on: false, following: false, busy: false, notice: null, press() {}, dismiss() {} } },
+               h(RegsLayerToggle, { col: col as never, palette: LIGHT })),
+             h(View, { style: { flex: 1, justifyContent: "flex-end" } },
+               h(MapLegend, { col: col as never, conditions: false, palette: LIGHT, theme: "light", mapDay: null }))));
+    fireEvent.click(screen.getByTestId("map-key-chip"));
+    const file = join(dir, `keyrail-${w}-${scale}.html`);
+    writeFileSync(file, snapshot());
+    cleanup();
+    jobs.push({ page: file, size: [w, 915], measure: join(dir, "rects.js") });
+    keys.push(`${w} wide, text ${scale}x`);
+  }
+  SCALE.v = 1;
+  WIN.w = 1024;
+  const out = execFileSync(process.execPath, [join(process.cwd(), "tools", "wide-measure.mjs"), JSON.stringify({ jobs })],
+                           { encoding: "utf8", timeout: 120_000 });
+  const res = JSON.parse(out) as { card: number; rail: number; w: number }[];
+  return Object.fromEntries(keys.map((k, i) => [k, res[i]!]));
+}
+
 describe("T1211 the floating Map key's chip (T1201's rule)", () => {
   it("its word is one line and whole at 1, 1.15 and 1.3, 320 to 412 wide; the chip grows round it", () => {
     expect(faults(laidOut("key"), [`${MAP_KEY.chip.word} ▴`])).toEqual([]);
+  }, 120_000);
+
+  it("opened at its widest, the card stops short of the rail at 320, 360 and 412 wide, text 1x and 1.3x (measured)", () => {
+    const m = keyBesideRail();
+    if (process.env.T1201_DEBUG) console.log(JSON.stringify(m));
+    const bad = Object.entries(m).filter(([, r]) => !(r.card > 0 && r.rail > 0 && r.card <= r.rail - 4))
+      .map(([k, r]) => `${k}: card right ${r.card}, rail left ${r.rail}`);
+    expect(bad).toEqual([]);
   }, 120_000);
 });

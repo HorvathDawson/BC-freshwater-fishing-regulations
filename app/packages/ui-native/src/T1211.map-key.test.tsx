@@ -4,23 +4,32 @@
  * and the two rule statuses are "Its own rules / Region rules only" everywhere they are named.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, useState } from "react";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MAP_KEY, WATER_STATUS } from "@app/core";
+import { BackLayerContext, type BackLayers } from "@app/ui";
 import { MapLegend } from "./shell/MapLegend";
-import { KEY_TARGET, RAIL_CLEAR } from "./shell/MapKey";
+import { KEY_TARGET, noteMapTap } from "./shell/MapKey";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
 
-const col = (regsLayer: "standard" | "salmon") => ({
+const col = (regsLayer: "standard" | "salmon", over: Record<string, unknown> = {}, obstacles = false) => ({
   flowParam: "discharge", horizon: 0, mm: { onConditions: false }, cond: { marks: [] }, gearMarked: true, regsLayer,
   salmonOffered: true, statusOk: true, salmonFacts: null, setRegsLayer: () => {}, isolated: null, isolate: () => {},
-  layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles: false } } },
+  layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles } } }, ...over,
 }) as never;
-const show = (mode: "standard" | "salmon" = "standard") =>
-  render(<MapLegend col={col(mode)} conditions={false} palette={LIGHT} theme="light" mapDay={null} />);
+const show = (mode: "standard" | "salmon" = "standard", obstacles = false) =>
+  render(<MapLegend col={col(mode, {}, obstacles)} conditions={false} palette={LIGHT} theme="light" mapDay={null} />);
+/** the key over a map whose isolate is real state (useMapColouring's toggle: the same class again shows all) */
+function Isolating() {
+  const [isolated, setIsolated] = useState<string | null>(null);
+  const isolate = (c: string) => setIsolated((p) => (p === c ? null : c));
+  return <MapLegend col={col("standard", { isolated, isolate })} conditions={false} palette={LIGHT} theme="light" mapDay={null} />;
+}
+const chipWord = () => screen.getByTestId("map-key-word").textContent;
 const words = () => screen.queryAllByTestId("legend-entry").map((e) => e.textContent);
 
 describe("(T1211) the floating Map key", () => {
@@ -36,15 +45,62 @@ describe("(T1211) the floating Map key", () => {
     expect(words()).toEqual([]);
   });
 
-  it("a press opens the whole key in a card (all seven, in two rows), clear of the rail; a second press closes it", () => {
+  it("a press opens the whole key in a card (the bar's seven in its two rows, then the region boundary under them); a second press closes it", () => {
     show();
     fireEvent.click(screen.getByTestId("map-key-chip"));
     expect(screen.getByTestId("map-key-chip").getAttribute("aria-expanded")).toBe("true");
     expect(words()).toEqual(["Closed", "Its own rules", "Region rules only", "No access", "Fly only", "Bait ban", "Not fishable"]);
     expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
-    expect(parseFloat(screen.getByTestId("map-key-card").style.maxWidth)).toBeLessThanOrEqual(window.innerWidth - RAIL_CLEAR);
+    expect(screen.getByTestId("map-key-lines").textContent).toBe(MAP_KEY.region);
+    // (T1208) the boundary's swatch is the map's dash-dot: a dash, a gap, a dot, a gap
+    const parts = [...screen.getByTestId("swatch-boundary").children].map((e) => [parseFloat((e as HTMLElement).style.width), (e as HTMLElement).style.backgroundColor !== ""]);
+    expect(parts.slice(0, 4)).toEqual([[10, true], [4, false], [2, true], [4, false]]);
     fireEvent.click(screen.getByTestId("map-key-chip"));
     expect(words()).toEqual([]);
+  });
+
+  it("a class shown alone is said on the chip, open or closed; one tap on Show all draws every class again", () => {
+    render(<Isolating />);
+    expect(screen.queryByTestId("map-key-show-all")).toBeNull();
+    fireEvent.click(screen.getByTestId("map-key-chip"));
+    fireEvent.click(screen.getAllByTestId("legend-entry").find((e) => e.textContent === "Its own rules")!);
+    fireEvent.click(screen.getByTestId("map-key-chip"));                    // the key closed: the isolate stays
+    expect(words()).toEqual([]);
+    expect(chipWord()).toContain(MAP_KEY.chip.only("Its own rules"));
+    expect(screen.getByTestId("map-key-chip").getAttribute("aria-label")).toContain("Its own rules only");
+    const all = screen.getByTestId("map-key-show-all");
+    expect([all.getAttribute("role"), parseFloat(all.style.minHeight)]).toEqual(["button", KEY_TARGET]);
+    fireEvent.click(all);
+    expect(chipWord()).toContain(MAP_KEY.chip.word);
+    expect(screen.queryByTestId("map-key-show-all")).toBeNull();
+    fireEvent.click(screen.getByTestId("map-key-chip"));
+    expect(screen.getAllByTestId("legend-entry").filter((e) => e.getAttribute("aria-pressed") === "true")).toEqual([]);
+  });
+
+  it("fish obstacles on: their marks are in the opened key (the bar had them; T300)", () => {
+    show("standard", true);
+    expect(screen.queryByTestId("legend-obstacles")).toBeNull();
+    fireEvent.click(screen.getByTestId("map-key-chip"));
+    const card = screen.getByTestId("map-key-card");
+    expect(card.querySelector('[data-testid="legend-obstacles"]')?.textContent).toContain(MAP_KEY.obstacle.falls);
+  });
+
+  it("the open key is a back layer (Android's back, the browser's) and a tap on the map closes it", () => {
+    const open: (() => void)[] = [];
+    const layers: BackLayers = { register: (c) => { open.push(c); return () => { open.splice(open.indexOf(c), 1); }; },
+                                 back: () => { const c = open.at(-1); if (!c) return false; c(); return true; } };
+    render(<BackLayerContext.Provider value={layers}>
+      <MapLegend col={col("standard")} conditions={false} palette={LIGHT} theme="light" mapDay={null} />
+    </BackLayerContext.Provider>);
+    expect(open).toHaveLength(0);
+    fireEvent.click(screen.getByTestId("map-key-chip"));
+    expect(open).toHaveLength(1);
+    act(() => { layers.back(); });
+    expect([words(), open.length]).toEqual([[], 0]);
+    fireEvent.click(screen.getByTestId("map-key-chip"));
+    expect(words().length).toBeGreaterThan(0);
+    act(() => { noteMapTap(); });
+    expect([words(), open.length]).toEqual([[], 0]);
   });
 
   it("Salmon's key is the same chip, its own entries behind it", () => {

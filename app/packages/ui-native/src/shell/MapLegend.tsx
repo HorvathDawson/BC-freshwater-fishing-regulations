@@ -10,7 +10,7 @@ import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, OTHER_QUANTITY_WORDS, TEMP
          WATER_STATUS_LINE, WATER_STATUSES, type WaterStatus, waterLegend, salmonLegend, GEAR_LEGEND,
          RUN_WORDS, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
-import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour } from "@app/map/colours";
+import { closedCueColour, regionEdgeStyle, gaugeOnlyColours, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour } from "@app/map/colours";
 import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
 import { useCoachTarget } from "../CoachMarks";
@@ -83,18 +83,43 @@ export function MapLegend({ col, conditions, palette: drawnPalette, theme, mapDa
                  cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
+  // (T300) FISH OBSTACLES ON: their marks join the key, one icon and a word each (the same drawings the map wears)
+  const obstacles = !conditions && layers.effective.groups.obstacles === true ? (
+    <View key="obstacles" testID="legend-obstacles" style={{ width: "100%", flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 12, rowGap: 4 }}>
+      {OBSTACLE_ICON_KINDS.map((k) => (
+        <View key={k} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+          <ObstacleIcon type={k} ink={palette.ink} size={16} />
+          <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: palette.sub }}>{MAP_KEY.obstacle[k]}</Text>
+        </View>
+      ))}
+    </View>
+  ) : null;
   // (T1211) THE MAP TAB'S REGULATIONS KEY FLOATS OVER THE MAP (`MapKey`): a chip near the bottom, the whole key behind one
-  // press; no bar under the map. Trout and Salmon alike, the same entries as the bar's two rows. A desktop keeps its card.
+  // press; no bar under the map. Trout and Salmon alike, the same entries as the bar's two rows, then (T1208) the region
+  // boundary the map draws in both, and the fish obstacles while they are on. A desktop keeps its card.
   if (!conditions && !card && col.statusOk && layers.water.drawn === "regulations") {
     const off = <LegendCount key="off" palette={palette} colour={notFishingColours(theme).fill} tight
                              rim={notFishingColours(theme).edge} label={MAP_KEY.notFishing} />;
     const salmon = col.regsLayer === "salmon";
+    const region = regionEdgeStyle(theme);
     // the opened key's rows are the bar's own (T396): the three classes, then the rest; Salmon's issue entry on a third
     const rows = salmon ? [salmonRows.slice(0, 3), [...salmonRows.slice(3), statusRow("no_access", false), ...gearRows], issueRow]
                         : [statusRows.filter((s) => s.key !== "no_access"), [...statusRows.filter((s) => s.key === "no_access"), ...gearRows, off]];
+    // then the map's other marks: the region boundary (both modes draw it) and the obstacles while on
+    const lines = <>
+      <LegendCount palette={palette} colour={region.colour} line boundary={region.dash} entryId="legend-region" tight label={MAP_KEY.region} />
+      {obstacles}
+    </>;
     const samples = salmon ? salmonLegend().slice(0, 3).map((r) => salmonStatusColour(theme, r.status, sat))
                            : (["closed", "own", "base"] as const).map((s) => palette.waterStatus[s]);
-    return <MapKey palette={palette} rows={rows} samples={samples} />;
+    // (T377) the class shown alone, said on the chip (open or closed) with its one-tap way back
+    const cls = col.isolated;
+    const isolated = cls == null ? null : salmon
+      ? { label: MAP_KEY.salmon[cls as keyof typeof MAP_KEY.salmon] ?? cls, colour: salmonStatusColour(theme, cls as never, sat) }
+      : { label: cls === "closed" ? closedKey(mapDay) : MAP_KEY.status[cls as keyof typeof MAP_KEY.status] ?? cls,
+          colour: palette.waterStatus[cls as WaterStatus] };
+    return <MapKey palette={palette} rows={rows} lines={lines} samples={samples}
+                   isolated={isolated} onShowAll={() => { if (cls != null) col.isolate(cls); }} />;
   }
   const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions} card={card}>
@@ -175,17 +200,8 @@ export function MapLegend({ col, conditions, palette: drawnPalette, theme, mapDa
                      testID="legend-basin-days" />
         </View>
       )}
-      {/* (T300) FISH OBSTACLES ON: their marks join the key, one icon and a word each (the same drawings the map wears) */}
-      {!conditions && layers.effective.groups.obstacles === true && (
-        <View testID="legend-obstacles" style={{ width: "100%", flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 12, rowGap: 4 }}>
-          {OBSTACLE_ICON_KINDS.map((k) => (
-            <View key={k} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-              <ObstacleIcon type={k} ink={palette.ink} size={16} />
-              <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: palette.sub }}>{MAP_KEY.obstacle[k]}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+      {/* (T300) FISH OBSTACLES ON: their marks join the key (`obstacles`, above) */}
+      {obstacles}
     </LegendStrip>
   );
   if (!fishery) return strip;

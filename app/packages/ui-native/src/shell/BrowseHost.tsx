@@ -27,6 +27,7 @@ import { RegsLayerToggle, RegsLayerStrip } from "./RegsLayerToggle";
 // (`@app/map`): MapScreen's own few KiB are too, so a start on the map no longer waits for the later chunk — that chunk
 // (the Regulations page since T910, More, Spots, Conditions…) then comes once the line is quiet and the browser idle
 import { MapScreen } from "../MapScreen";
+import { noteMapTap } from "./MapKey";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const SpotsScreen = part(() => import("../later").then((m) => m.SpotsScreen));
@@ -112,6 +113,9 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const opensWater = () => !picking && tab !== "runs"
     && tapOpensWater({ tab, flowParam, zoom: camera.current?.zoom ?? HOME.zoom, handover: HANDOVER_Z });
   const where = (lat?: number, lon?: number) => (lat !== undefined && lon !== undefined ? { lat, lon } : null);
+  // (T1211) any tap on the map closes the open Map key (`noteMapTap`), then does what a tap does
+  const pointTap = mapPointTap(rail, wideSearch ? closeSearch : null);
+  const onMapPoint = useCallback((lat: number, lon: number) => { noteMapTap(); pointTap?.(lat, lon); }, [pointTap]);
   // (T716) and the open starts here, behind the map, while MapLibre waits out a double tap (`tapAhead`)
   const onPressStart = useCallback((_layer: string, featureId: SectionKey, lat?: number, lon?: number) => {
     if (!opensWater()) return;
@@ -299,7 +303,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // (T292) a sewage lagoon / tailings pond / dump (Map tab only): what it is, never regulations
                      onPressNotFishing={picking || wideSearch || tab !== "map" ? undefined : onNotFishing}
                      // and anywhere off a spot, a tap clears the selected spot's pin (T145, `mapPointTap`)
-                     onMapPoint={mapPointTap(rail, wideSearch ? closeSearch : null)}
+                     onMapPoint={onMapPoint}
                      onError={mapError} />
         : null;
 }
