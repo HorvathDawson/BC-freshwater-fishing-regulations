@@ -777,6 +777,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         del named_geo
         # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets
         _nearer.write_trib_nearer(db, cov)
+        # (T1251) THE MOST UPSTREAM ROW IS NAMED when two inherited closures close one day: trib_nearer + nested walks
+        _nearer.write_trib_upstream(db, cov)
         _nearer.prove(db)
 
     # Everything below needs a producer that does not exist yet, or exists but has not been

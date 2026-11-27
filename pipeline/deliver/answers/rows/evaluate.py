@@ -17,10 +17,22 @@ def _stable_sort(xs, key):
     return sorted(xs, key=key)
 
 
-def _closure_cmp(a, b) -> int:
+#: POLICY (T1251, owner 2026-11-27: "The most upstream row, in 0.10.0"): THE MOST UPSTREAM ROW IS NAMED. Of two
+#: INHERITED closures (both reaching the section by the tributary walk, `via` "trib") of two entries tied on rank that
+#: both close the day, the one whose row's water is the more upstream
+#: (`read._upstream_of`, the bundle's `trib_upstream`: `trib_nearer` and the rows whose tributary walks nest) governs
+#: and is the one the card names; the other agrees. Words only: both still close (RULINGS T14: a closure is never
+#: beaten by a nearer row), the day, the fish and the status are the same. Asked before year-round-before-dated and the
+#: fish count. False = T206's order alone (Lower Campbell Lake's creeks name John Hart Lake's closure by entry key).
+THE_MOST_UPSTREAM_ROW_IS_NAMED = True
+
+
+def _closure_cmp(a, b, upstream: frozenset = frozenset()) -> int:
     """Which of two closures speaking for a fish governs (T206, owner 2026-10-26: never by entry key):
     the nearer rank; two rules of ONE entry keep the book's order (rule order), as before; between two
-    entries, a standing (year-round) closure before a dated one, then the one naming more fish:
+    entries, of two inherited closures the more upstream row's (`THE_MOST_UPSTREAM_ROW_IS_NAMED`, `upstream` the
+    (near, far) pairs), then a
+    standing (year-round) closure before a dated one, then the one naming more fish:
     Region 4's invasive-species notice (bass, pike, walleye, perch) over the quota box's single
     "0, CLOSED" lines, which key order let win once `z4:species_quotas` became `z4:daily_quotas`,
     splitting the one folded row into five."""
@@ -28,6 +40,11 @@ def _closure_cmp(a, b) -> int:
         return -1 if a.rank < b.rank else 1
     if a.entry_id == b.entry_id:
         return 0                                   # one entry: the book's rule order
+    if THE_MOST_UPSTREAM_ROW_IS_NAMED and upstream and a.via == "trib" and b.via == "trib":
+        if (a.entry_id, b.entry_id) in upstream:
+            return -1
+        if (b.entry_id, a.entry_id) in upstream:
+            return 1
     da, db = bool(a.f.get("when")), bool(b.f.get("when"))
     if da != db:
         return 1 if da else -1
@@ -37,6 +54,17 @@ def _closure_cmp(a, b) -> int:
 
 
 closure_order = cmp_to_key(_closure_cmp)
+
+
+def closure_order_for(upstream: frozenset):
+    """`closure_order` with the bundle's upstream pairs (`read._upstream_of`)."""
+    return cmp_to_key(lambda a, b: _closure_cmp(a, b, upstream))
+
+
+def _upstream(P) -> frozenset:
+    from pipeline.deliver.bundle import read
+    path = getattr(P.B, "path", None)
+    return read._upstream_of(path) if path else frozenset()
 
 
 #: OWNER 2026-10-28 (Q87): a pool naming FEWER fish than the winning pool (a strict subset: the Liard's bull trout 1
@@ -84,7 +112,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     partly = [r for r in A if verdict[r.key][1]]
     steelhead = S == "RB" and P.steelhead_water
     pools = [r for r in A if r.k == "pool"]
-    closed = _stable_sort([r for r in A if is_closure_gate(r.f, r.k)], key=closure_order)
+    closed = _stable_sort([r for r in A if is_closure_gate(r.f, r.k)], key=closure_order_for(_upstream(P)))
     rel = _stable_sort([r for r in A if r.k == "gate" and not is_closure_gate(r.f, r.k)], key=lambda r: r.rank)
 
     def tk(r):

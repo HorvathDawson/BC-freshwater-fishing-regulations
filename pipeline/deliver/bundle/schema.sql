@@ -712,6 +712,12 @@ CREATE TABLE water_continue (ord       INTEGER PRIMARY KEY,
                              next_part INTEGER NOT NULL);
 CREATE TABLE trib_nearer (near TEXT NOT NULL, far TEXT NOT NULL,
                           PRIMARY KEY (near, far)) WITHOUT ROWID;
+-- (T1251, owner 2026-11-27 "The most upstream row, in 0.10.0") `trib_upstream`: the (near, far) pairs that NAME a
+-- closure when two inherited closures close one day — `trib_nearer`'s, plus water rows whose tributary walks nest
+-- (near's walk inside far's: Lower Campbell Lake's inside John Hart Lake's). Read only for the citation
+-- (`answers.rows.evaluate`), never for what speaks (`nearer.WALKS_THAT_NEST_ORDER_THE_ROWS`).
+CREATE TABLE trib_upstream (near TEXT NOT NULL, far TEXT NOT NULL,
+                            PRIMARY KEY (near, far)) WITHOUT ROWID;
 
 -- licensing -----------------------------------------------------------------------
 -- WHAT YOU MUST HOLD, and which waters are Classified. Not rules: licensing never competes and

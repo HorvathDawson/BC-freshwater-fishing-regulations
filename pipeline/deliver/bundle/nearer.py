@@ -163,6 +163,70 @@ def compute_trib_nearer(db: sqlite3.Connection) -> Set[Tuple[str, str]]:
     return nearer_pairs(down, own, co)
 
 
+#: POLICY (T1251, owner 2026-11-27: "The most upstream row, in 0.10.0"): THE MOST UPSTREAM ROW IS NAMED. When two
+#: inherited closures close a water on the same day, the card names the row whose water is the more upstream on the
+#: water's way down: `trib_upstream`, the pairs `trib_nearer` orders plus the pairs whose TRIBUTARY WALKS NEST — every
+#: section near's walk reaches (`ruleset` via `trib`), far's walk reaches too, and not the reverse. Nesting orders two
+#: lakes on one river where `trib_nearer` cannot: Lower Campbell Lake and John Hart Lake both exit into the Campbell
+#: River, which runs on through John Hart, so their outlets meet the same first water; Lower Campbell's walk lies inside
+#: John Hart's. `trib_nearer` decides first (a nesting pair it orders the other way is not taken); two rows of ONE water
+#: (a river's row and its tributaries' row) are never ordered by nesting. Read only to name a closure
+#: (`answers.rows.evaluate`), never to decide what speaks (that stays `trib_nearer`, RULINGS T14). False = no nesting
+#: pairs: the citation reads `trib_nearer` alone (the mutation pin).
+WALKS_THAT_NEST_ORDER_THE_ROWS = True
+
+
+def nested_pairs(walk: Mapping[str, Set[int]], own: Mapping[str, Set[str]],
+                 co: Iterable[frozenset]) -> Set[Tuple[str, str]]:
+    """{(near, far)} over the entry pairs `co`: near's walk (its sections, `walk`) is a strict subset of far's, and the
+    two rows share no water (`own`)."""
+    out: Set[Tuple[str, str]] = set()
+    for pair in sorted(co, key=sorted):
+        a, b = sorted(pair)
+        if a not in walk or b not in walk or own.get(a, set()) & own.get(b, set()):
+            continue
+        if walk[a] < walk[b]:
+            out.add((a, b))
+        elif walk[b] < walk[a]:
+            out.add((b, a))
+    return out
+
+
+def compute_trib_upstream(db: sqlite3.Connection) -> Set[Tuple[str, str]]:
+    """The (near, far) pairs a closure's citation reads (`WALKS_THAT_NEST_ORDER_THE_ROWS`): `trib_nearer`'s, plus the
+    nesting pairs it leaves unordered. From the bundle's own rows (`ruleset`, `section_ruleset`, `entry.matched`)."""
+    import json
+    nearer = compute_trib_nearer(db)
+    if not WALKS_THAT_NEST_ORDER_THE_ROWS:
+        return nearer
+    sets: Dict[int, Set[str]] = {}
+    for set_id, e in db.execute("SELECT DISTINCT set_id, entry_id FROM ruleset "
+                                "WHERE via = 'trib' AND entry_id LIKE 'r%' ORDER BY set_id, entry_id"):
+        sets.setdefault(set_id, set()).add(e)
+    co = {frozenset((a, b)) for es in sets.values() for a in es for b in es if a < b}
+    want = {e for p in co for e in p}
+    members: Dict[int, List[int]] = {}
+    for sid, set_id in db.execute("SELECT sid, set_id FROM section_ruleset ORDER BY sid"):
+        if set_id in sets:
+            members.setdefault(set_id, []).append(sid)
+    walk: Dict[str, Set[int]] = {}
+    for set_id, es in sets.items():
+        for e in es & want:
+            walk.setdefault(e, set()).update(members.get(set_id, ()))
+    own: Dict[str, Set[str]] = {}
+    for e, matched in db.execute("SELECT entry_id, matched FROM entry ORDER BY entry_id"):
+        if e in want:
+            own[e] = set(json.loads(matched or "[]"))
+    ordered = nearer | {(b, a) for a, b in nearer}
+    return nearer | {p for p in nested_pairs(walk, own, co) if p not in ordered}
+
+
+def write_trib_upstream(db: sqlite3.Connection, cov) -> None:
+    pairs = sorted(compute_trib_upstream(db))
+    db.executemany("INSERT INTO trib_upstream (near, far) VALUES (?,?)", pairs)
+    cov.filled("trib_upstream", len(pairs))
+
+
 def write_trib_nearer(db: sqlite3.Connection, cov) -> None:
     pairs = sorted(compute_trib_nearer(db))
     db.executemany("INSERT INTO trib_nearer (near, far) VALUES (?,?)", pairs)
@@ -175,6 +239,9 @@ def prove(db: sqlite3.Connection) -> None:
     if stored != compute_trib_nearer(db):
         raise SystemExit("trib_nearer: the stored pairs are not what item_down, entry.matched and the "
                          "rule sets give — rebuild the bundle")
+    if set(db.execute("SELECT near, far FROM trib_upstream")) != compute_trib_upstream(db):
+        raise SystemExit("trib_upstream: the stored pairs are not what trib_nearer and the rule sets' walks give — "
+                         "rebuild the bundle")
 
 
 def _lifts_of(x: dict) -> Set[str]:

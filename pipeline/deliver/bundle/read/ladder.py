@@ -169,6 +169,37 @@ def _nearer_of(path: str) -> frozenset:
     return got
 
 
+#: (T1251) (near, far) pairs that NAME a closure per bundle path (`bundle.nearer`, table `trib_upstream`)
+_UPSTREAM_BY_PATH: dict = {}
+
+
+def _upstream_of(path: str) -> frozenset:
+    """The bundle's `trib_upstream` pairs (`nearer.WALKS_THAT_NEST_ORDER_THE_ROWS`): which of two inherited closures
+    closing one day the card names. Read once per path, as `_nearer_of`: a real bundle without the table is refused
+    (rebuild it); a hand-made one or a test's seeded rule table has none unless a test seeds `_UPSTREAM_BY_PATH`."""
+    got = _UPSTREAM_BY_PATH.get(path)
+    if got is not None:
+        return got
+    import os
+    if path in _RULES_BY_PATH and not os.path.exists(path):
+        got = frozenset()
+    else:
+        db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        try:
+            names = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+            if "trib_upstream" in names:
+                got = frozenset(db.execute("SELECT near, far FROM trib_upstream"))
+            elif "rule" in names:
+                raise SystemExit(f"read: {path} has no `trib_upstream` table — rebuild the bundle "
+                                 f"(`python -m pipeline.deliver.bundle`)")
+            else:
+                got = frozenset()
+        finally:
+            db.close()
+    _UPSTREAM_BY_PATH[path] = got
+    return got
+
+
 def _rules_of(path: str) -> dict:
     """Every rule of a bundle by `(entry, rule)`, each with its ladder rank (`source_of`) worked
     out once — read once per bundle path."""
