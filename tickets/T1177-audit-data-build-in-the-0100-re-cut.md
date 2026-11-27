@@ -51,7 +51,7 @@ diff where a binding moves), listed for his look before the build ships. Related
     printed exception stops the rows below it (Kinbasket, Buttle). His 11-27 answers, all built: Kootenay (no change),
     Whiteswan's 14.0 km feeders above the lake (the own-stream rule, which also closes 87.7 km of Hatzic Slough's creeks to
     white sturgeon: his yes, see ## Owner), Upper Arrow climbs from the Hwy 1 bridge to Kinbasket's exception (+24,104.7 km, all already
-    under Lower Arrow's same words). DFO one logic ("Yes, in 0.10.0"): branch `fix/T1177-dfo-one-logic-2` (latent, not built: a DFO place's own printed lake exception never feeds `stops`; none today). T1248 (OPEN):
+    under Lower Arrow's same words). DFO one logic ("Yes, in 0.10.0"): branch `fix/T1177-dfo-one-logic-2` (latent, not built: a DFO place's own printed lake exception never feeds `stops`; none today; OPEN, untraced: why the shared walk left 4 Kitsumkalum side channels off the DFO lake places, which the book's walks carry by T1146). T1248 (OPEN):
     probably not a real gap (Lansdowne and Marion, 21 of 235 km, drain to Columbia Lake above Kinbasket's exception; Sun,
     Warspite and 195.6 km unnamed not traced).
 11. The year-bar fix (partial-closure line type) is wanted in the re-cut but waits on the design chat's look (T1180).

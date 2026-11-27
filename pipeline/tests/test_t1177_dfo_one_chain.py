@@ -210,3 +210,47 @@ def test_own_first_keeps_the_tier_and_puts_the_flag_after_a_region_part():
     assert sorted(["sec", "small", "big"], key=key) == ["small", "big", "sec"]
     k2 = S.own_first(lambda l: (0, {"big": 1, "small": 0}[l], l), own, at=2)
     assert sorted(["big", "small"], key=k2) == ["small", "big"]            # the region part still decides first
+
+
+def _answer_on(payload, sections, sid, sp, md):
+    """(the place that answers, the verdict's status, its words) for one species on one day (mmdd)."""
+    ch = payload["chains"][dict(sections)[sid]]
+    k, day = S.SPECIES.index(sp), list(S.DAYS).index(md)
+    at = lambda runs: [runs[i + 1] for i in range(0, len(runs), 2) if runs[i] <= day][-1]    # noqa: E731
+    a, v = at(ch["a"][k]), payload["verdicts"][at(ch["sp"][k])]
+    return (ch["l"][a] if a >= 0 else None), v["s"], v["t"]
+
+
+def test_the_rivers_own_place_overrides_a_lake_walk_on_every_fish_and_day_and_the_lake_fills_only_its_silence():
+    """The owner (2026-11-27, the Redsand example): "we need to make sure that the mainstem (Kitsumkalum River
+    (including tributaries)) still overrides the redsand quotas properly". A river place and a lake place on it that
+    disagree on two fish and on dates: on the river's own section the river's place answers wherever it has a rule;
+    the lake's place answers only on the fish and days the river's place says nothing; on the lake's creek (no own
+    place) the lake's place answers first. MUTATION: own-place-first off and the lake's chinook opening answers on the
+    river."""
+    AUG_SEP = {"dates": [{"from_month": 8, "from_day": 1, "to_month": 11, "to_day": 30}]}
+    JUL_AUG = {"dates": [{"from_month": 7, "from_day": 1, "to_month": 8, "to_day": 31}]}
+    files, feeds, placed, sid_of, items = _fixture()
+    feeds["6"]["locators"] = [
+        {"fingerprint": "fa", "rules": [_rule("a.co", ["CO"], 0, may_target=False), _rule("a.ch", ["CH"], 0, may_target=False)]},
+        {"fingerprint": "fr", "rules": [_rule("r.co", ["CO"], 2, SEP_OCT), _rule("r.ch", ["CH"], 0, may_target=False)]},
+        {"fingerprint": "fl", "rules": [_rule("l.co", ["CO"], 4, AUG_SEP), _rule("l.ch", ["CH"], 1, JUL_AUG),
+                                        _rule("l.sk", ["SK"], 2, JUL_AUG)]}]
+    payload, sections = S.build(files, feeds, placed, sid_of, items, section_regions=None)
+    on = lambda sid, sp, md: _answer_on(payload, sections, sid, sp, md)[:2]               # noqa: E731
+    assert on(11, "CO", 920) == ("6:river", "open") and _answer_on(payload, sections, 11, "CO", 920)[2].startswith("r.co")
+    assert on(11, "CH", 715) == ("6:river", "closed")           # the lake's Jul-Aug chinook opening never answers here
+    assert on(11, "CO", 815) == ("6:lake", "open")              # the river says nothing of coho in August: the lake fills
+    assert on(11, "SK", 715) == ("6:lake", "open")              # nor of sockeye
+    assert on(12, "CO", 920) == ("6:lake", "open") and _answer_on(payload, sections, 12, "CO", 920)[2].startswith("l.co")
+    assert on(12, "CH", 715) == ("6:lake", "open")              # the lake's creek: the nearer place first
+
+
+def test_mutation_pin_without_own_first_the_lake_opens_chinook_on_the_river(monkeypatch):
+    monkeypatch.setattr(S, "THE_WATERS_OWN_PLACE_SPEAKS_FIRST", False)
+    JUL_AUG = {"dates": [{"from_month": 7, "from_day": 1, "to_month": 8, "to_day": 31}]}
+    files, feeds, placed, sid_of, items = _fixture()
+    feeds["6"]["locators"][1]["rules"] = [_rule("r.ch", ["CH"], 0, may_target=False)]
+    feeds["6"]["locators"][2]["rules"] = [_rule("l.ch", ["CH"], 1, JUL_AUG)]
+    payload, sections = S.build(files, feeds, placed, sid_of, items, section_regions=None)
+    assert _answer_on(payload, sections, 11, "CH", 715)[:2] == ("6:lake", "open")

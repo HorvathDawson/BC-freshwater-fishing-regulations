@@ -30,6 +30,10 @@ The RULINGS T4, T14, T18 amendments (T1053; all-year part proposed) and T19 (T11
    St. Mary): it looks like an over-wide carve-out; it is the owner's reading (11-27). Water joining a lake row's own stream
    ABOVE its lake is the lake's inflow (Whiteswan's feeders, Hatzic Slough's creeks); Upper Arrow's drawdown stretch is the
    lake, so the Columbia above the Hwy 1 bridge is its inflow, climbing to Kinbasket's exception.
+7. **Does a DFO lake place "including tributaries" take the river flowing through the lake? Its creeks yes; on the river
+   the river's own place speaks first** (owner 11-27: "make sure that the mainstem ... still overrides the redsand quotas"):
+   Redsand and Kitsumkalum lakes' walks reach the Kitsumkalum River; every fish, every day, the river's places answer
+   (`salmon.THE_WATERS_OWN_PLACE_SPEAKS_FIRST`); a lake's place answers only what they leave unsaid (none here).
 
 ## Questions the owner will put to BC Fish and Wildlife
 
