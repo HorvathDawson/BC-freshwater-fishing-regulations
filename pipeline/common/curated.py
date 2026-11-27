@@ -414,8 +414,9 @@ class Gauges(_Tree):
     #: the bundle's `gauge.backwater`.
     backwater_stations: Annotated[FilePath, At("gauges/backwater_stations.json")]
     #: AUTHORED — gauges on a DIVERSION canal that speak for the river above its intake instead of the
-    #: gauges named (the owner's ruling that a canal gauge also serves its river: `pipeline/docs/RULINGS.md`), checked
-    #: against HYDAT by `pipeline.gauges.consume.diversion` into the bundle's `gauge.diversion` and the intake placement.
+    #: gauges named (the owner's ruling that a canal gauge also serves its river: `pipeline/docs/RULINGS.md` P54),
+    #: checked against HYDAT by `pipeline.gauges.consume.diversion` into the bundle's `gauge.diversion` and the intake
+    #: placement.
     diversion_stations: Annotated[FilePath, At("gauges/diversion_stations.json")]
     #: Gauges whose live level is on a different zero (datum) than their HYDAT record — one row per
     #: change, each `proposed` until the owner accepts it; only an ACCEPTED row with a known offset puts the record on
