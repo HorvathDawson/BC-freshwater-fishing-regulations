@@ -15,8 +15,8 @@ pdfplumber's characters the PDF's painting rules show, on MuPDF's display list. 
 the crop box, clipped, covered by a later opaque fill or image, drawn again at the same origin, the same colour as an opaque fill under it. No pixel or colour
 threshold. Pairing with pdfplumber is by content order; a text disagreement refuses the page by name, an origin one (p.61's "8") only if the page holds rows.
 UNSURE IS KEPT (reviews of #323): the glyph stays, one note per hit (`[visible] PDF page N: kept, <kind>: '<text>'`): a fill under a non-rectangle clip, an image
-whose clip is a guess (`image-clip-unknown`), a translucent or blended "background", a line painted before the text (`possible-strike`); the last two on a page
-with rows fail the gate unless the owner lists them in `known_unsure.json` (empty). DELETED: the 400 dpi cleaning render, palette, ink test, 4-30 pt filter, DBSCAN, the "BROKEN
+whose clip is a guess (`image-clip-unknown`), a translucent or blended "background", a line painted before the text (`possible-strike`); any of the four on a page
+with rows fails the gate unless the owner lists it FOR THAT BOOK (pdf_sha256) in `known_unsure.json` (empty). DELETED: the 400 dpi cleaning render, palette, ink test, 4-30 pt filter, DBSCAN, the "BROKEN
 CODE" overlap cut, debug plots, scikit-learn/joblib/threadpoolctl (scipy listed itself for one picture tool).
 STRIKES: carried as `raw_regs_marked` ("Sept 1-Oct ~~15~~"), only on a struck row; `raw_regs` unchanged, since the baseline sha, `rows_digest`, carry, ingest
 and reuse key on it. One `[struck]` line per run; a strike not in `known_strikes.json` is NEW and fails the T426 gate. Recorded: Nanaimo River p.19 "Oct ~~15~~".
