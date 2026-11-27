@@ -10,6 +10,11 @@
  * hands that width and the row's room to the strip's layout events (a stub of `getBoundingClientRect`) and lays out what it
  * then draws. The phone's text scaling is the T1201 emulation (size and line height x min(OS scale, the Text's cap)).
  * T1203_TAB_SHOTS=<dir> saves each row as a PNG.
+ *
+ * What is REAL here: the twin's width (Chrome lays the strip out, the twin sits in a box wider than the row and is read back
+ * from it: `need` must exceed a narrow room, proving the measure is not capped by it), the text-size emulation, and the first
+ * paint (decided from the estimate with no layout event at all). What is stubbed: only the layout EVENT's delivery, which jsdom
+ * has no engine for. Yoga's measuring of the twin on a phone is NOT proven here: native needs the phone check (T1203).
  */
 import "./render-setup.ts";
 import { createElement as h, forwardRef } from "react";
@@ -35,7 +40,7 @@ vi.mock("react-native", async (importOriginal) => {
   });
   return { ...rn, Text };
 });
-const { PixelRatio, View } = await import("react-native");
+const { Dimensions, PixelRatio, View } = await import("react-native");
 vi.spyOn(PixelRatio, "getFontScale").mockImplementation(() => SCALE.v);
 const { snapshot } = await import("./wide-snapshot");
 const { LIGHT } = await import("../packages/ui-native/src/theme");
@@ -44,6 +49,7 @@ const { WATER_VIEW_LABEL, WATER_VIEW_SHORT } = await import("@app/core");
 
 // layout events: react-native-web observes with a ResizeObserver and then measures with getBoundingClientRect
 const SIZES = { room: 0, need: 0 };
+const NEEDS: Record<string, number> = {};
 class FakeResizeObserver {
   constructor(private cb: (e: { target: Element }[]) => void) {}
   observe(el: Element) { queueMicrotask(() => this.cb([{ target: el }])); }
@@ -93,6 +99,7 @@ async function strip(w: number, scale: number): Promise<Row> {
   const full = join(dir, `full-${w}-${scale}.html`);
   writeFileSync(full, snapshot()); cleanup();
   SIZES.need = chrome(full, w, join(dir, "twin.js")).need as number;
+  NEEDS[`${w}@${scale}`] = SIZES.need;
   SIZES.room = w - 2 * GUTTER;
   if (process.env.T1203_DEBUG) console.log(`${w} @ ${scale}: need ${SIZES.need} room ${SIZES.room}`);
   render(tree());
@@ -125,4 +132,44 @@ describe("T1203 a water's view tabs, laid out in Chrome", () => {
       expect(r.tabs[0]!.aria, "the full word stays the accessible name").toBe(WATER_VIEW_LABEL.regs);
     }
   }, 180_000);
+});
+
+describe("T1203 the first paint and the measure", () => {
+  it("the twin is NOT limited by the row: its measured width exceeds a room narrower than the words (260 wide at 1.0)", async () => {
+    await strip(260, 1);
+    expect(NEEDS["260@1"]!).toBeGreaterThan(260 - 2 * GUTTER);   // 231 px of words in a 228 px room
+  }, 60_000);
+
+  it("the first paint is decided from the estimate, with no layout event: short at 300 wide / 1.3, full at 412 / 1.0", async () => {
+    const real = window.innerWidth;
+    try {
+      for (const [w, s, want] of [[300, 1.3, SHORT], [412, 1, FULL]] as const) {
+        SCALE.v = s;
+        Object.defineProperty(window, "innerWidth", { configurable: true, value: w });
+        Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
+        window.dispatchEvent(new Event("resize"));
+        await new Promise((r) => setTimeout(r, 80));   // react-native-web reads the new window size a moment after the event
+        SIZES.room = 0; SIZES.need = 0;
+        if (process.env.T1203_DEBUG) console.log("window", Dimensions.get("window").width, "scale", PixelRatio.getFontScale());
+        render(h(View, { style: { paddingHorizontal: GUTTER } }, h(ViewTabs, { palette: LIGHT, views: ["regs", "conditions", "map"], on: "regs", onView() {} })));
+        const drawn = [...document.querySelectorAll("[role=tab]")].map((t) => t.textContent);
+        cleanup();
+        expect(drawn, `${w} @ ${s}`).toEqual(want);
+      }
+    } finally {
+      SCALE.v = 1;
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: real });
+    }
+  });
+
+  it("the estimate agrees with Chrome's measure within 15 % at 1.0, 1.15 and 1.3 (so the first paint and the measured one rarely differ)", async () => {
+    const { labelMinWidth, TYPE } = await import("../packages/ui-native/src/type");
+    for (const s of [1, 1.15, 1.3]) {
+      await strip(412, s);
+      const est = [WATER_VIEW_LABEL.regs, WATER_VIEW_LABEL.conditions, WATER_VIEW_LABEL.map]
+        .reduce((a, t) => a + labelMinWidth(t, { fontSize: 14, letterSpacing: TYPE.regsTab.letterSpacing }, s, 0, 0.56), 44);
+      const real = NEEDS[`412@${s}`]!;
+      expect(Math.abs(est - real) / real, `${s}x: estimate ${est} vs measured ${real}`).toBeLessThan(0.15);
+    }
+  }, 120_000);
 });

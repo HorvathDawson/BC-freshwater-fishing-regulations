@@ -20,7 +20,7 @@
  * information, and a reader who does not know Conditions exists will never go looking for it.
  */
 import { useContext, useState } from "react";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, waterBackName, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, WATER_VIEW_SHORT, type WaterView } from "@app/core";
@@ -28,7 +28,11 @@ import { WaterViewsContext } from "./ViewSwipe";
 import { useCoachRefs, useCoachTarget } from "./CoachMarks";
 import { Icon, IconText } from "./icons";
 import { hitProps } from "./regs/hit";
-import { LABEL_PROPS, TYPE } from "./type";
+import { LABEL_PROPS, LABEL_SCALE, TYPE, labelMinWidth } from "./type";
+import { useScaleUpTo } from "./textScale";
+
+/** the header's side gutters, px: the strip's room before its layout is measured (the window less both) */
+const VIEWS_GUTTER = 16;
 import { SPACE, type Palette } from "./theme";
 
 export type Face = "conditions" | "regulations";
@@ -109,9 +113,16 @@ export function ViewTabs({ palette, views, on, onView }: {
   // full words, as the place label's), and when the words are wider than the room "Regulations" is "Regs" (core
   // `WATER_VIEW_SHORT`; the full word stays the accessible name). Decided from widths, not from a text-size threshold, so it holds
   // at any window width and any text size. The labels are a fixed row's: one line, capped at `LABEL_SCALE` (type.ts, the one rule).
+  // THE FIRST PAINT IS DECIDED FROM AN ESTIMATE (`labelMinWidth`: the words' width at this text size; the window less the header's
+  // gutters for the room), so the strip does not draw full words for a frame and then change; the measures replace the estimate as
+  // soon as the layout reports them. `need` is read from a twin that is NOT limited by the row (below), so it is the words' own
+  // width on the web and on a phone alike.
+  const scale = useScaleUpTo(LABEL_SCALE);
+  const win = useWindowDimensions().width;
   const [room, setRoom] = useState<number | null>(null);
   const [need, setNeed] = useState<number | null>(null);
-  const short = room !== null && need !== null && need > room;
+  const estNeed = shown.reduce((w, v) => w + labelMinWidth(WATER_VIEW_LABEL[v], { fontSize: 14, letterSpacing: TYPE.regsTab.letterSpacing }, scale, 0, 0.56), 22 * (shown.length - 1));
+  const short = (need ?? estNeed) > (room ?? win - 2 * VIEWS_GUTTER);
   const text = { ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6 };
   return (
     <View testID="water-views-room" onLayout={(e) => setRoom(e.nativeEvent.layout.width)}>
@@ -133,10 +144,15 @@ export function ViewTabs({ palette, views, on, onView }: {
         );
       })}
     </View>
-    {/* the measuring twin: the full words, one row, invisible, at the same text size */}
-    <View testID="water-views-twin" aria-hidden pointerEvents="none" importantForAccessibility="no-hide-descendants" onLayout={(e) => setNeed(e.nativeEvent.layout.width)}
-          style={{ position: "absolute", left: 0, top: 0, opacity: 0, flexDirection: "row", gap: 22, alignSelf: "flex-start" }}>
-      {shown.map((v) => <Text key={v} {...LABEL_PROPS} style={text}>{WATER_VIEW_LABEL[v]}</Text>)}
+    {/* the measuring twin: the full words, one row, invisible, at the same text size. Its box is far wider than any row and the words
+        are not clamped or shrunk, so the inner row's width is what the words need - whatever room the strip has (Yoga on a phone
+        measures a child at the parent's width at most; an unlimited box is how that limit is kept off the measure) */}
+    <View aria-hidden pointerEvents="none" importantForAccessibility="no-hide-descendants"
+          style={{ position: "absolute", left: 0, top: 0, width: 4000, opacity: 0 }}>
+      <View testID="water-views-twin" onLayout={(e) => setNeed(e.nativeEvent.layout.width)}
+            style={{ flexDirection: "row", gap: 22, alignSelf: "flex-start" }}>
+        {shown.map((v) => <Text key={v} style={{ ...text, flexShrink: 0 }} maxFontSizeMultiplier={LABEL_SCALE}>{WATER_VIEW_LABEL[v]}</Text>)}
+      </View>
     </View>
     </View>
   );
