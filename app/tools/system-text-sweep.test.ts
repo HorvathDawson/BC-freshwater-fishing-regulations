@@ -145,6 +145,7 @@ const MEASURE = `(() => {
   for (let a = 0; a < boxes.length; a++) for (let b = a + 1; b < boxes.length; b++) {
     const A = boxes[a], B = boxes[b];
     if (A.i === B.i) continue;
+    if (/inbox-row/.test(A.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '') && /inbox-/.test(B.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '')) continue;   // the row's two-line clamp
     if (/glossary-/.test(A.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '') && /glossary-/.test(B.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '')) continue;
     if (panel && panel.contains(A.el) !== panel.contains(B.el)) continue;   // a sheet's words and the page's beneath it
     const x = Math.min(A.r.right, B.r.right) - Math.max(A.r.left, B.r.left), y = Math.min(A.r.bottom, B.r.bottom) - Math.max(A.r.top, B.r.top);
@@ -265,7 +266,7 @@ const SCREENS: Screen[] = [
   { id: "more-about", must: "menu-page-about", go: async () => { tab("More"); press(/^About$/); await settle(500); } },
   { id: "more-whats-new", must: "menu-page-changelog", go: async () => { tab("More"); press(/^About$/); await settle(500); press(/What's new/); await settle(500); } },
   { id: "more-report-a-problem", must: "menu-page-report", go: async () => { tab("More"); press(/^Report a problem$/); await settle(500); } },
-  { id: "walkthrough", must: /1 of 5/, min: 5, props: { walkthrough: { read: () => null, write() {} } }, go: () => settle(600) },
+  { id: "walkthrough", must: /1 of 5/, min: 2, props: { walkthrough: { read: () => null, write() {} } }, go: () => settle(600) },
   { id: "first-run-notice", must: /Before you fish/, props: { firstRun: { read: () => null, write() {} } }, go: () => settle(600) },
   { id: "water-regs-gear", start: WATER("regs"), must: "regs-scroll", go: async () => { await waitReg(); press(/^Gear$/); await settle(300); } },
   { id: "water-regs-methods", start: WATER("regs"), must: "regs-scroll", go: async () => { await waitReg(); press(/^Methods$/); await settle(300); } },

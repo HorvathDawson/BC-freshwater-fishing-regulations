@@ -8,7 +8,7 @@ import { ObstacleIcon } from "./icons";
 import { View } from "react-native";
 import { Text } from "./Text";
 import { Sheet } from "./Sheet";
-import { TYPE } from "./type";
+import { LABEL_SCALE, TYPE } from "./type";
 import { useCappedScale } from "./textScale";
 import type { Palette } from "./theme";
 
@@ -17,7 +17,7 @@ export function ObstacleSheet({ props, palette, onClose }: {
   props: Readonly<Record<string, unknown>> | null; palette: Palette; onClose: () => void;
 }) {
   const vm = props ? obstacleSheet(props) : null;
-  const scale = useCappedScale();   // (T1203) the label column grows with the text size (104 px at the default): a label is never broken
+  const scale = Math.min(useCappedScale(), LABEL_SCALE);   // (T1203) the label column grows with the text size (104 px at the default): a label is never broken
   return (
     <Sheet open={vm !== null} onClose={onClose} title={vm?.title ?? ""} sub={vm?.sub ?? null} palette={palette}
            icon={props ? <ObstacleIcon type={props.type} ink={palette.ink} size={24} /> : undefined}>
