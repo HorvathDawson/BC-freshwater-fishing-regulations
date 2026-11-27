@@ -74,14 +74,14 @@ export interface QuietVM { heading: string; title: string; reads: string; lastRe
  * 2026-10-22). `zone` is for tests.
  */
 export function quietHead(name: string, row: DonorRow, ref: number, horizon: Horizon, zone?: string): QuietVM {
-  return { heading: readingHeading(name), title: name, reads: donorReads(row, { ref, horizon }),
+  return { heading: readingHeading(name), title: name, reads: donorReads(row, { ref, now: now(), horizon }),
            lastReport: donorLastReport(row.observedAt, zone) };
 }
 
 /** A gauged lake's own station with no reading: whose it is, that it is quiet, when it last reported (core words). */
 export function lakeQuietHead(name: string, observedAt: string | null, ref: number, horizon: Horizon,
                               zone?: string): QuietVM {
-  return { heading: readingHeading(name), title: name, reads: donorReads({ percentile: null, observedAt }, { ref, horizon }),
+  return { heading: readingHeading(name), title: name, reads: donorReads({ percentile: null, observedAt }, { ref, now: now(), horizon }),
            lastReport: donorLastReport(observedAt, zone) };
 }
 
@@ -221,7 +221,7 @@ export function useConditionsView(
   // THE ROUTES OF THE MEMBERS THAT SPEAK — the route map's own chain (`donorView`): a silent member has no pin, so its
   // route is not coloured either.
   const chain = useMemo<readonly SectionKey[]>(
-    () => [...new Set(panel.rows.filter((r) => !donorSilent(r, { ref, horizon }))
+    () => [...new Set(panel.rows.filter((r) => !donorSilent(r, { ref, now: now(), horizon }))
                                 .flatMap((r) => r.route?.path ?? []))], [panel.rows, today, horizon]);
   const standings = usePanelStandings(source, feed, chain as readonly SectionId[], estimateQuantity,
                                       horizon);
@@ -250,7 +250,7 @@ export function useConditionsView(
     : speaker?.kind === "lake" ? speaker.station : "";
   const stations = useMemo(() => (stationKey ? stationKey.split(",") as StationId[] : []), [stationKey]);
   const sides = useGaugeSides(source, section, stations);
-  const ask = { ref, horizon };
+  const ask = { ref, now: now(), horizon };
   const count = !sides ? null
     : speaker?.kind === "lake"
       ? (got.state === "ready" ? gaugeCountLine([{ side: sides.get(speaker.station) ?? "donor",
@@ -325,7 +325,7 @@ export function useConditionsView(
     // the day or quantity asked has its donor map, and this trace's own map stood above it, moving it down the page.
     trace: !panel.answer.ok && (panel.answer.why === "no-station" || panel.answer.why === "offline") && traced.state === "ready" && speaks(speaker, traced.value.station)
       ? traced.value : null,
-    gauges: gaugeChoices(panel.rows, lead, { ref, horizon }),
+    gauges: gaugeChoices(panel.rows, lead, { ref, now: now(), horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
     // (T1043) "No gauge here reports flow today" is false where the lead reports a live flow it has no record to rank
     // against (Gun Creek, 08ME030): the card's own line says that, so the note is not drawn

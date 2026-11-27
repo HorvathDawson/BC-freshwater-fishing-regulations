@@ -17,7 +17,7 @@ import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { monthAbbr, weekdayAbbr, type Standing } from "./flow";
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byWeekdays } from "./staleness";
-import { READING_MAX_AGE_MS } from "./freshness";
+import { READING_BY_CLOCK_MS } from "./freshness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
          changeSentence } from "./change";
 import { now as clockNow } from "./clock";
@@ -472,7 +472,9 @@ export function sizeApart(ratio: number): string {
 export type DonorReading = Pick<DonorFacts, "percentile" | "realtime" | "observedAt" | "aheadWhy" | "otherOnly">;
 
 /** The instant (`ref`) and horizon the answer is for. */
-export interface DonorAsk { ref?: number; horizon?: Horizon }
+/** `now`: the real instant (clock.ts) freshness is judged at (T1205); `ref` is the instant the answer is FOR (the picked day).
+ *  Absent, `ref` stands in (a caller asking for today). */
+export interface DonorAsk { ref?: number; now?: number; horizon?: Horizon }
 
 /**
  * WHAT STATE A DONOR IS IN, at the horizon asked about (T123). The one place a donor's reading fields
@@ -488,7 +490,7 @@ export interface DonorAsk { ref?: number; horizon?: Horizon }
  *   no-forecast   a day ahead (or Change) and no forecast run reaches it — a missing FORECAST, not a quiet gauge.
  *   other-quantity  today, a reading of the OTHER quantity only (`has`; T567: a level gauge asked for flow): it
  *                 speaks, and its words say which quantity to show.
- *   unranked      today, a report within `READING_MAX_AGE_MS` of `ref` that cannot be ranked against its record.
+ *   unranked      today, a report within `READING_BY_CLOCK_MS` of `now` (T1205) that cannot be ranked against its record.
  *   quiet         today, and nothing that recent: not reporting (T550: an older reading is never ranked — data `reading`).
  *
  * The order is the ruling: a reading wins; "not real-time" is true at every horizon; a horizon's missing forecast
@@ -510,10 +512,10 @@ export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
   if (o.horizon) return r.aheadWhy === "flow-only" ? { kind: "flow-only" }
     : r.aheadWhy === "no-record" ? { kind: "forecast-unranked" } : { kind: "no-forecast" };
   if (r.otherOnly) return { kind: "other-quantity", has: r.otherOnly };
-  // (T550) "a report that cannot be ranked" only while it is still today's reading (`READING_MAX_AGE_MS`, the one age
-  // rule); older, the gauge is quiet and says when it last reported — the same line that keeps an old reading unranked
+  // (T550) "a report that cannot be ranked" only while it is still today's reading (`readingCurrentNow`); older, the gauge is quiet and says when it last reported — the same line that keeps an old reading unranked
+  // (T1205) by the clock (`o.now`), not the picked day: freshness is about the real now
   const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
-  if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) <= READING_MAX_AGE_MS) return { kind: "unranked" };
+  if (o.ref !== undefined && Number.isFinite(t) && Math.abs((o.now ?? o.ref) - t) <= READING_BY_CLOCK_MS) return { kind: "unranked" };
   return { kind: "quiet" };
 }
 
@@ -704,7 +706,7 @@ export function donorBecause(r: DonorFacts): string {
 
 /** The row's screen-reader name; the weight is drawn as a bar, invisible to a reader. */
 export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean,
-                              o: { ref?: number; horizon?: Horizon } = {}): string {
+                              o: DonorAsk = {}): string {
   const s = donorState(r, o);
   const nothing = (why: string) => `${why}, so it counts for nothing`;
   const said = ((): string => {

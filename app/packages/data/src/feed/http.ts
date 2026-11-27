@@ -19,7 +19,7 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { FeedNeedsNewerApp, gaugeFeedRefusal, runOffered, isFeedTooNew, parseSemver, reportFailure, reportOnce, shownParameter, standing,
+import { FeedNeedsNewerApp, readingCurrentNow, gaugeFeedRefusal, runOffered, isFeedTooNew, parseSemver, reportFailure, reportOnce, shownParameter, standing,
          type FeedGate, type GaugeFeedFile, type SourceChange, now as clockNow } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
@@ -124,6 +124,25 @@ interface IndexFile {
     /** Every forecast day's discharge percentile (T171, publish `change.forecast_days`); read by spots' `flowAhead`. */
     aheadDays?: AheadDays;
   }>;
+}
+
+/**
+ * (T1205) THE INDEX AS OF NOW: a station whose reading is not current by the clock (`readingCurrentNow`) keeps its
+ * `observedAt` (its last report is still said) and loses what only a current reading carries: the percentiles, which
+ * quantities it reports, the temperature. The worker wrote those while the reading was young; an index held, kept or
+ * never refreshed would otherwise show them as live for ever. Forecast fields are other sources' and stay. Returns the
+ * same object when nothing changes.
+ */
+export function ageIndex(idx: IndexFile | null, nowMs: number): IndexFile | null {
+  if (!idx) return idx;
+  let out: IndexFile["stations"] | null = null;
+  for (const [id, s] of Object.entries(idx.stations)) {
+    if (readingCurrentNow(s.observedAt, nowMs)) continue;
+    out ??= { ...idx.stations };
+    const { discharge: _d, level: _l, reports: _r, temperatureC: _t, temperatureAt: _ta, temperatureBand: _tb, ...rest } = s;
+    out[id] = { ...rest, percentile: null };
+  }
+  return out ? { ...idx, stations: out } : idx;
 }
 
 export interface StationFile {
@@ -506,7 +525,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   };
 
   return {
-    index: () => load<IndexFile>("index.json"),
+    index: async () => ageIndex(await load<IndexFile>("index.json"), clockNow()),
 
     // in-flight requests are left to finish: the next ask after them is a fresh fetch
     refresh() {
