@@ -44,7 +44,7 @@ export const BUDGETS = {
   // the docs tree (docs/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
   treeLines:    [25537, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],   // +39 (T1222: main stood at 22962; its ticket and the secrets.md section took the rest of the room); +23 (T1192 PR 4: the ticket's PR 4 notes, its found-not-moved list and the review's gaps)   // re-set with --measure (today 23215 + 10%; T1191: docs batch 5 adds a net 171 markdown lines, the OWNER-RULINGS section 79, T1246 46, the ticket notes)
   treeFiles:    [1600, "tracked files in the docs tree"],
-  treePictureBytes: [157660235, "bytes of tracked png/jpg/webp/gif in the docs tree (pictures live in git forever)"],
+  treePictureBytes: [140908411, "bytes of tracked png/jpg/webp/gif in the docs tree (pictures live in git forever)"],   // -16,751,824 (T1193, owner 2026-11-26): the 110 pictures of tickets/shots (24.4 MB) deleted; set to the measured 128,098,555 + 10%
 };
 
 /** README.md files under app/ or pipeline/ allowed to pass BUDGETS.subReadme: path -> its own budget (today's size + 10%). */
