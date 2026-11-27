@@ -29,7 +29,7 @@ python -m pipeline build --side DIR       # every stage into DIR; nothing live (
 ```
 
 `pipeline/build.py`, AGENTS 62. It is heavy: run it through `scripts/heavy.sh` (one heavy job at a time).
-A stage is skipped while its inputs' digests (atlas, corpus, curated tree, source stamps, its own code) match its
+A stage is skipped while its inputs' digests (atlas, corpus, curated tree, source sha256s, its own code) match its
 last successful run (`data/generated/build-manifest.json`). Two caches, both keyed on content
 (`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`): every stage keys on the modules it really imported,
 the code files it read (`schema.sql`, `tile-contract.json`), the versions of the packages it imported (not every
