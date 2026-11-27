@@ -53,24 +53,24 @@ Species and limits on a merged water: not drawn today (nothing to keep); proposa
 Recommended: A. The owner asked for the calendars combined, so B (no calendar) is more than he asked; C's second tag
 reads as clutter on a page with no second source.
 
-## Work (after the pick)
-1. `KeepTab.tsx`: on `keep.banner?.salmon` draw the chosen block in place of `salmonBar` + the game-fish strip (no logic
-   in the UI: core says which; `strip` stays the game-fish strip, same status as the salmon's by the gate).
-2. Test: through `WaterScreen.oneClosure.test.tsx` the merged water has one calendar; the six split cases keep two.
-3. Pictures after: Nelson light + dark, Kirkup (split), Old Kootenay (split).
+## Work (done; see Built)
+1. Core sets `banner.schedule` where the gate holds; `KeepTab.tsx` draws it. 2. Tests on core, the screen, the Keep tab and the live release. 3. Pictures of the built app.
 
 ## Acceptance
-Nelson Creek draws one schedule; Kirkup, Old Kootenay and every non-gated page draw two as today; counts above hold
-(936 waters); a mutant that draws one schedule on a page the gate refuses fails a test.
+Nelson Creek draws one schedule; Kirkup, Old Kootenay and every page the gate refuses draw two; a mutant that draws one schedule on a page the gate refuses
+fails a screen test (checked by forcing `schedule` on in `KeepTab.tsx`, see Built).
 
-Size: S. Depends: T1052 (merged gate). Owner: yes (the pick). Default: no change until he picks.
+Size: S. Depends: T1052 (merged gate). Owner: yes (the pick, answered A).
 
 ## Built (option A, owner pick 2026-11-26)
-- Core: `closedWithSalmon` (`core/src/regs/withSalmon.ts`) also sets `banner.schedule` = `{ title: SOURCE_WORDS.both, tag: SOURCE_WORDS.salmonTag.book }`
-  ("Salmon and game fish", tagged "B.C. Synopsis": the merged closures are the rule book's, never DFO's); type in `model.ts`, words in `glance.ts`.
+- Core: `closedWithSalmon` (`core/src/regs/withSalmon.ts`) also sets `banner.schedule` = `{ title, tag, label }` ("Salmon and game fish", tagged
+  "B.C. Synopsis", label "Salmon and game fish: closed all year"); type in `model.ts`, words in `glance.ts`. The tag is true for the WHOLE year: the gate now also
+  requires `card.year.by === "book"` (not only `todayBy`), so a water where DFO answers any day of the year keeps two blocks. Recount on r-0aec88ed3edb, Nov 26: still **936 parts on 936 waters** (the tightening
+  changes none of them; the 156 parts closed today by the book whose year is not all the book's were part-year pages, already two).
   One gate, one function; the screen only draws. No stored state: a page that fails the gate has no `schedule` and draws two blocks.
-- UI: `KeepTab.tsx` draws no Salmon block and gives the game-fish block `schedule.title` / `schedule.tag`. `SourceTag.tsx`: the title row wraps (the tag
-  drops under the name at a large text size, kept one line); the block's header names both fish for a screen reader.
+- UI: `KeepTab.tsx` draws no Salmon block and gives the game-fish block `schedule.title` / `schedule.tag`. `YearStrip` passes `one` (the label) to `TaggedTitle`
+  (`SourceTag.tsx`), which then sets `accessibilityLabel` on the block's header (one label for a screen reader) and wraps its row; the tag is one line
+  (`LABEL_PROPS`). Both are opt-in (`wrap`, `oneLine`): every other SourceTag / TaggedTitle (Game fish, Salmon, the species rows) is exactly as before; a test pins it.
 - Other places checked: Gear / Methods / Licence tabs are hidden on a fully closed page (strip closed), as before; the water's Map view and the map card draw
   no salmon block (nothing to change); the public water page (`tools/seo/pane.tsx`) draws the app's own `Shell`, so it follows the same code.
 - Tests: `core/src/regs/withSalmon.test.ts` (schedule set on Nelson, absent in every split case), `ui-native/src/WaterScreen.oneClosure.test.tsx` (one block / one bar on a merged
