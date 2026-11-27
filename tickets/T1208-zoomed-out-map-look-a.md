@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane T1208 (worktree wt-T1208); release 0.10.0 re-cut
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1208 | The zoomed-out map look A: borders that read as borders, quieter rule lines, a softer base, region labels once | IN PROGRESS — 0.10.0 re-cut | 13d06f5cd, 0d625ea71, 663d3a35a | built on feat/T1208-map-look-A (with T1209, T1211): PR, review, the owner's look at the pictures; boundaries stay neutral grey (T47) |
+| T1208 | The zoomed-out map look A: borders that read as borders, quieter rule lines, a softer base, region labels once | IN PROGRESS — 0.10.0 re-cut | 13d06f5cd, 0d625ea71, 663d3a35a, 1e0c1d490 | review fixes in (dash-dot border, basemap ground and water held to T47); left: the opening frame (Haida Gwaii) waits on a decision: z4 cannot hold B.C. on a phone, the app opens at z10; PR |
 
 Source: T1200 (owner 2026-11-26: "build A ..."; proposal A, round 3 sheet 2). Prototype: branch
 `feat/T1200-map-readability-options` (dev-only `?t1200=`, not shipped).
