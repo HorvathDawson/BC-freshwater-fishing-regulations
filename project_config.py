@@ -37,8 +37,8 @@ class ProjectConfig:
     def _load_config(self):
         """Load configuration from config.yaml (no `.env` is read: T1222)."""
         # (T1192) config.yaml through the ONE schema (`pipeline.common.curated.Config`): an unknown, missing or `null` key
-        # anywhere in the file stops here, naming it. `_config` is the parsed YAML (what the build's keys digest),
-        # `_model` the validated view every accessor returns.
+        # anywhere in the file stops here, naming it. `_config` is the parsed file with the schema's names (`read_config`:
+        # what the build's keys digest), `_model` the validated view every accessor returns.
         from pipeline.common.curated import parse_config
         self._config, self._model = parse_config(self.project_root / "config.yaml")
 

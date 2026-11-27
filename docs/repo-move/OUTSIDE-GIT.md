@@ -143,7 +143,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
    RTK notes. A fresh clone has no `CLAUDE.md`, so an agent there does not see the parser rule. AGENTS.md rule A1 says
    the same, so the rule survives, but the file itself exists only on this Mac. `.claude/CLAUDE.md` likewise.
 2. **`data/source/fwa_coast.gpkg` (559 MB) is not pinned or fetched by bootstrap.** The atlas reads it
-   (`config.yaml` `source.coast_gpkg`, `pipeline/atlas/inputs.py`); `pins.json` has no entry and `bootstrap.sh` skips it.
+   (`SOURCE.coast_gpkg`, `pipeline/atlas/inputs.py`); `pins.json` has no entry and `bootstrap.sh` skips it.
    The T416 proof (2026-11-05) pre-dates T678, so a fresh atlas build may stop here. Needs a try (T1120 step 2).
 3. **Installs bootstrap does not do:** no `pnpm install`, no `core.hooksPath`, no Node or pnpm version check. A fresh
    clone's first push fails `pre-push` (`.githooks/pre-push` needs `.venv`) until hooks and installs are done by hand.

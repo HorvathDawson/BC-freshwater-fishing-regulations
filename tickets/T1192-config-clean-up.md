@@ -1,10 +1,10 @@
 # T1192 — config.yaml clean-up: paths only, the file list in the schema (Option A)
 
-Status: IN PROGRESS — lane: the repo clean chat; PR 1 (comments into the schema's field notes) first.
+Status: IN PROGRESS — lane: the repo clean chat; PRs 1-5 merged, PR 7 in review.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 4 (one `roots:` block, two keys renamed, unlisted files declared) and PR 5 (a stage keyed on the config keys it reads) in review; then PRs 6-7 below, in order |
+| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 7 (the file list in the schema) in review; then PR 6 (the review tool's one-tree override) and PR 8 (the field notes in plain words, no ticket ids or dates) |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "the config.yaml i feel has a lot of stuff in it that is noit
 needed too? like there is a lot of bloat because of the way stuff is formatted could we audit this and maybe use it as
@@ -38,7 +38,7 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
    generated folders; `release` becomes a root. [x] (From PR 2's review) Point `check_curated`'s stocking / bathymetry
    entries at `pipeline/bathymetry/accept.py`'s frozen paths (`frozen_path`), not `None`: today's report says "not
    declared in config.yaml", which is awkward once they are declared.
-   PR 4 (done on its branch): one `roots:` block (source, curated, generated, release, cache); every other path is a
+   PR 4 (merged): one `roots:` block (source, curated, generated, release, cache); every other path is a
    name under the root of its block (`curated.TREES`), refused when absolute or climbing out; `data_tree`,
    `curated.base`, `generated.base`, `generated.release` and their cross-check gone; `CURATED_ROOT` moves the one
    curated root. `waters.areas` -> `area_closures`, `waters.tidal` -> `tidal_limits`; the atlas record keeps its input
@@ -61,12 +61,17 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
      (writers not traced).
    - [ ] `closed_areas.json` absent reads as no closed areas (unchanged behaviour; a later guard could raise when the
      marks hold a verified closed area and the file is missing).
-5. Per-leaf C lines. PR 5 (done on its branch): a read records its key + root per access (`curated._Tree`); a whole node
+5. Per-leaf C lines. PR 5 (merged): a read records its key + root per access (`curated._Tree`); a whole node
    taken (`model_dump`, iteration) records the node. [ ] Import-time constants (`gauges.matches.MATCH_FILE`) key every
    deliver step on `gauges.matches`. [ ] A guard: each curated key a stage reads has its content in that stage's key.
 6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused.
-7. Option A: the file list moves into the schema; config.yaml about 12 lines. The file names live as schema-side names
-   under the roots, NEVER as pydantic field defaults, so `test_no_field_has_a_default` (PR 2) stays as it is.
+7. Option A: the file list moves into the schema; config.yaml about 12 lines. PR 7 (done on its branch): config.yaml
+   = `roots:`, `source.fwa_gpkg`, `atlas_build` (was `generated.atlas.default_build`); every other name is an `At` on its
+   field, added to the parsed file by `curated.read_config` (the loaders' and `config_now`'s one source; a name stated in
+   both is refused). A rename is a curated.py edit: every stage reruns (its bytes are in every code key).
+   - [ ] `kind` (spin-off 7) as data on `At`: not built (the notes' kinds are uneven; the consumers are `build.py`'s).
+   - [ ] Retire `project_config.py` (left: `project_root`, `dfo_salmon_cache`, `get_path`; 6 importers, CI path lists).
+   - [ ] Docs that still name a curated key "in config.yaml": `data/curated/README.md`, `waters/README.md`, docs/research.
 
 ## Acceptance
 Each PR proves, in its body: every resolved path (`CURATED`, `GENERATED`, `SOURCE`, every `get_config()` accessor)
@@ -78,10 +83,5 @@ Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
 
 ## Owner
 
-- [ ] 2026-11-26 — The existing `curated.py` field notes still carry ticket ids and dates (T226, T322, T1021, P08/P18,
-  "owner 2026-11-13", …). Strip them too, git keeping the record (A), or leave them (B)? Default: B; PR 1 moved
-  config.yaml's facts without them and left the existing notes alone.
-- [x] 2026-11-26 — Two existing notes are stale: the `Waters` docstring's reason for keeping `tidal` / `areas`
-  (also in `data/curated/waters/README.md`), and the `Domain` docstring "Stocking and bathymetry are named before they exist"
-  (`pipeline/bathymetry/accept.py` writes their files beside these keys). Fix them in PR 2 (A) or leave them (B)?
-  Default: A, with the renames (PR 4) and the null placeholders (PR 2).
+- [x] 2026-11-26 — Strip the existing notes' ticket ids and dates too: "Yes, strip them too (Recommended)" (PR 8);
+  the two stale notes were fixed with the renames (PR 4).
