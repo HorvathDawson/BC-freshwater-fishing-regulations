@@ -352,10 +352,10 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   is the direction; the controls must not move while stepping between parts; more exploration welcome; still design
   only, nothing built until he says.
 - **Trend word on Level gauges:** "Yes, on Level too (Recommended)".
-- **Turner Creek (after the map; it is a separate creek that the city file lists as an alternative name of Noons
-  Creek):** "Make it its own water (Recommended)". Reading: "Turner Creek" stops being an alias of Noons Creek; it is
-  its own water with the region and area rules; nothing opens or closes (T1246). Other city-supplied alias names are
-  checked for the same fault.
+- **Turner Creek (after the map):** "Make it its own water (Recommended)". Reading: Turner Creek is a separate creek that
+  is filed under Noons Creek by a code fault (not an alias: see T1246); it becomes its own water with the region and
+  area rules; nothing opens or closes. The data chat found the same fault in two more (Tunnel Creek, Capitol Creek); the
+  fix and its timing are an open question on T1246.
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".
