@@ -130,3 +130,33 @@ def test_an_entry_script_is_found_by_its_recorded_place(tmp_path, monkeypatch):
     (other / "tools" / "entry.py").write_text("print(2)\n")
     assert SC.unowned_identity_now("__main__", where) != was
     assert SC.portable_where(str(tmp_path / "outside.py")) == "<elsewhere>/outside.py"
+
+
+def test_a_spec_with_no_file_reads_no_file_and_is_current(tmp_path, monkeypatch):
+    """(Review) a module the import named no file for is recorded "no file" (`file_identity("")`): the check must answer
+    the same, never "missing" (which would leave the atlas behind for good)."""
+    import importlib.machinery
+    import importlib.util
+    _meta(tmp_path / "atlas", {SC.unowned_entry(MOD, ""): "no file"}, monkeypatch)
+    monkeypatch.setattr(importlib.util, "find_spec", lambda name: importlib.machinery.ModuleSpec(name, None))
+    assert SC.unowned_identity_now(MOD, "") == "no file"
+    assert I.code_behind(tmp_path / "atlas") == []
+    monkeypatch.setattr(importlib.util, "find_spec", lambda name: None)       # no spec at all: missing, behind
+    assert SC.unowned_identity_now(MOD, "") == "missing"
+
+
+def test_a_venv_inside_the_repo_and_a_linked_venv_say_the_same_place(tmp_path, monkeypatch):
+    """(Review) the prefix is tried before the repo: a venv inside the main checkout and a worktree whose `.venv` links
+    to it record one place, `<prefix>/…`."""
+    main = tmp_path.resolve() / "main"
+    f = _install(main / ".venv" / "lib" / "site")
+    wt = tmp_path.resolve() / "worktree"
+    wt.mkdir()
+    (wt / ".venv").symlink_to(main / ".venv")
+    monkeypatch.setattr(SC, "REPO_ROOT", main)
+    monkeypatch.setattr(sys, "prefix", str(main / ".venv"))
+    in_main = SC.portable_where(str(f))
+    monkeypatch.setattr(SC, "REPO_ROOT", wt)
+    monkeypatch.setattr(sys, "prefix", str(wt / ".venv"))
+    in_wt = SC.portable_where(str(wt / ".venv" / "lib" / "site" / f"{MOD}.py"))
+    assert in_main == in_wt == f"<prefix>/lib/site/{MOD}.py"

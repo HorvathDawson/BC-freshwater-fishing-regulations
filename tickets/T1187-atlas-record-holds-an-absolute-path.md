@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane `fix/T1187-atlas-record-unowned-module-by-name`: PR
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1187 | The atlas record keeps an unowned module's absolute path | IN PROGRESS — lane fix/T1187-atlas-record-unowned-module-by-name | — | review + merge; the stage keys' manifest still names the absolute path (rerun-once on a move, not a refusal): not this ticket |
+| T1187 | The atlas record keeps an unowned module's absolute path | IN PROGRESS — lane fix/T1187-atlas-record-unowned-module-by-name | — | review + merge; the stage keys' manifest: T1224 |
 
 Source: the planning chat's follow-ups after #286, 2026-11-26 (day notes); the third review's M1 fix keys a module no distribution owns by its file's bytes.
 
@@ -37,5 +37,6 @@ The test above; the record holds no absolute path (a test greps the written meta
   takes); an entry script (`__main__`, `__mp_main__`) by its recorded place. Not found: "missing", so the atlas reads behind, naming it.
 - Tests: `pipeline/tests/test_atlas_record_unowned.py` (an old absolute record found by name in another venv; two install paths
   under `sys.prefix`; the written meta holds no absolute path; an entry script in a copied checkout). All 5 fail on main.
-- Not changed: the build manifest's `code_packages` (stage keys) still records the absolute path. `code_key` keys by name and bytes,
-  but a moved venv makes the bytes "missing" there, so the stage reruns once (no refusal).
+- Review fixes: a spec with no file reads "no file" (as recorded), never "missing"; `<prefix>` is tried before `<repo>`, so a venv
+  inside the repo and a worktree with a linked `.venv` record one place. Two more tests (7 in all).
+- Not changed: the build manifest's `code_packages` (stage keys) still records the absolute path and `code_key` reads bytes there: T1224.
