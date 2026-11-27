@@ -4,7 +4,7 @@ Status: OPEN — lane: the repo clean chat, after T1192 PR 1; the audit (`repo-u
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | ae94d6546, ed3931146, 2e3d25588, 51acf1842 | PR 1 (deletes) and PR 2 (one ledger-hook script) merged; PR 3: a plain `pytest` is the no-data tier, loudly (in review, Claude); PR 4: a root Makefile, one verb per task (after PR 3, Claude) |
+| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | ae94d6546, ed3931146, 2e3d25588, 51acf1842 | PR 1 (deletes) and PR 2 (one ledger-hook script) merged; index pages (#344), agent pages (PR C); PR 3: a plain `pytest` is the no-data tier, loudly (in review, Claude); PR 4: a root Makefile, one verb per task (after PR 3, Claude) |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "same with scripts too and a few others that feel like they
 have way too many things that it would be hard for a human to use the repo themselves." and "also these scripts feel
