@@ -4,11 +4,15 @@
 # PDF Processing
 pdfplumber
 pikepdf
+# (T1190) which synopsis characters are visible, by the PDF's painting rules: imported ONLY by
+# pipeline/regs/extraction/visible.py. LICENCE: PyMuPDF is AGPL-3.0 (or Artifex commercial); it runs in the
+# pipeline only and is not shipped in the app. Accepted by the owner 2026-11-26.
+pymupdf
 
 # Scientific Computing & Data Analysis
 numpy
 pandas
-scikit-learn
+scipy  # app/tools/fish-sources/make-signal-crayfish.py (ndimage); it came with scikit-learn until T1190 removed that
 
 # Image Processing
 pillow
@@ -42,7 +46,6 @@ mapbox-vector-tile
 
 # Configuration
 pyyaml
-python-dotenv
 
 # HTTP (feeds, gauges)
 requests

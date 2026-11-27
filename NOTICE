@@ -64,7 +64,8 @@ here relicenses it. This is a record of what the repository contains, not legal 
 
 7. BC Freshwater Fishing Regulations Synopsis (PDF copy)
    What: data/source/fishing_synopsis.pdf, a copy of the Province's published synopsis (the regulations text is
-         parsed into data/curated/regulations/).
+         parsed into data/curated/regulations/); data/source/fishing_synopsis.2026-08.pdf, gov.bc.ca's copy as served
+         2026-11-27 (its revision of 2026-08-25; fetch record beside it).
    Terms: Crown copyright, Province of British Columbia. No licence was found for the PDF itself. UNRESOLVED: it
           is NOT known to be under the OGL-BC; do not assume it is. The copy is not byte-identical to the
           gov.bc.ca file.

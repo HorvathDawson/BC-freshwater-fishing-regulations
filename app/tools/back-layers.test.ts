@@ -24,8 +24,8 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ItemId, SectionId } from "@app/data";
-import { HOME, crossAction, exitAction, openWater, partAction, reduce as reduceRoute, showRegsActions, viewSwipeAction,
+import type { ItemId, SectionId, StationId } from "@app/data";
+import { HOME, backDepth, crossAction, exitAction, openGauge, openWater, partAction, reduce as reduceRoute, showRegsActions, viewSwipeAction,
          type Route, type RouteAction } from "@app/ui";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
@@ -170,6 +170,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/ModalBack.web.tsx#ModalBack: takes onBack": "(T723 F7) the web's half draws its children untouched (the browser owns that edge); the Modal it sits in registers",
   "packages/map/src/MapCredits.tsx#NoWrap: takes onBack": "(T723) not a surface: MapCredits' default for MapProps.modalBack when no platform back is handed in (the map alone); draws its children untouched inside the credits Modal, which registers",
   "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack": "the page header's ‹ button; its MenuPage registers (useBackLayer)",
+  "packages/ui-native/src/GaugeScreen.tsx#GaugeScreen: takes onBack": "(T1194) the gauge page is a ROUTE mode (`gauge`, `from` the Conditions map): its ‹ is the Shell's ONE back (`useBack`), which the system back and the browser take too; no layer of its own",
   "packages/ui-native/src/menu/MoreScreen.tsx#MoreScreen: takes onBack (MoreScreenProps)": "owner 2026-10-22: the More TAB's ‹ to the tab it came from — a route tab (`prev`), not a layer: the Shell hands it the ONE back (`useBack`), which the system back also takes",
   "packages/ui-native/src/menu/MoreScreen.tsx#Head: takes onBack": "the More tab's ‹ button; MoreScreen hands it the Shell's one back",
 };
@@ -240,6 +241,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/DeveloperModal.tsx#DeveloperModal: a Modal",
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       // (T367) the forecast day list under the horizon strip (registered: back closes the list)
+      "packages/ui-native/src/GaugeScreen.tsx#GaugeScreen: takes onBack",
       "packages/ui-native/src/HorizonPicker.tsx#HorizonPicker: draws HorizonPicker",
       // (T700) a notice opened in the bell's inbox: back steps back to the list
       "packages/ui-native/src/InSeasonInbox.tsx#InSeasonInboxDetail: takes onBack",
@@ -484,5 +486,46 @@ describe("back steps out one layer (owner 2026-10-22 late)", () => {
       crossPushes: ["cross", "system"],
       groupBlind: ["splitLake"],
     });
+  });
+});
+
+describe("(T1194) a gauge page is one back layer, and a water opened off it is another", () => {
+  const conditions = reduceRoute(HOME, { type: "tab", tab: "conditions" });
+  const gauge = reduceRoute(conditions, openGauge("08MH024" as StationId));
+  const water = (r: Route) => reduceRoute(r, openWater({ item: "gnis:11481" as ItemId, view: "conditions" }));
+  const depth = (r: Route) => backDepth(r);
+
+  it("opens over the Conditions map; back returns it whole (the same route object), depth 1 deeper", () => {
+    expect(gauge).toMatchObject({ mode: "gauge", station: "08MH024" });
+    expect(reduceRoute(gauge, { type: "back" })).toBe(conditions);
+    expect(depth(gauge)).toBe(depth(conditions) + 1);
+  });
+  it("a water opened off the page: back lands on the page, then the map; the browser and Android count the same frames", () => {
+    const w = water(gauge);
+    expect(w).toMatchObject({ mode: "water", via: gauge });
+    expect(reduceRoute(w, { type: "back" })).toBe(gauge);
+    expect(reduceRoute(w, { type: "close" })).toBe(gauge);
+    expect(depth(w)).toBe(depth(gauge) + 1);
+    expect(depth(reduceRoute(w, { type: "flowInto", item: "gnis:8634" as ItemId, part: 0 }))).toBe(depth(w) + 1);
+  });
+  it("a water opened from the map has no `via`: back is the map, as before", () => {
+    expect(water(conditions)).not.toHaveProperty("via");
+    expect(reduceRoute(water(conditions), { type: "back" })).toBe(conditions);
+  });
+  it("MUTATION PIN: the real reducer's gauge walk is the expected one; a gauge back never leaves, a dropped `via` and a close that only backs each change it", () => {
+    // tap -> page -> a water off the page -> back -> back -> back, as the layers a reader steps through
+    const walk = (red: Reduce): string[] => {
+      const g = red(conditions, openGauge("08MH024" as StationId));
+      const w = red(g, openWater({ item: "gnis:11481" as ItemId, view: "conditions" }));
+      const b1 = red(w, { type: "back" }), b2 = red(b1, { type: "back" }), c = red(w, { type: "close" });
+      const at = (r: Route) => (r === conditions ? "map" : r === g ? "gauge" : r.mode);
+      return [g.mode, w.mode, `back: ${at(b1)}`, `back again: ${at(b2)}`, `close: ${at(c)}`];
+    };
+    const EXPECTED = ["gauge", "water", "back: gauge", "back again: map", "close: gauge"];
+    expect(walk(reduceRoute)).toEqual(EXPECTED);
+    const stuck: Reduce = (r, a) => (r.mode === "gauge" && a.type === "back" ? r : reduceRoute(r, a));
+    const dropVia: Reduce = (r, a) => { const n = reduceRoute(r, a); return n.mode === "water" ? { ...n, via: undefined } : n; };
+    const closeBacksToMap: Reduce = (r, a) => (r.mode === "water" && a.type === "close" ? r.from : reduceRoute(r, a));
+    for (const [name, mutant] of Object.entries({ stuck, dropVia, closeBacksToMap })) expect(walk(mutant), name).not.toEqual(EXPECTED);
   });
 });

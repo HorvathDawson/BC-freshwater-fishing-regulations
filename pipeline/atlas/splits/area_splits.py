@@ -18,7 +18,7 @@ from pipeline.atlas.splits.anchors import _area_transition_measures
 from pipeline.common.curated import CURATED, SOURCE
 
 ROOT = get_config().project_root
-_GPKG = str(get_config().fwa_data_gpkg)
+_GPKG = str(SOURCE.fwa_gpkg)
 
 
 #: The cut modes an area may declare (`areas.json` `cut`; see its `_cut_policy`).
@@ -47,7 +47,7 @@ def cut_mode(area_def: dict) -> str | None:
 
 
 def load_area_split_defs(path: str | None = None) -> list[dict]:
-    p = Path(path) if path else CURATED.waters.areas   # curated: a missing file raises (P2)
+    p = Path(path) if path else CURATED.waters.area_closures   # curated: a missing file raises (P2)
     return json.loads(p.read_text()).get("areas", [])
 
 
@@ -117,6 +117,13 @@ def _resolve_area_file(name: str) -> Path:
     sweep, which is exactly the protection `ungazetted.json` is documented as needing."""
     got = getattr(CURATED.waters, name, None)
     return Path(got) if got is not None else Path(name)
+
+
+def area_files(defs: list[dict] | None = None) -> dict[str, Path]:
+    """(T1229) {the `file` a def names: the file it resolves to} for every areas def that draws its polygons from a
+    curated file (`load_area_polys`), resolved as that does: what the tiles key holds by content (`build.curated_parts`)."""
+    return {ad["file"]: _resolve_area_file(ad["file"])
+            for ad in (load_area_split_defs() if defs is None else defs) if ad.get("file")}
 
 
 def load_area_attrs(area_def: dict) -> dict:

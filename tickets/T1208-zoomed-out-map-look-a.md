@@ -1,10 +1,10 @@
 # T1208 — The zoomed-out map look A: borders that read as borders, quieter rule lines, a softer base, region labels once
 
-Status: IN PROGRESS — lane T1208 (worktree wt-T1208); release 0.10.0 re-cut
+Status: DONE — 13d06f5cd, 0d625ea71, d353cc9a5, 1e0c1d490, 9a6f2cbe5, 9433b3dc6, 99aaadffb (look A, the owner's pick; borders dash-dot, cyan water, wide screens fit the province; reviewed).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1208 | The zoomed-out map look A: borders that read as borders, quieter rule lines, a softer base, region labels once | IN PROGRESS — 0.10.0 re-cut | 13d06f5cd, 0d625ea71, 663d3a35a, 1e0c1d490 | review fixes in (dash-dot border, basemap ground and water held to T47); left: the opening frame (Haida Gwaii) waits on a decision: z4 cannot hold B.C. on a phone, the app opens at z10; PR |
+| T1208 | The zoomed-out map look A: borders that read as borders, quieter rule lines, a softer base, region labels once | DONE | 13d06f5cd, 0d625ea71, d353cc9a5, 1e0c1d490, 9a6f2cbe5, 9433b3dc6, 99aaadffb | — |
 
 Source: T1200 (owner 2026-11-26: "build A ..."; proposal A, round 3 sheet 2). Prototype: branch
 `feat/T1200-map-readability-options` (dev-only `?t1200=`, not shipped).
@@ -20,6 +20,9 @@ Source: T1200 (owner 2026-11-26: "build A ..."; proposal A, round 3 sheet 2). Pr
 4. The base: a softer ground and one water blue (the basemap's sea and rivers a light tint of the lake blue).
 5. Themes: light and dark get the treatment; satellite unchanged (T940 holds its line colours; the band and dashes are
    drawn the same).
+6. The widest view (owner 2026-11-26): phones as they are (z4 cannot hold B.C. there); on a wide screen, zoomed all the
+   way out, the whole province with Haida Gwaii fits (1280 x 800 at z4.46, 1440 x 900 at z4.63): it already did, now
+   pinned (tools/wide-province-fit.test.ts).
 
 ## The practice behind look A (research, T1200; kept here: the docs line budget is full)
 

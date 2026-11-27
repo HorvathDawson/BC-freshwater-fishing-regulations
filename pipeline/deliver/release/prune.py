@@ -15,7 +15,7 @@ import shutil
 from pathlib import Path
 from typing import Iterable, List, Set, Tuple
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import ROOTS
 from pipeline.deliver.release.manifest import LATEST, latest, releases
 
 
@@ -41,7 +41,7 @@ def main(argv=None) -> int:
     ap.add_argument("--keep", action="append", default=[], help="a release id to keep as well (repeatable)")
     ap.add_argument("--yes", action="store_true", help="remove (without it, print the list only)")
     a = ap.parse_args(argv)
-    root = a.root or GENERATED.release
+    root = a.root or ROOTS.release
     kept, gone = plan(root, a.keep)
     if not (root / LATEST).is_file():
         print(f"note: no {root / LATEST} — the newest release by mtime stands in for it")

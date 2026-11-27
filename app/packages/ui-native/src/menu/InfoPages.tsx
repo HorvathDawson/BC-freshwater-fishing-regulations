@@ -20,6 +20,8 @@ const open = (url: string) => { void openLink(url); };
 const officialAt = (url: string) => () => openOfficial(url);
 
 /** (T243) a link on its own line is a 44 px row (the touch-target floor), its words centred in it */
+/** (T1203) a long id (a tile version, a release) breaks wherever it must at a large text size, never runs off the screen (the web's `overflow-wrap`; a phone breaks a long word itself) */
+const BREAK_ANYWHERE = { overflowWrap: "anywhere" } as Record<string, unknown>;
 const LINK_ROW = { minHeight: 44, justifyContent: "center" } as const;
 
 export function AboutPage({ vm, palette, onSources, onReport, onChangelog }: { vm: AboutVM; palette: Palette;
@@ -61,7 +63,7 @@ export function AboutPage({ vm, palette, onSources, onReport, onChangelog }: { v
             {/* (T1201) 104 wide at the default size; a larger text size widens every row's alike so "Regulations" is never broken in two */}
             <Text style={{ ...TYPE.small, color: palette.sub, width: 104 * scale, flexShrink: 0 }}>{v.label}</Text>
             <Text selectable testID={`about-version-${v.label}`}
-                  style={{ ...TYPE.figure, fontSize: 12.5, color: palette.ink, flex: 1 }}>{v.value}</Text>
+                  style={{ ...TYPE.figure, fontSize: 12.5, color: palette.ink, flex: 1, ...BREAK_ANYWHERE } as never}>{v.value}</Text>
           </View>
         ))}
       </View>

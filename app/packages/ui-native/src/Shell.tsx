@@ -25,11 +25,11 @@
  * down. Every answer on every screen comes from a hook (rule 25).
  */
 import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure, type ScreenName } from "@app/core";
-import { openProbe, type ItemId, type SectionId } from "@app/data";
+import { openProbe, type ItemId, type SectionId, type StationId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, tabsAsRail, useLayoutClass, spotPins, useDayFlow, useLikeVisit, useMapRail, useStationNames, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, startForFrame, startSpent, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openGauge, startForFrame, startSpent, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -57,6 +57,7 @@ import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { useSpotEdit } from "./shell/useSpotEdit";
 import { WaterModeHost } from "./shell/WaterModeHost";
+import { GaugeScreen } from "./GaugeScreen";
 import { PaneReadyContext, useBrowseKept, usePaneHold } from "./shell/paneReveal";
 import { holdsView } from "./shell/holdViews";
 import { afterLoadQuiet } from "./shell/settle";
@@ -420,6 +421,8 @@ export function Shell(p: ShellProps) {
     }
     // (T605) a region page's `/?fit=` tapped on the phone: the browse map, framed on the region's box
     else if (openReq.fit) { go({ type: "close" }); nav.toTab("map"); search.landOnBox(openReq.fit); }
+    // (T1194) a gauge's page link: the Conditions map, that gauge's own page over it (Back is the map), as the web's `?gauge=` opens
+    else if (openReq.gauge) { go({ type: "close" }); nav.toTab("conditions"); go(openGauge(openReq.gauge as StationId)); }
     // (T1038) a `/?date=` link: the browse map (on the day set above), as the web's browse start opens
     else if (openReq.home) { go({ type: "close" }); nav.toTab("map"); }
     else { go({ type: "close" }); nav.toTab("conditions"); }
@@ -497,9 +500,12 @@ export function Shell(p: ShellProps) {
   // screen committed was the browse body (a map or a list tab), never over a spot or the add flow, never at a landing.
   // (T508) Every view on a phone: the Conditions and Map views wait for their own live maps to draw too (`holdViews`)
   const browseShown = useRef(false);
+  // (T1194, review 2026-11-27) a PAGE IS OPEN OVER THE BROWSE MAP: a water's (the frame) or a gauge's own page. Either keeps the map mounted under it
+  // (unseen), so Back shows it as it was, never rebuilt (tiles, colours, a new GL context)
+  const pageOpen = frame !== null || route.mode === "gauge";
   const pane = usePaneHold(frame !== null && !nav.carrying, browseShown.current && !!frame && holdsView(frame.view));
   // (T717) and the browse map it was opened over stays mounted under it (hidden), so Back shows that map, drawn
-  const browseKept = useBrowseKept(frame !== null, browseShown.current);
+  const browseKept = useBrowseKept(pageOpen, browseShown.current);
   // (T716) the tap's cue (`@app/ui` pressCue.ts): lit by the browse map's host, out once the map is back in front
   const tapCue = useMemo(() => pressCueStore(), []);
   useEffect(() => { if (frame === null) tapCue.drop(); }, [frame === null, tapCue]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -536,7 +542,7 @@ export function Shell(p: ShellProps) {
   // (T856) with whether the rail floated over that render's map: the held map keeps its box and its left inset
   const lastBrowse = useRef<{ map: React.ReactNode; top: React.ReactNode; foot: React.ReactNode; tabs: React.ReactNode;
                               railOver: boolean } | null>(null);
-  const browseNow = frame === null && !viewing && !(adding && onSaveSpot);
+  const browseNow = !pageOpen && !viewing && !(adding && onSaveSpot);
   /**
    * (T1164) EVERY SCREEN IS MOUNTED THROUGH THIS: a fault while one is drawn ends that screen only (its own line, Try again,
    * Go back; reported), and the shell around it stays whole. `tools/screen-boundary.test.ts` fails a screen mounted
@@ -607,9 +613,9 @@ export function Shell(p: ShellProps) {
    * colours, `back-flash` conditions). So the kept map is handed the colouring of the last browse render; Back hands it
    * the live one again (the same, unless a feed moved meanwhile).
    */
-  if (frame === null) browseLook.current = { col, lookKey };
-  const look = frame === null ? { col, lookKey } : browseLook.current ?? { col, lookKey };
-  const browseLive = frame === null || (landed && warm) || browseKept
+  if (!pageOpen) browseLook.current = { col, lookKey };
+  const look = !pageOpen ? { col, lookKey } : browseLook.current ?? { col, lookKey };
+  const browseLive = !pageOpen || (landed && warm) || browseKept
     ? screen(tab, tab, <BrowseHost nav={nav} col={look.col} search={search} rail={rail} palette={palette} theme={theme}
                   themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footInset} insetCredits={insetCredits}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
@@ -622,7 +628,7 @@ export function Shell(p: ShellProps) {
                   fishImages={p.fishImages}
                   lookKey={look.lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} tap={tapOpen}
                   // (T856) the map kept under a page keeps the inset it was left with (T717), so Back moves nothing
-                  railOver={frame === null ? railOverLive : lastBrowse.current?.railOver ?? railOverLive} />)
+                  railOver={!pageOpen ? railOverLive : lastBrowse.current?.railOver ?? railOverLive} />)
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
@@ -688,7 +694,7 @@ export function Shell(p: ShellProps) {
                   : <TabBar active={tab} palette={palette} onChange={nav.toTab} />)
       : null,
   };
-  if (frame === null) lastBrowse.current = { map: browseLive, ...chromeLive, railOver: railOverLive };
+  if (!pageOpen) lastBrowse.current = { map: browseLive, ...chromeLive, railOver: railOverLive };
   const held = pane.holding ? lastBrowse.current : null;
   // (T856) the rail floats as the chrome DRAWN says: held, the last browse render's (its rail over its map, which keeps
   // its box and its left inset), not the live route's — a water's route has no bar, and the held map shrank by the rail
@@ -700,10 +706,10 @@ export function Shell(p: ShellProps) {
     // (T498) while a pane is held the map stays on screen, untouchable, until the pane is shown whole. NEVER COLLAPSED
     // (Fabric): a layout-only wrapper is flattened away, and the hold's pointerEvents made it a real view — the map was
     // re-parented into it, its surface torn down: black, then grey, for every hold (emulator)
-    <View key="browse" collapsable={false} style={frame === null || pane.holding ? { flex: 1 } : keptStyle(lastBrowse.current?.tabs ? tabsH : 0)}
+    <View key="browse" collapsable={false} style={!pageOpen || pane.holding ? { flex: 1 } : keptStyle(lastBrowse.current?.tabs ? tabsH : 0)}
           // (T716) …except while a lift's open waits for its click: a second tap (a double tap: MapLibre's zoom) must
           // still reach the map, or the detector, seeing none, confirms the first as a click and the water opens
-          pointerEvents={frame === null || tapAwaiting ? "auto" : "none"} aria-hidden={frame !== null && !pane.holding}>{browse}</View>
+          pointerEvents={!pageOpen || tapAwaiting ? "auto" : "none"} aria-hidden={pageOpen && !pane.holding}>{browse}</View>
   );
   const waterView = water && (
     <View key="water" collapsable={false} style={pane.holding ? heldStyle(held?.tabs ? tabsH : 0) : { flex: 1 }} pointerEvents={pane.holding ? "none" : "auto"}
@@ -711,7 +717,14 @@ export function Shell(p: ShellProps) {
       <PaneReadyContext.Provider value={pane.hold}>{water}</PaneReadyContext.Provider>
     </View>
   );
-  const body = <View style={{ flex: 1 }}>{browseView}{waterView}</View>;
+  // (T1194) a gauge's own page, over the kept Conditions map (`GaugeScreen`); Back returns to the map as it was
+  const gaugeView = route.mode === "gauge" && (
+    <View key="gauge" collapsable={false} style={{ flex: 1 }}>
+      {screen("gauge", route.station, <GaugeScreen station={route.station} source={source} loader={loader} palette={palette} theme={theme} feed={feed}
+                onBack={back} onOpenWater={(item) => void nav.opener.item(item as ItemId, "conditions")} />, back)}
+    </View>
+  );
+  const body = <View style={{ flex: 1 }}>{browseView}{waterView}{gaugeView}</View>;
   return layered(withInSeason(coached(<>
     {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
     <MenuContext.Provider value={menu}>
@@ -757,7 +770,7 @@ export function Shell(p: ShellProps) {
         <View testID="map-foot" style={{ position: "absolute", left: railOver ? NAV_RAIL.width : 0, right: 0, bottom: 0, zIndex: 1 }} pointerEvents="box-none"
               // (T717) measured on the browse screen only: a water's page empties the foot, and a 0 kept from there put the
               // Conditions map's card at the bottom edge (and moved the kept map's insets) for a frame after Back
-              onLayout={(e) => { if (frame === null) setFootH(Math.round(e.nativeEvent.layout.height)); }}>
+              onLayout={(e) => { if (!pageOpen) setFootH(Math.round(e.nativeEvent.layout.height)); }}>
           {chrome.foot}
         </View>
       </View>

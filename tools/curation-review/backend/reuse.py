@@ -35,7 +35,7 @@ from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carv
 from pipeline.atlas.reach.build import entry_scope as _entry_scope
 from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.atlas.reach import extent as _resolve
-from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, ROOTS, SOURCE
 from pipeline.atlas.splits.sectionizer import minted_id as _auto_split
 from pipeline.common.models.registry import bare_split_id
 from pipeline.atlas.splits.splits import splits_on
@@ -46,8 +46,8 @@ _ROOT = Path(__file__).resolve().parents[3]
 #: a side rebuild moves them ALL at once with `CURATED_ROOT` (a whole copy, `pipeline.common.curated.make_root`,
 #: T422) — the old per-file overrides are refused (`curated.RETIRED_ENV`).
 ENTRIES_DIR = CURATED.regulations.synopsis
-# The build the app SERVES. `project_config.review_build_dir` is the one name for it — see
-# config.yaml `generated.atlas.default_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
+# The build the app SERVES. `GENERATED.build()` is the one name for it — see
+# config.yaml `atlas_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
 # reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
 # `CURATION_BUILD` points it at another atlas — a scratch rehearsal of the review (T136), whose printed
 # rebuild then writes that copy (`vintage.Target`), never the live one.
@@ -72,7 +72,7 @@ MARKS_PATH = CURATED.review.marks
 REACH_DIR = (Path(os.environ["CURATION_REACH_DIR"]) if os.environ.get("CURATION_REACH_DIR")
              else GENERATED.reaches / _BUILD.name)
 RELEASE_ROOT = (Path(os.environ["CURATION_RELEASE_ROOT"]) if os.environ.get("CURATION_RELEASE_ROOT")
-                else GENERATED.release)
+                else ROOTS.release)
 #: The tile set a rebuild of THIS target writes (T136): only the printed commands name it — the tool
 #: reads no tile. `CURATION_TILES` points it at a copy.
 TILES_DIR = (Path(os.environ["CURATION_TILES"]) if os.environ.get("CURATION_TILES")
@@ -2105,7 +2105,7 @@ def _fwa_lake_poly(wbk: str):
     from contextlib import closing
     from shapely import wkb as _wkb
     from shapely.ops import unary_union
-    src = SOURCE / "bc_fisheries_data.gpkg"
+    src = SOURCE.fwa_gpkg
     if not src.exists():
         raise FileNotFoundError(f"{src} is missing: the lake outlines on the verification map are read from it "
                                 "(fetch it with data/fetch_data.py)")

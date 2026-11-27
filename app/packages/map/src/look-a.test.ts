@@ -9,7 +9,7 @@ import { MAP_STYLE, resolveTheme, STYLE_META } from "./style";
 import { runtimeStyle } from "./runtime-style";
 import { PMTILES } from "./tile-access";
 import { NOACCESS_LAYER } from "./paint";
-import { OUR_TOWN_NAMES, REGION_BAND, REGION_NAMES, REGION_POINTS, TIER_ZOOM, TOWN_DOTS, TOWN_LIST, TOWN_NAMES, TOWNS_UNTIL } from "./look-a";
+import { LAKE_NAMES, OUR_TOWN_NAMES, REGION_BAND, REGION_NAMES, REGION_POINTS, TIER_ZOOM, TOWN_DOTS, TOWN_LIST, TOWN_NAMES, TOWNS_UNTIL } from "./look-a";
 
 type L = { id: string; type?: string; source?: string; filter?: unknown; minzoom?: number; maxzoom?: number;
            paint?: Record<string, unknown>; layout?: Record<string, unknown> };
@@ -130,7 +130,7 @@ describe("(T1208) the base: the ground and water the theme paints (held to T47 b
   it("the basemap's \"BRITISH COLUMBIA\" is gone (every reader knows where they are; it took a town's room)", () => {
     for (const th of ["light", "dark"]) expect(ids(composed(th))).not.toContain("places_region");
   });
-  it("dark: the theme's tokens too, a step off the flavour's black (#141414 / #333333) where T47's floors need it", () => {
+  it("dark: the theme's tokens too, a step off the flavour's own black where T47's floors need it", () => {
     const s = composed("dark"), t = resolveTheme("dark");
     expect([layer(s, "earth").paint!["fill-color"], layer(s, "water").paint!["fill-color"]])
       .toEqual([t["color.ui.basemap.ground"], t["color.ui.basemap.water"]]);
@@ -195,5 +195,20 @@ describe("(T1209) the towns to find your way by", () => {
       }
     }
     expect(failed).toEqual([]);
+  });
+});
+
+describe("(T1210) lake and river names zoomed out, from the tiles' own label layers", () => {
+  // that the tiles declare them (the pipeline's tile contract): tools/look-a-labels.test.ts (a package reads no files)
+  it("a river is named from z4 (order 9; 8 from z5; 7 from z6), on `stream_name`", () => {
+    const l = (MAP_STYLE.layers as L[]).find((x) => x.id === "stream__label")!;
+    expect([l.minzoom, (l as { "source-layer"?: string })["source-layer"]]).toEqual([4, "stream_name"]);
+    expect(JSON.stringify(l.filter)).toContain('[">=",["zoom"],4],[">=",["get","ord"],9]');
+  });
+  it("a lake is named below z8 from `lake_name`, biggest first, placed before the rivers' names", () => {
+    const s = composed("light"), l = s.layers.find((x) => x.id === LAKE_NAMES)!;
+    expect([(l as { "source-layer"?: string })["source-layer"], l.minzoom, l.maxzoom]).toEqual(["lake_name", 4, 8]);
+    expect(ids(s).indexOf(LAKE_NAMES)).toBeGreaterThan(ids(s).indexOf("stream__label"));
+    expect(l.layout!["symbol-sort-key"]).toEqual(["-", 0, ["get", "area_m2"]]);
   });
 });

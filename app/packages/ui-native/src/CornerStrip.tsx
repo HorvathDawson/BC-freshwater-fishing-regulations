@@ -12,7 +12,7 @@ import { Pressable } from "./Pressable";
 import { useCoachTarget } from "./CoachMarks";
 import { hitProps } from "./regs/hit";
 import { Icon, type IconName } from "./icons";
-import { TYPE } from "./type";
+import { LABEL_SCALE, TYPE } from "./type";
 import type { Palette } from "./theme";
 
 /** a segment: at least 46 wide and 33 tall by its style (8 + 17 + 8), grown to 44 × 44 to the touch */
@@ -75,12 +75,12 @@ export function CornerStrip({ palette, segments, testID, label, radio = false, c
                 : h.icon && <Icon name={h.icon} colour={ink} size={h.chip ? 15 : 17} />}
               <View style={{ alignItems: "center" }}>
                 {h.chip ? (
-                  <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: h.note ? 14 : 17, fontWeight: "600", color: ink }}>
+                  <Text maxFontSizeMultiplier={LABEL_SCALE} style={{ ...TYPE.micro, fontSize: 13, lineHeight: h.note ? 14 : 17, fontWeight: "600", color: ink }}>
                     {h.chip}
                   </Text>
                 ) : null}
                 {h.note && (
-                  <Text style={{ ...TYPE.micro, fontSize: 10, lineHeight: 11, letterSpacing: 0, color: palette.sub }}>
+                  <Text maxFontSizeMultiplier={LABEL_SCALE} style={{ ...TYPE.micro, fontSize: 10, lineHeight: 11, letterSpacing: 0, color: palette.sub }}>
                     {h.note}
                   </Text>
                 )}

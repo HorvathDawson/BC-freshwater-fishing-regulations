@@ -17,6 +17,7 @@ export * from "./chartPrefs";
 export * from "./heldHeight";
 export * from "./heldLook";
 export * from "./hooks";
+export * from "./gaugePage";
 export * from "./panel";
 export * from "./hydrograph";
 export * from "./chart";

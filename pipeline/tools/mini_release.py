@@ -39,7 +39,7 @@ import sys
 import time
 from pathlib import Path
 
-from pipeline.common.curated import REPO_ROOT
+from pipeline.common.curated import REPO_ROOT, SOURCE
 from pipeline.common.utils import wsc as W
 from pipeline.gauges.liveness import may_speak, speaks_now      # the one reader of a station's liveness (T122)
 
@@ -382,7 +382,7 @@ def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[st
     out_dir = Path(out_dir)
     src = out_dir / "source"
     src.mkdir(parents=True, exist_ok=True)
-    _sh.copyfile(fwa, src / "bc_fisheries_data.gpkg")
+    _sh.copyfile(fwa, SOURCE.under(src).fwa_gpkg)
     roster = [{"station": g["station"], "name": g["name"], "lon": lonlat(world, *g["at"])[0],
                "lat": lonlat(world, *g["at"])[1], "realtime": speaks_now(g), "active": may_speak(g),
                "area_km2": g["area_km2"]} for g in world["gauges"]]
@@ -398,8 +398,7 @@ def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[st
     (src / "bc_boundary.geojson").write_text(json.dumps(
         {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": "Mini Province"},
                                                     "geometry": mapping(outline)}]}) + "\n", encoding="utf-8")
-    from pipeline.common.synopsis_pages import PDF_NAME
-    pdf = src / PDF_NAME
+    pdf = SOURCE.under(src).synopsis_pdf
     pdf.write_bytes(tiny_pdf(synopsis_pages(world)))
     # the row boxes cut from that PDF (the highlight a rule's page opens at): none — the mini book prints no table rows
     import hashlib as _h
@@ -504,9 +503,11 @@ def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[st
     ]
 
 
-def build(out: Path, stop_after: str | None = None) -> dict:
+def build(out: Path, stop_after: str | None = None, trace: Path | None = None) -> dict:
     """Inputs then every stage into `out` (emptied first). Each stage's log is `out/logs/<stage>.log`; a failed stage
-    stops the build and raises naming it and its log's last lines. Returns {stage: seconds}."""
+    stops the build and raises naming it and its log's last lines. Returns {stage: seconds}. (T1229) `trace`: each stage
+    runs under the recorder (`PIPELINE_TRACE=<trace>/<stage>`), which the stage-key guard reads
+    (`test_stage_content_keys.py`)."""
     out = Path(out).resolve()
     _refuse_inside_repo_data(out)
     before = listing(watched_dirs())
@@ -527,7 +528,8 @@ def build(out: Path, stop_after: str | None = None) -> dict:
         with log.open("w", encoding="utf-8") as fh:
             fh.write("$ " + " ".join(cmd) + "\n")
             fh.flush()
-            rc = subprocess.run(cmd, cwd=REPO_ROOT, env=_env(), stdout=fh, stderr=subprocess.STDOUT).returncode
+            env = _env() if trace is None else dict(_env(), PIPELINE_TRACE=str(Path(trace).resolve() / name))
+            rc = subprocess.run(cmd, cwd=REPO_ROOT, env=env, stdout=fh, stderr=subprocess.STDOUT).returncode
         took[name] = round(time.perf_counter() - t, 1)
         print(f"mini release: {name:14} {'ok' if rc == 0 else f'FAILED rc={rc}':12} {took[name]:7.1f}s  {log}",
               flush=True)
@@ -551,11 +553,11 @@ def watched_dirs() -> list[Path]:
     the tiles and the released tile folders, the release root, the run-timing base, the synopsis cache, the deliver
     step cache, the gauge feeds, the DFO salmon feed and its page cache, the fetched map assets — and the curated
     tree. A mini build must leave every one exactly as it found it (`build` refuses otherwise)."""
-    from pipeline.common.curated import GENERATED, SOURCE, load_repo
+    from pipeline.common.curated import GENERATED, ROOTS, SOURCE, load_repo
     from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
-    g = Path(GENERATED.base)
-    return [Path(GENERATED.bundle), Path(GENERATED.tiles), Path(GENERATED.release), Path(GENERATED.runtiming),
-            g / "synopsis", g / "deliver-cache", Path(GENERATED.gauges.feeds), Path(GENERATED.regs.dfo_salmon),
+    return [Path(GENERATED.bundle), Path(GENERATED.tiles), Path(ROOTS.release), Path(GENERATED.runtiming),
+            Path(GENERATED.synopsis), Path(ROOTS.generated) / "deliver-cache", Path(GENERATED.gauges.feeds),
+            Path(GENERATED.regs.dfo_salmon),
             Path(GENERATED.reaches), Path(SOURCE) / "map-assets", REPO_ROOT / DEFAULT_CACHE, Path(load_repo().base)]
 
 
@@ -654,11 +656,14 @@ def _drop(doc, key):
 
 
 def _drop_stamps(doc):
-    """`stamp:<size>:<mtime>` (the gpkg digests, `atlas.inputs`): the scratch gpkg is rewritten each run."""
+    """The two source digests of the atlas record (`atlas.inputs.SOURCE_KEYS`: `sha256:<hex>` since T1223, before it
+    `stamp:<size>:<mtime>`): the scratch gpkg is rewritten each run, and its bytes with it. Only those two keys: every
+    curated `sha256:` digest stays compared."""
+    from pipeline.atlas.inputs import SOURCE_KEYS
     if isinstance(doc, dict):
         for k, v in list(doc.items()):
-            if isinstance(v, str) and v.startswith("stamp:"):
-                doc[k] = "stamp:<scratch>"
+            if isinstance(v, str) and (k in SOURCE_KEYS or v.startswith("stamp:")):
+                doc[k] = "<scratch source>"
             else:
                 _drop_stamps(v)
     elif isinstance(doc, list):

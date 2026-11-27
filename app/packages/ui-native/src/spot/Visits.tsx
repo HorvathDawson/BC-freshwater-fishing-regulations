@@ -7,7 +7,7 @@ import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { VISIT_WORDS } from "@app/core";
 import type { VisitsView } from "@app/ui";
-import { TYPE } from "../type";
+import { LABEL_SCALE, TYPE } from "../type";
 import type { Palette } from "../theme";
 import { Button } from "../Button";
 import { Chip } from "../Chip";
@@ -55,7 +55,7 @@ export function RateBlock({ view, palette, onRate }: {
                        accessibilityRole="button" accessibilityLabel={s.label} aria-pressed={s.on}
                        testID={`visit-star-${s.n}`}
                        style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ fontSize: 26, lineHeight: 30, color: s.on ? palette.accent : palette.faint }}>
+              <Text maxFontSizeMultiplier={LABEL_SCALE} style={{ fontSize: 26, lineHeight: 30, color: s.on ? palette.accent : palette.faint }}>
                 {s.on ? VISIT_WORDS.starOn : VISIT_WORDS.starOff}
               </Text>
             </Pressable>

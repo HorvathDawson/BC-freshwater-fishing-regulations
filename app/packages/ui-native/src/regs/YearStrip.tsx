@@ -16,6 +16,7 @@ import { WORDS, legendText, type SalmonDrawn, type SalmonStripVM, type StripVM }
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
+import { InSeasonBand, InSeasonLegend, InSeasonPointer } from "./InSeasonYear";
 
 export const GAP = 2, H = 10;
 
@@ -66,13 +67,16 @@ export function RunRect({ x, w, bits, palette }: { x: number; w: number; bits: n
 }
 
 /** (T227) The bar's name above its status line when a second (salmon) bar is drawn under it: "Game fish (B.C. rules)". */
-function BarTitle({ text, palette, testID, tag = null }: { text: string; palette: Palette; testID: string; tag?: string | null }) {
+function BarTitle({ text, palette, testID, tag = null, one = null }: { text: string; palette: Palette; testID: string; tag?: string | null;
+  /** (T1207) the merged block: its screen-reader label (the name wraps) */ one?: string | null }) {
   // a block's name and whose rules it is, the tag its rows wear
-  if (tag) return <TaggedTitle text={text} tag={tag} palette={palette} testID={testID} />;
+  if (tag) return <TaggedTitle text={text} tag={tag} palette={palette} testID={testID} wrap={one !== null} label={one ?? undefined} />;
   return <Text testID={testID} accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginBottom: 2 }]}>{text}</Text>;
 }
 
-export function YearStrip({ strip, dateLabel, palette, title = null, hours = null, tag = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
+export function YearStrip({ strip, dateLabel, palette, title = null, hours = null, tag = null, one = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
+  /** (T1207) the ONE block for both fish (core `banner.schedule.label`): its title row wraps and a screen reader hears this */
+  one?: string | null;
   /** whose rules the bar is, beside its name */
   tag?: string | null;
   /** (T473) a daylight-only closure's real hours on the day, said with the status ("Daylight only · fishing 7:04–18:37") */
@@ -88,7 +92,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
   const coach = useCoachTarget("regs:answer");   // (T293) the walkthrough: today's answer and the year
   return (
     <View ref={coach} collapsable={false} style={{ paddingTop: 10, paddingHorizontal: GUTTER, paddingBottom: 2 }} testID="keep-strip">
-      {title && <BarTitle text={title} palette={palette} testID="keep-strip-title" tag={tag} />}
+      {title && <BarTitle text={title} palette={palette} testID="keep-strip-title" tag={tag} one={one} />}
       <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 8 }}>
         <Text testID={`st:${strip.status}`} style={[TYPE.answer, { color: tone }]}>{(strip.status === "open" ? WORDS.CHECK.trim() : WORDS.CLOSED_MARK) + (status?.text ?? "")}</Text>
         {rest.map((l, i) => l.kind === "when"
@@ -96,6 +100,8 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
           : <Text key={i} testID={l.kind === "soonOpen" ? "st:open" : "st:closed"} style={[TYPE.metaBold, { marginLeft: "auto", paddingVertical: 2, paddingHorizontal: 8, borderWidth: 1.5,
               color: l.kind === "soonOpen" ? palette.salmon.open : palette.closed, borderColor: l.kind === "soonOpen" ? palette.salmon.open : palette.closed }]}>{l.text}</Text>)}
       </View>
+      {/* (T1167) a notice in force on the page: the status line points at it (the answer stays the book's) */}
+      <InSeasonPointer palette={palette} on="strip" />
       {!!hours && <Text testID="keep-daylight" style={[TYPE.metaBold, { color: palette.ink, marginTop: 2 }]}>{hours}</Text>}
       {/* (T40) the bar is one picture to a screen reader, named by the status line ("Open today"); the marker's date is the
           header pill's, so it is hidden inside it. The legend below stays text. */}
@@ -106,6 +112,8 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
             {rects.map((r) => <RunRect key={r.i} x={r.at} w={r.rw} bits={r.bits} palette={palette} />)}
           </Svg>
         )}
+        {/* (T1167) a dated notice's range, over its days */}
+        {w > 0 && <InSeasonBand palette={palette} />}
         {w > 0 && (
           <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, ...bar.marker(strip.todayAt), width: 2, height: 22, backgroundColor: palette.ink }}>
             <Text style={[TYPE.metaSemi, { position: "absolute", bottom: 24, left: -40, width: 82, textAlign: "center", lineHeight: 12.48, color: palette.ink }]}>{dateLabel}</Text>
@@ -124,6 +132,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
             <Text testID="strip-legend-item" style={[TYPE.legend, { color: palette.ink }]}>{legendText(l)}</Text>
           </View>
         ))}
+        <InSeasonLegend palette={palette} />
       </View>
     </View>
   );
@@ -183,6 +192,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
             {rects.map((r) => <SalmonRect key={r.i} x={r.at} w={r.rw} drawn={r.drawn} gear={r.gear} palette={palette} />)}
           </Svg>
         )}
+        {w > 0 && <InSeasonBand palette={palette} />}
         {w > 0 && (
           <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, ...bar.marker(todayAt), width: 2, height: 22, backgroundColor: palette.ink }}>
             <Text style={[TYPE.metaSemi, { position: "absolute", bottom: 24, left: -40, width: 82, textAlign: "center", lineHeight: 12.48, color: palette.ink }]}>{dateLabel}</Text>
@@ -201,6 +211,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
             <Text style={[TYPE.legend, { color: palette.ink }]}>{l.label}</Text>
           </View>
         ))}
+        {strip.runs.length > 0 && <InSeasonLegend palette={palette} />}
       </View>
     </View>
   );

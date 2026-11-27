@@ -34,7 +34,7 @@ negative `blk` ids are a live ABI — reminting them strands every cut bound to 
 
 ```python
 from pipeline.common.curated import CURATED
-CURATED.waters.cuts              # pydantic-validated at first access (config.yaml `curated:`)
+CURATED.waters.cuts              # pydantic-validated at first access (its field's `At` in pipeline/common/curated.py)
 CURATED.gauges.matches
 ```
 

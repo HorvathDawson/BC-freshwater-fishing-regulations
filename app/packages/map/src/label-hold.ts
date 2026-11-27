@@ -32,7 +32,7 @@ type Layer = { id: string; type?: string; source?: string; layout?: Record<strin
 const BASEMAP_PLACES = new Set(["places_locality", "places_country", "places_region", "places_subplace",
                                 "earth_label_islands", "water_label_ocean"]);
 /** Our water names. */
-const WATER_NAMES = new Set(["lake__label", "stream__label"]);
+const WATER_NAMES = new Set(["lake__label", "stream__label", "lake-names"]);   // (T1210) and the lakes named zoomed out
 /** Marks drawn along or on the water: the selected gauge's route arrows, a stream's flow arrows, obstacles. */
 const MARKS = new Set(["route-arrows", "stream__arrows", "obstacle"]);
 

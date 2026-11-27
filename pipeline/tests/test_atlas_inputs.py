@@ -35,7 +35,7 @@ def gpkg(tmp_path):
     return p
 
 
-#: the two source stamps (no FWA file in a test: the stand-in file is stamped for both)
+#: the two source files (no FWA file in a test: the stand-in file is hashed for both)
 SOURCES = ("source:fwa_gpkg", "source:fwa_coast")
 
 
@@ -61,8 +61,7 @@ def test_every_input_digests_and_a_current_atlas_is_not_behind(tmp_path, gpkg):
     now = I.digests(_src(gpkg))
     assert list(now) == list(I.ATLAS_INPUTS)
     assert now["curated:waters.cuts"].startswith("anchors:")
-    assert all(now[k].startswith("stamp:") for k in SOURCES)
-    assert all(v.startswith("sha256:") for k, v in now.items() if k != "curated:waters.cuts" and k not in SOURCES)
+    assert all(v.startswith("sha256:") for k, v in now.items() if k != "curated:waters.cuts")    # (T1223) sources too
     assert I.behind(_atlas(tmp_path, now), now) == []
 
 
@@ -90,6 +89,16 @@ def test_a_skipped_or_unrecorded_input_is_behind(tmp_path, gpkg):
                                                 I.curated_path("curated:waters.slough_calls").name]
     assert "built without it, not read (--no-splits)" in got[0]
     assert "records no digest" in got[1]
+
+
+def test_an_atlas_recorded_before_an_input_was_listed_says_so(tmp_path, gpkg):
+    """(T1229) An atlas recorded before `regulations.book_name_links` was an input is behind on it, saying why: never
+    a crash, never "changed"."""
+    now = I.digests(_src(gpkg))
+    got = I.behind(_atlas(tmp_path, {k: v for k, v in now.items() if k not in I.LISTED_AFTER}), now)
+    key = "curated:regulations.book_name_links"
+    assert got == [f"{I.curated_path(key).name} ({key}): the atlas was recorded before this input was listed "
+                   f"({I.LISTED_AFTER[key]}) — rebuild: {I.REBUILD}"]
 
 
 def test_build_paths_follow_the_build_flags(gpkg):
@@ -189,8 +198,12 @@ def test_the_record_moves_only_the_meta_file(tmp_path):
 
 #: modules under pipeline/atlas that are not the build: promote reads the corpus to check the rules' boundary ids
 NOT_THE_BUILD = ("promote.py",)
-#: modules the atlas build imports from outside pipeline/atlas to read a curated file
-INDIRECT = ("pipeline/tools/slough_calls.py", "pipeline/gauges/matches.py", "pipeline/gauges/review.py")
+#: modules the atlas build imports from outside pipeline/atlas to read a curated file. (T1229) `pipeline/atlas/reach/` is
+#: the reach stage, skipped above; the atlas imports `covered` (its `DEFAULT_OVERRIDES`, `pinned_by_override`), `extent`,
+#: `models` and the package from it, and only `covered` names a curated key. `test_stage_content_keys.py` scans every
+#: module the atlas really imports.
+INDIRECT = ("pipeline/tools/slough_calls.py", "pipeline/gauges/matches.py", "pipeline/gauges/review.py",
+            "pipeline/atlas/reach/covered.py")
 
 
 def test_every_curated_key_the_atlas_build_names_is_an_input_or_a_listed_non_input():
@@ -202,10 +215,27 @@ def test_every_curated_key_the_atlas_build_names_is_an_input_or_a_listed_non_inp
     for p in files:
         named |= {f"curated:{m}" for m in re.findall(r"CURATED\.(\w+\.\w+)", p.read_text(encoding="utf-8"))}
     named |= {"curated:waters.added_areas"}     # by name, from an areas.json def's `file` (`_resolve_area_file`)
-    missing = sorted(named - set(I.ATLAS_INPUTS) - set(I.NOT_ATLAS_INPUTS))
+    recorded = {f"curated:{I.RECORD_NAME_OF[k]}" if k in I.RECORD_NAME_OF else k for k in I.ATLAS_INPUTS}
+    missing = sorted(named - recorded - set(I.NOT_ATLAS_INPUTS))
     assert not missing, f"the atlas build reads curated key(s) it does not record: {missing} — add each to " \
                         "atlas.inputs.ATLAS_INPUTS, or to NOT_ATLAS_INPUTS with the reason"
     assert not set(I.ATLAS_INPUTS) & set(I.NOT_ATLAS_INPUTS)
+
+
+def test_a_renamed_key_keeps_its_record_name(tmp_path, gpkg):
+    """(T1192) `waters.areas` / `waters.tidal` became `area_closures` / `tidal_limits`. An atlas meta keeps the names its
+    inputs were recorded under, so the record names stay and resolve to the renamed keys (`RECORD_NAME_OF`): the live
+    atlas's record is not stranded as "records no digest" of files whose bytes never moved."""
+    from pipeline.common import curated as C
+    assert I.RECORD_NAME_OF == {"curated:waters.areas": "waters.area_closures",
+                                "curated:waters.tidal": "waters.tidal_limits"}
+    for record, key in I.RECORD_NAME_OF.items():
+        old, new = record.split(".", 1)[1], key.split(".", 1)[1]
+        assert record in I.ATLAS_INPUTS and new in C.Waters.model_fields and old not in C.Waters.model_fields
+        assert I.curated_path(record) == Path(getattr(CURATED.waters, new))
+    now = I.digests(_src(gpkg))
+    assert {"curated:waters.areas", "curated:waters.tidal"} <= set(now)
+    assert I.behind(_atlas(tmp_path, now), now) == []
 
 
 # --------------------------------------------------------------------------- T599 §4.4: no cheap step writes curated

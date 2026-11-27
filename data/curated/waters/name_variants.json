@@ -643,11 +643,6 @@
   "names": [
    {
     "name": "PANTHER LAKE",
-    "source": "regulation",
-    "note": "FWA has MU 1-6, regulation has MU 1-5 (boundary issue); REGION 1 - Vancouver Island; MU 1-5"
-   },
-   {
-    "name": "PANTHER LAKE",
     "source": "bathymetry",
     "note": ""
    },
@@ -1533,7 +1528,7 @@
    {
     "name": "MCLENNAN CREEK",
     "source": "regulation",
-    "note": "UNCERTAIN: Could be McLennan Creek (100-052188, MU 2-4) OR McLean Creek (100-025956-073866, MU 2-8). Currently matched to McLennan Creek but regulation specifies MU 2-8 which matches McLean Creek. User should verify correct creek and update if needed.; REGION 2 - Lower Mainland; MU 2-8"
+    "note": "MCLENNAN CREEK 2-8 binds BOTH McLennan Creek (this water, MU 2-4) and McLean Creek (gnis 37586, MU 2-8) until the Province answers (owner 2026-11-26: \"Both creeks closed, ask the Province\"; the question is in pipeline/docs/BOOK-QUESTIONS.md). McLean Creek is bound by the book_name_links override, not by this name; REGION 2 - Lower Mainland; MU 2-8"
    }
   ]
  },
@@ -2523,18 +2518,19 @@
  {
   "target": {
    "wbks": [
-    "329523986"
+    "329094665",
+    "329094669"
    ]
   },
   "names": [
    {
     "name": "HALL LAKE",
     "source": "regulation",
-    "note": "FWA has MU 4-20, regulation has MU 4-34 (boundary issue); REGION 4 - Kootenay; MU 4-34"
+    "note": "HALL LAKE 4-34 is the Hall Lakes in the unit (owner 2026-11-26, T1118 D6); moved here from Hall Lake 4-20 (wbk 329523986) with the row's binding; REGION 4 - Kootenay; MU 4-34"
    }
   ],
   "_gnis": [
-   "36134"
+   "36138"
   ]
  },
  {
@@ -3152,19 +3148,19 @@
  {
   "target": {
    "gnis_ids": [
-    "14970"
+    "7335"
    ]
   },
   "names": [
    {
     "name": "ARROW PARK CREEK",
     "source": "regulation",
-    "note": "GNIS name: Mosquito Creek. MU 4-18 near Arrow Park community. GNIS 7335 (also Mosquito Creek) is in MU 4-32.; REGION 4 - Kootenay; MU 4-32"
+    "note": "ARROW PARK (Mosquito) CREEK 4-32 is this creek (owner 2026-11-26, T1118 D6); moved here from gnis 14970 by Kootenay Lake with the row's binding; REGION 4 - Kootenay; MU 4-32"
    },
    {
     "name": "MOSQUITO CREEK",
     "source": "regulation",
-    "note": "GNIS name: Mosquito Creek. MU 4-18 near Arrow Park community. GNIS 7335 (also Mosquito Creek) is in MU 4-32.; REGION 4 - Kootenay; MU 4-32"
+    "note": "ARROW PARK (Mosquito) CREEK 4-32 is this creek (owner 2026-11-26, T1118 D6); moved here from gnis 14970 by Kootenay Lake with the row's binding; REGION 4 - Kootenay; MU 4-32"
    }
   ]
  },
@@ -6551,18 +6547,18 @@
  {
   "target": {
    "wbks": [
-    "329292352"
+    "329303502"
    ]
   },
   "names": [
    {
     "name": "LOST LAKE",
     "source": "regulation",
-    "note": "Matched via base name: LOST LAKE; REGION 2 - Lower Mainland; MU 2-8"
+    "note": "LOST LAKE (near Whistler), printed MU 2-8 (a misprint: Whistler is MU 2-9); moved here from the Malcolm Knapp Lost Lake (wbk 329292352) with the row's binding (owner 2026-11-26, T1177 O3); REGION 2 - Lower Mainland; MU 2-8"
    }
   ],
   "_gnis": [
-   "18006"
+   "36000"
   ]
  },
  {

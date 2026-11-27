@@ -17,7 +17,7 @@ import { linkTo } from "./openLink";
 /** equal-width slots: side by side where two fit, else each the full width */
 const SLOT = { flexBasis: 200, minWidth: 200 } as const;
 
-export function GetAppBlock({ palette, contact = null, onReport, testflight = TESTFLIGHT_URL }: {
+export function GetAppBlock({ palette, contact = null, onReport, testflight = TESTFLIGHT_URL, gap = SPACE.s2 }: {
   palette: Palette;
   /** the app's contact value (More → Contact): "Join the test" emails it */
   contact?: string | null;
@@ -25,6 +25,8 @@ export function GetAppBlock({ palette, contact = null, onReport, testflight = TE
   onReport?: (ask: string) => void;
   /** (T921) the public iPhone test invite (core's `TESTFLIGHT_URL`); null: the iPhone join is the email ask */
   testflight?: string | null;
+  /** (T1194) the space between the stacked buttons (the gauge page's foot card gives them more room than the Spots tab's block) */
+  gap?: number;
 }) {
   // (T911) a Join the test press with an address opens the card (email me / copy email); without one it is the Report form
   const [joining, setJoining] = useState<JoinStore | null>(null);
@@ -33,10 +35,10 @@ export function GetAppBlock({ palette, contact = null, onReport, testflight = TE
     <View testID="get-app" style={{ gap: SPACE.s2, alignItems: "center" }}>
       {/* (T901, owner 2026-11-19) one plain line for what is still coming, then one button per platform in the same
           spot: its store link once public, else "Join the test" (an email, or the Report form) */}
-      <Text style={{ ...TYPE.name, color: palette.ink, textAlign: "center" }}>{W.getApp}</Text>
+      <Text accessibilityRole="header" style={{ ...TYPE.name, color: palette.ink, textAlign: "center" }}>{W.getApp}</Text>
       {block.coming && <Text testID="web-spots-coming" style={{ ...TYPE.body, color: palette.sub, textAlign: "center" }}>{block.coming}</Text>}
       {block.lead && <Text style={{ ...TYPE.small, color: palette.sub, textAlign: "center" }}>{block.lead}</Text>}
-      <View testID="web-spots-get-app" style={{ width: "100%", maxWidth: 440, flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
+      <View testID="web-spots-get-app" style={{ width: "100%", maxWidth: 440, flexDirection: "row", flexWrap: "wrap", gap }}>
         {block.slots.map((x) => x.kind === "store"
           ? <Button key={x.store} palette={palette} label={x.label} style={SLOT} testID={x.store === "android" ? "web-spots-play" : "web-spots-app-store"}
                     onPress={linkTo(x.url)} />

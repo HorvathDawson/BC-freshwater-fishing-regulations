@@ -632,7 +632,7 @@ def main(argv=None) -> int:
         if a.topo_cache:
             a.topo_cache.write_bytes(pickle.dumps(dict(vars(t)), protocol=5))
     from pipeline.common.curated import CURATED
-    report = run(Path(build), Path(bundle), Path(reach), Path(CURATED.waters.areas), t)
+    report = run(Path(build), Path(bundle), Path(reach), Path(CURATED.waters.area_closures), t)
     if a.out:
         a.out.write_text(json.dumps(report, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     if a.write_result:

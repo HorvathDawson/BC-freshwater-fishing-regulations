@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { AppState, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, OPEN, now as clockNow, environmentError, parseSheetKey, reportFailure, startEndSentence, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, isStartOwnScroll, startEndOf, startTick, START_FOLLOW_0, START_TICK_MS, type StartFollow, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, OPEN, now as clockNow, environmentError, parseSheetKey, reportFailure, startEndSentence, withInSeason, withSalmonSheets, inSeasonKeepOf, type SalmonCardVM, tabScrollY, isStartOwnScroll, startEndOf, startTick, START_FOLLOW_0, START_TICK_MS, type StartFollow, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { NO_SNIPPET, WaterInset } from "../WaterFrame";
@@ -41,6 +41,7 @@ import { recallRegsScroll, regsScrollItem, rememberRegsScroll } from "./scrollMe
 import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
 import { InSeasonBanners } from "./InSeasonBanner";
+import { InSeasonKeepContext } from "./InSeasonYear";
 import { startLog } from "./startProbe";
 import type { FishImages } from "./types";
 import { CoachScrollContext, useCoachScroller } from "../CoachMarks";
@@ -324,6 +325,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // (T990) `src:all` also lists the Province's in-season changes this water shows (the screen's, not the page's)
   // (T1031) and the salmon species' sheets (the screen's card, not the page's)
   const hostPage = useMemo(() => ({ ...page, sheet: withSalmonSheets(withInSeason(page.sheet, inSeason), salmonCard) }), [page, inSeason, salmonCard]);
+  // (T1167) the Keep tab's word of the notices (core): the pointer while one is in force and where, the year bars' marks
+  const inSeasonKeep = useMemo(() => inSeasonKeepOf(page.keep, inSeason), [page.keep, inSeason]);
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(OPEN.terms([id]))}
                            side={layout === "desktop"} nameSource={nameSource} sun={sun} onParts={onParts} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
@@ -353,10 +356,12 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       {/* (T1052) a closed banner that says the salmon's closure too (core `closedWithSalmon`) is the card's one statement */}
       {(!glance || !glance.salmon) && !page.keep.banner?.salmon && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
+        <InSeasonKeepContext.Provider value={inSeasonKeep}>
           <KeepTab keep={page.keep} troutSources={troutSources} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />
+        </InSeasonKeepContext.Provider>
       </AnchorContext.Provider>
       {sec("gear", gear)}
       {sec("methods", methods)}

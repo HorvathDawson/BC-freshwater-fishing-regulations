@@ -28,6 +28,7 @@ import { useBackLayer } from "@app/ui";
 import { Pressable } from "../Pressable";
 import { Text } from "../Text";
 import { LegendRows } from "../Chrome";
+import { Icon } from "../icons";
 import { LABEL_PROPS, LEGEND_TEXT, TYPE } from "../type";
 import type { Palette } from "../theme";
 
@@ -70,7 +71,7 @@ export function MapKey({ palette, rows, lines, samples, isolated = null, onShowA
     <View testID="map-key" pointerEvents="box-none" style={{ paddingHorizontal: KEY_EDGE, paddingBottom: 10, rowGap: 8, alignItems: "flex-start" }}>
       {keyOpen && (
         <View testID="map-key-card" accessibilityLabel={MAP_KEY.chip.label}
-              style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line, borderRadius: 10, padding: 10,
+              style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.box, padding: 10,
                        rowGap: 6, maxWidth: Math.max(200, width - RAIL_CLEAR - KEY_EDGE), ...palette.lift }}>
           <LegendRows rows={rows.filter((r) => r.length > 0)} />
           {lines != null && <View testID="map-key-lines" style={{ rowGap: 6 }}>{lines}</View>}
@@ -83,19 +84,21 @@ export function MapKey({ palette, rows, lines, samples, isolated = null, onShowA
                    accessibilityHint={keyOpen ? MAP_KEY.chip.hintClose : MAP_KEY.chip.hintOpen} aria-expanded={keyOpen}
                    onPress={() => setKeyOpen(!keyOpen)}
                    style={{ minHeight: KEY_TARGET, minWidth: KEY_TARGET, flexDirection: "row", alignItems: "center", columnGap: 6,
-                            paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: palette.line,
+                            paddingHorizontal: 12, borderRadius: palette.r.pill, borderWidth: 1, borderColor: palette.line,
                             backgroundColor: palette.card, ...palette.lift }}>
-          {chipSamples.map((c, i) => <View key={`${c}-${i}`} style={{ width: 14, height: 4, borderRadius: 2, backgroundColor: c }} />)}
+          {chipSamples.map((c, i) => <View key={`${c}-${i}`} style={{ width: 14, height: 4, backgroundColor: c }} />)}
           <Text testID="map-key-word" {...LABEL_PROPS}
                 style={{ ...TYPE.small, fontSize: LEGEND_TEXT - 1, lineHeight: 20, color: isolated ? palette.ink : palette.accent }}>
-            {word} {keyOpen ? "▾" : "▴"}
+            {word}
           </Text>
+          {/* the set's chevron (one icon set, N1): up while the key would open above, down while it is open */}
+          <Icon name={keyOpen ? "expand" : "collapse"} colour={isolated ? palette.ink : palette.accent} size={14} />
         </Pressable>
         {isolated && onShowAll && (
           <Pressable testID="map-key-show-all" accessibilityRole="button" accessibilityLabel={MAP_KEY.chip.showAll}
                      accessibilityHint={MAP_KEY.chip.showAllHint} onPress={onShowAll}
                      style={{ minHeight: KEY_TARGET, minWidth: KEY_TARGET, justifyContent: "center", paddingHorizontal: 14,
-                              borderRadius: 999, borderWidth: 1, borderColor: palette.accent, backgroundColor: palette.card, ...palette.lift }}>
+                              borderRadius: palette.r.pill, borderWidth: 1, borderColor: palette.accent, backgroundColor: palette.card, ...palette.lift }}>
             <Text {...LABEL_PROPS} style={{ ...TYPE.small, fontSize: LEGEND_TEXT - 1, lineHeight: 20, color: palette.accent }}>
               {MAP_KEY.chip.showAll}
             </Text>

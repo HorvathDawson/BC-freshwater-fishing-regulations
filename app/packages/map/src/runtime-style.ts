@@ -27,7 +27,7 @@ import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
-import { lookASources, OUR_TOWN_NAMES, quieterGround, regionBandLayer, regionNamesLayer, TOWNS_UNTIL, townDotsLayer, townLayers } from "./look-a";
+import { lakeNamesLayer, lookASources, OUR_TOWN_NAMES, quieterGround, regionBandLayer, regionNamesLayer, TOWNS_UNTIL, townDotsLayer, townLayers } from "./look-a";
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
 function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Tokens) {
@@ -577,6 +577,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * tidal area's "Tidal water" took Vancouver's place at z9, so the area names stay under the basemap's (above).
        */
       ...ours.filter((l) => WATER_NAMES.includes(l.id)),
+      // (T1210) the lakes named zoomed out, over the rivers' names (placed first): a lake is the bigger landmark
+      lakeNamesLayer(resolveTheme(theme)),
       /**
        * WHICH WAY THE WATER GOES, on a highlighted route only.
        *

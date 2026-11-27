@@ -19,7 +19,7 @@ from pipeline.atlas.graph.graph import ancestors, build_stream_graph
 from pipeline.common.curated import CURATED, SOURCE
 from pipeline.tests.conftest import need, GPKG_HINT
 
-_DATA = str(SOURCE / "bc_fisheries_data.gpkg")
+_DATA = str(SOURCE.fwa_gpkg)
 _needs_data = pytest.mark.needs_source
 
 

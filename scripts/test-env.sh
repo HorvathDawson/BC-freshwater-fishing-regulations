@@ -15,6 +15,7 @@
 #                       Sets an EXIT trap only when it made the directory.
 #   no_data_markers     prints the no-data tier's marker expression from its ONE home, CI's "Tests" step in
 #                       .github/workflows/pipeline-ci.yml (T535), so the laptop, fast-fail and the fresh copy run CI's tier.
+#                       The reader is pipeline/tests/tiers.py `ci_markers` (T1193: a plain `pytest` runs the same one).
 PY=${PIPELINE_PY:-.venv/bin/python}
 command -v "$PY" >/dev/null 2>&1 || {
   echo "scripts/test-env.sh: no interpreter '$PY' ($([[ -n ${PIPELINE_PY:-} ]] && echo "from PIPELINE_PY" || echo "the local default; PIPELINE_PY is unset")):" \
@@ -29,11 +30,6 @@ test_env_pycache() {
 }
 
 no_data_markers() {
-  "$PY" -c 'import re, yaml
-s = [s for j in yaml.safe_load(open(".github/workflows/pipeline-ci.yml"))["jobs"].values() for s in j["steps"]
-     if s.get("name") == "Tests"]
-assert len(s) == 1, "Tests step not found"
-m = re.search(r"-m \"([^\"]+)\"", s[0]["run"])
-assert m, "no -m in the Tests step"
-print(m.group(1))' || { echo "test-env: cannot read the marker expression from pipeline-ci.yml's Tests step" >&2; return 1; }
+  "$PY" -c 'from pipeline.tests.tiers import ci_markers; print(ci_markers())' \
+    || { echo "test-env: cannot read the marker expression from pipeline-ci.yml's Tests step" >&2; return 1; }
 }

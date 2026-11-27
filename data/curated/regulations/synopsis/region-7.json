@@ -9131,6 +9131,26 @@
           ]
         },
         {
+          "rule_id": "stellako_river.r1x",
+          "type": "retention_limit",
+          "verbatim": "No Fishing Nov 15-May 14",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "includes_tributaries": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "default_id": "spring_stream_closure",
+              "note": "Zone A's spring stream closure: the row's 'No Fishing Nov 15-May 14' REPLACES the Zone A spring closure (Apr 1-June 30): the neighbouring Endako and Nithi rows print 'Nov 15-June 30', so May 14 is read as the end of a replacement closure time (owner ruling P7a, 2026-11-26, T1177: 'yes to open since it seems to be a replacement closure time to the springf closure'); the river opens May 15, the row's own closure holding Nov 15-May 14"
+            }
+          ]
+        },
+        {
           "rule_id": "stellako_river.r4",
           "type": "retention_limit",
           "verbatim": "Rainbow trout catch and release",

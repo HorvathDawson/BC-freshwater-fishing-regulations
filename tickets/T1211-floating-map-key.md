@@ -1,10 +1,10 @@
 # T1211 — A floating "Map key" over the map, and the words "Its own rules / Region rules only"
 
-Status: IN PROGRESS — lane T1208 (worktree wt-T1208); release 0.10.0 re-cut
+Status: DONE — 284b425c6, 1e0c1d490, 9a6f2cbe5 (the floating Map key, "Its own rules / Region rules only"; reviewed).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1211 | A floating "Map key" over the map, and the words "Its own rules / Region rules only" | IN PROGRESS — 0.10.0 re-cut | 284b425c6, 841ffb431 | review fixes in (isolate on the chip, obstacles and boundary in the key, back layer); PR with T1208 |
+| T1211 | A floating "Map key" over the map, and the words "Its own rules / Region rules only" | DONE | 284b425c6, 1e0c1d490, 9a6f2cbe5 | — |
 
 Source: T1200 (owner 2026-11-26: "Floating \"Map key\" over the map, near the bottom (Recommended)"; the key's words:
 "Its own rules / Region rules only").

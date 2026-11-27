@@ -79,6 +79,15 @@ no join to say (T1140)" (Old Kootenay River Channel; `part.py`, the side words, 
   the mouth". Then, in order: the WMA name in 0.10.1, exact leave points in `spans.compute`, the binding fixes,
   geometry, the map look. Six picks wait (below).
 
+## 2026-11-26 evening: the label rulings on #312 (planning chat)
+The owner's words (verbatim): Snehumption: "Plain \"2 side channels\" (Recommended)" (the rule: if not every channel in the
+part has a named end, the plain count). Klinaklini and MacMillan "Mouth → Source": "Plain \"Side channel\" / \"3 side
+channels\" (Recommended)" (built after the app change in T1196). Short form: "Shorten Ecological Reserve to \"Eco Reserve\"".
+Then, on the Skeena: "it should be \"[name] eco reserve\" everywhere" (names, ends and subtitles alike, e.g. "Skeena River
+inside Skeena River Eco Reserve"). #312 round 4 built Snehumption "2 side channels" and "Eco Reserve"; round 5 carries "Eco
+Reserve everywhere" (the Skeena p4 "Ecological Reserve boundary" end was the one left unshortened). Rulings page:
+`docs/OWNER-RULINGS.md` batch 3.
+
 ## Work
 1. The owner's picks on the step-back design; then the gnis:2123 fix it names (default: the first-vertex mouth and
    the stem-order check), a clean side deliver and the part diff (only Old Kootenay p1 should change).
@@ -86,6 +95,38 @@ no join to say (T1140)" (Old Kootenay River Channel; `part.py`, the side words, 
    clean clone stays until a release comes out of it.
 3. Find 1 (bc.pmtiles), as above.
 4. The setup-page leftovers.
+
+2026-11-26 the owner's pick ("Yes, but name it by the area") built: fix in PR #312 (no auto-merge), awaiting the
+independent review and the owner's look at the words. A one-section main line's mouth is its first vertex, with a
+stem-order guard on every build (3,916 of 3,916 start at the section below; 29,564 lowest pieces agree with FWA
+junction measures, 0 backwards, 2,509 uncheckable). Membership-only parks/WMAs/ERs are offered for a reviewed pair only.
+Old Kootenay p1 reads "Old Kootenay River Channel inside Creston Valley Wildlife Management Area". The clean clone made
+release r-c8dc7712a9c0, rc=0 (reach 11m22s, tiles 16m13s, deliver 14m52s; reach and tiles reran on the rename's
+comment edits). Only gnis:2123 and the Okanagan River Oxbows changed (Oxbows' name kept; its subtitle label gained
+"joining 0.2–0.3 km"). Waiting for the owner's review: Thelwood Creek p0 is 100 % inside STRATHCONA - WESTMIN PARK,
+logged as an INSIDE candidate and not offered.
+2026-11-26 the review's MERGE (after the owner's look) and the owner's picks ("Fix the measure in this PR"; Thelwood:
+"yes name it but this is something we need to fix generally") are built on PR #312. A side channel whose downstream
+end lies away from its main line is measured where it leaves it: Old Kootenay 0.4–0.6 km; Stirling 20.4 → 20.9 km and
+Theodosia 13.1 km are now "joining" rather than nearest-point. Thelwood p0 now reads "Thelwood Creek inside
+Strathcona - Westmin Park". Also: L1 docstring, L2 any-backwards rule, L3 one area per name. Clean clone release
+r-216c6f000d0b, rc=0 (deliver only, 13m34s). Still awaiting the owner's look at the words table in the PR before merge.
+Left (owner, "fix generally"): parks that bind channels but not their river (T1149).
+2026-11-26 round 3, the owner's rulings on the words, built on PR #312: a side-channel-only part shows a distance only
+when its water has more than one such part. No water has two today, so none shows a distance. There is no verb ("N km
+from the mouth"). The name uses the short area form ("inside Creston Valley WMA"). The subtitle names the area for every
+part the bundle measures inside or at one, reviewed or not: the bundle measures every cut and membership-only area
+(`part_inside.cut`), and REVIEWED_INSIDE is now only the name's gate. Clean clone release r-6f59a36e1f1e, rc=0
+(deliver only, 14m29s). The words table and the owner's questions are in the PR; it waits for his look before merge.
+2026-11-26 round 4 (the owner's three rulings on the table): a part takes the plain count unless every channel has a
+named end (Snehumption p1 "2 side channels"); "Eco Reserve" short form; an unmeasured unique part is logged by name.
+NOT built: Klinaklini p1 / MacMillan p2 "Mouth → Source" (the channels' own ends, `branch_end_tokens` for a salmon-cut
+piece). Dropping them makes the app's `mergeNav` join throw, so the app must first take a joined span's ends from the
+pieces that have them. Release r-ab4722f01fc9, rc=0. The 474-floor test is left as is (T1146 moved it; not re-pinned).
+2026-11-26 round 5: "Eco Reserve" everywhere (owner: "it should be \"[name] eco reserve\" everywhere"). One function,
+applied at `end_name` and `part_label`, changes 206 parts on 74 waters and 198 end tokens. The review's fixes: a part
+that needs its distance but has none now stops the build; fast wiring tests; the stale comments. Release
+r-83588a004b03, rc=0.
 
 ## Acceptance
 The clean clone makes a release directory from nothing, with no copied file; deliver passes on gnis:2123, with a

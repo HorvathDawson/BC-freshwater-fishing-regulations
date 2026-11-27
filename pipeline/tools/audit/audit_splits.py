@@ -30,7 +30,7 @@ from pipeline.atlas.build import get_lake_wbk_kind
 from pipeline.common.curated import CURATED, SOURCE
 
 ROOT = get_config().project_root
-_DATA = str(SOURCE / "bc_fisheries_data.gpkg")
+_DATA = str(SOURCE.fwa_gpkg)
 _TR = Transformer.from_crs(4326, 3005, always_xy=True)
 
 

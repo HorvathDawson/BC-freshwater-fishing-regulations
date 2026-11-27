@@ -1,10 +1,10 @@
 # T1209 — Towns to find your way: three tiers of towns from our own file (province, z6, z8)
 
-Status: IN PROGRESS — lane T1208 (worktree wt-T1208); release 0.10.0 re-cut
+Status: DONE — 13d06f5cd, 841ffb431, d49bef56f (three tiers of towns, chosen for even coverage at the owner's word; reviewed).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1209 | Towns to find your way: three tiers of towns from our own file (province, z6, z8) | IN PROGRESS — 0.10.0 re-cut | 13d06f5cd, 0d625ea71, 1e0c1d490 | review fixes in (Daajing Giids, dots under the water lines, names held on a zoom); PR with T1208 |
+| T1209 | Towns to find your way: three tiers of towns from our own file (province, z6, z8) | DONE | 13d06f5cd, 841ffb431, d49bef56f | — |
 
 Source: T1200 (owner 2026-11-26: "i want you to choose best judgement for users to have the best experience across bc
 and make it easy to find a location by zooming in from far out"; "build A ...").

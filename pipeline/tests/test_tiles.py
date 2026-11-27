@@ -86,7 +86,7 @@ def test_normalise_is_what_search_compares():
 # ------------------------------------------------- areas.json <-> layers contract
 
 def _areas():
-    return json.loads(under_test.curated().waters.areas.read_text())["areas"]
+    return json.loads(under_test.curated().waters.area_closures.read_text())["areas"]
 
 
 def test_every_area_either_declares_a_real_tile_layer_or_says_why_not():
@@ -179,7 +179,8 @@ def test_no_layer_ships_an_attribute_nothing_declares():
             identity = {"section_id", "area_id", "mu_id", "item", "name", "alt"}
             # (T299) except the one layer that exists only to be WRITTEN ON: `stream_name` carries the text its label
             # draws, and still nothing that selects it (no id, no item; the contract gives it no featureId).
-            if spec.name == "stream_name":
+            # (T1210) and `lake_name`, the point a lake's name is written at zoomed out
+            if spec.name in ("stream_name", "lake_name"):
                 identity -= {"name"}
             assert not (set(spec.attrs) & identity), (
                 f"{spec.name} is decorative but ships "
@@ -320,7 +321,8 @@ def test_every_waterbody_becomes_a_node_so_zone_rules_can_reach_it():
 #: compatibility key) and the administrative geography; `name` is for map labels only. Adding a property, above all a
 #: status, a rule or anything a data release changes, must be a decision made here, so it fails until this list moves.
 TILE_INVENTORY = {
-    "stream": ("section_id", "name", "ord", "sc", "pz"), "stream_name": ("name", "ord"), "lake": ("section_id", "name", "water", "area_m2", "lz"), "under_lake": (),
+    "stream": ("section_id", "name", "ord", "sc", "pz"), "stream_name": ("name", "ord"), "lake": ("section_id", "name", "water", "area_m2", "lz"),
+    "lake_name": ("name", "area_m2"), "under_lake": (),
     "wetland": ("section_id", "name", "water", "lz"), "not_fishing_water": ("kind",), "contour": ("item", "depth_m", "index"),
     "park": ("area_id", "name", "kind"), "eco_reserve": ("area_id", "name"), "sign_zone": ("area_id", "name", "cuts"),
     "wma": ("area_id", "name"), "indigenous_land": ("area_id", "name", "name_indigenous", "group"),
@@ -365,6 +367,139 @@ def test_stream_names_are_the_named_sections_merged_per_name_and_first_zoom(tmp_
     assert all("section_id" not in g["properties"] for g in got)
 
 
+def test_rivers_are_named_from_z4(tmp_path):
+    """T1210: a big river drawn at z4 is named from z4 (look A), on the same merged, smoothed lines."""
+    import json as _json
+    from pipeline.deliver.tiles import export as E
+    f = _json.dumps({"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 0]]},
+                     "properties": {"section_id": 1, "ord": 9, "name": "Fraser River"},
+                     "tippecanoe": {"layer": "stream", "minzoom": 4, "maxzoom": 13}})
+    (tmp_path / "stream.geojsonl").write_text(f + "\n")
+    E.export_stream_names(tmp_path)
+    got = sorted(_json.loads(x)["tippecanoe"]["minzoom"] for x in (tmp_path / "stream_name.geojsonl").read_text().splitlines())
+    assert got == list(E.NAME_BANDS) and got[0] == 4
+
+
+def test_lake_names_one_point_per_lake_water(tmp_path):
+    """T1210: one point per lake WATER: a split lake's touching parts are one (its name without the part, the parts'
+    area summed, its earliest zoom), two same-named lakes apart are two, a stream's polygon and an unnamed lake none; the
+    point is inside the lake; a lake first drawn past z7 is left to `lake__label`; two runs write the same bytes."""
+    import json as _json
+    from shapely.geometry import Point, shape
+    from pipeline.deliver.tiles import export as E
+
+    def lake(sid, ring, name, area, z, water="lake"):
+        props = {"section_id": sid, "water": water, "area_m2": area, **({"name": name} if name else {})}
+        return _json.dumps({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [ring]},
+                            "properties": props, "tippecanoe": {"layer": "lake", "minzoom": z, "maxzoom": 13}})
+    sq = lambda x0, y0, x1, y1: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]
+    rows = [lake(1, sq(0, 50, 1, 51), "Williston Lake — Zone A", 3e8, 5),
+            lake(2, sq(1, 50, 2, 51), "Williston Lake — Zone B", 1e8, 6),            # touches Zone A: one water
+            lake(3, sq(10, 50, 10.1, 50.1), "Fish Lake", 2e6, 6), lake(4, sq(20, 50, 20.1, 50.1), "Fish Lake", 3e6, 7),
+            lake(7, sq(50, 50, 50.01, 50.01), "Pond Lake", 1e4, 9),       # first drawn at z9: `lake__label`'s, not this layer's
+            lake(5, sq(30, 50, 31, 51), "Fraser River", 9e7, 4, water="stream"), lake(6, sq(40, 50, 41, 51), None, 5e7, 4)]
+    (tmp_path / "lake.geojsonl").write_text("\n".join(rows) + "\n")
+    assert E.export_lake_names(tmp_path) == {"lake_name": 3}
+    first = (tmp_path / "lake_name.geojsonl").read_bytes()
+    got = [_json.loads(x) for x in first.decode().splitlines()]
+    # written biggest first (the area rank); each from the later of its lake's first zoom and its rank's
+    assert [(g["properties"]["name"], g["properties"]["area_m2"], g["tippecanoe"]["minzoom"]) for g in got] == [
+        ("Williston Lake", 400000000, 5), ("Fish Lake", 3000000, 7), ("Fish Lake", 2000000, 6)]
+    will = shape({"type": "Polygon", "coordinates": [sq(0, 50, 2, 51)]})
+    assert will.contains(Point(got[0]["geometry"]["coordinates"]))
+    assert all(g["tippecanoe"]["maxzoom"] == 7 and "section_id" not in g["properties"] for g in got)
+    E.export_lake_names(tmp_path)
+    assert (tmp_path / "lake_name.geojsonl").read_bytes() == first
+
+
+def test_lake_names_zoom_by_area_rank_and_a_split_lake_cut_at_its_narrows_is_one(tmp_path):
+    """T1210 review: WHICH lakes are named at each zoom is chosen by area (`LAKE_NAME_RANK_ZOOM`), the biggest first and
+    whatever the input order; and parts that nearly touch (Kootenay Lake's arms, cut at the narrows) are one point."""
+    import json as _json
+    from pipeline.deliver.tiles import export as E
+
+    sq = lambda x0, y0, x1, y1: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]
+    def lake(sid, ring, name, area):
+        return _json.dumps({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [ring]},
+                            "properties": {"section_id": sid, "water": "lake", "area_m2": area, "name": name},
+                            "tippecanoe": {"layer": "lake", "minzoom": 4, "maxzoom": 13}})
+    n = E.LAKE_NAME_RANK_ZOOM[-1][1] + 5
+    # areas 1..n, written smallest first so the input order is the reverse of the rank
+    rows = [lake(i, sq(i, 50, i + 0.5, 50.5), f"Lake {i:03d}", 1e6 * (i + 1)) for i in range(n)]
+    # Kootenay Lake: three parts, 0.002 degrees apart at the narrows, no shared edge
+    rows += [lake(1000, sq(200, 49, 200.3, 50), "Kootenay Lake — Main Body", 3.9e8),
+             lake(1001, sq(199.698, 49.5, 199.998, 49.6), "Kootenay Lake — Upper West Arm", 1.8e7),
+             lake(1002, sq(199.396, 49.45, 199.696, 49.55), "Kootenay Lake — Lower West Arm", 1.6e7)]
+    (tmp_path / "lake.geojsonl").write_text("\n".join(rows) + "\n")
+    E.export_lake_names(tmp_path)
+    got = [_json.loads(x) for x in (tmp_path / "lake_name.geojsonl").read_text().splitlines()]
+    koot = [g for g in got if g["properties"]["name"] == "Kootenay Lake"]
+    assert len(koot) == 1 and koot[0]["properties"]["area_m2"] == 424000000 and koot[0]["tippecanoe"]["minzoom"] == 4
+    # inside the Main Body, its biggest piece
+    assert 200 < koot[0]["geometry"]["coordinates"][0] < 200.3
+    # (owner 2026-11-26: lake parts are design-only) one switch names each part on its own instead
+    import pytest
+    mp = pytest.MonkeyPatch()
+    mp.setattr(E, "LAKE_NAME_JOINS_PARTS", False)
+    try:
+        E.export_lake_names(tmp_path)
+        parts = sorted(_json.loads(x)["properties"]["name"] for x in (tmp_path / "lake_name.geojsonl").read_text().splitlines()
+                       if "Kootenay" in x)
+        assert parts == ["Kootenay Lake — Lower West Arm", "Kootenay Lake — Main Body", "Kootenay Lake — Upper West Arm"]
+    finally:
+        mp.undo()
+    zooms = [g["tippecanoe"]["minzoom"] for g in got]
+    areas = [g["properties"]["area_m2"] for g in got]
+    assert areas == sorted(areas, reverse=True)
+    want = [E.lake_name_zoom(r) for r in range(len(got))]
+    assert zooms == want and zooms.count(4) == E.LAKE_NAME_RANK_ZOOM[0][1] and zooms[-1] == 7
+
+
+def test_the_lake_name_pass_drops_no_point_tippecanoe_would_thin(tmp_path):
+    """T1210 review: tippecanoe drops points under a pass's top zoom at random (1 in 2.5 per zoom) unless told not to.
+    Measured (tippecanoe 2.x): a point WITH its own `tippecanoe.minzoom`, as the export writes every `lake_name` point,
+    is never thinned, so the built archive lost none; a point without one is (60 points from z4: 4 / 10 / 25 / 60 kept
+    at z4-z7 by default). The alone pass (`tippe.alone_flags`, what `build` runs) sets `--drop-rate=1`, so no point is
+    thinned either way: which lakes show is the export's choice (`lake_name_zoom`), never tippecanoe's. The fixture's
+    points carry NO minzoom, so the test fails without the flag. Tippecanoe is a build tool every tier has (CI installs
+    it, pipeline-ci.yml "Tile tools"), as test_basemap_zoom_audit runs it: missing, this fails, never skips."""
+    import json as _json, subprocess
+    from pipeline.deliver.tiles import tippe
+    assert "--drop-rate=1" in tippe.alone_flags(4, 7, points=True) and "--drop-rate=1" not in tippe.alone_flags(4, 7)
+    src = tmp_path / "lake_name.geojsonl"
+    src.write_text("".join(_json.dumps({"type": "Feature", "properties": {"name": f"Lake {i}", "area_m2": 1e6},
+                                         "geometry": {"type": "Point", "coordinates": [-122 + (i % 10) * 0.05, 52 + (i // 10) * 0.05]},
+                                         "tippecanoe": {"layer": "lake_name"}}) + "\n" for i in range(60)))
+    out = tmp_path / "t.mbtiles"
+    subprocess.run(["tippecanoe", "-o", str(out), "--force", *tippe.alone_flags(4, 7, points=True), str(src)], check=True)
+    for z in (4, 5, 6):
+        d = _json.loads(subprocess.run(["tippecanoe-decode", "-z", str(z), "-Z", str(z), str(out)],
+                                       check=True, capture_output=True, text=True).stdout)
+        names = {f["properties"]["name"] for t in d["features"] for layer in t["features"] for f in layer["features"]}
+        assert len(names) == 60, f"z{z}: {len(names)} of 60 points"
+
+
+def test_stream_names_cut_into_passes_at_z8_keep_the_older_bands_whole(tmp_path):
+    """T1210: `stream_name`'s new bands (z4-z7) are their own pass (`ALONE_SPLIT`), so their vertices never pin the z8+
+    name lines (shared nodes are counted over a pass's whole input): each part holds exactly the features first drawn in
+    its range; a layer with no cut is passed whole."""
+    import json as _json
+    from pipeline.deliver.tiles import tippe
+    f = tmp_path / "stream_name.geojsonl"
+    rows = [{"type": "Feature", "properties": {"name": f"R{z}"}, "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 1]]},
+             "tippecanoe": {"layer": "stream_name", "minzoom": z, "maxzoom": z}} for z in range(4, 14)]
+    f.write_text("".join(_json.dumps(r) + "\n" for r in rows))
+    out = tmp_path / "parts"; out.mkdir()
+    parts = tippe.alone_parts(f, out, 4, 13, tippe.ALONE_SPLIT["stream_name"])
+    assert [(a, b) for _, a, b in parts] == [(4, 7), (8, 13)]
+    got = [sorted(_json.loads(x)["tippecanoe"]["minzoom"] for x in p.read_text().splitlines()) for p, _, _ in parts]
+    assert got == [[4, 5, 6, 7], [8, 9, 10, 11, 12, 13]]
+    assert tippe.alone_parts(f, out, 4, 7, ()) == [(f, 4, 7)]
+    # the z8+ pass runs with the flags the whole z8-z13 pass had before T1210
+    assert tippe.alone_flags(8, 13) == tippe._common(8, 13, tippe.ALONE_SIMPLIFICATION_AT_MAX, False, full_detail=tippe.ALONE_DETAIL,
+                                                     low_detail=tippe.ALONE_DETAIL, simplification=tippe.ALONE_SIMPLIFICATION)
+
+
 def test_every_region_feature_has_one_spelling_of_region_id():
     from pipeline.deliver.tiles.export import region_id_of
     assert [region_id_of(x) for x in ("1", "7a", " 7B ", 8)] == ["1", "7A", "7B", "8"]
@@ -392,7 +527,8 @@ def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
     assert B.tiles_key(build)["obstacles"] is None          # (T173) not fetched: the stage runs and names the fetch
     obstacles.write_bytes(b"x")
     before = B.tiles_key(build)
-    assert set(before) == {"handles", "gpkg", "areas", "code", "tools", "obstacles", "tidal_record"}
+    # (T1229) `area_files`: every file an areas def names by `file` (the sign zones), by content
+    assert set(before) == {"handles", "gpkg", "areas", "area_files", "code", "tools", "obstacles", "tidal_record"}
     (build / "registry.json").write_text('{"items": {"renamed": 1}}')
     assert B.tiles_key(build) == before
     # (T166 -> T678) a new tidal section in the atlas's record takes a piece off the map: the tiles rerun

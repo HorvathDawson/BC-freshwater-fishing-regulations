@@ -16,8 +16,8 @@
  * so a typo in a test never opens some other page silently.
  */
 import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who, bcNow, reportFailure, reportOnce } from "@app/core";
-import { isItemId, type ItemId } from "@app/data";
-import { openWater } from "./openWater";
+import { isItemId, type ItemId, type StationId } from "@app/data";
+import { openGauge, openWater } from "./openWater";
 import type { StreamPlace } from "@app/data/regs/place";
 import { regionOfTile } from "@app/data/release";
 type Region = NonNullable<ReturnType<typeof regionOfTile>>;
@@ -30,7 +30,7 @@ import { HOME, reduce, waterFrame, type BrowseTab, type LatLon, type Route, type
  *  point, `browse` the tab, `spot` an open spot, `date` the chosen day when not today, `horizon` the Conditions
  *  forecast day; transient UI (folds, scroll memory) is not in it. */
 export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "ix", "view", "tab", "sheet", "scroll", "show", "fit",
-                          "here", "tap", "browse", "spot", "date", "horizon"] as const;
+                          "here", "tap", "browse", "spot", "date", "horizon", "gauge"] as const;
 const BROWSE_TABS: readonly BrowseTab[] = ["map", "conditions", "runs", "spots", "more"];
 
 /** (T1010) A box on the map, [west, south, east, north] in degrees. */
@@ -100,6 +100,9 @@ export function routeSearch(r: Route, current = "", place: StreamPlace | null = 
     if (f.view !== "regs") q.set("view", f.view);
     // (T203, T369) the map framed on the whole water (a search Open's) — said, so a water named alone is its own part
     if (f.whole) q.set("whole", "1");
+  } else if (r.mode === "gauge") {
+    // (T1194) a gauge's page: its station; Back from a reload lands on the Conditions map (`parseStartLink`)
+    q.set("gauge", r.station);
   } else if (r.mode === "browse") {
     // (T369 D11) browsing: the tab (the Map tab unsaid) and an open spot
     if (r.tab !== HOME.tab) q.set("browse", r.tab);
@@ -372,6 +375,10 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   if (item === null && where === null) {
     // (T269) `?show=<item>`: the map, framed on that water (nothing lit)
     const show = q.get("show");
+    // (T1194) `?gauge=<station>`: that gauge's page, over the Conditions map (the tap's own route). A station the release does
+    // not hold is the page's own shown error, not a refusal here: the link is well formed, the release is what is asked
+    const gaugeS = q.get("gauge");
+    if (gaugeS !== null && !/^[0-9A-Za-z]{3,12}$/.test(gaugeS)) bad("gauge", "a station id");
     // (T369 D11) a browse address: the tab and an open spot
     const browseS = q.get("browse"), spot = q.get("spot");
     const tab = browseS === null ? HOME.tab
@@ -379,17 +386,22 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
     // (T1010) `?fit=w,s,e,n`: the map framed on a box (a region page's "Open the map")
     const fitS = q.get("fit");
     const fit = fitS === null ? null : typeof fitOf(fitS) === "string" ? bad("fit", fitOf(fitS) as string) : (fitOf(fitS) as FitBox);
-    if (show === null && fit === null && browseS === null && spot === null && day === null && !past && horizon === null) return null;
+    if (show === null && fit === null && gaugeS === null && browseS === null && spot === null && day === null && !past && horizon === null) return null;
+    if (gaugeS !== null && (show !== null || fit !== null || spot !== null || browseS !== null))
+      bad("gauge", "a station beside show=, fit=, spot= or browse= (a link opens one place)");
     if (show !== null && !isItemId(show)) bad("show", "an item id");
     if (show !== null && fit !== null) bad("fit", "a box beside show= (a link frames one or the other)");
     const browse = reduce(HOME, { type: "tab", tab });
-    const route = spot !== null ? reduce(browse, { type: "openSpot", id: spot }) : browse;
+    const route = gaugeS !== null ? reduce(reduce(HOME, { type: "tab", tab: "conditions" }), openGauge(gaugeS as StationId))
+      : spot !== null ? reduce(browse, { type: "openSpot", id: spot }) : browse;
     return { route, day, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null,
              arrive: show as ItemId | null, place: null, notice: past ? "day-past" : null, horizon, ...(fit ? { fit } : {}) };
   }
   if (item !== null && !isItemId(item)) bad("regs", "an item id");
   // (T1010) a water's link opens on the water: a box beside it would be two places at once
   if (q.has("fit")) bad("fit", "a box beside a water (regs= or a place)");
+  // (T1194) and a gauge's page: two places at once, refused by name (never one dropped without a word)
+  if (q.has("gauge")) bad("gauge", "a station beside a water (regs= or a place)");
 
   const index = (k: string, what: string): number | null => {
     const v = q.get(k);
