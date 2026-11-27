@@ -6,7 +6,7 @@ Status: OPEN.
 |---|---|---|---|---|
 | T1068 | T1027 leftovers: scheduled notifications across an update, the `offline` bench step, a cold-start stall | OPEN —  | | planning chat 2026-11-24 |
 
-Source: the 0.9.1 chat's finds on T1027 (RESTART-091-chat.md, 2026-11-24).
+Source: the 0.9.1 chat's finds on T1027 (docs/agents/RESTART-091-chat.md, 2026-11-24).
 
 ## Work
 1. A notification SCHEDULED before an update would not load after it (trigger classes have no serialVersionUID). The app schedules none today (AGENTS rule 34b says so): fix before any feature schedules one (T234).

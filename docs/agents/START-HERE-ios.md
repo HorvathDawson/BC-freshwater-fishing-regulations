@@ -1,6 +1,6 @@
 # The app chat: start here (iOS page; cut to open items and restart info in T1081)
 
-Live state: `docs/ios/RESTART-ios-release-chat.md` (the iOS full-release chat, T1071), `docs/ROADMAP-after-0.9.0.md`,
+Live state: `docs/agents/RESTART-ios-release-chat.md` (the iOS full-release chat, T1071), `docs/agents/ROADMAP-after-0.9.0.md`,
 and the ticket ledger (`tickets/README.md`). This page used to hold 1,150 lines of the 2026-11-14/16
 unattended-day and restart notes, the per-lane branch lists and the IOS-1..10 work list; those tickets shipped or live in the
 ledger now, and git history (before T1081) holds the pages. What is left is what still holds.

@@ -4,11 +4,11 @@ Status: OPEN — stopped 2026-11-22 by lane L8: a simulator drag-grid and layer 
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T721 | iOS: left-edge swipe back is dependable on every layer (IOS-4) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-4 in docs/ios/START-HERE-ios.md |
+| T721 | iOS: left-edge swipe back is dependable on every layer (IOS-4) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-4 in docs/agents/START-HERE-ios.md |
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-4 in
-`docs/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
+`docs/agents/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.
 
 ## Work
 **IOS-4. Back and swipe.** Goal: left-edge swipe back is dependable by thumb and by the test bed; sheets, menu pages,

@@ -1,0 +1,6 @@
+{
+ "_about": "T426: each current-book row a DELIBERATE extractor change moved, with its reason. An entry explains exactly its move (key + was + now): the same row changing again is unexplained again. Claude adds an entry when it commits the extractor change; `baseline cut` (runbook step 9) empties the list, since the new baseline holds the change.",
+ "baseline": "reading.json",
+ "baseline_rows": "e107864218f523f9",
+ "accepted": []
+}

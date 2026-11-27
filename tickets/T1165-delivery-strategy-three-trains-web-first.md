@@ -65,7 +65,7 @@ So: no 0.10.0 candidate went to staging; its fixes are on main (T1146 #264, T114
 T1140 #265 merging); `release/0.10.0` is retired as a release (the branch and tags are kept; the 0.10.0 chat
 lists what is only on it). The next candidate is cut from main AFTER the speed work, with the hardening items and
 patches added, on the faster path; the App Store submit and the Play build ride it. A speed build chat
-(`bc-freshwater-fishing-regulations-ae`, restart page `docs/restart/speed.md`) started the same night
+(`bc-freshwater-fishing-regulations-ae`, restart page `docs/agents/restart/speed.md`) started the same night
 with: the PR title check, keep-awake (T1161), parallel pipeline tests and no third run (T1144), then T1135.
 The three deep looks he asked for are folded into T1171 (data build), T1135 (the checks after a build) and T1063
 (phone builds), with T1170 (the MapLibre library as a stored build).

@@ -7,7 +7,7 @@ copies (not re-exports) so that the v2 package is fully self-contained.
 """
 
 from typing import Any, Dict, Iterator, List, Optional
-from attrs import define, asdict
+from attrs import Factory, define, asdict
 
 
 # ==========================================
@@ -21,7 +21,11 @@ class WaterbodyRow:
 
     `page` is the page number PRINTED in the synopsis (its footer); `pdf_page` is the page's index
     in the PDF file, which keys `image`. They differ by 2 up to printed p. 40 and by 6 after the
-    centre gloss — see `extract_synopsis.printed_page_number`."""
+    centre gloss — see `extract_synopsis.printed_page_number`.
+
+    `raw_regs_marked` (T1190) is `raw_regs` with each struck-through run wrapped in ~~ (`Sept 1-Oct ~~15~~`), and only
+    on a row the book strikes something in; `raw_regs` never carries the mark. `to_dict` leaves it out when None, so a
+    row with no strike serialises exactly as before."""
 
     water: str
     mu: List[str]
@@ -31,9 +35,10 @@ class WaterbodyRow:
     image: str
     region: Optional[str] = None
     pdf_page: Optional[int] = None
+    raw_regs_marked: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        return asdict(self, filter=lambda a, v: not (a.name == "raw_regs_marked" and v is None))
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "WaterbodyRow":
@@ -57,10 +62,12 @@ class PageMetadata:
 
 @define(frozen=True, cache_hash=True)
 class PageResult:
-    """Result of extracting a single page."""
+    """Result of extracting a single page. `unsure` (T1190): the visible-text hits of a gated kind on a page that holds
+    rows ({pdf_page, kind, text}), for the run's one `[unsure]` line and the gate; not part of `to_dict`."""
 
     metadata: PageMetadata
     rows: List[WaterbodyRow]
+    unsure: List[Dict[str, Any]] = Factory(list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
