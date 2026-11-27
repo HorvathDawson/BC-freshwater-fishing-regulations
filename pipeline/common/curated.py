@@ -101,9 +101,8 @@ class Waters(BaseModel):
     """Curation that shapes the atlas itself, and the lists of waters (T324 naming: `*_calls` = the owner's per-item
     decisions, `*_waters` = a list of waters).
 
-    `tidal` and `areas` keep their pre-T324 attribute names (files `tidal_limits.json`, `area_closures.json`): the
-    tiles stage keys on its code's bytes and that code reads these two, so renaming them would rebuild and re-ship the
-    tiles for nothing. Rename them when that code next changes anyway."""
+    `tidal` and `areas` still have their pre-T324 attribute names (files `tidal_limits.json`, `area_closures.json`); a
+    later step of T1192 renames them."""
 
     model_config = _STRICT
 
