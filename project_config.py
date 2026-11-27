@@ -35,8 +35,8 @@ class ProjectConfig:
         return Path(__file__).parent
 
     def _load_config(self):
-        """Load configuration from config.yaml (no `.env` is read: T1222)."""
-        # (T1192) config.yaml through the ONE schema (`pipeline.common.curated.Config`): an unknown, missing or `null` key
+        """Load configuration from config.yaml (no `.env` is read)."""
+        # config.yaml through the ONE schema (`pipeline.common.curated.Config`): an unknown, missing or `null` key
         # anywhere in the file stops here, naming it. `_config` is the parsed file with the schema's names (`read_config`:
         # what the build's keys digest), `_model` the validated view every accessor returns.
         from pipeline.common.curated import parse_config
@@ -45,7 +45,7 @@ class ProjectConfig:
 
     @property
     def config(self) -> Dict[str, Any]:
-        """Get the full configuration dictionary. (T1171) A build stage that takes the whole dictionary is keyed on the
+        """Get the full configuration dictionary. A build stage that takes the whole dictionary is keyed on the
         whole file (`*`)."""
         from pipeline import _trace
         _trace.config_read("*", self._config)
@@ -63,7 +63,7 @@ class ProjectConfig:
             *keys: Nested keys to traverse (e.g., "cache", "dfo_salmon")
 
         Raises:
-            KeyError: (T435) the keys name no path — never `Path()` (the cwd); (T1192) no `default=` either
+            KeyError: the keys name no path — never `Path()` (the cwd); no `default=` either
         """
         value = self._config
         found = True
@@ -75,7 +75,7 @@ class ProjectConfig:
                 value = None
                 found = False
                 break
-        # (T1171) a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`);
+        # a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`);
         # a path of a block with a root is that root joined with the value, so the root is read too (`curated.TREES`)
         from pipeline import _trace
         from pipeline.common.curated import TREES
@@ -126,7 +126,7 @@ class ProjectConfig:
     # in config.yaml, and the fetcher wrote the coast file by a fourth (`_RETIRED` names each replacement).
 
     # ========================================================================
-    # Caches (T1021)
+    # Caches
     # ========================================================================
 
     @property

@@ -223,12 +223,21 @@ from __future__ import annotations
 #:     and a lake at a stretch's top is no lake the rule binds (`build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS`).
 #:     Round 2: a stop holds for the water a walk reaches THROUGH its lake, never for the rest of the walk, so the edge
 #:     order cannot decide it (`tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE`); the book run's bindings are unchanged by it.
-#: 53: (T1177, owner 2026-11-26: "unless you have exact dfo words saying what they mean by tributaries we should have a
+#: 53: (T1177, owner 2026-11-27 ~11:00, with the maps) WATER JOINING THE ROW'S OWN STREAM ABOVE ITS LAKE IS THE LAKE'S
+#:     TRIBUTARY (`build.WATER_JOINING_THE_ROWS_OWN_STREAM_ABOVE_ITS_LAKE_IS_THE_LAKES_TRIBUTARY`, Whiteswan: "Include
+#:     them: No Fishing all year (Recommended)"): a lake-only reach's walk climbs PAST the entry's own stream flowing into
+#:     its lake, collecting what joins it, never the own water. And A RIVER STRETCH IN A LAKE'S TRIBUTARIES ROW IS THE
+#:     LAKE'S OWN UPPER END (`build.A_RIVER_STRETCH_IN_A_LAKE_ROW_IS_THE_LAKES_OWN_UPPER_END`, Upper Arrow: "yes ... this
+#:     is what we do"): the river above the drawdown stretch's top (the Hwy 1 bridge) is the lake's through-river inflow,
+#:     climbed to Kinbasket's printed exception. Classify outcomes change (Whiteswan's r5 gains the 14.0 km). 53 is the
+#:     walk's (it merges first); the DFO branches that also set 53 move to 54. Review round 3 guards (the rule's words keep
+#:     an own stream out; only a stretch on the lake's own river line is its upper end) change no corpus binding.
+#: 54: (T1177, owner 2026-11-26: "unless you have exact dfo words saying what they mean by tributaries we should have a
 #:     single tributary logic that is the saame across the board") ONE TRIBUTARY LOGIC FOR THE BOOK AND DFO
 #:     (`build.ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES`, retiring T743's `DFO_THROUGH_RIVER_STAYS_OUT` and T1053's DFO
 #:     refusal in `climbs_head_lakes`): DFO prints no definition of "tributaries", so a DFO place's lake takes its
 #:     through-river and a whole-water place climbs its head lake as the book's rows do, and the lake rows' printed
 #:     exceptions stop its walks too (`dfo_salmon.resolve_all(stops=)`). No classify.py outcome changed; the bump marks
-#:     the binding diff.
-POLICY_VERSION = "53"
+#:     the DFO places' binding diff (on top of the walk's 53, which merges first).
+POLICY_VERSION = "54"
 

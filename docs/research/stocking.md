@@ -16,7 +16,7 @@ names only confirm.
 - Tests: `pipeline/tests/test_stocking_match.py` (synthetic rows); `test_doc_drift.py` keeps the README rows real.
 - The app has `stock_water` / `stock_code` in `pipeline/deliver/bundle/schema.sql` (the app's prepared query reads
   `stock_water`) and `app/packages/core/src/lakeFacts.ts`; nothing writes them. To feed it: a fetch step in
-  `data/fetch_data.py`, accepted matches in `data/curated/stocking/` (`config.yaml` `curated.stocking.matches` is null),
+  `data/fetch_data.py`, accepted matches in `data/curated/stocking/` (`CURATED.stocking.matches`: declared, absent until the first accept),
   a bundle writer, lake values in `lakes/1` (`pipeline/deliver/lake_facts.py`).
 
 ## Sources

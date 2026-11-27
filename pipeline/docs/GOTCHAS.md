@@ -26,6 +26,10 @@ The RULINGS T4, T14, T18 amendments (T1053; all-year part proposed) and T19 (T11
    A above x; inlet rows = the walk. **A lake row's printed exception also stops the rows of the lakes below it** (owner
    11-27), only on water reached through it: Lake Revelstoke's and Lower Arrow's bull trout release add nothing above
    Kinbasket; John Hart's and Lower Campbell's closures stop at Buttle's "except Thelwood Creek" (16.3 km, Buttle's r2 closes it all year).
+   **Kootenay Lake's "to the U.S. border" is read as all upstream of the lake** (36,007 km back in B.C.: Koocanusa, Elk,
+   St. Mary): it looks like an over-wide carve-out; it is the owner's reading (11-27). Water joining a lake row's own stream
+   ABOVE its lake is the lake's inflow (Whiteswan's feeders, Hatzic Slough's creeks); Upper Arrow's drawdown stretch is the
+   lake, so the Columbia above the Hwy 1 bridge is its inflow, climbing to Kinbasket's exception.
 
 ## Questions the owner will put to BC Fish and Wildlife
 

@@ -983,12 +983,14 @@ def test_pr5_the_atlas_is_behind_only_for_a_config_key_it_read(scratch, config_c
     _edit_unread(config_copy, read)
     assert I.code_behind(atlas) == []
     config_copy("curated.waters.area_closures", "t1192/moved")
-    assert I.code_behind(atlas) == ["config.yaml curated.waters.area_closures (code: config): changed since the atlas "
-                                    "was built"]
+    assert I.code_behind(atlas) == ["pipeline/common/curated.py curated.waters.area_closures (code: config): changed "
+                                    "since the atlas was built"]
     config_copy("curated.waters.area_closures", GONE)
     assert SC.config_now(["curated.waters.area_closures"]) == {"curated.waters.area_closures": "missing"}
-    assert I.code_behind(atlas) == ["config.yaml curated.waters.area_closures (code: config): no longer in config.yaml "
-                                    "(renamed or deleted since the atlas was built)"]
+    assert I.code_behind(atlas) == ["config key curated.waters.area_closures (code: config): no longer in config.yaml "
+                                    "or pipeline/common/curated.py (renamed or deleted since the atlas was built)"]
+    config_copy("source.fwa_gpkg", "other.gpkg")            # a key config.yaml states is named as config.yaml's
+    assert I.code_behind(atlas)[-1] == "config.yaml source.fwa_gpkg (code: config): changed since the atlas was built"
 
 
 def test_pr5_the_recorded_set_does_not_depend_on_the_run(scratch):
@@ -1046,7 +1048,11 @@ def test_pr5_no_new_whole_block_config_read():
              ("pipeline/common/curated.py", "build"),                 # GENERATED.build(): `atlas_build`, one setting
              ("project_config.py", "config"), ("project_config.py", "get_path")}
     whole_tree = {("pipeline/build.py", "curated_digest")}
-    found, dumps, literal = set(), set(), []
+    found, dumps, literal, unrecorded = set(), set(), [], []
+    # (T1229, #353 review) a path taken with NO read recorded: config.yaml parsed outside its two loaders, or a tree's
+    # values taken past `_Tree` (`vars(...)`, `.__dict__`, a pydantic `TypeAdapter`); curated.py is the tree itself
+    tree_expr = re.compile(r"\b(CURATED|GENERATED|load|load_repo|load_generated|Curated|Generated)\b")
+    loaders = {"pipeline/common/curated.py", "project_config.py"}
     for p in sorted([*REPO_ROOT.joinpath("pipeline").rglob("*.py"), REPO_ROOT / "project_config.py",
                      *REPO_ROOT.joinpath("tools", "curation-review").rglob("*.py"),
                      *REPO_ROOT.joinpath("scripts").rglob("*.py")]):
@@ -1054,6 +1060,18 @@ def test_pr5_no_new_whole_block_config_read():
         if "/tests/" in r or r == "pipeline/_trace.py" or "node_modules" in r:
             continue
         tree = ast.parse(p.read_text(encoding="utf-8"))
+        for n in ast.walk(tree):
+            name = getattr(getattr(n, "func", None), "attr", getattr(getattr(n, "func", None), "id", ""))
+            said = getattr(n, "id", None) or getattr(n, "attr", None) or getattr(n, "name", None)
+            if said == "parse_config" and r not in loaders:              # a call, an import, an alias: any mention
+                unrecorded.append(f"{r}:{n.lineno} parse_config")
+            if r == "pipeline/common/curated.py":
+                continue
+            if isinstance(n, ast.Call) and name in ("vars", "TypeAdapter", "validate_python", "dump_python") and any(
+                    tree_expr.search(ast.unparse(a)) for a in n.args):
+                unrecorded.append(f"{r}:{n.lineno} {name}(")
+            if isinstance(n, ast.Attribute) and n.attr == "__dict__" and tree_expr.search(ast.unparse(n.value)):
+                unrecorded.append(f"{r}:{n.lineno} .__dict__")
         for fn in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
             for call in [n for n in ast.walk(fn) if isinstance(n, ast.Call)]:
                 name = getattr(call.func, "attr", getattr(call.func, "id", ""))
@@ -1066,5 +1084,6 @@ def test_pr5_no_new_whole_block_config_read():
                         r"\b(CURATED|GENERATED|load|load_repo|load_generated)\b", ast.unparse(call.func.value)):
                     dumps.add((r, fn.name))
     assert not literal, f"a whole-block config record: {literal}"
+    assert not unrecorded, f"a config path taken with no read recorded: {unrecorded}"
     assert found == sites, f"config_read call sites changed: new {sorted(found - sites)}, gone {sorted(sites - found)}"
     assert dumps == whole_tree, f"whole-tree consumers changed: new {sorted(dumps - whole_tree)}"

@@ -131,7 +131,7 @@ def test_each_offender_carries_its_kind():
 def test_the_gate_names_the_gpkg_files_config_yaml_declares():
     """The gate is standard library only, so it holds the two file names itself: pinned to the `source:` names
     (config.yaml's and the schema's, `read_config`: every .gpkg there), so a renamed file moves the gate too; the
-    schema that declares them is the one file allowed to spell them."""
+    schema that declares them spells each only as the string of its `At("…")`: anywhere else there, it is refused."""
     import importlib.util
     from pipeline.common.curated import read_config
     spec = importlib.util.spec_from_file_location("check_data_paths", REPO / "scripts" / "check_data_paths.py")
@@ -139,7 +139,11 @@ def test_the_gate_names_the_gpkg_files_config_yaml_declares():
     spec.loader.exec_module(cdp)
     declared = {Path(v).name: f"SOURCE.{k}" for k, v in read_config()["source"].items() if v.endswith(".gpkg")}
     assert cdp.NAMED == declared
-    assert cdp.check(cdp.DECLARES, 'X = "fwa_coast.gpkg"\n')[0] == []
+    declaring = 'coast_gpkg: Annotated[Path, At("fwa_coast.gpkg")]\n'
+    assert cdp.check(cdp.DECLARES, declaring)[0] == []
+    assert [k for k, _ in cdp.check(cdp.DECLARES, 'X = "fwa_coast.gpkg"\n')[0]] == [cdp.NAMED_FILE]
+    assert [k for k, _ in cdp.check(cdp.DECLARES, 'X = SOURCE / "bc_fisheries_data.gpkg"\n')[0]] == [cdp.NAMED_FILE]
+    assert [k for k, _ in cdp.check("pipeline/x.py", declaring)[0]] == [cdp.NAMED_FILE]
     assert [k for k, _ in cdp.check("pipeline/x.py", 'X = "fwa_coast.gpkg"\n')[0]] == [cdp.NAMED_FILE]
 
 
