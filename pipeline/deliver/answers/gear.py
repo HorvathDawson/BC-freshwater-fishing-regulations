@@ -259,8 +259,7 @@ def _held_words(e: dict) -> str:
 #: T797 item 2: an allowed bait element as its allowance names it ("Dead fin fish may be used …": the probe is dead fin fish)
 _ALLOW_NOUN = {"worms": "Worms", "roe": "Roe", "invertebrate": "Invertebrates", "fin_fish": "Dead fin fish"}
 #: … and a circumstance of it in words ("while set lining"); the rest as a count's (`_CIRC_WORDS`)
-_ALLOW_CIRC = {"set_lining": "while set lining", "spear_fishing": "while spear fishing", "ice_fishing": "while ice fishing",
-               "water=lake": "in a lake", "water=stream": "in a stream"}
+_ALLOW_CIRC = {"set_lining": "while set lining", "spear_fishing": "while spear fishing", "ice_fishing": "while ice fishing"}
 
 
 def allowance_says(el: str, e: dict) -> str:

@@ -1,11 +1,12 @@
 """T1249: THE GEAR READS ITS KEY'S WATER KIND, THE BUNDLE'S (AGENTS 55: decided once, read everywhere).
 
 Until T1249 the answers took a rule SET's kind from its NAMED items only (`Bundle.set_kind`), so a key no named water
-carries had no kind: on 132 of the 0.9 bundle's keys (6,584 unnamed stream sections, 84,162 unnamed wetland sections,
-32 unnamed lake sections) the province's "2 lines while alone in a boat on a lake" was kept as a circumstance — the
-unnamed streams read "1 line (rod); 2 while alone in a boat on a lake" — and ice fishing was listed among a stream's
-ways to fish. The kind is the bundle's `rule_key.kind` (`common.water_kind`): the named water's `item.kind`, else its
-unnamed sections' (`unnamed_part.kind`), one per key or the bundle build stops (`derived.write`).
+carries had no kind: on main's bundle of 2026-11-27 (r-7d7848399e53) 133 keys — 92 unnamed-stream (6,584 sections,
+7,020 km), 31 unnamed-wetland (84,162 sections), 10 unnamed-lake (32 sections); the 0.9-era live bundle had 132. The
+province's "2 lines while alone in a boat on a lake" was kept as a circumstance — the unnamed streams read
+"1 line (rod); 2 while alone in a boat on a lake" — and ice fishing was listed among a stream's ways to fish.
+The kind is the bundle's `rule_key.kind` (`common.water_kind`): the named water's `item.kind`, else its unnamed
+sections' (`unnamed_part.kind`), one per key or the bundle build stops (`derived.write`).
 
 No data: a tiny bundle derived with places (as `test_unnamed_water.py`), and the province's line rule resolved on each
 kind. The data test reads the bundle under test (`UI_EXPORT_BUNDLE`). Each test names the mutation that turns it red.
@@ -113,7 +114,7 @@ def bundle(request):
 
 @pytest.mark.needs_bundle
 def test_the_keys_no_named_water_carries_read_their_kind(bundle):
-    """On the bundle under test: every key no named water carries (132 on the 0.9 bundle) has a kind, and its gear
+    """On the bundle under test: every key no named water carries (133 on main's r-7d7848399e53) has a kind, and its gear
     answer at every reading says no lake clause on a stream or wetland, and lists no ice fishing on a stream. MUTATION:
     reverting `gear_answer` to the set's named kind: every such key is red."""
     from pipeline.deliver.verdicts.store import VerdictStore

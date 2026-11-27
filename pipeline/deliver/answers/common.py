@@ -152,8 +152,9 @@ def water_kind(B: Bundle, key: RuleKey) -> str:
     `rule_key.kind` — its named water's `item.kind`, else its unnamed sections' (`unnamed_part.kind`,
     the atlas's node kind, S1), one per key or the bundle build stops (`derived.write`). The answers
     never recompute it: they read it here. Until T1249 they took a SET's kind from its named items
-    only, so a key no named water carries (132 of the 0.9 bundle's, 6,584 unnamed stream sections)
-    had none, and its lake clauses read as "on a lake" on a stream. A key with no kind (a hand-built
+    only, so a key no named water carries had none (on main's bundle of 2026-11-27, r-7d7848399e53:
+    133 — 92 unnamed-stream, 6,584 sections; 31 wetland, 84,162; 10 lake, 32; the 0.9-era live
+    bundle had 132), and its lake clauses read as "on a lake" on a stream. A key with no kind (a hand-built
     bundle with no places) is refused, naming it: never None passed on."""
     got = B.key_kind.get(key)
     if got is None:
