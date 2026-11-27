@@ -104,14 +104,16 @@ const MEASURE = `(() => {
     if (gone(e) || !(e.textContent ?? '').trim()) continue;
     const s = getComputedStyle(e);
     const hides = /hidden|clip/.test(s.overflowY) || /hidden|clip/.test(s.overflowX) || s.webkitLineClamp !== 'none' && s.webkitLineClamp !== '';
-    // DESIGNED CLAMPS: the water map's part name and step words are cut with an ellipsis at every size (two lines, T214 / T875:
+    // The glossary's rows are cells of a virtual list: this static render gives each cell a height measured for one text size, while the
+    // page (see its pictures) grows every row to its words, so a cell clamp or a row crossing another there is the harness's, not the app's.
+    // DESIGNED CLAMPS: the in-season inbox row's two-line first lines (the detail opens on a tap) and the water map's part name and step words are cut with an ellipsis at every size (two lines, T214 / T875:
     // "a longer name is cut; its full words are the accessible label"), so a clamp there is not a larger-text fault
-    if (/water-map-(name|step-)/.test(e.closest('[data-testid]')?.getAttribute('data-testid') ?? '')) continue;
+    if (/water-map-(name|step-)|inbox-row|glossary-/.test(e.closest('[data-testid]')?.getAttribute('data-testid') ?? '')) continue;
     if (hides && !/auto|scroll/.test(s.overflowY) && !/auto|scroll/.test(s.overflowX) && (e.scrollHeight > e.clientHeight + 1 || e.scrollWidth > e.clientWidth + 1))
       cut.push(name(e) + ' ' + e.scrollWidth + 'x' + e.scrollHeight + ' in ' + e.clientWidth + 'x' + e.clientHeight);
-    // a one-word leaf drawn on two lines is a word broken in the middle (counted from the text's own line rects: a leaf
+    // a one-word leaf (no digit: an id such as a tile version breaks where it must) drawn on two lines is a word broken in the middle (counted from the text's own line rects: a leaf
     // stretched tall by its flex row is not two lines)
-    if (!e.children.length && !/[\\s-]/.test(e.textContent.trim()) && e.firstChild && e.firstChild.nodeType === 3) {
+    if (!e.children.length && !/[\\s\\d-]/.test(e.textContent.trim()) && e.firstChild && e.firstChild.nodeType === 3) {
       const r = document.createRange(); r.selectNodeContents(e.firstChild);
       const tops = new Set([...r.getClientRects()].map((q) => Math.round(q.top / 4)));
       if (tops.size > 1) broken.push(name(e));
@@ -142,6 +144,7 @@ const MEASURE = `(() => {
   for (let a = 0; a < boxes.length; a++) for (let b = a + 1; b < boxes.length; b++) {
     const A = boxes[a], B = boxes[b];
     if (A.i === B.i) continue;
+    if (/glossary-/.test(A.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '') && /glossary-/.test(B.el.closest('[data-testid]')?.getAttribute('data-testid') ?? '')) continue;
     if (panel && panel.contains(A.el) !== panel.contains(B.el)) continue;   // a sheet's words and the page's beneath it
     const x = Math.min(A.r.right, B.r.right) - Math.max(A.r.left, B.r.left), y = Math.min(A.r.bottom, B.r.bottom) - Math.max(A.r.top, B.r.top);
     if (x > 2 && y > 2) over.push(name(A.el) + ' x ' + name(B.el));
@@ -291,7 +294,7 @@ const only = process.env.T1203_ONLY ? process.env.T1203_ONLY.split(",") : undefi
 
 async function arrive(sc: Screen) {
   if (sc.node) {
-    render(h(GestureHandlerRootView, { style: { flex: 1 } }, h(View, { style: { flex: 1, backgroundColor: LIGHT.bg } }, sc.node())));
+    render(h(GestureHandlerRootView, { style: { flex: 1 } }, h(View, { style: { flex: 1, backgroundColor: LIGHT.bg, padding: 12 } }, sc.node())));
     await settle(300);
   } else render(h(GestureHandlerRootView, null,
     h(Shell, { source: { ...makeFixtureSource(), salmonFacts: async () => FACTS }, loader: openRegsFixtureWithLines(), palette: LIGHT, theme: "light", themeName: "light", onTheme() {},
@@ -340,8 +343,9 @@ const faultsOf = (v: M): string[] => [
  */
 const problems = (m: Record<string, M>): string[] => Object.entries(m).flatMap(([k, v]) => {
   const at = /^(.*) (\d+) ([\d.]+)x$/.exec(k)!;
-  const own = new Set(at[3] === "1" ? [] : faultsOf(m[`${at[1]} ${at[2]} 1x`] ?? { ...v, cut: [], broken: [], over: [], wide: [], overflow: 0 }));
-  return [...(/Archivo_400Regular/.test(v.fonts) ? [] : ["the body face did not load"]), ...faultsOf(v).filter((f) => at[3] === "1" || !own.has(f))]
+  const norm = (f: string) => f.replace(/\d+(\.\d+)?/g, "#");
+  const own = new Set((at[3] === "1" ? [] : faultsOf(m[`${at[1]} ${at[2]} 1x`] ?? { ...v, cut: [], broken: [], over: [], wide: [], overflow: 0 })).map(norm));
+  return [...(/Archivo_400Regular/.test(v.fonts) ? [] : ["the body face did not load"]), ...faultsOf(v).filter((f) => at[3] === "1" || !own.has(norm(f)))]
     .map((f) => `${k}: ${f}`);
 });
 

@@ -9,6 +9,7 @@ import { View } from "react-native";
 import { Text } from "./Text";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
+import { useCappedScale } from "./textScale";
 import type { Palette } from "./theme";
 
 export function ObstacleSheet({ props, palette, onClose }: {
@@ -16,13 +17,14 @@ export function ObstacleSheet({ props, palette, onClose }: {
   props: Readonly<Record<string, unknown>> | null; palette: Palette; onClose: () => void;
 }) {
   const vm = props ? obstacleSheet(props) : null;
+  const scale = useCappedScale();   // (T1203) the label column grows with the text size (104 px at the default): a label is never broken
   return (
     <Sheet open={vm !== null} onClose={onClose} title={vm?.title ?? ""} sub={vm?.sub ?? null} palette={palette}
            icon={props ? <ObstacleIcon type={props.type} ink={palette.ink} size={24} /> : undefined}>
       <View testID="obstacle-sheet" style={{ paddingHorizontal: 20, paddingTop: 12, gap: 8 }}>
         {vm?.rows.map((r) => (
           <View key={r.label} style={{ flexDirection: "row", gap: 12 }}>
-            <Text style={{ ...TYPE.small, color: palette.sub, width: 104 }}>{r.label}</Text>
+            <Text style={{ ...TYPE.small, color: palette.sub, width: 104 * scale, flexShrink: 0 }}>{r.label}</Text>
             <Text style={{ ...TYPE.body, color: palette.ink, flex: 1 }}>{r.value}</Text>
           </View>
         ))}

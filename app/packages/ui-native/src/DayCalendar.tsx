@@ -20,7 +20,7 @@ import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type
 import { CornerStrip } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
-import { TYPE } from "./type";
+import { TYPE, LABEL_PROPS } from "./type";
 import { hitProps } from "./regs/hit";
 
 /** A thumb's target: every button here is at least this tall and wide. */
@@ -161,7 +161,7 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
       </View>
       <View testID="day-heads" style={{ flexDirection: "row" }} importantForAccessibility="no-hide-descendants" aria-hidden>
         {m.weekdays.map((w) => (
-          <Text key={w.long} style={{ ...TYPE.micro, ...CELL, textAlign: "center", color: palette.sub }}>{w.short}</Text>
+          <Text key={w.long} {...LABEL_PROPS} style={{ ...TYPE.micro, ...CELL, textAlign: "center", color: palette.sub }}>{w.short}</Text>
         ))}
       </View>
       <View testID="day-grid" role="group" accessibilityLabel={DAY_PICKER.gridLabel(m.title)} {...keys}>
