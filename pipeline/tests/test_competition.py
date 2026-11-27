@@ -850,10 +850,15 @@ def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
     jul = _kept(sid, (7, 15), "RB")
     assert {f"{eid}::chilliwack_vedder_rivers.r9", f"{tc}::trout_char_quota.r1"} <= jul
     assert f"{tc}::trout_char_quota.r2" not in jul
-    # elsewhere in Region 2 a rainbow of any size is a rainbow: "1 over 50 cm" speaks for it — on a water with no row
-    # of its own (the lowest-id section was the Stave's Northrop channel once T222 bound it: "No Fishing" there)
-    other = _sid(db, tc, "trout_char_quota.r2", without=(("r%", None),))
-    assert not db.execute("select 1 from steelhead_water where sid = ?", (other,)).fetchone()
+    # where a big rainbow is NOT a steelhead in Region 2 — since RULINGS S14 every Region 2 stream reaches the Pacific,
+    # so that is a water no steelhead definition reaches (a lake, S3) — "1 over 50 cm" speaks for every rainbow: on a
+    # water with no row of its own (the lowest-id section was the Stave's Northrop channel once T222 bound it)
+    other = db.execute(
+        "select min(sr.sid) from ruleset r join section_ruleset sr on sr.set_id = r.set_id "
+        "where r.entry_id = ? and r.rule_id = 'trout_char_quota.r2' and r.set_id not in "
+        "(select set_id from ruleset where entry_id like 'r%') "
+        "and sr.sid not in (select sid from steelhead_water)", (tc,)).fetchone()[0]
+    assert other is not None
     assert f"{tc}::trout_char_quota.r2" in _kept(other, (7, 15), "RB")
 
 

@@ -1120,7 +1120,8 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
     """`waters[].parts[].steelhead`, the water's roll-up and why (`steelhead_source`): the Thompson
     known (the book below Kamloops Lake, the curated list above); Nicola known by the list alone (no
     steelhead_rows, but a big rainbow is a steelhead: 2026-10-03); Horsefly known by its waiver row below the falls
-    and possible above; Williams Lake River possible; Elk and Stave Lake absent; Khartoum known by
+    and as a Pacific stream above (S14); Williams Lake River a Pacific stream; the Dease (the Arctic) possible; Elk
+    and Stave Lake absent; Khartoum known by
     its row; the Okanagan known by the list with no steelhead rule. A big rainbow is a steelhead
     exactly on the KNOWN flowing parts, book or list (`steelhead_presence_problems`)."""
     W = doc["waters"]
@@ -1134,8 +1135,11 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
     assert all(p.get("anadromous_rainbow") for p in W["gnis:39400"]["parts"])
     assert all(p["steelhead_rules"] is True for p in W["gnis:39400"]["parts"])     # DF4
     assert W["gnis:24531"]["steelhead"] == "known"
-    assert {p.get("steelhead") for p in W["gnis:24531"]["parts"]} == {"known", "possible"}
-    assert W["gnis:27764"]["steelhead"] == "possible" and "steelhead_source" not in W["gnis:27764"]
+    assert {p.get("steelhead") for p in W["gnis:24531"]["parts"]} == {"known"}
+    assert W["gnis:24531"]["steelhead_source"] == ["regulations", "Pacific stream"]
+    assert W["gnis:27764"]["steelhead"] == "known" and W["gnis:27764"]["steelhead_source"] == ["Pacific stream"]
+    assert all(p.get("anadromous_rainbow") for p in W["gnis:27764"]["parts"])
+    assert W["gnis:16080"]["steelhead"] == "possible" and "steelhead_source" not in W["gnis:16080"]
     assert W[KHARTOUM]["steelhead"] == "known" and W[LOIS]["steelhead"] == "known"
     assert W[KHARTOUM]["steelhead_source"] == ["regulations"]
     assert W[KHARTOUM]["steelhead_rows"] == ["r2:khartoum_lake@2-12"]
@@ -1161,7 +1165,7 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("mutate,expect", [
-    (lambda w: w["gnis:27764"]["parts"][0].update(anadromous_rainbow=True),
+    (lambda w: w["gnis:16080"]["parts"][0].update(anadromous_rainbow=True),   # the Dease: Arctic, "possible" (S14)
      "anadromous_rainbow on a possible stream"),
     (lambda w: w["gnis:39400"]["parts"][0].pop("anadromous_rainbow"),       # listed: a steelhead
      "a known stream where steelhead rules apply and a big rainbow is not a steelhead"),
@@ -1592,8 +1596,11 @@ def test_the_set_check_catches_a_mutation(raw, classes, sets, name):
         cl[(k[0], k[1], k[2], 2)] = cl.pop(k)
 
     def listed_gains(cl, rules, recs, rows):
+        # a Region 8 stream ONLY: since S14 a known class can also be a straddler a steelhead region's
+        # rules bind (Hummingbird Creek, R3/R8), which may carry the set
         k = _class_of(classes, sets, lambda k, r, q: k[3] == 1 and k[2] is None and not (
-            r & rows) and any(x.startswith("z8:") for x in r))
+            r & rows) and any(x.startswith("z8:") for x in r)
+            and not any(x.split(":", 1)[0] in STEELHEAD_ZONES for x in r))
         rules[k[0]].add("zp:steelhead::steelhead.r1b")
 
     def tenas_gains(cl, rules, recs, rows):
