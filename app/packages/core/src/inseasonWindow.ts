@@ -22,13 +22,15 @@ export function addDays(day: string, n: number): string {
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 }
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-const isDay = (v: unknown): v is string => typeof v === "string" && ISO_DAY.test(v);
 /** a calendar day as ISO, or null when the month has no such day */
 function isoOf(y: number, m: number, d: number): string | null {
   const t = new Date(Date.UTC(y, m - 1, d));
   return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d ? t.toISOString().slice(0, 10) : null;
 }
+/** a "YYYY-MM-DD" that is a real day: read back through `isoOf`, so the shape is not spelled a second time (the one
+ * day test, `isIsoDay` in day.ts, drags the clock into the feeds worker; this module takes no import but its constant) */
+const isDay = (v: unknown): v is string =>
+  typeof v === "string" && v.length === 10 && isoOf(Number(v.slice(0, 4)), Number(v.slice(5, 7)), Number(v.slice(8))) === v;
 /** a whole number (JSON has one number type: 7 and 7.0 are one value; true is none) */
 const whole = (n: unknown): n is number => typeof n === "number" && Number.isSafeInteger(n);
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);

@@ -27,7 +27,7 @@ export function InSeasonBand({ palette }: { palette: Palette }) {
     <>
       {marks.runs.map((r, i) => (
         <View key={i} testID="inseason-year-band" pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants"
-              style={{ position: "absolute", top: -(BAND + 2), height: BAND, borderRadius: 1, backgroundColor: palette.attention,
+              style={{ position: "absolute", top: -(BAND + 2), height: BAND, borderRadius: palette.r.chip, backgroundColor: palette.attention,
                        left: `${r.at * 100}%` as const, width: `${r.len * 100}%` as const }} />
       ))}
     </>
@@ -40,7 +40,7 @@ export function InSeasonLegend({ palette }: { palette: Palette }) {
   if (!marks) return null;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-      <View style={{ width: 14, height: BAND, borderRadius: 1, backgroundColor: palette.attention }} />
+      <View style={{ width: 14, height: BAND, borderRadius: palette.r.chip, backgroundColor: palette.attention }} />
       <Text testID="inseason-year-legend" style={[TYPE.legend, { color: palette.ink }]}>{marks.label}</Text>
     </View>
   );

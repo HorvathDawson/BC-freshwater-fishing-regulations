@@ -38,7 +38,7 @@ export const BUDGETS = {
   // (T1144, 2026-11-26; the owner confirms) the restart pages are NOT in this total: each live chat adds one, so with about
   // 112 lines of room the third chat to save its state failed docs-ci and its push the night credits ran short. They keep
   // their own cap (`restart`, 60 lines each) and are deleted when their chat ends.
-  readingLines: [11284, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],   // +15 (T1189: the Province list read from the PDF); +9 (T1200: eight feedback-log rows and their count line, a closed tester's email)
+  readingLines: [11285, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],   // +15 (T1189: the Province list read from the PDF); +9 (T1200: eight feedback-log rows and their count line, a closed tester's email); +1 (T1167: the in-season banner window, one decision line)
   // the docs tree (docs/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
   treeLines:    [23000, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],
   treeFiles:    [1600, "tracked files in the docs tree"],
