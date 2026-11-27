@@ -729,11 +729,14 @@ def dead_end_outlets(graph: StreamGraph) -> dict[str, tuple[str, ...]]:
     return out
 
 
-def _dead_end_seeds(ctx: "Reach", seen: set[str], kept: set[str], refused: set[str]) -> list[str]:
+def _dead_end_seeds(ctx: "Reach", seen: set[str], kept: set[str], refused: set[str], *, meet,
+                    held_of) -> list[tuple[str, frozenset]]:
     """`A_DEAD_END_GOES_WITH_ITS_WATER`: the nodes of every unreached sink whose code(s) the walk otherwise
     collected wholly (`kept`: what it collects, less carve-outs passed and own water). A piece of the code the
     walk REFUSED (`refused`: a lake its secondary outlet may not climb into, a bigger river) is not collected,
-    so its code never qualifies: the dead end is no way round a refusal."""
+    so its code never qualifies: the dead end is no way round a refusal. Each node comes with the walk's state
+    (`tributaries_of_reach`): the stops every walked piece of its code(s) was reached through (`meet`); a node that
+    state holds out (`held_of`) is no seed (one it walks past is walked, never collected)."""
     g = ctx.graph
     by_code, nodes_of = dead_ends(g)
     codes = {n.wsc for s in kept if (n := g.nodes.get(s)) is not None and n.wsc} - ctx.codes
@@ -749,15 +752,23 @@ def _dead_end_seeds(ctx: "Reach", seen: set[str], kept: set[str], refused: set[s
         ok[c] = all(x in kept or (x in allowed and x not in refused) for x in nodes_of.get(c, ()))
         if ok[c]:
             cands.update((s, None) for s in ends)
-    out: list[str] = []
+    out: dict[str, frozenset] = {}
+    kept_by_code: dict | None = None
     for s in cands:
         cs = {g.nodes[x].wsc for x in s}
         if not all(ok.get(c) for c in cs):
             continue                            # a loop of several codes: every one must qualify
-        if any(x in ctx.blocked or x in ctx.held or x in ctx.own or g.nodes[x].is_barrier for x in s):
+        if kept_by_code is None:
+            kept_by_code = {}
+            for x in kept:
+                kept_by_code.setdefault(g.nodes[x].wsc, []).append(x)
+        st = meet(x for c in cs for x in kept_by_code.get(c, ()))
+        held = held_of(st)[0]
+        if any(x in ctx.blocked or x in held or x in ctx.own or g.nodes[x].is_barrier for x in s):
             continue
-        out.extend(s)
-    return sorted(set(out))
+        for x in s:
+            out[x] = out[x] & st if x in out else st
+    return sorted(out.items(), key=lambda kv: kv[0])
 
 
 # --------------------------------------------------------------------------------------- #
@@ -819,9 +830,9 @@ class Reach:
     heads: frozenset = frozenset()
     water: frozenset = frozenset()
     inflows: frozenset = frozenset()
-    #: (T1177) what the lake rows' printed exceptions hold out, ADDED as the walk enters each stop's lake
-    #: (`tributaries_of_reach` `stops`): refused like `blocked`
-    held: set = field(default_factory=set)
+    #: (T1177) what the lake rows' printed exceptions hold out WHERE THE WALK IS NOW (the state of the section it climbs
+    #: from, `tributaries_of_reach` `stops`, `A_STOP_HOLDS_THROUGH_ITS_LAKE`): refused like `blocked`
+    held: frozenset = frozenset()
 
     def at_boundary(self, node: str) -> bool:
         return node in self.reach or node in self.online
@@ -994,6 +1005,16 @@ def joining(graph: StreamGraph, reach, *, guarded: bool = True) -> frozenset[str
     return frozenset(out)
 
 
+#: POLICY (T1177, review round 2, AGENTS rule 19): A STOP HOLDS THROUGH ITS LAKE. A lake row's printed exception
+#: (`reach.build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`) holds for the water a walk reaches THROUGH that
+#: lake, the lake's own catchment as the walk climbs it, never for the walk as a whole from the moment it first enters
+#: the lake: the hold is a property of where the walk is, so the order `up_adj` lists the edges in cannot decide what is
+#: bound. Water the walk also reaches by a path that skips the lake is not held by that lake's exception on that path
+#: (none reaches Kinbasket's excepted Columbia today: the Columbia above the reservoir drains only through it). False =
+#: the hold lasts the rest of the walk once any of its stops' lakes is entered (the order-dependent walk; the mutation pin).
+A_STOP_HOLDS_THROUGH_ITS_LAKE = True
+
+
 def tributaries_of_reach(
     graph: StreamGraph,
     reach: set[str] | frozenset[str],
@@ -1011,9 +1032,10 @@ def tributaries_of_reach(
 ) -> frozenset[str]:
     """Sections draining INTO `reach`, recursively. Excludes `reach` itself.
 
-    `stops`: `(lakes, excluded, passed)` per lake row's printed exception (`reach.build.lake_row_stops`): when the walk
-    ENTERS one of a stop's lakes, what it holds out is refused from then on (`excluded`, as `blocked`) or walked past
-    (`passed`); a walk that never enters the lake is untouched. `met` (a list) receives each stop's index the walk entered.
+    `stops`: `(lakes, excluded, passed)` per lake row's printed exception (`reach.build.lake_row_stops`): what it holds
+    out is refused (`excluded`, as `blocked`) or walked past (`passed`) wherever the walk climbs THROUGH one of the stop's
+    lakes (`A_STOP_HOLDS_THROUGH_ITS_LAKE`); a path that never passes the lake is untouched. `met` (a list) receives each
+    stop's index the walk entered.
 
     `inflows`: the through-line inflows of the reach's lakes taken as tributaries
     (`EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY`, T1177): `reach.build._expander` decides which (a printed exception
@@ -1058,21 +1080,61 @@ def tributaries_of_reach(
     """
     ctx = reach_context(graph, reach, blocked=blocked, own=own, guarded=guarded, climb_from=climb_from,
                         inflows=inflows)
-    out: set[str] = set()
-    seen: set[str] = set(ctx.reach)
-    stack: list[str] = sorted(ctx.reach)      # sorted: determinism, not correctness
+    seen: set[str] = set(ctx.reach)           # reached at all, in any state
+    kept: set[str] = set()                    # collected, in a state that does not walk it past
     runs = code_runs(graph)[0] if BIFURCATIONS_FOLLOW_THE_CODE else {}
     refused: set[str] = set()                 # what a step was refused into (`A_DEAD_END_GOES_WITH_ITS_WATER`)
-    passed = set(passed)
-    entered: list[int] = []
+    passed = frozenset(passed)
 
-    def enter(x):
-        # (T1177) the walk is in a stop's lake: its row's printed exception holds for the rest of this walk
-        for i, (lakes, excluded, past) in enumerate(stops):
-            if x in lakes and i not in entered:
-                entered.append(i)
-                ctx.held.update(excluded)
-                passed.update(past)
+    # (T1177, `A_STOP_HOLDS_THROUGH_ITS_LAKE`) THE WALK'S STATE is the set of stops whose lake lies below it on the way up
+    # from the reach. A stop holds for water reached THROUGH its lake, never for the walk as a whole: each section keeps
+    # the least states it was reached in (an antichain), and the states are taken in order of size, each size to its end,
+    # so which (section, state) pairs are walked is the graph's answer, never the order `up_adj` lists the edges in.
+    stop_at: dict[str, frozenset] = {}
+    for i, (lakes, _x, _p) in enumerate(stops):
+        for x in lakes:
+            stop_at[x] = stop_at.get(x, frozenset()) | {i}
+    _held: dict[frozenset, tuple[frozenset, frozenset]] = {}
+    ever: set[int] = set()                    # every stop entered so far (only the mutation pin reads it)
+
+    def held_of(st: frozenset) -> tuple[frozenset, frozenset]:
+        """(what state `st` refuses, what it walks past)"""
+        if not A_STOP_HOLDS_THROUGH_ITS_LAKE:
+            st = frozenset(ever)
+        got = _held.get(st)
+        if got is None:
+            got = _held[st] = (frozenset().union(*(stops[i][1] for i in st)),
+                               passed.union(*(stops[i][2] for i in st)))
+        return got
+
+    states: dict[str, list[frozenset]] = {}
+    levels: dict[int, list[tuple[str, frozenset, bool]]] = {}
+    NONE = frozenset()
+
+    def walked(x: str, st: frozenset) -> bool:
+        """has the walk reached `x` already in a state no greater than the one it would bring now?"""
+        st = st | stop_at.get(x, NONE)
+        return any(t <= st for t in states.get(x, ()))
+
+    def push(x: str, st: frozenset, collect: bool) -> None:
+        st = st | stop_at.get(x, NONE)
+        have = states.setdefault(x, [])
+        if any(t <= st for t in have):
+            return
+        have.append(st)
+        ever.update(st)
+        seen.add(x)
+        levels.setdefault(len(st), []).append((x, st, collect))
+
+    def meet(nodes) -> frozenset:
+        """the stops every state of every one of `nodes` has (a seed's state: where the water it goes with was walked)"""
+        if not stops:
+            return NONE
+        got = None
+        for x in nodes:
+            for t in states.get(x, ()):
+                got = t if got is None else got & t
+        return got or NONE
 
     # A stream joining EXACTLY at the reach's lower cut belongs to the reach. When a
     # curator anchors a cut on a confluence — "upstream of the confluence with Slesse
@@ -1080,58 +1142,64 @@ def tributaries_of_reach(
     # the cut, in which case the walk would never see it and the named water would be
     # missing from the very reach it defines. Rare (51 of 196,596 bounded sections) and
     # entirely concentrated on confluence-anchored cuts, which is where it matters most.
-    # Each seed has passed `may_enter` inside `_mouths_at`: a seed is the walk's first step (T102).
+    # Each seed has passed `may_enter` inside `_mouths_at`: a seed is the walk's first step (T102), in no stop's state
+    # (a stop's lake is never the reach: `reach.build._expander`).
+    ctx.held = NONE
+    for r in sorted(ctx.reach):                # sorted: determinism, not correctness
+        states[r] = [NONE]
+        levels.setdefault(0, []).append((r, NONE, False))
     for seed in sorted(_mouths_at_lower_bound(graph, ctx.reach, cuts, ctx)):
-        if seed not in seen:
-            seen.add(seed)
-            out.add(seed)
-            stack.append(seed)
+        push(seed, NONE, True)
 
-    while stack:
-        node = stack.pop()
-        # A lake the walk reached (not the reach's own water, not the river passing through)
-        # brings the runs FWA codes to it, with whatever joins them.
-        if not ctx.at_boundary(node):
+    def step() -> None:
+        lvl = min(k for k, v in levels.items() if v)
+        node, st, collect = levels[lvl].pop()
+        if any(t < st for t in states[node]):
+            return                             # a lesser state reached it since: that one is walked
+        ctx.held, past = held_of(st)
+        if collect:
+            if node not in past:
+                kept.add(node)
+        if node not in ctx.reach and not ctx.at_boundary(node):
+            # A lake the walk reached (not the reach's own water, not the river passing through)
+            # brings the runs FWA codes to it, with whatever joins them.
             for r in runs.get(node, ()):
-                if r in seen or may_enter(ctx, r, node, via=RUN) is not None:
-                    continue
-                seen.add(r)
-                out.add(r)
-                stack.append(r)
+                if not walked(r, st) and may_enter(ctx, r, node, via=RUN) is None:
+                    push(r, st, True)
         for ei in graph.up_adj.get(node, []):
             e = graph.edges[ei]
             src = e.from_node
-            if src in seen:
+            if walked(src, st):
                 continue
             why = may_enter(ctx, src, node, e)
             if why == PASSING_THROUGH:
-                seen.add(src)                  # walked as the river, never collected
-                ctx.online[src] = ctx.online.get(node, node)
-                stack.append(src)
-                enter(src)
+                if src not in seen:
+                    ctx.online[src] = ctx.online.get(node, node)
+                push(src, st, False)          # walked as the river, never collected
             elif why is None:
-                seen.add(src)
-                out.add(src)
-                stack.append(src)
-                enter(src)
-            else:
-                refused.add(src)
-        # The walk is done: a dead end of a water it collected wholly goes with that water, and the walk
-        # climbs on from it (what feeds it may bring more codes, so this repeats until nothing joins).
-        if not stack and A_DEAD_END_GOES_WITH_ITS_WATER and out:
-            for x in _dead_end_seeds(ctx, seen, out - frozenset(passed) - ctx.own, refused):
-                seen.add(x)
-                out.add(x)
-                stack.append(x)
-        if not stack and A_SIDE_CHANNEL_GOES_WITH_ITS_WATER and registry is not None and out:
-            for x in _side_channel_seeds(ctx, registry, seen, out - frozenset(passed) - ctx.own):
-                seen.add(x)
-                out.add(x)
-                stack.append(x)
+                push(src, st, True)
+            elif src not in seen:
+                refused.add(src)              # refused before anything reached it (the walk's books, as before T1177)
 
+    while True:
+        while any(levels.values()):
+            step()
+        # The walk is done: a dead end of a water it collected wholly goes with that water, and the walk
+        # climbs on from it (what feeds it may bring more codes, so this repeats until nothing joins). Each seed is
+        # walked in the state its water was (`meet`).
+        if A_DEAD_END_GOES_WITH_ITS_WATER and kept:
+            for x, st in _dead_end_seeds(ctx, seen, kept - ctx.own, refused, meet=meet, held_of=held_of):
+                push(x, st, True)
+        if not any(levels.values()) and A_SIDE_CHANNEL_GOES_WITH_ITS_WATER and registry is not None and kept:
+            for x, st in _side_channel_seeds(ctx, registry, seen, kept - ctx.own, meet=meet, held_of=held_of):
+                push(x, st, True)
+        if not any(levels.values()):
+            break
+
+    ctx.held = NONE
     if met is not None:
-        met.extend(sorted(entered))
-    return frozenset(out - frozenset(passed) - ctx.own)
+        met.extend(sorted(set().union(*(t for v in states.values() for t in v))))
+    return frozenset(kept - ctx.own)
 
 
 #: T1146 (owner 2026-11-25 "Fix the binding in 0.10.0"): A SIDE CHANNEL GOES WITH ITS WATER. The walk climbs only UP,
@@ -1176,15 +1244,20 @@ def _same_water(graph: StreamGraph, nid: str, codes: set[str]) -> bool:
     return any(wsc.relation(a, c) in (wsc.SAME, wsc.BELOW) for c in codes)
 
 
-def _side_channel_seeds(ctx: "Reach", registry, seen: set[str], kept: set[str]) -> list[str]:
+def _side_channel_seeds(ctx: "Reach", registry, seen: set[str], kept: set[str], *, meet,
+                        held_of) -> list[tuple[str, frozenset]]:
     """`A_SIDE_CHANNEL_GOES_WITH_ITS_WATER`: the unwalked no-main-flow pieces of every stream item the walk collected
-    (`kept`) whose every touching piece of that item is in `kept`."""
+    (`kept`) whose every touching piece of that item is in `kept`. Each comes with the walk's state (`tributaries_of_
+    reach`): the stops every collected piece of its item was reached through (`meet`); what that state holds out
+    (`held_of`) is no seed."""
     g = ctx.graph
     owners = _stream_owners(registry)
-    out: set[str] = set()
+    out: dict[str, frozenset] = {}
     for iid in sorted({i for s in kept for i in owners.get(s, ())}):
         mine = frozenset(registry[iid].section_ids)
-        side = {s for s in mine if s not in kept and s not in seen and s not in ctx.blocked and s not in ctx.held
+        st = meet(mine & kept)
+        held = held_of(st)[0]
+        side = {s for s in mine if s not in kept and s not in seen and s not in ctx.blocked and s not in held
                 and s not in ctx.own
                 and (n := g.nodes.get(s)) is not None and n.kind == NodeKind.stream
                 and not fwa_edge_types.is_main_flow(n) and not n.is_barrier}
@@ -1208,8 +1281,9 @@ def _side_channel_seeds(ctx: "Reach", registry, seen: set[str], kept: set[str]) 
                 continue
             touch = {y for x in comp for y in _touching(g, x) if y in mine and y not in comp}
             if touch and touch <= kept:
-                out |= comp
-    return sorted(out)
+                for x in comp:
+                    out[x] = out[x] & st if x in out else st
+    return sorted(out.items(), key=lambda kv: kv[0])
 
 
 def lower_bound_cuts(graph: StreamGraph, sections) -> list[tuple[str, float]]:

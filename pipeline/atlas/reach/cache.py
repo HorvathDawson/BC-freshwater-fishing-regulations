@@ -221,5 +221,7 @@ from __future__ import annotations
 #:     include Columbia River upstream" holds for Lake Revelstoke's and Lower Arrow Lake's walks). No classify.py outcome
 #:     changed; the bump marks the binding diff. With it (review): a stop holds only from where a walk ENTERS its lake,
 #:     and a lake at a stretch's top is no lake the rule binds (`build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS`).
+#:     Round 2: a stop holds for the water a walk reaches THROUGH its lake, never for the rest of the walk, so the edge
+#:     order cannot decide it (`tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE`); the book run's bindings are unchanged by it.
 POLICY_VERSION = "52"
 

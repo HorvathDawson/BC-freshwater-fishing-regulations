@@ -241,3 +241,98 @@ def test_a_stop_holds_only_for_a_walk_that_enters_its_lake(chain_with_a_lake_in_
     got, d = _bind((g, reg), stops=stops)                          # the lower lake's walk enters UL: stopped there
     assert not got & {"R:up", "R:top", "RT", "WC"}
     assert [x.payload for x in d if x.kind == "lake_stop"]
+
+
+# --------------------------------------------------------------------------------------------------------------- #
+# Review round 2 (AGENTS rule 19): A STOP HOLDS THROUGH ITS LAKE (`tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE`): the
+# hold is where the walk is, never what it has visited, so the order `up_adj` lists the edges in cannot change it.
+# Mutation: the flag False -> the two-order test fails (one order drops X).
+# --------------------------------------------------------------------------------------------------------------- #
+
+def _bypass(ul_first: bool):
+    """The chain with the stretch S1 of the river between the lakes, and a creek X that feeds RT (inside UL's excepted
+    river) AND spills into C1, the lower lake's own creek: a path into the excepted water that never passes UL. The two
+    worlds differ only in the order the lower lake's inflows are listed."""
+    nodes = [_n("D:0", blk="D", lo=0, hi=1000, wsc="900-1", order=6), _n("lake:LL", L, wsc="900-1", order=6),
+             _n("lake:UL", L, wsc="900-1", order=6), _n("R:up", blk="D", lo=50000, hi=60000, wsc="900-1", order=5),
+             _n("RT", blk="RT", wsc="900-1-000800", order=2), _n("C1", blk="C1", wsc="900-1-000300", order=2),
+             _n("C2", blk="C2", wsc="900-1-000500", order=2), _n("S1", blk="D", lo=20000, hi=30000, wsc="900-1", order=6),
+             _n("X", blk="X", wsc="900-1-000800-1", order=1)]
+    into_ll = [("S1", "lake:LL", "lake_in", 30000), ("C1", "lake:LL", "lake_in", 20000)]
+    edges = [("lake:LL", "D:0", "lake_out", 1000)] + (into_ll if ul_first else into_ll[::-1]) + [
+        ("lake:UL", "S1", "lake_out", 0), ("R:up", "lake:UL", "lake_in", 50000), ("RT", "R:up", "confluence", 55000),
+        ("C2", "lake:UL", "lake_in", 40000), ("X", "RT", "confluence", 10), ("X", "C1", "confluence", 10)]
+    g = StreamGraph()
+    g.nodes = {n.node_id: n for n in nodes}
+    g.edges = [FlowEdge(from_node=a, to_node=b, kind=k, at_measure=m) for a, b, k, m in edges]
+    for i, e in enumerate(g.edges):
+        g.up_adj.setdefault(e.to_node, []).append(i)
+        g.down_adj.setdefault(e.from_node, []).append(i)
+    reg = {"wbk:LL": RegistryItem(id="wbk:LL", name="Lower Lake", kind="lake", section_ids=("lake:LL",)),
+           "wbk:UL": RegistryItem(id="wbk:UL", name="Upper Lake", kind="lake", section_ids=("lake:UL",)),
+           "gnis:D": RegistryItem(id="gnis:D", name="Down River", kind="stream", section_ids=("D:0",)),
+           "gnis:R": RegistryItem(id="gnis:R", name="Up River", kind="stream", section_ids=("R:up",))}
+    return g, reg
+
+
+def _bypass_bound(ul_first: bool) -> set:
+    g, reg = _bypass(ul_first)
+    stops = lake_row_stops([UPPER], reg, g)
+    assert set(stops[0].excluded) == {"R:up", "RT", "X"}
+    return _bind((g, reg), stops=stops)[0]
+
+
+def test_a_stops_result_never_depends_on_the_edge_order():
+    """The reviewer's probe (round 2): the same topology in two edge orders binds the same water. X is reached through
+    C1 without passing UL, so UL's exception does not hold it there; RT and R:up are reached only through UL: held."""
+    assert _bypass_bound(True) == _bypass_bound(False) == {"C1", "C2", "S1", "X"}
+
+
+def test_the_stop_policy_mutation_pin(monkeypatch):
+    """False = the old walk: the hold lasts the rest of the walk once UL is entered, and the edge order decides X."""
+    monkeypatch.setattr(T, "A_STOP_HOLDS_THROUGH_ITS_LAKE", False)
+    assert _bypass_bound(True) != _bypass_bound(False)
+
+
+def test_two_stops_on_one_chain_each_hold_above_their_own_lake(chain_with_a_lake_in_the_excepted_river):
+    """UL's row excepts its creek RT, WL's row (higher up the chain) the river R:top above WL. The lower lake's walk
+    passes both lakes: RT held at UL, R:top at WL, the rest of the chain taken (R:up between them, WL's creek WC); both
+    stops reported. UL's own walk is held at WL only (its own exception is its own row's)."""
+    g, reg = chain_with_a_lake_in_the_excepted_river
+    reg = dict(reg)
+    reg["gnis:RT"] = RegistryItem(id="gnis:RT", name="Rt Creek", kind="stream", section_ids=("RT",))
+    reg["gnis:RTOP"] = RegistryItem(id="gnis:RTOP", name="Top River", kind="stream", section_ids=("R:top",))
+    upper = {**UPPER, "rules": [{**UPPER["rules"][0], "tributary_excludes": [{"op": "whole", "item_id": "gnis:RT"}]}]}
+    top = {"entry_id": "r4:windermere_like_lake_s_tributaries@4-1", "matched": ["wbk:WL"],
+           "rules": [{"rule_id": "wl.r1", "verbatim": "x", "tributaries_only": True, "extents": [{"op": "whole"}],
+                      "tributary_excludes": [{"op": "whole", "item_id": "gnis:RTOP"}]}]}
+    stops = lake_row_stops([upper, top], reg, g)
+    assert [(s.lakes, s.excluded) for s in stops] == [(frozenset({"lake:UL"}), frozenset({"RT"})),
+                                                      (frozenset({"lake:WL"}), frozenset({"R:top"}))]
+    got, d = _bind((g, reg), stops=stops)
+    assert got == {"C1", "C2", "R:up", "WC"}
+    [row] = [x.payload for x in d if x.kind == "lake_stop"]
+    assert sorted(map(tuple, row["rows"])) == [("r4:upper_lake_s_tributaries@4-1", "upper_lake_s_tributaries.r1"),
+                                               ("r4:windermere_like_lake_s_tributaries@4-1", "wl.r1")]
+    got, d = _bind((g, reg), upper, upper["rules"][0], stops=stops)
+    assert got == {"C2", "R:up", "WC"}
+
+
+def test_a_walk_that_starts_inside_the_excepted_water_is_never_held():
+    """The walk from inside UL's excepted river (RT, the river R:up) climbs from there: it never passes UL, so the stop
+    holds nothing for it (the walk itself, past `_expander`'s own-water test)."""
+    g, _reg = _bypass(True)
+    stop = [(frozenset({"lake:UL"}), frozenset({"R:up", "RT", "X"}), frozenset())]
+    assert T.tributaries_of_reach(g, {"RT"}, stops=stop) == {"X"}
+    assert T.tributaries_of_reach(g, {"R:up"}, stops=stop) == {"RT", "X"}
+
+
+def test_a_dead_end_seed_in_a_stops_lake_brings_the_stop():
+    """A seed is walked in the state of where it is: the Iskut's closed loop (lake LI and its channel IC, a dead end)
+    seeded from its collected water, with a stop on LI holding out its feeder IU. Before round 2 a dead-end seed never
+    entered its lake's stop, and IU was taken."""
+    from pipeline.tests.test_walk_dead_ends import _stikine
+    g = _stikine()
+    got = T.tributaries_of_reach(g, {"S:0"}, stops=[(frozenset({"lake:LI"}), frozenset({"IU:0"}), frozenset())])
+    assert {"lake:LI", "IC:0"} <= got and "IU:0" not in got
+    assert "IU:0" in T.tributaries_of_reach(g, {"S:0"})

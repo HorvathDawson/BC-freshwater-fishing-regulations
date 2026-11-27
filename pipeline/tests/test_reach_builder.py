@@ -394,6 +394,7 @@ def test_policy_version_is_bumped_when_classify_changes():
             reach_build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT,
         "a_lake_at_a_stretchs_top_is_no_lake_the_rule_binds":
             reach_build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS,
+        "a_stop_holds_through_its_lake": tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE,
         "a_failed_scope_unbinds_the_row": reach_build.A_FAILED_SCOPE_UNBINDS_THE_ROW,
         "dfo_joining_water_stays_out": reach_build.DFO_JOINING_WATER_STAYS_OUT,
         "dfo_through_river_stays_out": reach_build.DFO_THROUGH_RIVER_STAYS_OUT,
@@ -441,6 +442,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "every_inflow_of_a_rules_lake_is_its_tributary": True,
                      "a_lakes_printed_exception_stops_every_walk_through_it": True,
                      "a_lake_at_a_stretchs_top_is_no_lake_the_rule_binds": True,
+                     "a_stop_holds_through_its_lake": True,
                      "a_failed_scope_unbinds_the_row": True,
                      "dfo_joining_water_stays_out": True,
                      "dfo_through_river_stays_out": True,
