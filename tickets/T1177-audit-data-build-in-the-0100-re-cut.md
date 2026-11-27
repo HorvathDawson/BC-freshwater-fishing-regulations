@@ -2,6 +2,7 @@
 
 Status: OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner
 
+- [ ] 2026-11-27 — DFO places reach their tributaries like the book's rows: accept the salmon list (one opening: chinook 1 a day Sep 1-Nov 30 on Gwendoline, Jacobs and Mayfly creeks above Jacobs Lake, 15.0 km)? Options: all / without that opening / not in 0.10.0. Default: not merged until he answers.
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
 | T1177 | Audit data build, inside the 0.10.0 re-cut: the rulings P5-P11 and O1-O17 | OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | a build lane (Opus): apply the rulings below with an answers diff per change; the re-cut waits for it; one ask is open |
@@ -88,6 +89,7 @@ the lists before the re-cut ships. Severity: medium (several are "A": an angler 
 - 2026-11-27 ~10:45, merge order: "Wording fix first, then the walk, both in 0.10.0 (Recommended)": the walk (PR #365) merges after T1249's gear wording.
 - 2026-11-27 ~10:45, the lake exceptions (Kinbasket, Buttle): "wait so you mean kibasket lake will stop other tributaries from below the lake from walking up as well as not havign its own walk up columbia? thatr seems like a fair assumption and add to gotcha": yes to what is built (RULINGS T19, GOTCHAS item 6; the planning chat confirms it back).
 - 2026-11-27 ~11:00, with the maps: Kootenay Lake "the does not include exception really intends to means upstream of lake (all upstream)" (no change); Whiteswan "Include them: No Fishing all year (Recommended)"; Upper Arrow "it should climb all the way to kinbasket lake i think?", then "yes it doesnt matter anyways because lake revelstoke has same regs for its tributaries but yes this is what we do"; DFO "Yes, in 0.10.0".
+- DFO one logic (branch `fix/T1177-dfo-one-logic-2`, lane L, release r-436660c09151 against r-049cfd08ce89): built; the gnis:3942 refusal was 4 Kitsumkalum braids left off the lake walk (a braid now goes with its stem); the water's own DFO place answers before a walked one. Salmon: 1 open (chinook, North Alouette's 3 creeks above Jacobs Lake, 15.0 km), 1 close (coho Oct, Kitsault above its head lake, 35.8 km), a bait-ban line on 3,481 km; freshwater answers unchanged.
 
 ## Owner
 
