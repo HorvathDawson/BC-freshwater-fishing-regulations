@@ -14,7 +14,7 @@ import json
 import sys
 
 from pipeline.common.curated import REPO_ROOT
-from pipeline.common.feed_formats import DFO_STATE_KEYS, FEED_MIN_APP, FEEDS
+from pipeline.common.feed_formats import DFO_STATE_KEYS, FEED_MIN_APP, FEEDS, INSEASON_LEAD_DAYS
 
 OUT = REPO_ROOT / "app" / "packages" / "core" / "src" / "feedFormats.generated.ts"
 
@@ -42,7 +42,10 @@ def render() -> str:
             " *  capture and raises the update prompt. A format bump raises it in the same edit. */\n"
             "export const FEED_MIN_APP = {\n" + "\n".join(mins) + "\n} as const;\n\n"
             "/** (T905) the keys of a DFO region's own bookkeeping: in the private dfo-state file, never the index */\n"
-            f"export const DFO_STATE_KEYS = {json.dumps(list(DFO_STATE_KEYS))} as const;\n")
+            f"export const DFO_STATE_KEYS = {json.dumps(list(DFO_STATE_KEYS))} as const;\n\n"
+            "/** (T1167) days before the first day of the range an in-season notice states that its banner shows, as\n"
+            " *  upcoming (core `inSeasonOn`, Python `regs.inseason.matches.on`) */\n"
+            f"export const INSEASON_LEAD_DAYS = {INSEASON_LEAD_DAYS};\n")
 
 
 def main(argv=None) -> int:
