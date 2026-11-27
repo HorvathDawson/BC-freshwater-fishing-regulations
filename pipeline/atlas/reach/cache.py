@@ -223,5 +223,12 @@ from __future__ import annotations
 #:     and a lake at a stretch's top is no lake the rule binds (`build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS`).
 #:     Round 2: a stop holds for the water a walk reaches THROUGH its lake, never for the rest of the walk, so the edge
 #:     order cannot decide it (`tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE`); the book run's bindings are unchanged by it.
-POLICY_VERSION = "52"
+#: 53: (T1177, owner 2026-11-27 ~11:00, with the maps) WATER JOINING THE ROW'S OWN STREAM ABOVE ITS LAKE IS THE LAKE'S
+#:     TRIBUTARY (`build.WATER_JOINING_THE_ROWS_OWN_STREAM_ABOVE_ITS_LAKE_IS_THE_LAKES_TRIBUTARY`, Whiteswan: "Include
+#:     them: No Fishing all year (Recommended)"): a lake-only reach's walk climbs PAST the entry's own stream flowing into
+#:     its lake, collecting what joins it, never the own water. And A RIVER STRETCH IN A LAKE'S TRIBUTARIES ROW IS THE
+#:     LAKE'S OWN UPPER END (`build.A_RIVER_STRETCH_IN_A_LAKE_ROW_IS_THE_LAKES_OWN_UPPER_END`, Upper Arrow: "yes ... this
+#:     is what we do"): the river above the drawdown stretch's top (the Hwy 1 bridge) is the lake's through-river inflow,
+#:     climbed to Kinbasket's printed exception. Classify outcomes change (Whiteswan's r5 gains the 14.0 km).
+POLICY_VERSION = "53"
 

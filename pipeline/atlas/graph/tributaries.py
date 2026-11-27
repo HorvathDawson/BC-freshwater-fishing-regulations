@@ -944,6 +944,8 @@ def _continuing(ctx: Reach, src: str, dst: str, edge) -> str | None:
             return RIVER_CONTINUING
         return None
     if edge is not None and edge.kind in MAINSTEM_EDGE_KINDS:
+        if src in ctx.inflows and dst in ctx.reach:
+            return None                       # the river above a lake's own upper end (`reach.build`, T1177 Upper Arrow)
         if src_is_lake and LAKE_MID_REACH_IS_THE_RIVER and _lake_mid_reach(g, src, ctx.reach, dst):
             return PASSING_THROUGH            # the river passing through a lake
         if src in ctx.heads:
