@@ -1199,9 +1199,8 @@
     "2-4"
    ]
   },
-  "note": "GNIS name: Mahood Creek. Two GNIS entries for same waterbody.",
+  "note": "The Surrey Mahood Creek only (owner 2026-11-26, T1118 D6: \"bear mahood creek should only link to the one its splits match\"): gnis 12114 (MU 2-4), crossed by 152 St, the row's split. gnis 12117 was dropped: it is a DIFFERENT Mahood Creek near Harrison (MU 2-18; BC Geographical Names has two official Mahood Creeks, Surrey id 3957 and Harrison id 3960), not a second entry for the same water as this note once said.",
   "gnis_ids": [
-   "12117",
    "12114"
   ]
  },
