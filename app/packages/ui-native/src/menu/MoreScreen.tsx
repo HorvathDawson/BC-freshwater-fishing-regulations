@@ -124,7 +124,7 @@ function Kicker({ palette, children, right }: { palette: Palette; children: stri
                    paddingHorizontal: wide ? 0 : GUTTER, paddingTop: SPACE.s4 + SPACE.s1, paddingBottom: SPACE.s2 }}>
       {/* one height for every kicker, badge or none, so the two columns' kickers sit on one line */}
       <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub, lineHeight: 18 }}>{children}</Text>
-      {right && <View style={{ height: 18, justifyContent: "center" }}>{right}</View>}
+      {right && <View style={{ minHeight: 18, justifyContent: "center", flexShrink: 1 }}>{right}</View>}
     </View>
   );
 }
@@ -204,11 +204,11 @@ function DataBlock({ vm, palette, sync, onSync }: { vm: MoreVM["data"]; palette:
                     style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s3, minHeight: ruled ? 34 : 32,
                              borderTopWidth: ruled && i ? 1 : 0, borderTopColor: palette.line }}>
                 <FreshDot palette={palette} kind={r.badge.kind} />
-                <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink, flexShrink: 0 }}>
+                {/* (T1201) reading text, not a fixed-size label: at a large text size the name and its status WRAP, never cut */}
+                <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink, flexShrink: 1 }}>
                   {r.name}
                 </Text>
-                <Text numberOfLines={1}
-                      style={{ ...(stale ? TYPE.metaBold : TYPE.meta), color: stale ? palette.ink : palette.sub,
+                <Text style={{ ...(stale ? TYPE.metaBold : TYPE.meta), color: stale ? palette.ink : palette.sub,
                                flex: 1, textAlign: "right" }}>
                   {r.shown}
                 </Text>
