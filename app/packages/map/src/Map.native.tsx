@@ -69,6 +69,7 @@ import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
 import { nativeLabelAnchors } from "./native/labelAnchor";
+import { GAUGE_TAP_LAYERS, gaugeBox, gaugeHit, type GaugeFeature } from "./gauge-hit";
 import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, markBox, markBoxImage, markHit, marksData,
          marksLayers, pinDotLayer, pinsData, titledPin, PIN_DOT } from "./point-marks";
 import type { MarkLabelAnchor } from "./marks";
@@ -116,7 +117,7 @@ type PressHit = { layer: string; id: number };
 /** (T348) How long a settled camera waits for a full render before it asks what is on screen itself. */
 const SETTLE_ASK_MS = 700;
 
-export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, chrome, onError,
+export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onPressGauge, chrome, onError,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, issue, halves, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
@@ -155,8 +156,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   // Callbacks through refs: the SDK handlers are registered once, and an inline arrow from a caller must not
   // re-register them (or, for the style, swap it).
-  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onVisible, onLongPress });
-  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onVisible, onLongPress };
+  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onPressGauge, onVisible, onLongPress });
+  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onPressGauge, onVisible, onLongPress };
   // (T445) a call that outlived its view (the map left, or a style load made the atlas source anew) is not a failure:
   // `goneView.ts`. Any other — a live view's included — is reported.
   const gone = useRef(new GoneViews());
@@ -766,6 +767,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     console.log(`[target] ${JSON.stringify({ none: true, win: winRect.current })}`);
   };
 
+  /** (T1194) The gauge under a press: its station, or null. A failed query is reported and says none (the host's tap goes on). */
+  const pressGaugeAt = useCallback(async (x: number, y: number, lon: number, lat: number): Promise<string | null> => {
+    const found = await mapRef.current?.queryRenderedFeatures(gaugeBox(x, y), { layers: [...GAUGE_TAP_LAYERS] })
+      .catch((e: unknown) => { report(e); return []; }) ?? [];
+    return gaugeHit(found as readonly GaugeFeature[], [lon, lat]);
+  }, [report]);
   /** (T716) the last tap's lift and what it found (`onTapUp`), for that tap's click */
   const lift = useRef<Lift<PressHit> | null>(null);
   /** A tap: the 24 px box, streams first, the section as a number (`MapRenderer.press`). */
@@ -799,6 +806,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         .catch((e: unknown) => { report(e); return []; }) ?? []);   // (T368, Q2) the tap falls through; the host reports it
       if (hit !== null) { pressMarkNow.current?.(hit); return; }
     }
+    // (T1194) a gauge dot's 44 px box (the shared `gaugeBox`/`gaugeHit`, as the web's), asked before the water and every
+    // other query below; the tap opens that gauge and nothing else. It is asked here, after the lift's answer: the lift
+    // (`onTapUp`) leaves a gauge tap undecided (`early` null), so the click is the one that opens it
+    if (!early && cb.current.onPressGauge && rendered.current) {
+      const g = await pressGaugeAt(x, y, lon, lat);
+      if (g !== null) { cb.current.onPressGauge(g); return; }
+    }
     // (T621, G19) a titled pin says its words on a tap, as the web's popup does; any other tap puts them away
     setCallout(null);
     if (pinsNow.current?.some((p) => p.title) && rendered.current) {
@@ -821,7 +835,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       const nf = notFishing ? await renderer.pressNotFishing(x, y) : null;
       if (nf) notFishing!(nf.kind);
     } catch (err) { report(err); }
-  }, [report, renderer]);
+  }, [report, renderer, pressGaugeAt]);
 
   /**
    * (T716) A TAP'S LIFT (the patched binding's `onTapUp`, Android; iOS T719): what the tap would open, said at once
@@ -839,6 +853,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const ask = async (): Promise<LiftAnswer<PressHit> | null> => {
       if (spotUnder(spotsAt.current.marks, lat, lon, spotsAt.current.zoom)) return null;
       try {
+        // (T1194) a gauge dot under the finger is the dot's: no water is said (the click opens the gauge)
+        if (cb.current.onPressGauge && await pressGaugeAt(x, y, lon, lat) !== null) return null;
         if (marksNow.current?.length) {
           const mk = markHit(await mapRef.current?.queryRenderedFeatures(markBox(x, y), { layers: [MARK_RING, MARK_LABEL] })
             .catch((err: unknown) => { report(err); return []; }) ?? []);
@@ -853,7 +869,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     };
     // (T716) the click of this same tap reads this answer (`liftFor`) instead of asking again
     lift.current = { x, y, at: clockNow(), answer: ask() };
-  }, [report, renderer]);
+  }, [report, renderer, pressGaugeAt]);
 
   /**
    * A LONG PRESS (owner 2026-10-21): MapLibre Native's own, decided by its gesture detector beside its pan and pinch, so

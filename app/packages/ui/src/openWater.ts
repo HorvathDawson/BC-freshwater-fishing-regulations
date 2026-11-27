@@ -15,7 +15,7 @@
  */
 import { useMemo } from "react";
 import { reportFailure, reported } from "@app/core";
-import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
+import { openProbe, type ItemId, type WaterSource, type SectionId, type StationId } from "@app/data";
 import type { StreamPlace } from "@app/data/regs/place";
 import { frameViews, type LatLon, type Route, type RouteAction, type View } from "./route";
 
@@ -51,6 +51,12 @@ export function openWater(o: WaterOpen): RouteAction {
   const w = o.whole && a.view === "map" ? { ...a, whole: true } : a;
   return o.fromSearch ? { ...w, fromSearch: true } : w;
 }
+
+/**
+ * (T1194) THE ONE BUILDER of an `openGauge` route action: a gauge dot's tap (the Conditions map) and a `?gauge=` link both
+ * end here, so the page opened is one screen whatever the way in. Nothing else builds the action.
+ */
+export const openGauge = (station: StationId): RouteAction => ({ type: "openGauge", station });
 
 /**
  * THE WATER A SECTION IS: the one place the app asks (a map tap's section here; T369, a link's PLACE resolved to its

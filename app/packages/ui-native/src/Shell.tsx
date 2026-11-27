@@ -56,6 +56,7 @@ import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { useSpotEdit } from "./shell/useSpotEdit";
 import { WaterModeHost } from "./shell/WaterModeHost";
+import { GaugeScreen } from "./GaugeScreen";
 import { PaneReadyContext, useBrowseKept, usePaneHold } from "./shell/paneReveal";
 import { holdsView } from "./shell/holdViews";
 import { afterLoadQuiet } from "./shell/settle";
@@ -547,6 +548,9 @@ export function Shell(p: ShellProps) {
     setSyncErrorOpen(false); setBellOpen(false); inbox.close(); menu.closePage(); rail.cancelDrop();
   };
   useEffect(() => { browseShown.current = browseNow; });
+  // (T1194) a gauge's own screen (a placeholder, see `GaugeScreen`): over the Conditions map, which Back returns to whole
+  if (route.mode === "gauge")
+    return layered(withGuide(screen("gauge", route.station, <GaugeScreen station={route.station} source={source} palette={palette} onBack={back} />, back)));
   if (viewing)
     return layered(withGuide(
       screen("spot", viewing.id, <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}

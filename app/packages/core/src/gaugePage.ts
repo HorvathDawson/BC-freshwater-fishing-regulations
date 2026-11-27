@@ -68,3 +68,20 @@ export function gaugePageStations(rows: GaugeRows, hasPage: (item: string) => bo
   for (const g of rows.gauges) for (const item of best.get(g.station)?.keys() ?? []) if (hasPage(item)) { out.add(g.station); break; }
   return out;
 }
+
+/**
+ * (T1194) THE IN-APP GAUGE SCREEN'S WORDS (a tap on a gauge dot of the Conditions map): one place (AGENTS 33). Only the placeholder's words so far.
+ */
+export const GAUGE_PAGE_WORDS = {
+  /** what a water opened off the page names its ‹ ("Back to Gauge") */
+  backName: "Gauge",
+  /** the header's ‹ on the page itself, and its name for a screen reader */
+  back: "Back to Conditions",
+  stationLine: (station: string): string => `Station ${station}`,
+  /** a station the release does not hold (a stale link): shown, never the map and never a neighbour */
+  unknown: (station: string): string => `This version of the data has no gauge ${station}.`,
+  /** the release could not be read for this gauge */
+  releaseFailed: "This gauge's details could not be read.",
+  /** PLACEHOLDER (T1194): the final page is a proposal awaiting the owner's pick */
+  placeholder: "Gauge page: placeholder. The reading, chart and waters this gauge serves come with the final page.",
+} as const;
