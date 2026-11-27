@@ -1,7 +1,7 @@
 /**
  * (T557 items 3-4) The gauge feed's format: the app refuses another one loudly (reported) and keeps what it holds.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GAUGE_FEED_FORMAT, gaugeFeedRefusal, setFailureSink } from "@app/core";
 import { fetchObs, httpFeed } from "./http";
 import type { StationId } from "../index";
@@ -23,6 +23,10 @@ const server = (files: Record<string, unknown>) => (async (url: string) => {
   const key = url.split("/").pop()!;
   return key in files ? { ok: true, json: async () => files[key] } : { ok: false, status: 404, json: async () => ({}) };
 }) as unknown as typeof fetch;
+
+// (T1205) a reading is current by the clock: these fixtures are of 2026-09-01T12:00:00Z, so the clock is too
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(Date.parse("2026-09-01T12:00:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 describe("gaugeFeedRefusal", () => {
   it("reads this format", () => {

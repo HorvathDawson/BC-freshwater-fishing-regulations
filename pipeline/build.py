@@ -34,7 +34,7 @@ Every stage runs as its own process. `--jobs N` (default 2, at most 4: memory `h
 runs independent stages side by side — clim and reach start together, tiles as soon as a slot frees —
 each logging to `build-logs/<run>/<stage>.log` beside the manifest; `--jobs 1` is one after another, on
 the console. A stage is UP TO DATE when its key — a digest of everything it reads:
-the atlas's handles and registry, the corpus, the curated tree, the source stamps, its own code —
+the atlas's handles and registry, the corpus, the curated tree, the source files' sha256 (T1220), its own code —
 equals the key of its last successful run in the manifest and its outputs exist. Any stage that
 runs makes every later stage run. The atlas is never rebuilt to check it (it is deterministic for the same
 inputs — T65 / N12 — but a rebuild takes hours and a promoted atlas is immutable: every derivative is keyed
@@ -79,6 +79,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+from pipeline.common import source_hash
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, ROOTS, SOURCE
 from pipeline.gauges.consume.bundle_tables import CLIM_PATH
 
@@ -257,10 +258,28 @@ def not_build_inputs(dotted_keys: tuple[str, ...] | None = None) -> set[Path]:
     return out
 
 
-def stamp(path: Path) -> list:
-    """A big source file's identity without reading it: size and mtime. A missing one raises."""
-    st = Path(path).stat()
-    return [str(path), st.st_size, int(st.st_mtime)]
+#: (T1220) THE SOURCE HASHES CACHE, beside the manifest (so a `--side` run and a test keep their own); its format, hit
+#: rule and checks are `pipeline.common.source_hash` (T1223: shared with the atlas record, which only reads it)
+HASHES_NAME = source_hash.NAME
+HASHES_FORMAT = source_hash.FORMAT
+#: (T1220 review) `--dry-run` writes nothing: the plan hashes what the cache does not hold and keeps it in memory only
+PERSIST_HASHES = True
+
+
+def hashes_path() -> Path:
+    return MANIFEST.with_name(HASHES_NAME)
+
+
+def stamp(path: Path) -> str:
+    """(T1220) A big source file's identity: `sha256:<hex>` of its BYTES — no path and no time, so a moved checkout, a
+    fresh clone, a copy or a re-download of the same bytes keys the same, and a one-byte change moves the key. (Before
+    T1220 it was [absolute path, size, mtime]: moving the checkout reran clim, tiles and deliver.)
+
+    THE HIT RULE (`source_hash`): the cache in `hashes_path()` answers only when the file's size, mtime_ns, ctime_ns AND
+    inode all equal its entry; anything else rehashes once (a touch, a copy, a move, a re-download), and every new
+    `--side` directory pays the first hash again (about 11.5 GB read). A missing file raises (FileNotFoundError, naming
+    it); a damaged cache raises, naming it. On a `--dry-run` (`PERSIST_HASHES` off) nothing is written."""
+    return "sha256:" + source_hash.sha256(path, cache=hashes_path(), root=REPO_ROOT, persist=PERSIST_HASHES)
 
 
 def sources() -> dict:
@@ -272,7 +291,8 @@ def sources() -> dict:
 
 def deliver_sources(missing_ok: bool = False) -> dict:
     """What the deliver step reads from OUTSIDE the atlas and the corpus (N7, F06): every source
-    stamp — the raw gpkg too (the bundle fits its catchment-area model and drainage groups from it)
+    file's sha256 (`stamp`, T1220) — the raw gpkg too (the bundle fits its catchment-area model and drainage groups
+    from it)
     — and the gauge envelope `clim.json` by CONTENT: the `clim` stage writes it, and a rewrite need
     not change its size or time. A missing one raises; only the PLAN passes `missing_ok` (the `clim`
     stage is about to make it, and deliver is keyed again after it runs — `READS_CONTENT`)."""
@@ -982,8 +1002,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--status", action="store_true",
                     help="the last run: each stage's time, memory and status, and its logs (with --side: that run's)")
     a = ap.parse_args(argv)
-    global SIDE, MANIFEST, HOLD_LATEST, FRESH_STEPS
+    global SIDE, MANIFEST, HOLD_LATEST, FRESH_STEPS, PERSIST_HASHES
     HOLD_LATEST = a.hold_latest
+    PERSIST_HASHES = not a.dry_run              # (T1220 review) a dry run writes nothing, the hash cache included
     FRESH_STEPS = "deliver" in a.force
     if a.graph:
         print(graph_text())

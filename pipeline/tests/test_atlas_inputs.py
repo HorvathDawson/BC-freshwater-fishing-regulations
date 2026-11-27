@@ -35,7 +35,7 @@ def gpkg(tmp_path):
     return p
 
 
-#: the two source stamps (no FWA file in a test: the stand-in file is stamped for both)
+#: the two source files (no FWA file in a test: the stand-in file is hashed for both)
 SOURCES = ("source:fwa_gpkg", "source:fwa_coast")
 
 
@@ -61,8 +61,7 @@ def test_every_input_digests_and_a_current_atlas_is_not_behind(tmp_path, gpkg):
     now = I.digests(_src(gpkg))
     assert list(now) == list(I.ATLAS_INPUTS)
     assert now["curated:waters.cuts"].startswith("anchors:")
-    assert all(now[k].startswith("stamp:") for k in SOURCES)
-    assert all(v.startswith("sha256:") for k, v in now.items() if k != "curated:waters.cuts" and k not in SOURCES)
+    assert all(v.startswith("sha256:") for k, v in now.items() if k != "curated:waters.cuts")    # (T1223) sources too
     assert I.behind(_atlas(tmp_path, now), now) == []
 
 

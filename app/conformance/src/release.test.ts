@@ -21,7 +21,7 @@
 import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { answerFrom, classStandings, httpFeed, parseManifest, sectionStanding, sheetLead, speakerFor, speaks, verify, type ItemId, type Manifest, type Panel,
          type WaterSource, type SectionId } from "@app/data";
 import { openSqlite } from "@app/data/sql/node";
@@ -30,6 +30,10 @@ import { fixtureRelease } from "./fixtureRelease";
 import { runConformance, type ConformanceSections } from "./suite";
 
 const FEEDS = join(__dirname, "../../packages/data/dev/feeds/gauge");
+
+// (T1205) a reading is current by the clock: the fixture feed was written 2026-08-30T07:20Z, so the clock is just after it
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true }); vi.setSystemTime(Date.parse("2026-08-30T07:25:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 let dir = "", m: Manifest;
 const sections = {} as { -readonly [K in keyof ConformanceSections]: SectionId };

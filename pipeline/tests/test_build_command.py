@@ -120,6 +120,7 @@ def inputs(tmp_path: Path, monkeypatch):
     clim.write_text('{"release": "2026-01"}')
     monkeypatch.setattr(B, "sources", lambda: src)
     monkeypatch.setattr(B, "CLIM_PATH", clim)
+    monkeypatch.setattr(B, "MANIFEST", tmp_path / "build-manifest.json")     # (T1220) its source-hash cache: here
     monkeypatch.setattr(B, "inseason_ends_digest", lambda: "ends")      # (T679 #11) pinned on its own below
     # (T777) the typed DFO feed is generated (absent on CI): a stand-in digest, never this machine's feed
     monkeypatch.setattr(B, "dfo_feed_digest", lambda: "dfo")
@@ -192,6 +193,7 @@ def test_the_envelope_is_made_first_from_hydat(tmp_path, monkeypatch):
     for name in ("hydat.sqlite3", "bc_hydrometric_stations.json"):
         (tmp_path / name).write_text("v1")
     monkeypatch.setattr(B, "SOURCE", tmp_path)
+    monkeypatch.setattr(B, "MANIFEST", tmp_path / "build-manifest.json")     # (T1220) its source-hash cache: here
     assert set(B.clim_key()) == {"hydat", "release", "stations", "year", "datum", "code"}
     # (T1047) the datum changes by their ACCEPTED rows only: a proposed row's edit reruns nothing
     from pipeline.gauges.feed import datum
