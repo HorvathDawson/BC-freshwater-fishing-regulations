@@ -285,6 +285,20 @@ describe("the gauge page shows what the app shows for one station", () => {
     await waitFor(() => expect(view.getByTestId("gauge-chart-failed").textContent).toBe(GAUGE_PAGE_WORDS.feedFailed));
   });
 
+  it("(review 2026-11-27) a chart script that arrives LATE replaces the 'still loading' line and the failure line: the reading is drawn over whatever line is there", async () => {
+    for (const line of ["Still loading this gauge's reading…", "Could not load this gauge's reading. Reload the page. Environment Canada"]) {
+      const doc = document.implementation.createHTMLDocument("g");
+      doc.body.innerHTML = `<div id="gauge-chart"><p class="warn">${line}</p></div><div id="gauge-get-app"></div><script type="application/json" id="gauge-config">${JSON.stringify({
+        station: ST, facts: "https://data.example/feeds/cards/08MH001.json", live: BASE, clim: [{ parameter: "discharge", bands: Buffer.from(CLIM[0]!.bands).toString("base64") }],
+        fonts: null, weather: null, weatherAttribution: "", sky: {}, crash: null, env: "staging", release: "r1", contact: STORE_CONTACT,
+        source: { name: "Environment Canada", url: "https://wateroffice.ec.gc.ca/" }, flags: { tidal: false, backwater: false, diversion: false } })}</script>`;
+      mountGaugeChart(doc, feedFetch() as unknown as typeof fetch, () => NOW);
+      await waitFor(() => expect(doc.getElementById("gauge-chart")!.querySelector('[data-testid="gauge-reading"]')).not.toBeNull());
+      expect(doc.getElementById("gauge-chart")!.textContent).not.toContain("Reload the page");
+      expect(doc.getElementById("gauge-chart")!.textContent).not.toContain("Still loading");
+    }
+  });
+
   it("(T1039) the page reads the app's feed file, never the share card; a file that cannot be read is shown and reported (W46)", async () => {
     const page = (station: () => Response, clim: string = Buffer.from(CLIM[0]!.bands).toString("base64")) => {
       const doc = document.implementation.createHTMLDocument("g");

@@ -74,8 +74,9 @@ export interface Facts {
 
 /** (T1039) what the page says where the chart goes when it could not be drawn (gaugeChart.tsx says the same) */
 export const CHART_FAILED = "Could not load this gauge's reading. Reload the page.";
-/** (T1194) how long the page waits for the chart's script before it says so (a hung script never fires `load`) */
+/** (T1194 review) after this long with no chart yet the page says it is still loading (a slow line): NOT a failure, no report */
 export const CHART_WAIT_MS = 15_000;
+export const CHART_STILL = "Still loading this gauge's reading…";
 /** the failure where the reading and chart go, with the link to the source (`cfg.source`) */
 export const chartFailedHtml = (cfg: Pick<GaugeConfig, "source">): string =>
   `<p class="warn">${esc(CHART_FAILED)} <a href="${esc(cfg.source.url)}">${esc(cfg.source.name)}</a></p>`;
@@ -197,17 +198,31 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
   // (T1039 review, W46) THE CHART'S OWN SCRIPT (gaugeChart.tsx) marks #gauge-chart the moment it runs. Once the page has
   // loaded (every deferred script run, or failed), a box it never marked means that script did not load or did not parse:
   // said where the chart goes, and reported
-  // (T1194) ...or does not come at all: a script that hangs never fires `load`, so the same judgement also runs after `CHART_WAIT_MS`
+  // (T1194, review 2026-11-27) A SLOW LINE IS NOT A FAILURE. After `CHART_WAIT_MS` the page says plainly it is still loading (no report). It says
+  // FAILED, and reports, only when the browser says so: the chart script's own `error` event, or the window's `load` (every deferred script has
+  // run or failed by then — the hard limit is the browser's own request timeout). A script that arrives late replaces whatever line is
+  // there (`mountGaugeChart` draws into the box).
   let said = false;
-  const chartRan = () => {
+  const mounted = () => { const box = doc.getElementById("gauge-chart"); return !box || box.hasAttribute("data-mounted"); };
+  const failedNow = () => {
     const box = doc.getElementById("gauge-chart");
-    if (said || !box || box.hasAttribute("data-mounted")) return;
+    if (said || !box || mounted()) return;
     said = true;
     box.innerHTML = chartFailedHtml(cfg);
     report(new Error("gauge page: the chart's script did not run (not loaded, or did not parse)"));
   };
+  const stillLoading = () => {
+    const box = doc.getElementById("gauge-chart");
+    if (said || !box || mounted()) return;
+    box.innerHTML = `<p class="small">${esc(CHART_STILL)}</p>`;
+  };
   // a document with no window (no load to wait for) is judged now
   const win = doc.defaultView;
-  if (doc.readyState === "complete" || !win) chartRan(); else { win.addEventListener("load", chartRan, { once: true }); win.setTimeout(chartRan, CHART_WAIT_MS); }
+  if (doc.readyState === "complete" || !win) failedNow();
+  else {
+    win.addEventListener("load", failedNow, { once: true });
+    doc.querySelector('script[src*="gauge-chart"]')?.addEventListener("error", failedNow, { once: true });
+    win.setTimeout(stillLoading, CHART_WAIT_MS);
+  }
   await Promise.all([facts, weather]);
 }

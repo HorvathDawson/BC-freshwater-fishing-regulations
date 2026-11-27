@@ -7,7 +7,7 @@
 import { describe, expect, it } from "vitest";
 import { bcDayWords, bcFields, sunLine, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS } from "@app/core";
 import { validateCrash } from "../../workers/feeds/src/crashes";
-import { CHART_FAILED, CHART_WAIT_MS, crashReport, creditHtml, gaugePage, sunHtml, isEnvironment, weatherHtml, type Facts } from "./gaugeClient";
+import { CHART_FAILED, CHART_STILL, CHART_WAIT_MS, crashReport, creditHtml, gaugePage, sunHtml, isEnvironment, weatherHtml, type Facts } from "./gaugeClient";
 
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 // ── the live half ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -67,40 +67,59 @@ describe("T487 the gauge page's live half", () => {
     expect(isEnvironment(new Error("HTTP 404"))).toBe(false);
   });
 
-  it("(T1194) a chart script that HANGS (no load event ever) is said after the wait, once, with the source link; one that mounts first is left alone", async () => {
+  it("(review 2026-11-27) a SLOW chart script is 'still loading' after the wait (no report); FAILED + reported only on the script's own error or the window's load", async () => {
     const make = () => {
       const base = document.implementation.createHTMLDocument("g");
-      base.body.innerHTML = `<div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div><div id="gauge-weather"></div>` +
+      base.body.innerHTML = `<div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div><div id="gauge-weather"></div><script src="/assets/gauge-chart.x.js" defer></script>` +
         `<script type="application/json" id="gauge-config">${JSON.stringify({ station: "08MH001", facts: "https://d/f.json", weather: null, weatherAttribution: "", sky: {},
           crash: "https://c/crash", env: "staging", release: "r1", source: { name: "Environment Canada", url: "https://wateroffice.ec.gc.ca/" } })}</script>`;
-      const timers: (() => void)[] = [];
-      const win = { addEventListener: () => {}, setTimeout: (f: () => void, ms: number) => { expect(ms).toBe(CHART_WAIT_MS); timers.push(f); return 0; } };
+      const timers: (() => void)[] = [], listeners: Record<string, (() => void)[]> = {};
+      const win = { addEventListener: (k: string, f: () => void) => { (listeners[k] ??= []).push(f); }, setTimeout: (f: () => void, ms: number) => { expect(ms).toBe(CHART_WAIT_MS); timers.push(f); return 0; } };
+      const script = base.querySelector('script[src*="gauge-chart"]')!;
       const doc = new Proxy(base, { get: (t, k) => {
         if (k === "defaultView") return win;
         if (k === "readyState") return "loading";
         const v = (t as unknown as Record<string | symbol, unknown>)[k];
         return typeof v === "function" ? (v as (...a: unknown[]) => unknown).bind(t) : v;
       } });
-      return { base, doc: doc as unknown as Document, timers };
+      return { base, doc: doc as unknown as Document, timers, listeners, script };
     };
     const sent: string[] = [];
     const fetchImpl = (async (url: string, init?: RequestInit) => {
       if (url === "https://c/crash") { sent.push(String(init?.body)); return new Response("{}", { status: 201 }); }
       return new Response(JSON.stringify(facts()));
     }) as typeof fetch;
-    const hung = make();
-    await gaugePage(hung.doc, () => NOW, fetchImpl);
-    expect(text(hung.base.getElementById("gauge-chart")!.innerHTML)).toContain("Drawing the chart");        // not yet: the wait has not passed
-    hung.timers.forEach((f) => f());
-    hung.timers.forEach((f) => f());                                                                         // and said once
-    expect(text(hung.base.getElementById("gauge-chart")!.innerHTML).trim()).toBe(`${CHART_FAILED} Environment Canada`);
+    const html = (m: { base: Document }) => text(m.base.getElementById("gauge-chart")!.innerHTML).trim();
+    // a slow line: the wait passes -> "still loading", NO report; then the script runs and marks the box: nothing is said over it
+    const slow = make();
+    await gaugePage(slow.doc, () => NOW, fetchImpl);
+    expect(html(slow)).toContain("Drawing the chart");
+    slow.timers.forEach((f) => f());
+    expect(html(slow)).toBe(CHART_STILL);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(sent).toEqual([]);
+    slow.base.getElementById("gauge-chart")!.setAttribute("data-mounted", "");
+    slow.listeners.load?.forEach((f) => f());                                  // the load that follows a late script: it ran, so no failure
+    expect(html(slow)).toBe(CHART_STILL);                                      // (the chart's own render replaces this line: gaugePage.parity.test.ts)
+    expect(sent).toEqual([]);
+    // the script's own error event: FAILED, with the source link, reported once (a later load or wait says nothing more)
+    const broken = make();
+    await gaugePage(broken.doc, () => NOW, fetchImpl);
+    expect(broken.script).toBeTruthy();
+    expect(broken.base.querySelector('script[src*="gauge-chart"]')).toBe(broken.script);
+    broken.script.dispatchEvent(new Event("error"));
+    expect(html(broken)).toBe(`${CHART_FAILED} Environment Canada`);
+    broken.listeners.load?.forEach((f) => f()); broken.timers.forEach((f) => f());
+    expect(html(broken)).toBe(`${CHART_FAILED} Environment Canada`);
     await new Promise((r) => setTimeout(r, 0));
     expect(sent.length).toBe(1);
-    const ok = make();
-    await gaugePage(ok.doc, () => NOW, fetchImpl);
-    ok.base.getElementById("gauge-chart")!.setAttribute("data-mounted", "");
-    ok.timers.forEach((f) => f());
-    expect(text(ok.base.getElementById("gauge-chart")!.innerHTML)).toContain("Drawing the chart");
+    // the window's load with the chart never run (the wait never passed): FAILED too
+    const noload = make();
+    await gaugePage(noload.doc, () => NOW, fetchImpl);
+    noload.listeners.load!.forEach((f) => f());
+    expect(html(noload)).toBe(`${CHART_FAILED} Environment Canada`);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(sent.length).toBe(2);
   });
 
   it("the page fills its sections; a missing facts file is shown AND reported; offline is shown only", async () => {
