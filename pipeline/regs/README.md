@@ -8,7 +8,7 @@ Everything about getting the rules out of the books and into the curated corpus.
 | `extraction/` | the synopsis PDF to rows (`extract_synopsis.py`), row boxes, passage boxes, the extractor gate (`baseline.py`) | `python -m pipeline.regs.extraction.extract_synopsis` |
 | `parsing/` | rows to validated catalogue entries through the LLM (HUMAN-ONLY, spends credits, AGENTS A1); the catalogue model and gate | `bash pipeline/regs/parsing/run_parse.sh <subcommand>` (README) |
 | `matching/` | synopsis rows to registry items before the parse (`matcher.py`) | called by the batch exporter |
-| `review/` | the review app's library: marks, apply paths, queue, pre-checks, vintage | `python -m pipeline.regs.review.apply` (`curation-review/README.md`) |
+| `review/` | the review app's library: marks, apply paths, queue, pre-checks, vintage | `python -m pipeline.regs.review.apply` (`tools/curation-review/README.md`) |
 | `dfo_salmon/` | federal salmon rules: fetch, parse, locate, type, live feed | its README |
 | `inseason/` | the province's in-season notices (BC Fish and Wildlife, not DFO) matched to waters (`matches.py`, `resolve.py`) and formatted as the `inseason-links` file the app reads; the notices themselves are fetched by the feeds worker | `python -m pipeline.regs.inseason.publish` |
 | `steelhead/` | the known steelhead waters list; `accept` prints added / dropped and `--write`s it | `python -m pipeline.regs.steelhead.accept` (AGENTS 54) |

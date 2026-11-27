@@ -2,7 +2,7 @@
 # One command to run the whole curation-review app: backend (FastAPI :8787) + frontend (Vite :5173).
 # Local only, makes NO LLM calls, spends NO credits. Ctrl-C stops both.
 #
-#   bash curation-review/run.sh          then open http://127.0.0.1:5173
+#   bash tools/curation-review/run.sh          then open http://127.0.0.1:5173
 #
 # REVIEW MODE, the only mode (T185): the app serves reads and one write, a mark (POST /api/marks); it
 # never writes the catalogue or splits.json. Both servers bind 127.0.0.1 only (uvicorn
@@ -36,7 +36,7 @@ taken() {  # port name: refuse, naming who holds it and the two ways on
   [ -n "$pids" ] || return 0
   echo "REFUSED: the $2 port :$1 is already listening (PID ${pids% }: $(ps -o command= -p "${pids%% *}" 2>/dev/null | cut -c1-120))." >&2
   echo "  Either use that copy (open http://127.0.0.1:$CURATION_VITE_PORT — check its header names the commit you expect)," >&2
-  echo "  or start this one beside it on other ports:  PORT=$(free_from $((API_PORT + 1))) CURATION_VITE_PORT=$(free_from $((CURATION_VITE_PORT + 1))) bash curation-review/run.sh" >&2
+  echo "  or start this one beside it on other ports:  PORT=$(free_from $((API_PORT + 1))) CURATION_VITE_PORT=$(free_from $((CURATION_VITE_PORT + 1))) bash tools/curation-review/run.sh" >&2
   exit 1
 }
 taken "$API_PORT" backend
@@ -47,7 +47,7 @@ taken "$CURATION_VITE_PORT" frontend
 # Its output goes to the terminal AND a log, so a backend that dies at start says why here (T541).
 BACKEND_LOG="$(mktemp -t curation-backend)"
 echo "starting backend on :$API_PORT …  (log: $BACKEND_LOG)"
-( cd "$ROOT/curation-review/backend" && exec > >(tee -a "$BACKEND_LOG") 2>&1 && PYTHONPATH="$ROOT" exec "$ROOT/.venv/bin/uvicorn" app:app ${DEV:+--reload} --host 127.0.0.1 --port "$API_PORT" ) &
+( cd "$ROOT/tools/curation-review/backend" && exec > >(tee -a "$BACKEND_LOG") 2>&1 && PYTHONPATH="$ROOT" exec "$ROOT/.venv/bin/uvicorn" app:app ${DEV:+--reload} --host 127.0.0.1 --port "$API_PORT" ) &
 BACKEND_PID=$!
 trap 'echo; echo "stopping…"; kill "$BACKEND_PID" 2>/dev/null || true' EXIT INT TERM
 
@@ -80,7 +80,7 @@ while :; do
 done
 
 # --- frontend (foreground) ---
-cd "$ROOT/curation-review/frontend"
+cd "$ROOT/tools/curation-review/frontend"
 [ -d node_modules ] || { echo "installing frontend deps…"; npm install; }
 echo "starting frontend on :$CURATION_VITE_PORT …  → open http://127.0.0.1:$CURATION_VITE_PORT"
 npm run dev

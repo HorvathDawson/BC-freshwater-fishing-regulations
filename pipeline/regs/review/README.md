@@ -1,6 +1,6 @@
 # pipeline/regs/review: the review app's library
 
-The server side of `curation-review/`, kept in the pipeline so the review and the build share one implementation (AGENTS 16):
+The server side of `tools/curation-review/`, kept in the pipeline so the review and the build share one implementation (AGENTS 16):
 the owner's MARKS and their fingerprints, the apply paths that write a mark's decision into its final curated file, the review
 queue order, pre-checks, and the vintage a mark is held against.
 

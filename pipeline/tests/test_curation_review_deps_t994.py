@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 #: import name -> distribution name, where they differ
 DIST = {"PIL": "pillow", "yaml": "pyyaml", "dotenv": "python-dotenv"}
 #: the repo's own modules the backend imports (not distributions)
@@ -49,7 +49,7 @@ def _imports() -> set[str]:
 def test_the_backend_requirements_are_the_repo_lock():
     lines = [ln.strip() for ln in (BACKEND / "requirements.txt").read_text(encoding="utf-8").splitlines()
              if ln.strip() and not ln.strip().startswith("#")]
-    assert lines == ["-r ../../requirements.txt", "-c ../../constraints.txt"]
+    assert lines == ["-r ../../../requirements.txt", "-c ../../../constraints.txt"]
 
 
 def test_every_backend_import_and_its_server_are_listed_and_pinned():

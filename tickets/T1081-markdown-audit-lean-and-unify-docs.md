@@ -133,3 +133,9 @@ Tickets are top-level `tickets/`, the rest is `docs/` (#310, 11:31 MST). Each op
 `python3 scripts/rename_handoff.py --commit`, then merges main. #301 (the restart pages outside the reading total):
 the owner confirmed it ("Confirm", 2026-11-26). Left: the review tool's one home (`docs/restart/cleanup.md` item 3);
 the four release runbook pages cut to one (item 4); close this ticket with the final counts.
+
+## 2026-11-26: the review tool has one home
+Owner pick: `tools/curation-review/` (moved from top-level `curation-review/`; server side stays in `pipeline/regs/review`).
+Paths in code, tests, scripts, CI and pages follow; closed tickets keep the old path as history. The four release runbook
+pages (item 4) are WAITING: they are cut to one only after `release/0.10.0` is merged back to main, because that branch
+holds unmerged edits to all of them. This ticket stays open until then.

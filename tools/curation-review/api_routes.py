@@ -1,8 +1,8 @@
-"""THE ROUTE TABLE in curation-review/API.md (T434), generated from `app.routes`: every route, its method and the first
+"""THE ROUTE TABLE in tools/curation-review/API.md (T434), generated from `app.routes`: every route, its method and the first
 line of its docstring, between the `routes:start` / `routes:end` markers. `pipeline/tests/test_review_api_routes.py`
 fails when it drifts.
 
-    PYTHONPATH=<repo> python curation-review/api_routes.py --write
+    PYTHONPATH=<repo> python tools/curation-review/api_routes.py --write
 
 Outside backend/: the backend's only file writer is writes.py (test_curation_review_safety).
 """
@@ -13,7 +13,7 @@ from pathlib import Path
 
 API_MD = Path(__file__).resolve().parent / "API.md"
 BACKEND = Path(__file__).resolve().parent / "backend"
-START, END = "<!-- routes:start (curation-review/api_routes.py --write) -->", "<!-- routes:end -->"
+START, END = "<!-- routes:start (tools/curation-review/api_routes.py --write) -->", "<!-- routes:end -->"
 
 
 def table(app) -> str:

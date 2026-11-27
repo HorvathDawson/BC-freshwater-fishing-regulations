@@ -18,7 +18,7 @@ from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence")
 ASH, FROG = "r1:ash_river@1-7", "r5:frog_lake@5-6"
 ADAM = "r1:adam_river_except_eve_river@1-10"     # binds through splits.json's first waterbody

@@ -41,7 +41,7 @@ from pipeline.common.models.registry import bare_split_id
 from pipeline.atlas.splits.splits import splits_on
 from pipeline.common.models.splits import confidence_of, confidence_words
 
-_ROOT = Path(__file__).resolve().parents[2]
+_ROOT = Path(__file__).resolve().parents[3]
 #: The catalogue region files the app reads (never writes). EVERY curated path here comes from `CURATED`; a test or
 #: a side rebuild moves them ALL at once with `CURATED_ROOT` (a whole copy, `pipeline.common.curated.make_root`,
 #: T422) — the old per-file overrides are refused (`curated.RETIRED_ENV`).

@@ -35,7 +35,7 @@ from pathlib import Path
 import reuse
 
 DEFAULT_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/reports"
-_TOKEN_FILE = Path(__file__).resolve().parents[2] / "app" / "workers" / "feeds" / ".run-token"
+_TOKEN_FILE = Path(__file__).resolve().parents[3] / "app" / "workers" / "feeds" / ".run-token"
 
 
 class ReportsUnavailable(Exception):

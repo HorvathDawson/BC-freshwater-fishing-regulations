@@ -215,7 +215,7 @@ export const RESTART_NAME = /^(RESTART|NEXT-SESSION)[^/]*\.md$/;
 export const RUNBOOK_MAKES = {
   "annual-synopsis.md": ["data/source/fishing_synopsis.2025-27.pdf"],   // step 1: `cp` keeps last year's book under this name
 };
-const CITED_ROOTS = /^(app|pipeline|data|deploy|scripts|docs|tickets|curation-review|\.github)\//;
+const CITED_ROOTS = /^(app|pipeline|data|deploy|scripts|docs|tickets|tools\/curation-review|\.github)\//;
 const TOP_FILES = /^(AGENTS|CLAUDE)\.md$/;
 /** (T1081) A branch name is not a repo path: `docs/T1081-cut` (one segment, no dot, a conventional-commit type before the slash).
  *  The folder `docs/` is a repo root after the rename, so a cited branch would read as a dead path without this. */

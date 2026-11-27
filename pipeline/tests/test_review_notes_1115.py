@@ -326,7 +326,7 @@ def real(request):
     from pipeline.tests import under_test
     from pipeline.tests.conftest import ATLAS_HINT, need
     need(request, "atlas", under_test.atlas(request) / "graph.pkl", ATLAS_HINT)
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review/backend"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools/curation-review/backend"))
     import reuse
     return reuse._graph(), reuse._registry()
 

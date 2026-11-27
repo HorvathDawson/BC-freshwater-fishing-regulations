@@ -16,7 +16,7 @@ from pipeline.regs.review import tidal as T
 from pipeline.tests import test_tidal_limits as TT
 from pipeline.tests.conftest import curated_root
 
-BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 
 
 @pytest.fixture()

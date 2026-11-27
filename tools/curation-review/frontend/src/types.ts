@@ -1525,7 +1525,7 @@ export interface SideStreamsNow {
   derived?: { tributaries: boolean; only: boolean; source: string; words: string };
 }
 
-// --- T212: the Tidal review mode (`curation-review/backend/tidal.py`) ---
+// --- T212: the Tidal review mode (`tools/curation-review/backend/tidal.py`) ---
 export type TidalConfidence = "high" | "medium" | "low";
 /** One word source a proposed tidal boundary is checked against (the synopsis box, a DFO page or
  *  notice, a synopsis row, a curated split, a tidal gauge); located ones carry measure / coord. */
@@ -1773,7 +1773,7 @@ export interface MarksHealth {
   orphans: MarkHealthRow[]; stale_rows: MarkHealthRow[]; n_orphans: number; n_stale: number;
 }
 
-// --- T230: the In-season tab (`curation-review/backend/inseason.py`) ---
+// --- T230: the In-season tab (`tools/curation-review/backend/inseason.py`) ---
 export type InSeasonOp = "whole" | "upstream_of" | "downstream_of" | "between";
 export interface InSeasonExtent {
   op: InSeasonOp; item_id: string; splits: string[];

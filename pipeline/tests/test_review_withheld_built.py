@@ -30,7 +30,7 @@ REGION_LINE = ("2:fraser-river:upstream-from-the-highway-1-bridge", "3:fraser-ri
 
 @pytest.fixture(scope="module")
 def backend():
-    sys.path.insert(0, "curation-review/backend")
+    sys.path.insert(0, "tools/curation-review/backend")
     import dfo
     return dfo, dfo.reuse
 

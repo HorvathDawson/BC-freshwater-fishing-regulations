@@ -1,6 +1,6 @@
 """Reach resolution (`pipeline.atlas.reach.extent`), driven through the review app's `entry_reaches`.
 
-The helpers were lifted out of `curation-review/backend/reuse.py` so the app and the artifact builder
+The helpers were lifted out of `tools/curation-review/backend/reuse.py` so the app and the artifact builder
 run one implementation; they now take the graph explicitly instead of reaching for a module cache.
 
 This is what the curator sees highlighted on the map when they ask "what does this rule actually
@@ -21,13 +21,13 @@ import pytest
 
 from pipeline.common.models import BoundaryKind, FlowEdge, NodeKind, SectionBoundary, StreamGraph, StreamNode
 
-_BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
+_BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 if str(_BACKEND) not in sys.path:
     sys.path.insert(0, str(_BACKEND))
 
 from pipeline.atlas.reach import extent as resolve
 
-import reuse  # noqa: E402  — curation-review/backend is in-repo code (on sys.path above)
+import reuse  # noqa: E402  — tools/curation-review/backend is in-repo code (on sys.path above)
 
 MAIN = "100"          # the mainstem blue line
 CUT = 1000.0          # the one curated cut on it
