@@ -100,6 +100,10 @@ Model: Opus for the style work, Sonnet for the research page. Owner: yes (the pi
 - [x] 2026-11-26 — which legend design (pictures 14-19)? → "either 14 or 15 but maybe the legend should be at bottom? would that be better? or could be a map key at bottom that has map behind it and when clicked opens up the reference or somethign?" (2026-11-26)
   So: only the one-line key with More (14) and the Map key chip (15) stay, shown in three placements (in the bar over
   the map's foot, under the tab bar, and floating over the map).
-- [ ] 2026-11-26 — the second tier of towns (from zoom 6) is a list we choose, since the basemap cannot rank them
-  (Vanderhoof, Fort St. James, Mackenzie, Houston and about 30 more in the prototype). Default: the prototype's list,
-  shown to you as a picture before it merges.
+- [x] 2026-11-26 — the second tier of towns (from zoom 6) is a list we choose, since the basemap cannot rank them
+  (Vanderhoof, Fort St. James, Mackenzie, Houston and about 30 more in the prototype)? → "i want you to choose best judgement for users to have the best experience across bc and make it easy to find a location by zooming in from far out" (2026-11-26)
+  So: Claude chooses the tiers for even coverage of B.C. (junctions, the last town before a lake or river system, coast
+  access, fishing bases), not population alone; the list with a reason per town is a data file, shown as coverage pictures.
+- [x] 2026-11-26 — the legend's words for the two rule statuses (round-2 pictures 20, 21)? → "Its own rules / Region rules only" (picture 21) (2026-11-26)
+  So: every proposal and legend picture uses them; the build changes them everywhere they appear (legend, help,
+  glossary, walkthrough).
