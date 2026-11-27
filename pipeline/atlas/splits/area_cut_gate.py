@@ -13,6 +13,9 @@ stops the build on any of:
   G4  the naming design's rule, that a cut area's part is wholly in or out: a piece that is NOT a member with an inside
       run of at least `DEEP_M` making a `SHARE` of its length, or a MEMBER piece with no line within `EDGE_M` of the
       polygon (a member the geometry does not confirm). A piece straddling its cutter's inside is the sliver gate's.
+  G5  a RUN of member pieces (consecutive on one blue line) holding no run inside the polygon at least `DEEP_M` long: a
+      line that never truly crosses — grazes under the dip are positional error — made inside by the band (review of
+      T1199: a 2 m graze once closed 2 km of a creek hugging the edge 20 m out).
 
 Lakes and wetlands are never cut and keep the outline test (`border.mark_inside_areas`); they are not checked here.
 Every number is written to `area_cut_gate.json` (pass or fail), so a build's log says what the rule did.
@@ -39,6 +42,10 @@ DEEP_M = _tol.SLIVER_M
 SHARE = 0.05
 #: G3: a piece this close to the floor is at it (a chain's geometric length and its route measure differ by mm).
 FLOOR_SLACK_M = _tol.AT_CUT_M
+#: G5: two pieces of one line meet when their measures agree this closely (`tolerances.SAME_PLACE_M`), and an inside
+#: run this much under `DEEP_M` is that run computed twice (the cutter's measure against the pieces' geometry).
+_MEET_M = _tol.SAME_PLACE_M
+_RUN_NOISE_M = 1e-3
 #: How many offenders of each check are printed (all are written).
 _PRINT = 25
 
@@ -50,7 +57,7 @@ def _parts(g):
 def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]],
             edge_m: float = _cc.EDGE_M, min_piece_m: float = _cc.MIN_PIECE_M) -> dict:
     """The four checks over every closure area: `areas` is [(area id, the name its cuts carry, polygon)]. Returns
-    {"checks": {G1..G4: [offender, …]}, "areas": {area id: counts}, "worst": {…}}."""
+    {"checks": {G1..G5: [offender, …]}, "areas": {area id: counts}, "worst": {…}}."""
     import shapely
     from shapely.strtree import STRtree
 
@@ -70,7 +77,7 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
             gs.append(g)
     tree = STRtree(gs) if gs else None
     by_area_cut: dict[str, str] = {f"split:area:{name}": aid for aid, name, _ in areas}
-    checks: dict[str, list] = {"G1": [], "G2": [], "G3": [], "G4": []}
+    checks: dict[str, list] = {"G1": [], "G2": [], "G3": [], "G4": [], "G5": []}
     per: dict[str, dict] = {}
     worst = {"G1_beyond_band_m": 0.0, "G2_deep_m": 0.0, "shortest_area_piece_m": None}
     for aid, name, poly in sorted(areas, key=lambda x: x[0]):
@@ -98,6 +105,29 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
                                      "beyond_band_m": round(beyond, 1)})
             if not band.intersects(g):
                 checks["G4"].append({"area": aid, "node": nid, "why": "member with no line within the band"})
+        # G5: each run of consecutive member pieces on one blue line holds real inside water
+        by_blk: dict[str, list] = {}
+        for nid in members:
+            n = graph.nodes[nid]
+            if geoms.get(nid) is not None:
+                by_blk.setdefault(n.blk, []).append(n)
+        for blk, ns in sorted(by_blk.items()):
+            ns.sort(key=lambda n: n.down_m)
+            runs, cur = [], [ns[0]]
+            for n in ns[1:]:
+                if abs(n.down_m - cur[-1].up_m) <= _MEET_M:
+                    cur.append(n)
+                else:
+                    runs.append(cur)
+                    cur = [n]
+            runs.append(cur)
+            for run in runs:
+                part = shapely.line_merge(shapely.union_all([geoms[n.node_id] for n in run])).intersection(poly)
+                part = shapely.line_merge(part) if part.geom_type == "MultiLineString" else part
+                longest = max((p.length for p in _parts(part) if not p.is_empty), default=0.0)
+                if longest < DEEP_M - _RUN_NOISE_M:
+                    checks["G5"].append({"area": aid, "blk": blk, "from_m": round(run[0].down_m, 1),
+                                         "to_m": round(run[-1].up_m, 1), "longest_inside_run_m": round(longest, 2)})
         if tree is None:
             continue
         member_set = set(members)
@@ -144,7 +174,7 @@ def measure(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]
 
 def check(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]], out_dir: Path | None = None,
           edge_m: float = _cc.EDGE_M, min_piece_m: float = _cc.MIN_PIECE_M) -> dict:
-    """Stop the build if any closure area fails G1-G4; always write `area_cut_gate.json` to `out_dir`."""
+    """Stop the build if any closure area fails G1-G5; always write `area_cut_gate.json` to `out_dir`."""
     res = measure(graph, geoms, areas, edge_m, min_piece_m)
     if out_dir is not None:
         Path(out_dir).mkdir(parents=True, exist_ok=True)
@@ -152,14 +182,14 @@ def check(graph: StreamGraph, geoms: dict, areas: list[tuple[str, str, object]],
     n = res["counts"]
     w = res["worst"]
     if not any(n.values()):
-        print(f"  area-cut gate: {len(res['areas'])} closure area(s) pass G1-G4 (worst member line beyond the "
+        print(f"  area-cut gate: {len(res['areas'])} closure area(s) pass G1-G5 (worst member line beyond the "
               f"{edge_m:g} m band {w['G1_beyond_band_m']} m of {res['allowed_beyond_band_m']:g} allowed; shortest "
               f"piece an area cut made {w['shortest_area_piece_m']} m)")
         return res
     for k, rows in res["checks"].items():
         for r in rows[:_PRINT]:
             print(f"  AREA-CUT {k} {r}")
-    raise SystemExit(f"atlas build: area-cut gate — G1 {n['G1']}, G2 {n['G2']}, G3 {n['G3']}, G4 {n['G4']} "
+    raise SystemExit(f"atlas build: area-cut gate — G1 {n['G1']}, G2 {n['G2']}, G3 {n['G3']}, G4 {n['G4']}, G5 {n['G5']} "
                      f"piece(s) (see {FILENAME}). Fix the cut rule (clean_cut.decide_area); the gate never repairs")
 
 

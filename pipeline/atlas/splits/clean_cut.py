@@ -203,6 +203,10 @@ EDGE_WATER_IS_INSIDE = True
 NO_PIECE_UNDER_THE_FLOOR = True
 #: An area cut within `MIN_PIECE_M` of another boundary moves outward onto it, or out to the floor from it.
 A_CUT_NEAR_A_BOUNDARY_MOVES_ONTO_IT = True
+#: A run inside shorter than `DIP_M` is positional error, dropped BEFORE the band joins anything: a line beside the
+#: edge that grazes it by 2 m is still a line that never crosses (owner 2026-11-26 "Never inside"; review of T1199:
+#: joined first, one graze closed 2 km of a creek hugging the edge 20 m out).
+GRAZES_ARE_NOT_CROSSINGS = True
 
 
 def edge_band(poly, edge_m: float = EDGE_M):
@@ -328,8 +332,9 @@ def decide_area(g, poly, boundary, band=None, others=(), edge_m: float = EDGE_M,
         crossings, however short (the Skeena's loop 186 m out, the Beaverfoot's 968 m off Yoho). An outside tail to
         the stretch's end (the line's mouth or source, a lake edge, a border cut) is read the same way; one shorter
         than `dip_m` is ignored.
-      * A joined inside run shorter than `dip_m` is an isolated DIP within the data's positional error: ignored — no
-        entry, no cut (the Ospika's mouth 1.9 m inside Ospika Cones).
+      * A run inside shorter than `dip_m` is a DIP within the data's positional error, dropped before anything is
+        joined: no entry, no cut, and nothing the band can join to (the Ospika's mouth 1.9 m inside Ospika Cones; a
+        creek beside the edge that grazes it by 2 m stays outside its whole length).
       * NO PIECE UNDER `min_piece_m` (`floor_pieces`), and none against another boundary (`onto_others`). The inside
         never shrinks.
       * A line that never crosses the edge is inside exactly when it lies inside: a river beside the edge is never
@@ -347,8 +352,12 @@ def decide_area(g, poly, boundary, band=None, others=(), edge_m: float = EDGE_M,
         """The outside run lo..hi never strays farther than the edge band."""
         return EDGE_WATER_IS_INSIDE and band.covers(substring(g, lo, hi))
     ins: list[list[float]] = []
+    dips: list[tuple[float, float]] = []
     for (lo, hi), sd in zip(zip(edges, edges[1:]), sides):
         if sd == "out":
+            continue
+        if GRAZES_ARE_NOT_CROSSINGS and hi - lo < dip_m:
+            dips.append((lo, hi))      # positional error: no entry, and nothing for the band to join to
             continue
         if ins and hugs(ins[-1][1], lo):
             ins[-1][1] = hi
@@ -363,7 +372,7 @@ def decide_area(g, poly, boundary, band=None, others=(), edge_m: float = EDGE_M,
     if ins and ins[-1][1] < L and (L - ins[-1][1] < dip_m or hugs(ins[-1][1], L)):
         ins[-1][1] = L
         _count(stats, "tails_joined_by_the_band")
-    dips = [(lo, hi) for lo, hi in ins if hi - lo < dip_m]
+    dips += [(lo, hi) for lo, hi in ins if hi - lo < dip_m]
     inside = [(lo, hi) for lo, hi in ins if hi - lo >= dip_m]
     if NO_PIECE_UNDER_THE_FLOOR:
         inside = floor_pieces(inside, L, min_piece_m, stats)
