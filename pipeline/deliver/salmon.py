@@ -440,6 +440,30 @@ def chain_order(precedence: Mapping[str, int], size: Mapping[str, int],
     return lambda lid: (-precedence.get(lid, 0), size.get(lid, 1 << 30), int(lid in rides), lid)
 
 
+#: POLICY (T1177, owner 2026-11-26 on tributaries: "tribuatries stack so that if many tribuatry rules are on a water the
+#: most upstream ones get priority if they conflict", the book's own row first, RULINGS T4 / T19): THE WATER'S OWN
+#: PLACE SPEAKS BEFORE A PLACE IT INHERITS. Within a tier, on a section of a water a place is printed for (its water's
+#: items, `WaterBinding.item_ids`), that place comes before a place that reached the section through its tributary walk,
+#: whatever their sizes; then `chain_order` as before (fewer sections first: of two inherited places the nearer, of
+#: two own places the narrower). With DFO's places walking as the book's rows (`reach.build.ONE_TRIBUTARY_LOGIC_FOR_DFO_
+#: PLACES`), "Kitsumkalum Lake, including tributaries" (2,633 sections) and "Redsand Lake, including tributaries"
+#: (2,646) reach the Kitsumkalum River above the lakes, and fewer sections put them before the river's own places
+#: ("Kitsumkalum River (including tributaries)", larger still): the lake answered for the river. Per fish and day the
+#: first place with a rule still answers (the cascade): an inherited place fills only what the water's own places
+#: leave unsaid. False = the mutation pin: size alone, as T229 built it.
+THE_WATERS_OWN_PLACE_SPEAKS_FIRST = True
+
+
+def own_first(key: Callable[[str], tuple], own: Callable[[str], bool], at: int = 1) -> Callable[[str], tuple]:
+    """`key` (a `chain_order` key: the tier first) with the water's own places first within each tier
+    (`THE_WATERS_OWN_PLACE_SPEAKS_FIRST`), the flag put at `at` (1: right after the tier; 2 after the bundle's
+    region-first part, T668); `own(lid)`: is the section on that place's own water. The key unchanged with the policy
+    off."""
+    if not THE_WATERS_OWN_PLACE_SPEAKS_FIRST:
+        return key
+    return lambda lid: (lambda k: tuple(k[:at]) + (0 if own(lid) else 1,) + tuple(k[at:]))(key(lid))
+
+
 def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapping[str, int],
                  covering: Dict[int, List[str]], binds: Callable[[str, int], bool],
                  missing: List[str], beside_on: Optional[Mapping[str, set]] = None) -> Dict[str, frozenset]:
@@ -1148,6 +1172,17 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     prec, size = {lid: locs[lid][1].precedence for lid in locs}, extent_sizes(placed)
     rides = rides_on_others(v[1] for v in locs.values())
     order = chain_order(prec, size, rides)
+    # (T1177) each place's OWN water's sections (`THE_WATERS_OWN_PLACE_SPEAKS_FIRST`): its water's items; none without
+    # `item_sections` (a unit fixture) or a water (a cascade scope: a section or region default is no water)
+    own_on: Dict[str, frozenset] = {}
+    by_water: Dict[Tuple[str, str], frozenset] = {}
+    for lid, (_slug, loc, ef) in locs.items():
+        water = ef.water(loc.water_id) if getattr(loc, "water_id", None) else None
+        if water is not None and item_sections is not None:
+            k = (_slug, loc.water_id)
+            if k not in by_water:
+                by_water[k] = frozenset(s for it in water.item_ids for s in item_sections.get(it, ()))
+            own_on[lid] = by_water[k]
 
     def plan_at(sid: int, lids: Iterable[str]) -> Tuple[Callable[[str], tuple], bool]:
         """(T668 D2) the chain order on THIS section and whether it is a two-region chain. On a section in one region,
@@ -1155,13 +1190,15 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         two regions) carrying places of more than one region: `chain_order`, and each region's places cascade apart,
         the most strict answer per fish speaking (`chain_calendar` `groups`). A section in no region: `chain_order`."""
         nums = section_regions.numbers(sid) if section_regions is not None else frozenset()
+        mine = lambda lid: sid in own_on.get(lid, ())                         # noqa: E731
         if len(nums) > 1:
-            return order, len({locs[l][1].region_number for l in lids}) > 1
+            return own_first(order, mine), len({locs[l][1].region_number for l in lids}) > 1
         if not nums:
-            return order, False
+            return own_first(order, mine), False
         (n,) = nums
-        return (lambda lid: (-prec.get(lid, 0), 0 if locs[lid][1].region_number == n else 1,
-                             size.get(lid, 1 << 30), int(lid in rides), lid)), False
+        # (T1177) the region first, then the water's own place (`own_first` puts it right after the tier)
+        return own_first(lambda lid: (-prec.get(lid, 0), 0 if locs[lid][1].region_number == n else 1,
+                                      size.get(lid, 1 << 30), int(lid in rides), lid), mine, at=2), False
 
     # (T668 D3) a region-wide place binds exactly the members of its region (the one membership) — a straddler both
     clip = {lid: region_clip(locs[lid][1]) for lid in locs} if section_regions is not None else {}
@@ -1485,6 +1522,18 @@ def notes_for(payload: Mapping, regions: Sequence[str], item: Optional[str], day
     return out
 
 
+#: POLICY (T1177, the DFO places' one tributary logic): A SIDE CHANNEL BESIDE A PLACE IS IN IT. A braid (off-stem
+#: sections of one water joined through one another) every main-stem section of its water it touches is covered by a
+#: place takes that place, whether or not the place covers the water whole: the walk follows stems, so a lake place's
+#: tributary walk up a river (Redsand and Kitsumkalum lakes up the Kitsumkalum River above Kitsumkalum Lake) bound the
+#: stem and left its braids on the river's own places alone, one chain on the stem and another on its channels (the
+#: bundle refused gnis:3942: "a salmon-chain run straddles two runs of its rule set"). A braid that touches no stem of
+#: its water (only side channels the place already holds) has nothing to be beside and is not carried on this ground. A
+#: braid that also touches stem the place does not cover crosses the place's cut and stays out (Morice "from the signs ... to Lamprey Creek": no
+#: creeping past a cut). False = the mutation pin: T228's rule, side channels carried only on a water covered whole.
+SIDE_CHANNEL_BESIDE_A_PLACE_IS_IN_IT = True
+
+
 def carry_side_channels(placed: Iterable[dict], area_bound: Iterable[str], sid_of: Mapping[str, int],
                         ord_of: Mapping[int, int], off_stem: Iterable[int],
                         touch: Mapping[int, Iterable[int]]) -> List[dict]:
@@ -1493,7 +1542,9 @@ def carry_side_channels(placed: Iterable[dict], area_bound: Iterable[str], sid_o
     on the water). The reach run's walk follows the main stem and its tributaries' stems; an off-stem section (a side
     channel, `section_span.off_stem`) of the SAME water touching what a place covers is added to it, repeatedly (a
     channel off a channel). Tomahnous Creek: the Tatshenshini's "including tributaries" covered the creek's stem, not
-    its side channel. An AREA-BOUND place (`area_bound`: a `within` extent — a region, an MU group) is left alone: its
+    its side channel. On a water the place covers only in part, a braid is carried when every main-stem section of
+    the water it touches is the place's (`SIDE_CHANNEL_BESIDE_A_PLACE_IS_IN_IT`, T1177); one reaching stem outside the
+    place crosses its cut and is left out. An AREA-BOUND place (`area_bound`: a `within` extent — a region, an MU group) is left alone: its
     edge is a real line, never carried (Klinaklini leaves MUs 5-6 to 5-11 there). `placed` rows as the reach run's
     (handles in `sections`); returns new rows, the others as they were."""
     area_bound = set(area_bound)
@@ -1512,16 +1563,32 @@ def carry_side_channels(placed: Iterable[dict], area_bound: Iterable[str], sid_o
         # only on a water the place covers WHOLE (every main-stem section): a place bound to part of a water (Morice
         # "from the signs ... to Lamprey Creek") must not creep past its own cut along a side channel
         whole = {o for o in {ord_of.get(x) for x in have} - {None} if stem_of[o] and stem_of[o] <= have}
-        todo, add = [x for x in have if ord_of.get(x) in whole], []
-        while todo:
-            x = todo.pop()
-            for y in touch.get(x, ()):
-                if y in off and y not in have and ord_of.get(y) in whole and ord_of.get(x) == ord_of[y] \
-                        and y in handle_of:
-                    have.add(y)
-                    add.append(y)
-                    todo.append(y)
-        out.append({**row, "sections": list(row["sections"]) + [handle_of[y] for y in sorted(add)]} if add else row)
+        add: List[int] = []
+        seen: set = set()
+        for x in sorted(have):
+            o = ord_of.get(x)
+            for y0 in sorted(touch.get(x, ())):
+                if y0 not in off or y0 in have or y0 in seen or ord_of.get(y0) != o or o is None:
+                    continue
+                # the BRAID: the off-stem sections of this water joined to y0 through one another, not yet placed
+                braid, todo = {y0}, [y0]
+                while todo:
+                    z = todo.pop()
+                    for w in touch.get(z, ()):
+                        if w in off and w not in have and w not in braid and ord_of.get(w) == o:
+                            braid.add(w)
+                            todo.append(w)
+                seen |= braid
+                beside = {w for z in braid for w in touch.get(z, ()) if w not in off and ord_of.get(w) == o}
+                # (T1177) a braid touching no main channel of its water has nothing to be beside: not carried on this
+                # ground (only on a water the place covers whole, T228)
+                if (o in whole or (SIDE_CHANNEL_BESIDE_A_PLACE_IS_IN_IT and beside and beside <= have)) \
+                        and all(z in handle_of for z in braid):
+                    add += sorted(braid)
+        if add:
+            out.append({**row, "sections": list(row["sections"]) + [handle_of[y] for y in sorted(set(add))]})
+        else:
+            out.append(row)
     return out
 
 

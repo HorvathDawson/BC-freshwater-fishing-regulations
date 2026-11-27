@@ -20,7 +20,7 @@ The RULINGS T4, T14, T18 amendments (T1053; all-year part proposed) and T19 (T11
    and never covers the lake, except a pond the registry holds as a piece of a stream (an oxbow, a slough lake, an
    unnamed widening): it is the stream. Bowman Slough takes Williston Lake's Zone A rule with its streams.
 5. **A whole-water ✱ rule climbs through its head lake** (RULINGS T18): Eagle Creek's "No Fishing" reaches Dick Creek
-   above Dick Lake. A stretch rule, a DFO place and a licensing record stop at the lake.
+   above Dick Lake. A stretch rule and a licensing record stop at the lake; a DFO place climbs (T19: its river's own place first).
 6. **A lake's tributaries are EVERY inflow, through every lake above** (RULINGS T19): its own line's river too, even
    with a row of its own: Chehalis Lake's "No Fishing" binds the Chehalis above it. A stretch "A from x to y" never takes
    A above x; inlet rows = the walk. **A lake row's printed exception also stops the rows of the lakes below it** (owner
@@ -30,6 +30,10 @@ The RULINGS T4, T14, T18 amendments (T1053; all-year part proposed) and T19 (T11
    St. Mary): it looks like an over-wide carve-out; it is the owner's reading (11-27). Water joining a lake row's own stream
    ABOVE its lake is the lake's inflow (Whiteswan's feeders, Hatzic Slough's creeks); Upper Arrow's drawdown stretch is the
    lake, so the Columbia above the Hwy 1 bridge is its inflow, climbing to Kinbasket's exception.
+7. **Does a DFO lake place "including tributaries" take the river flowing through the lake? Its creeks yes; on the river
+   the river's own place speaks first** (owner 11-27: "make sure that the mainstem ... still overrides the redsand quotas"):
+   Redsand and Kitsumkalum lakes' walks reach the Kitsumkalum River; every fish, every day, the river's places answer
+   (`salmon.THE_WATERS_OWN_PLACE_SPEAKS_FIRST`); a lake's place answers only what they leave unsaid (none here).
 
 ## Questions the owner will put to BC Fish and Wildlife
 

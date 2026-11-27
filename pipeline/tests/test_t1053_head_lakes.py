@@ -140,10 +140,18 @@ def test_mutation_the_policy_switch_restores_the_stop(eagle, monkeypatch):
     ({"extents": [{"op": "downstream_of", "splits": ["x"]}]}, False),        # a stretch ending at the lake
     ({"extents": [{"op": "whole"}, {"op": "between", "splits": ["a", "b"]}]}, False),
     ({"extents": []}, False),
-    ({"extents": [{"op": "whole"}], reach_build.JOINING_WATER_STAYS_OUT_KEY: True}, False),   # a DFO place
+    # a DFO place: since T1177 one tributary logic (DFO prints no meaning of its own for "tributaries")
+    ({"extents": [{"op": "whole"}], reach_build.JOINING_WATER_STAYS_OUT_KEY: True}, True),
 ])
-def test_only_a_book_rule_on_its_whole_water_climbs(rule, climbs):
+def test_only_a_rule_on_its_whole_water_climbs(rule, climbs):
     assert reach_build.climbs_head_lakes(rule) is climbs
+
+
+def test_a_dfo_place_climbs_only_with_one_logic(monkeypatch):
+    """Mutation pin (T1177): `ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES` off = T1053's refusal, a DFO place does not climb."""
+    rule = {"extents": [{"op": "whole"}], reach_build.JOINING_WATER_STAYS_OUT_KEY: True}
+    monkeypatch.setattr(reach_build, "ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES", False)
+    assert reach_build.climbs_head_lakes(rule) is False
 
 
 # ------------------------------------------------------------------ a walk covers a pond only as a piece of its stream
