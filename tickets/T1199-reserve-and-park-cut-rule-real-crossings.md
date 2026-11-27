@@ -51,4 +51,4 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
 
 ## Owner
 
-- [ ] 2026-11-26 — Look at the opens list (13.4 km of water that opens, 15.4 km that closes, each with its map) before the re-cut closes. Default: ship it as measured.
+- [ ] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him.

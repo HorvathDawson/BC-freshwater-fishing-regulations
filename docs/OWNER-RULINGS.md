@@ -181,7 +181,7 @@ park-rule fix (Recommended)" (T1149).
 should be strict here so lets take the strictest reading add it to gotchas with explicit ask of what we are confuysed
 about here (what is lifted items etc)". Build (T1177, option C of the P7b audit): the spring closure is lifted ONLY where
 a row prints its own exemption or "open all year" (whole or part); rows with only gear or quota rules keep the closure.
-Closes 330.9 km in spring (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2, Little Horsefly 17.8, Mitchell
+Closes 330.9 km in spring before the lower Quesnel ruling below (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2, Little Horsefly 17.8, Mitchell
 15.4, Canim 9.2). GOTCHAS entry and the Province question (BOOK-ERRORS entry 19) spell out what we are unsure of.
 
 ### O16 confirmed; the Oxbows label (16:00)
@@ -249,8 +249,17 @@ His words, verbatim. Answers given in the planning chat and relayed verbatim to 
 - **Healy Lake outlet:** "Yes, open the 5.05 km above the lake (Recommended)".
 - **Goat River:** "Yes, open the 76.8 km to the regional quota (Recommended)" (the rest of the main stem takes the regional quota; entry 11 of the Province list).
 - **Mosquito Creek:** "Yes, move it (Recommended)" (to the Arrow Park creek, gnis:7335: closes about 36 km, opens 1.4 km).
-- **Lake rebinds:** "Yes to all four (Recommended)" (the D6 lake rebinds: Twin Lakes 4-34, Hall Lake, McDonnel Lake, Panther Lake; read from the batch's list, to confirm with the data chat).
-- **Hatton Creek (replaces O4's fly-only dates):** "it is all year and make sure this is also to the mainstem and other tribs that they all get all year". Read as: the fly-only rule of O4 runs all year (not Sep 1-Jul 14) on the main stem and on every tributary; to confirm with the data chat, which relayed it.
+- **Lake rebinds:** "Yes to all four (Recommended)". The four: McDonell Lake (6-4); the Twin Lakes 4-34 versus Yankee and Canuck lakes; Hall Lake 4-20 versus the 4-34 Hall lakes; the Malcolm Knapp Lost Lake versus the Whistler Lost Lake. Panther Lake is not one of the four (its pointer fix is the earlier ruling above).
+- **Hatton Creek and the Caycuse River (replaces O4's fly-only dates):** "it is all year and make sure this is also to the mainstem and other tribs that they all get all year". Final rulings: fly fishing only ALL YEAR (not Sep 1-Jul 14) on Hatton Creek and on the Caycuse main stem above the Hatton confluence. Other tributaries: "Only Hatton Creek and the main stem, as the book prints (Recommended)". The Caycuse Jul 15-Aug 31 closure scope: "Keep as now" (the closure stays on the whole Caycuse, not on Hatton Creek).
+
+### Rulings made after the first draft of this batch (2026-11-26, evening; planning chat, relayed)
+- **Snehumption Creek:** "The whole creek is a Similkameen tributary". The fold opens the 17 km main line in spring (the channel carries the Similkameen tributary rows). Built as a rule: a stream that leaves B.C. and joins a B.C. river downstream of the border is that river's tributary; the other waters the rule touches are shown to him first (T1240). The confluence with the Similkameen is in the U.S. (Province list entry 42).
+- **Stellako:** "Yes, open May 15 as built (Recommended)" (P7a stands as built).
+- **Little River:** "yes we want the strictest here." (O1 stands as built).
+- **The lower Quesnel River, below the Cariboo:** "Yes, close it too (Recommended)": about 99.9 km more spring closure; Region 5 total about 430.8 km (T1177 item 8, Province list entry 19).
+- **Lake zone cuts (T1180):** "Every line or bay mouth, both pieces at least 0.5 km²: 11 cuts (Recommended)"; approximate edges: "Keep them as approximate marks until located". The card map and search: NOT approved: "more design please just this changes a lot so i want to make it more clear because it effects streams too..." (round 3 designs the card's map for lakes and streams as whole options).
+- **The water option D:** "Run the loop-removal trial first, then I decide" (T1242); the parts C and D share are built now.
+- **While he is away:** "Collect everything; nothing that opens water or changes a look merges without me (Recommended)".
 
 ### Out-of-unit audit (T1118)
 - The 14 newly examined rows whose printed unit is off: "Keep all 14 and add each to the Province list with its evidence (Recommended)" (entries 25-38 of the Province list).

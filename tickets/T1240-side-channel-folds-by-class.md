@@ -4,13 +4,13 @@ Status: OPEN — in the 0.10.0 re-cut; the owner chose to hold the re-cut for al
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1240 | Side-channel parts fold into their river, by class (the 17 artefacts of the 23) | OPEN — in the re-cut, which holds for the folds; owner: see ## Owner | — | five fix classes; the owner's two picks (Strathcona-Westmin, Snehumption) |
+| T1240 | Side-channel parts fold into their river, by class (the 17 artefacts of the 23) | OPEN — in the re-cut, which holds for the folds; owner: see ## Owner | — | five fix classes; the owner's pick (Strathcona-Westmin); Snehumption ruled |
 
 Source: the owner's picks of 2026-11-26 (planning chat), verbatim: side channels, after the naming round 2: "yes to all
 3 but it begs the question why the side channel has different regs and is not combined with neighbours if it is not
 getting differen regs from an area or something else that could be in the naming?"; the water option "D: simplify the
-water itself" (its parts C and D share: the folds); late folds: "Hold the re-cut for all of them"; Snehumption: "i
-need to see on map for how to handle it" (after "Plain \"2 side channels\" (Recommended)" for its label). The notes:
+water itself" (its parts C and D share: the folds); late folds: "Hold the re-cut for all of them"; Snehumption: first "i
+need to see on map for how to handle it", then, after the map, "The whole creek is a Similkameen tributary" (after "Plain \"2 side channels\" (Recommended)" for its label). The notes:
 `braids-design` (section 1), `naming-model-design` round 3 (the one agreed table), `water-options`. Related: T1176
 (superseded), T1149, T1150, T1172, T1191, T1199.
 
@@ -43,7 +43,9 @@ answer changes except the listed ones; the Campbell, Cottonwood and West Road an
 
 Severity: medium (3 wrong answers today). Model: Opus. Size: L over the classes. Built by the data and release chat.
 
+## Snehumption (ruled)
+"The whole creek is a Similkameen tributary": the side channel folds into the main line, which opens the 17 km main line in spring. Built as a rule: a stream that leaves B.C. and joins a B.C. river downstream of the border is that river's tributary. The other waters the rule touches are listed and shown to him first. Province list entry 42 (the confluence is in the U.S.).
+
 ## Owner
 
 - [ ] 2026-11-26 — Strathcona-Westmin: does "Strathcona - Westmin Park" count as the Strathcona Park the rule names? Thelwood's channel is 100% in it, its main line 18%. Default: yes, the rule applies in Westmin.
-- [ ] 2026-11-26 — Snehumption Creek's side channel (his words: "i need to see on map for how to handle it"; the map is in the water-options notes): (a) fold it, so the main line gains the Similkameen rows (recommended), or (b) keep it a part, "Drains to the Similkameen". Default: (a).
