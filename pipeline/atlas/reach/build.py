@@ -1248,10 +1248,10 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
         walk_passed = set(passed)
         applied: list = []
         if stops and A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT:
-            # ANOTHER LAKE ROW'S PRINTED EXCEPTION holds for this walk too, FROM WHERE IT ENTERS THAT LAKE (the walk applies
-            # it, `tributaries_of_reach` `stops`): never on a walk whose own reach or water is that lake or the excepted
-            # water (it is that row's, or its own), and never on a walk that does not enter the lake (a lake row inside
-            # the excepted river: Windermere Lake on the Columbia above Kinbasket)
+            # ANOTHER LAKE ROW'S PRINTED EXCEPTION holds for this walk too, ABOVE THAT LAKE, THROUGH IT (the walk applies
+            # it, `tributaries_of_reach` `stops`, `tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE`): never on a walk whose own
+            # reach or water is that lake or the excepted water (it is that row's, or its own), and never on a path that
+            # does not pass the lake (a lake row inside the excepted river: Windermere Lake on the Columbia above Kinbasket)
             mine = set(reach) | own_water
             applied = [st for st in stops if not ((st.lakes | st.excluded | st.passed) & mine)]
         # EVERY INFLOW OF THE RULE'S LAKE IS ITS TRIBUTARY (T1177): the river on the lake's own line, unless a printed
