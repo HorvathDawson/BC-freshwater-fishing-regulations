@@ -74,7 +74,7 @@ def main() -> None:
     # (T994 7) never a cwd-relative literal: the --out directory is pruned below, so a wrong cwd would prune another tree
     from pipeline.common.curated import SOURCE, generated
     if a.hydat is None:
-        a.hydat = SOURCE.source / "hydat.sqlite3"
+        a.hydat = SOURCE / "hydat.sqlite3"
     if a.out is None:
         a.out = generated("gauges", "hydat_daily")
     release = (a.hydat.parent / "hydat.release").read_text().strip()

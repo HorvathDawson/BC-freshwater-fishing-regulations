@@ -64,7 +64,7 @@ class ProjectConfig:
         Get a path from config by nested keys, as the validated model holds it (absolute, under the repo root).
 
         Args:
-            *keys: Nested keys to traverse (e.g., "data_accessor", "gpkg_path")
+            *keys: Nested keys to traverse (e.g., "cache", "dfo_salmon")
 
         Raises:
             KeyError: (T435) the keys name no path — never `Path()` (the cwd); (T1192) no `default=` either
@@ -89,6 +89,10 @@ class ProjectConfig:
                 node = None
                 break
             node = getattr(node, key)
+        if keys[:1] == ("source",):
+            # one access path: `SOURCE` also records the source root each name is joined to, which this would not
+            raise KeyError(f"config.yaml {'.'.join(keys)} is a named source file: read it as "
+                           f"`SOURCE.{keys[-1]}` (pipeline.common.curated)")
         if found and isinstance(node, PurePath):
             return Path(node)
         raise KeyError(f"config.yaml has no path at {'.'.join(keys)}")
@@ -112,22 +116,9 @@ class ProjectConfig:
     # existed, and hand it to seven parser tools as their default registry. Two front doors
     # to the same paths is the condition that let it hide; there is now one.
 
-    @property
-    def synopsis_pdf_path(self) -> Path:
-        """Get path to fishing synopsis PDF."""
-        return self.project_root / "data" / "source" / "fishing_synopsis.pdf"
-
-    @property
-    def fwa_data_gpkg(self) -> Path:
-        """Get path to unified FWA GeoPackage for FWADataAccessor."""
-        return self.get_path("data_accessor", "gpkg_path")
-
-    @property
-    def fwa_coast_gpkg(self) -> Path:
-        """T678: the FWA river polygons (`rivers`) and land mass (`land`) for the coast-crossing tidal cut, fetched by
-        `data/fetch_data.py` (`fwa_rivers`, `fwa_land`). Its own file so the main gpkg's stamp, an input of every
-        shipped atlas, never moves for it."""
-        return self.get_path("data_accessor", "coast_gpkg_path")
+    # `synopsis_pdf_path`, `fwa_data_gpkg`, `fwa_coast_gpkg`, `fetch_output_gpkg_path` and `fetch_temp_dir` are the
+    # named source files now, `pipeline.common.curated.SOURCE` (`SOURCE.fwa_gpkg`): the gpkg had three names here and
+    # in config.yaml, and the fetcher wrote the coast file by a fourth (`_RETIRED` names each replacement).
 
     # ========================================================================
     # Caches (T1021)
@@ -141,23 +132,6 @@ class ProjectConfig:
         from any other working directory."""
         return self.get_path("cache", "dfo_salmon")
 
-    # ========================================================================
-    # Data Fetch
-    # ========================================================================
-
-    @property
-    def fetch_output_gpkg_path(self) -> Path:
-        """Get path for data fetch output GeoPackage (legacy, for fetch_data.py).
-
-        Everything `data/fetch_data.py` writes lands under data/source/ (beside this file): a fetcher that writes where
-        no reader looks is how a freshness gate goes quiet about a roster nobody is reading."""
-        return self.get_path("data", "fetch", "output_gpkg")
-
-    @property
-    def fetch_temp_dir(self) -> Path:
-        """Get temporary directory for data fetch operations."""
-        return self.get_path("data", "fetch", "temp_dir")
-
 
 _RETIRED = {
     "extraction_dir": "GENERATED.regs.extraction",
@@ -169,6 +143,12 @@ _RETIRED = {
     "builds_dir": "GENERATED.atlas.builds",
     "review_build_dir": "GENERATED.build()",
     "added_streams_dir": "GENERATED.added_streams",
+    # the named source files (config.yaml `source:`)
+    "synopsis_pdf_path": "SOURCE.synopsis_pdf",
+    "fwa_data_gpkg": "SOURCE.fwa_gpkg",
+    "fwa_coast_gpkg": "SOURCE.coast_gpkg",
+    "fetch_output_gpkg_path": "SOURCE.fwa_gpkg",
+    "fetch_temp_dir": "SOURCE.fetch_temp",
 }
 
 
@@ -185,9 +165,11 @@ def _retired(self, name):
             f"CURATED.regulations.synopsis (pipeline.common.curated)."
         )
     if name in _RETIRED:
+        new = _RETIRED[name]
+        was = "with the `output:` tree" if new.startswith("GENERATED") else "for config.yaml's `source:` block"
         raise AttributeError(
-            f"ProjectConfig.{name} was retired with the `output:` tree. "
-            f"Use `from pipeline.common.curated import GENERATED` and {_RETIRED[name]}."
+            f"ProjectConfig.{name} was retired {was}. "
+            f"Use `from pipeline.common.curated import {new.split('.')[0]}` and {new}."
         )
     raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
 

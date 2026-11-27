@@ -39,7 +39,7 @@ import sys
 import time
 from pathlib import Path
 
-from pipeline.common.curated import REPO_ROOT
+from pipeline.common.curated import REPO_ROOT, SOURCE
 from pipeline.common.utils import wsc as W
 from pipeline.gauges.liveness import may_speak, speaks_now      # the one reader of a station's liveness (T122)
 
@@ -382,7 +382,7 @@ def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[st
     out_dir = Path(out_dir)
     src = out_dir / "source"
     src.mkdir(parents=True, exist_ok=True)
-    _sh.copyfile(fwa, src / "bc_fisheries_data.gpkg")
+    _sh.copyfile(fwa, SOURCE.under(src).fwa_gpkg)
     roster = [{"station": g["station"], "name": g["name"], "lon": lonlat(world, *g["at"])[0],
                "lat": lonlat(world, *g["at"])[1], "realtime": speaks_now(g), "active": may_speak(g),
                "area_km2": g["area_km2"]} for g in world["gauges"]]
@@ -398,8 +398,7 @@ def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[st
     (src / "bc_boundary.geojson").write_text(json.dumps(
         {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": "Mini Province"},
                                                     "geometry": mapping(outline)}]}) + "\n", encoding="utf-8")
-    from pipeline.common.synopsis_pages import PDF_NAME
-    pdf = src / PDF_NAME
+    pdf = SOURCE.under(src).synopsis_pdf
     pdf.write_bytes(tiny_pdf(synopsis_pages(world)))
     # the row boxes cut from that PDF (the highlight a rule's page opens at): none — the mini book prints no table rows
     import hashlib as _h

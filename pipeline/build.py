@@ -259,8 +259,7 @@ def stamp(path: Path) -> list:
 
 
 def sources() -> dict:
-    from project_config import get_config
-    return {"gpkg": Path(get_config().fwa_data_gpkg),
+    return {"gpkg": SOURCE.fwa_gpkg,
             "stations": SOURCE / "bc_hydrometric_stations.json",
             "places": SOURCE / "bc_places.json",
             "hydat": SOURCE / "hydat.sqlite3"}

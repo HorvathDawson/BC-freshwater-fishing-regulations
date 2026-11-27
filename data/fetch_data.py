@@ -22,7 +22,7 @@ from shapely.ops import polygonize, linemerge
 from tqdm import tqdm
 
 from pipeline.common import source_dates
-from project_config import get_config
+from pipeline.common.curated import SOURCE
 
 logger = logging.getLogger(__name__)
 
@@ -1569,7 +1569,7 @@ def fetch_osm_places(short_name: str, dest_path: Path) -> None:
     # British Columbia. Filtering downstream meant every consumer had to remember to do it,
     # and the one that forgot put Calgary in the tile labels and resolved "Hope" to a hamlet
     # in Idaho. The file on disk should simply be right.
-    boundary = Path(config.fetch_output_gpkg_path).parent / "bc_boundary.geojson"
+    boundary = SOURCE / "bc_boundary.geojson"
     if boundary.exists():
         import geopandas as gpd
         from shapely.geometry import Point
@@ -1707,9 +1707,8 @@ def _layer_already_fetched(name: str, cfg: dict, gpkg_out: Path, existing_layers
 
 
 def main():
-    config = get_config()
-    gpkg_out = Path(config.fetch_output_gpkg_path)
-    temp_dir = Path(config.fetch_temp_dir)
+    gpkg_out = SOURCE.fwa_gpkg
+    temp_dir = SOURCE.fetch_temp
 
     # The FWA packages left the GeoBC FTP (its FWA_Public folder holds only FWA_README.pdf, 2026-08-21) for the
     # government object store; same zips, same 2024 data (T416, 2026-11-05).
@@ -1829,12 +1828,13 @@ def main():
         "streams": {"type": "FWA_STREAMS", "ftp": FTP_STR},
         # T678 THE COAST, for the atlas's coast-crossing tidal cut (`pipeline.atlas.splits.coast`): the FWA river
         # polygons (the double-line rivers a creek crosses into) and the FWA land mass (the assessment watersheds tile
-        # the land; outside them is the sea). In their OWN GeoPackage, `fwa_coast.gpkg`
-        # (config `data_accessor.coast_gpkg_path`), so adding them never moves the main gpkg's stamp, which every shipped atlas records as an input.
+        # the land; outside them is the sea). In their OWN GeoPackage, `SOURCE.coast_gpkg`, so adding them never
+        # moves the main gpkg's stamp, which every shipped atlas records as an input. The dest is the absolute path the
+        # atlas reads (`gpkg_out.parent / dest` is that path), never a second spelling of its name.
         "fwa_rivers": {"type": "FWA_GDB_FILE", "ftp": FTP_FWA, "layer": "FWA_RIVERS_POLY",
-                       "dest": "fwa_coast.gpkg", "as": "rivers"},
+                       "dest": SOURCE.coast_gpkg, "as": "rivers"},
         "fwa_land": {"type": "FWA_GDB_FILE", "ftp": FTP_FWA, "layer": "FWA_ASSESSMENT_WATERSHEDS_POLY",
-                     "dest": "fwa_coast.gpkg", "as": "land"},
+                     "dest": SOURCE.coast_gpkg, "as": "land"},
         "tidal_boundary": {
             "type": "R2_GPKG",
             "url": "https://build.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg",

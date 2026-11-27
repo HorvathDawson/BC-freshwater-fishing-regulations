@@ -40,13 +40,15 @@ from shapely.geometry import Polygon, MultiPolygon
 from shapely.ops import unary_union
 from shapely.validation import make_valid
 
+from pipeline.common.curated import SOURCE    # run with PYTHONPATH=.. (as build_tidal_boundary.py)
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 ROOT = Path(__file__).parent.parent
 DFO_GPKG = ROOT / "data" / "source" / "DFO_TIDAL_BOUNDARY.gpkg"
-MAIN_GPKG = ROOT / "data" / "source" / "bc_fisheries_data.gpkg"
+MAIN_GPKG = SOURCE.fwa_gpkg
 # Build-assets bucket (custom domain build.canifishthis.ca) — the tidal boundary
 # is a build input consumed by data/fetch_data.py, not a runtime app asset.
 R2_BUCKET = "r2:bc-fishing-build-assets"
