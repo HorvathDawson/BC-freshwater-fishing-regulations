@@ -8,7 +8,7 @@ import { speaks, leadOver, smallWaterText, throughLakeStations, type DonorRow, t
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
          ownGaugeMap, readingAgeLine, readingHeading, readingIn, readingStanding, shownParameter, stageLine, stateAt,
-         type GaugeTrace, type SectionKey, type Standing, bcMidnight, shiftDay, wallIso, now } from "@app/core";
+         type GaugeTrace, type SectionKey, type Standing, bcMidnight, readingCurrentNow, shiftDay, wallIso, now } from "@app/core";
 import { READING_REUSE_MS, stationReading, useGaugeTrace, useStationReading, type Conditions } from "../hooks";
 import { askOnce, cardParameters } from "../answers";
 import { useAsync, type Async } from "../async";
@@ -275,7 +275,8 @@ export function useConditionsView(
   // and declares level; reading whichever value was present printed its discharge beside the level percentile.
   const rq = c ? readingQuantityOf(c) : null;
   const shown: Parameter | null = rq?.quantity ?? null, figure = rq?.figure ?? null;
-  if (c && shown && figure !== null) {
+  // (T1205) a figure not current by the clock (a kept copy, a feed that stopped) is never the present reading: the quiet head says when it last reported
+  if (c && shown && figure !== null && readingCurrentNow(c.observedAt, now())) {
     reading = {
       heading: readingHeading(name),
       title: name,
@@ -303,7 +304,7 @@ export function useConditionsView(
   // to say today is its own gauge gone quiet (the map's sentinel), never the no-gauge refusal (T105 review).
   const quiet: QuietVM | null = got.state === "loading" || reading ? null
     : row ? quietHead(name, row, ref, horizon)
-    : speaker?.kind === "lake" ? lakeQuietHead(name, c?.observedAt ?? null, ref, horizon)
+    : speaker?.kind === "lake" || (c && figure !== null) ? lakeQuietHead(name, c?.observedAt ?? null, ref, horizon)
     : null;
 
   return {

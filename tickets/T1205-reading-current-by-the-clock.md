@@ -60,6 +60,15 @@ As time passes with no fetch: `useFeedVersion("gauges")` (the key every gauge re
 feed lifetime (`FEED_TTL_MS`) and on `appBecameActive` (`ui/src/feedVersion.ts`, `today.ts`), only while something watches it; the
 answer store is not cleared (not a feed change). Readers re-ask `index()`, which judges at the clock; no fetch is made.
 
+Re-review additions: the lead card (`useConditionsView`) takes the quiet head ("Not reporting today", "Last reported …") when the
+figure is not current by the clock, so a kept month-old figure is never shown as the present reading; visit capture and the visit
+refresh (`capture.ts` `readingFor`, `visits.ts` `readingNow`) freeze a not-current reading as "no reading", not as the visit's
+conditions; the station chart's hourly series drops its "Today" rule and marker when its last point is not current (the line and its
+dates stay; `ui/src/chart.ts`; not covered by a test). The re-judge beat pauses in the background (`appBecameInactive`, from
+`useResumed`) and restarts with an immediate re-judge on return; a beat rebuilds the dot GeoJSON into the same string and the map
+effects key on that string, so an unchanged judgement redraws nothing. Not changed: spot cards show a saved reading with its own
+time (a record, not "now"); the lake count line already judges by `now`.
+
 What the reader sees, and why it is fine:
 - A device clock set AHEAD makes readings look old: every gauge says "Not reporting today" with "Last reported <a recent time>", no hint
   of the clock. Same for the river colours already (they key off the same stamps). Accepted: a wrong clock is the device's fault, and

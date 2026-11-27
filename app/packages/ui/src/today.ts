@@ -18,6 +18,17 @@ export function onAppActive(f: () => void): () => void {
   return () => { onActive.delete(f); };
 }
 
+/** (T1205) Who is told the app left the front (the background): a timer of the shared UI stops there. */
+const onInactive = new Set<() => void>();
+export function onAppInactive(f: () => void): () => void {
+  onInactive.add(f);
+  return () => { onInactive.delete(f); };
+}
+/** The app went to the background: said by the shell (`useResumed`), beside `appBecameActive`. */
+export function appBecameInactive(): void {
+  for (const f of [...onInactive]) f();
+}
+
 export function appBecameActive(): void {
   for (const f of [...onActive]) f();
 }

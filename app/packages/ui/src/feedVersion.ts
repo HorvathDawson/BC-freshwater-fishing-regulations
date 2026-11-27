@@ -12,7 +12,7 @@
 import { useSyncExternalStore } from "react";
 import { FEED_TTL_MS } from "@app/data";
 import { clearAnswers } from "./answers";
-import { onAppActive } from "./today";
+import { onAppActive, onAppInactive } from "./today";
 
 export type LiveFeedId = "gauges" | "dfo" | "inseason";
 
@@ -36,15 +36,21 @@ export function feedMoved(id: LiveFeedId): void {
  */
 let judged = 0;
 let beat: ReturnType<typeof setInterval> | undefined;
-let unactive: (() => void) | undefined;
+let unsub: (() => void)[] = [];
 function rejudge(): void { judged += 1; for (const l of [...listeners]) l(); }
+/** the beat runs only at the front: the background stops it, and coming back judges at once and starts it again */
+const stopBeat = () => { clearInterval(beat); beat = undefined; };
+const startBeat = () => { stopBeat(); beat = setInterval(rejudge, FEED_TTL_MS); };
 
 const subscribe = (on: () => void) => {
   listeners.add(on);
-  if (listeners.size === 1) { beat = setInterval(rejudge, FEED_TTL_MS); unactive = onAppActive(rejudge); }
+  if (listeners.size === 1) {
+    startBeat();
+    unsub = [onAppActive(() => { rejudge(); startBeat(); }), onAppInactive(stopBeat)];
+  }
   return () => {
     listeners.delete(on);
-    if (!listeners.size) { clearInterval(beat); beat = undefined; unactive?.(); unactive = undefined; }
+    if (!listeners.size) { stopBeat(); unsub.forEach((u) => u()); unsub = []; }
   };
 };
 

@@ -3,11 +3,11 @@
  * `useDonorView` judges a reading's age at the real now, not at the picked day.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { GAUGE_FEED_FORMAT } from "@app/core";
 import { answerFrom, FEED_TTL_MS, httpFeed, type Panel, type StationId } from "@app/data";
 import { useGaugeGeoJSON } from "./hooks";
-import { appBecameActive } from "./today";
+import { appBecameActive, appBecameInactive } from "./today";
 import { useDonorView } from "./panel/donor";
 
 const H = 3_600_000;
@@ -19,7 +19,7 @@ const source = { gaugePoints: async () => [{ station: "08MH001", name: "Chilliwa
 
 describe("the map's dots are judged again with no new feed", () => {
   beforeEach(() => { vi.useFakeTimers({ shouldAdvanceTime: true }); vi.setSystemTime(FED + 20 * 60_000); });
-  afterEach(() => { vi.useRealTimers(); });
+  afterEach(() => { cleanup(); vi.useRealTimers(); });
 
   it("on the feed beat, and on coming back to the front, a held index's old readings leave the map", async () => {
     let asked = 0;
@@ -36,6 +36,24 @@ describe("the map's dots are judged again with no new feed", () => {
     const { result } = renderHook(() => useGaugeGeoJSON(source, feed, true));
     await waitFor(() => expect(result.current).not.toBeNull());
     vi.setSystemTime(FED + 9 * H);
+    act(() => { appBecameActive(); });
+    await waitFor(() => expect(result.current).toBeNull());
+  });
+});
+
+describe("the beat sleeps in the background", () => {
+  beforeEach(() => { vi.useFakeTimers({ shouldAdvanceTime: true }); vi.setSystemTime(FED + 20 * 60_000); });
+  afterEach(() => { cleanup(); vi.useRealTimers(); });
+  it("no re-judging while the app is away; coming back judges at once", async () => {
+    const feed = httpFeed("http://x/g", (async () => ({ ok: true, json: async () => file })) as never, { indexHeld: true });
+    const { result } = renderHook(() => useGaugeGeoJSON(source, feed, true));
+    await waitFor(() => expect(result.current).not.toBeNull());
+    act(() => { appBecameInactive(); });
+    vi.setSystemTime(FED + 9 * H);
+    act(() => { vi.advanceTimersByTime(3 * FEED_TTL_MS); });
+    // nothing ran in the background: the dots stay for as long as a re-ask would have taken to land (it lands within a second at the front)
+    await expect(waitFor(() => expect(result.current).toBeNull(), { timeout: 1500 })).rejects.toThrow();
+    expect(result.current).not.toBeNull();
     act(() => { appBecameActive(); });
     await waitFor(() => expect(result.current).toBeNull());
   });
