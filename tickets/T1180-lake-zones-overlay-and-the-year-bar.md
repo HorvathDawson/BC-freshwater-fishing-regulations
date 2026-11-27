@@ -1,10 +1,10 @@
 # T1180 — Lake zones: a design chat researches a clean way and brings proposals with pictures
 
-Status: OPEN — DESIGN only; round 2 done, the mix confirmed; nothing is built now (owner 2026-11-26; the year-bar run Z1 riding the re-cut is the design lane's proposal, not yet his pick); owner: see ## Owner
+Status: OPEN — DESIGN only; rounds 2-4 done, the mix confirmed, B1 the direction (2026-11-27); nothing is built now (owner 2026-11-26; the year-bar run Z1 riding the re-cut is the design lane's proposal, not yet his pick); owner: see ## Owner
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1180 | Lake zones: a design chat researches a clean way and brings proposals with pictures | OPEN — design only, build nothing | — | round 2 done (43 zones counted); the mix confirmed; more design on the two maps and the flow, then his picks; Z1 (year-bar run) rides the re-cut |
+| T1180 | Lake zones: a design chat researches a clean way and brings proposals with pictures | OPEN — design only, build nothing | — | rounds 2-4 done; B1 is the direction; explore B1 (controls that do not move), then his picks; Z1 (year-bar run) rides the re-cut |
 
 Source: the owner, 2026-11-26: "i think all this lake stuff we need to just leave it how it is now and really have a few agents look into a clean way to do
 this and plan it out and figure out the best way so it isnt janky." The inputs: the planning chat's notes `lake-zones-design` (and `lake-zones-inventory`:
@@ -42,6 +42,26 @@ this and plan it out and figure out the best way so it isnt janky." The inputs: 
   "part closed" run (about 35 lakes' answers change, no bindings), rides the 0.10.0 re-cut; Z2-Z8 are 0.11.0 and later.
 - **Open picks (9, recommended first):** which zones become cuts (all lines no floor: 18 / lines and bay mouths with both pieces at 0.5 km2 or more: 11 / only lines from exact points / round 1's rule: 2); the floor (0.5 km2 / 0.1 / none); cuts set by signs (a dashed "approximate edge · signs decide" / approximate marks until located); signs near a point with no distance (a pin / an approximate area); Dragon Lake (look for the Hallis Creek mouth / the badge); the card's map (this water only / today's Map view); search (marks under their lake / cut parts only); inside pieces for lakes partly in an area (the chip only, decide after 0.11.0 / 8 lakes / 19 lakes); the round-1 picks still open (Y1 year bar, O2 "closes soon", the "part closed today" suffix).
 
+## Rounds 3 and 4 (2026-11-26/27, planning chat; notes folder `night-notes-2026-11-26/lake-zones-design-2/`, sheets in its `sheets/`)
+- **Round 3 (sheets R3-0-compare, R3-A-separate-waters, R3-B-one-water-with-parts, R3-C-one-water-one-map):** how a cut
+  lake works end to end (the card, the regulations view, the conditions map items, the map; streams included). A: separate
+  waters (about 3 agent-days, 11 split waters). B: one water with parts (7-8 agent-days and one heavy rebuild; the lane's
+  recommendation). C: one water, one map (about 12 agent-days). The costs are guesses; old apps reading a lake with parts are untested.
+- **His answer to round 3 (verbatim):** "i like B HOWEVER, it needs a few changes first the search having all parts is
+  too much ssay somehting like fraser with 10+ parts will become crazy. maybe it will have a clean way in the search to
+  expand or click on it which then opens the map in the card instead where the user can select the specific section if
+  that makes sense? like in A? this needs more work but something like that. also lakes arent the sam eupstream/downstream
+  it should have different text when navigating. or even better only a parts selector / user able to click and hide the up/downstream on lakes?"
+  Reading: B is the direction; the search must not list every part; lakes get different words for up/downstream, or only a parts selector (up/down hidden).
+- **Round 4 (sheets R4-0-compare, R4-B1-count-chip, R4-B2-expand-in-place, R4-B3-one-selector):** the Fraser has 23 listed
+  parts (22 after joins). B1 a count chip, B2 expand in place, B3 one selector. The lane recommended B1.
+- **His answer to round 4 (verbatim):** "B1 is good except it needs care for making sure buttons dont move around
+  navigating up and down etc. otherwise it looks good! it can be explored more". Reading: B1 is the direction; the
+  controls must not move while stepping between parts; more exploration welcome.
+- **Standing rule: design only. Nothing is built until he says.**
+- **Next design step:** explore B1 further, with the controls not moving while stepping between parts (up/down and
+  between sections), then the round-1 leftovers.
+
 ## Work
 1. The design chat researches how other maps show a part-closed water, reads `lake-zones-design`, and brings 2-3 options per question WITH PICTURES
    (light, dark, satellite; arriving from the map and from a web link).
@@ -54,4 +74,4 @@ the lake page already says "Open, except some parts"). Model: Opus. Size: M (des
 
 ## Owner
 
-- [ ] 2026-11-26 — Round 2's nine picks (listed above; sheets B1/B2/B3/S1/S2/S3 and R2-0..R2-5). Earlier: pick from the design chat's pictured proposals (cuts vs overlays, the year-bar line type, the off-day look, sign-only zones, Shuswap map A, the search suffix). Default: leave as it is now.
+- [ ] 2026-11-27 — The round-1 and round-2 picks that are still open (listed under Round 2), after B1 is explored further (controls that do not move while stepping between parts). Default: leave it as it is now. Nothing is built until he says.
