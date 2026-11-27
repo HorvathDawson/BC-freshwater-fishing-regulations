@@ -26,7 +26,7 @@ diff where a binding moves), listed for his look before the build ships. Related
    seven P10 overrides' notes are already rewritten.
 5. **The one-offs:** O1 Little River: both rules bind the whole river, row dates replace the spring closure. O2 Upper
    Chehalis River: close it; **a lake-tributary closure must override** (check the pattern). O3 Lost Lake near Whistler:
-   move the electric-motor rule to the Whistler lake. O4 Hatton Creek: add fly-only (Sep 1-Jul 14). O5 Gwillim and
+   move the electric-motor rule to the Whistler lake. O4 Hatton Creek: add fly-only, all year ("it is all year"). O5 Gwillim and
    Muncho: the zone's limit is kept. O8 Robb Lake: the zone's dates are kept. **O7: a "X Lake's tributaries" row binds
    ALL the lake's inflows**; sweep every such row province-wide (Connor Lake's tributaries bind to Forsyth Creek above
    the lakes). **O10: catch and release only on the Goat main stem between Leadville Creek (km 33.1) and Cameron Creek (km 42.6); the rest takes the regional quota (GOTCHAS written). O13: the closure below Healy Lake, as a GLOBAL extent on the water, not rule-level.** O16 Shuswap above
@@ -50,13 +50,18 @@ diff where a binding moves), listed for his look before the build ships. Related
 13. Not in this build, cross-link only: the owner's ~17:35 rulings on #312's final side-channel table (Snehumption: "Plain \"2 side
     channels\" (Recommended)"; Klinaklini / MacMillan: "Plain \"Side channel\" / \"3 side channels\" (Recommended)"; "Shorten Ecological
     Reserve to \"Eco Reserve\"") are PR #312's words (T1172, round 4); the area in the app subtitle is T1181.
+14. **The release build (O10):** the two Goat cuts in `cuts.json` need the ATLAS build; a reach-only rerun leaves `goat_river.r1`
+    unresolved (no catch and release on the Goat at all). The Goat answers diff is shown to the owner again after the from-nothing build.
 
 ## Owner answers, 2026-11-26 evening (batch 1, verbatim in `docs/OWNER-RULINGS.md`)
 Routing: answers relayed word for word from the planning chat count as his yes for merges (irreversible deletes still need him).
 Yes to O13 (5.05 km opens above Healy Lake), O10 (76.8 km opens to the Region 4 quota; the measured answers diff is shown
 again after the release build), D6 Mosquito Creek, the four lake rebinds and McLennan (both closed, ask the Province). O4 Hatton:
 fly-only all year on the main stem and the tributaries under it (lane D checked: the rule carries no dates; it binds the Caycuse
-above the confluence and Hatton Creek only, the row printing no tributary mark).
+above the confluence and Hatton Creek only, the row printing no tributary mark). His words "make sure this is also to the mainstem
+and other tribs that they all get all year" are an OPEN question back to him (asked 2026-11-26 evening, batch 2): built meanwhile, Hatton
+Creek and the main stem above the confluence only. Second open question: does "upstream of and including Hatton Creek" scope the
+Jul 15-Aug 31 closure too (today the closure is on the whole Caycuse and not on Hatton Creek)? Both in RULINGS E29.
 
 ## Acceptance
 Each change has its answers diff and every moved binding is explained; unchanged items are proved unchanged; he has seen
