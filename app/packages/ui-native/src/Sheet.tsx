@@ -15,7 +15,7 @@ import { Pressable } from "./Pressable";
 import { GestureDetector, GestureHandlerRootView, ScrollView as GHScrollView, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@app/ui";
 import { SHEET_WORDS } from "@app/core";
-import { LABEL_SCALE, TYPE } from "./type";
+import { TYPE } from "./type";
 import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
 import { hitProps } from "./regs/hit";
@@ -127,7 +127,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const shown = open ? { title, sub, children, icon, head } : kept.current;
   // (T405) the web's Modal is a role=dialog: named by its title (aria-labelledby; a label on it would swallow its content)
   const titleId = useId();
-  const titleText = <Text nativeID={titleId} accessibilityRole="header" maxFontSizeMultiplier={LABEL_SCALE} style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
+  const titleText = <Text nativeID={titleId} accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
   const titleEl = shown.icon
     ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 }}>{shown.icon}{titleText}</View>
     // (T1203) the title yields to Done: at a large text size a long title wraps inside its share, never pushing Done off the sheet
