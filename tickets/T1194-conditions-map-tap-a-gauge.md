@@ -13,24 +13,9 @@ feed index). Counts are from those files; the build re-measures them (acceptance
 
 ## Findings
 
-### 1. The Conditions map today: dots you cannot tap
+### 1. The Conditions map before this ticket
 
-- Screen: the Conditions tab of the browse map (`BrowseHost.tsx:242`, `gauges={onConditions ? gauges ?? undefined : undefined}`;
-  the dots only exist on this tab). Data: `useGaugeGeoJSON` (`packages/ui/src/hooks/gauge.ts:181`) over `source.gaugePoints()`
-  (`SELECT … FROM gauge WHERE lon/lat NOT NULL`, `sql/queries.ts:170`) and the feed index; `gaugeGeoJSON`
-  (`packages/ui/src/gaugePoints.ts:68`) makes one point per station with `properties.station`, `name`, `label`, `ramp`, `muted`.
-- Layers: `gauge-dot` (circle, z7+) and `gauge-label` (pill, z8+), `packages/map/src/gaugeDots.ts:154` and below; added by
-  `runtime-style.ts`.
-- A tap on a dot does NOTHING of its own. `Map` has no gauge tap prop: the web click (`web/useInput.ts:86-139`) and the phone
-  tap (`Map.native.tsx:~810-855`) ask, in order, a spot, a boundary mark, a titled pin, a fish obstacle, then the WATER SECTION
-  under the finger (`renderer.press`), then not-fishing water. `gauge-dot` is in none of those queries. So a tap near a dot
-  opens whatever water section lies under it (its Conditions view, `onPressFeature` -> `openWater`, "ONE WATER SCREEN"), not the gauge.
-  Tidal water answers no tap at all (`sections.ts:74`, T692: "drawn and labelled but never asked on a tap").
-- There is NO in-app gauge screen. The only gauge surfaces are: (a) a water's Conditions view, which charts the water's LEAD
-  gauge (`ConditionsPanel.tsx`; the card carries Share, `GaugeShare.tsx`, `useGaugeShare` `ui/src/share.ts:144`); (b) the
-  website's static gauge page `/gauge/<station>/<slug>` (T487, `tools/seo/gauges.ts`, `core/gaugePage.ts`), whose chart is the
-  app's own `StationChart` (`ui-native/StationChart.tsx`) fed by `stationChartSource` (data) and `useStationChart` (ui) in
-  `tools/seo/gaugeChart.tsx`. "The gauge page itself" = that chart/reading page. The app already has the parts; it has no route to them.
+The dots (`gauge-dot`, z7+, and the `gauge-label` pill, z8+; `useGaugeGeoJSON`, one point per station with `properties.station`) took no tap of their own: a tap near one opened the water section under it (tidal water answered none, T692). The app had no gauge screen; the only gauge surfaces were a water's Conditions card and the website's `/gauge/<station>/<slug>` page. See ## Built for what replaced that.
 
 ### 2. Why gauges are unreachable (counts, release r-71d09ad82e81, feed index 2026-10-28)
 
