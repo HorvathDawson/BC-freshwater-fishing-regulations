@@ -94,7 +94,7 @@ jobs:
       # This is the `--splits` incident's tripwire. That flag had no default, silently
       # dropped all 376 curated cuts from three full builds, and nothing looked wrong.
       - name: Every curated path resolves
-        run: python -c "from pipeline.common.curated import load, load_data_tree; load_data_tree(); print(load().model_dump_json(indent=1))"
+        run: python -c "from pipeline.common.curated import load, load_roots; load_roots(); print(load().model_dump_json(indent=1))"
 
       # Are the committed match artifacts still in step with the rosters they were built
       # from? A new station appearing with nobody re-running the match is invisible
@@ -121,8 +121,9 @@ jobs:
       # The no-data tier. A test that reads generated or fetched data (bundle, atlas, reach run,
       # tiles, the gpkg, the DFO cache) carries a needs_* marker and FAILS without it — it never
       # skips (pipeline/tests/conftest.py, test_no_silent_skips.py). A runner has none of that
-      # data, so those tiers are deselected here by marker; `-m` replaces pytest.ini's
-      # `-m "not slow"`, so slow is deselected again explicitly.
+      # data, so those tiers are deselected here by marker, slow too. (T1193) This expression is the
+      # no-data tier's ONE home: a plain `pytest` with no `-m` runs it too (pipeline/tests/tiers.py
+      # `ci_markers`, the root conftest.py), and scripts/test-env.sh `no_data_markers` prints it.
       # (T1144) ON EVERY CORE OF THE RUNNER (pytest-xdist): `-n auto` starts one worker per core, and `--dist loadfile`
       # hands each worker whole test FILES, so a file's tests run in order in one process and its module fixtures are
       # made once (plain `--dist load` splits a file across workers: order-dependent files break; test_workflow_pins.py

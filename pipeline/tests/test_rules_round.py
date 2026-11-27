@@ -84,8 +84,8 @@ D4_LIFTS = [("1", "r1:nitinat_river@1-4", "nitinat_river.r1"),
             ("8", "r8:similkameen_river@8-2", "similkameen_river.r3")]
 
 #: Lift-only rules of a ✱ row whose exemption the ROW does not print, so D4 does not walk them:
-#: Region 5's spring closure excepts "other streams listed in the tables" (p.42, L13) — the
-#: Mitchell River itself, not its tributaries.
+#: Region 5's spring closure excepts "other streams listed in the tables" (p.42, L28) — the
+#: Mitchell River itself below its lake, where the row prints its own closures, not its tributaries.
 NOT_PRINTED_BY_THE_ROW = {"r5:mitchell_river@5-15::mitchell_river.r3x"}
 
 
@@ -121,6 +121,33 @@ def test_d4_every_lift_on_a_starred_row_walks():
                     stuck.append(key)
     assert stuck == [], stuck
     assert sorted(found) == sorted(f"{e}::{r}" for _, e, r in D4_LIFTS)
+
+
+#: (RULINGS L28, owner P7b + the lower Quesnel, T1177) Region 5's spring-closure lifts that bind a stretch: each binds
+#: exactly where the row's own closure speaks, never the whole water the row names
+R5_STRETCH_LIFTS = {
+    ("r5:quesnel_river@5-2", "quesnel_river.r2x"):
+        [{"op": "upstream_of", "splits": ["quesnel_river__cariboo_river_into_quesnel_river"]}],
+    ("r5:blue_lead_creek@5-15", "blue_lead_creek.r1x"):
+        [{"op": "downstream_of", "splits": ["blue_lead_creek__falls_near_quesnel_lake"]}],
+    ("r5:mitchell_river@5-15", "mitchell_river.r3x"):
+        [{"op": "downstream_of", "splits": ["mitchell_river__mitchell_lake"]}]}
+#: the rows printing no closure and no "open all year": no spring-closure lift at all
+R5_NO_LIFT = ("r5:cariboo_river@5-15", "r5:little_horsefly_river@5-2", "r5:mckinley_creek@5-2",
+              "r5:canim_river_also_in_m_u_3_46@5-15", "r5:moffat_creek@5-2")
+
+
+def test_l28_region_5s_spring_lifts_bind_only_the_printed_stretch():
+    """p.42 read strictly (L28): the Quesnel's lift binds upstream of the Cariboo River only, where its "No Fishing
+    upstream of Cariboo River, Mar 1-June 15" speaks (the lower river, about 99.9 km, keeps the closure); Blue Lead's
+    below the falls, the Mitchell's below its lake; the five gear-and-release rows lift nothing. A lift put back to
+    `whole` fails here."""
+    for (eid, rid), want in R5_STRETCH_LIFTS.items():
+        r = _rule("5", eid, rid)
+        assert [x.get("default_id") for x in r["exempts"]] == ["spring_stream_closure"], rid
+        assert r["extents"] == want, rid
+    for eid in R5_NO_LIFT:
+        assert not [r["rule_id"] for r in _entries("5")[eid].get("rules") or [] if r.get("exempts")], eid
 
 
 def test_d4_a_row_without_the_star_still_lifts_nothing_on_its_tributaries():

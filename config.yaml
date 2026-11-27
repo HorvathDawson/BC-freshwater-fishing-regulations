@@ -1,96 +1,109 @@
 # Where the data lives: paths only.
-# What each file is, its kind and who owns it: pipeline/common/curated.py (the `#:` field notes);
-# the data / data_accessor / cache paths: project_config.py.
+# What each file is, its kind and who owns it: pipeline/common/curated.py (the `#:` field notes).
+# The roots are relative to the repo; every other path is relative to the root of its block (curated: roots.curated).
 
-generated:
-  base: "data/generated"
-  atlas:
-    builds: "data/generated/atlas"
-    default_build: "full"
-  reaches: "data/generated/reaches"
-  bundle: "data/generated/bundle"
-  tiles: "data/generated/tiles"
-  added_streams: "data/generated/added_streams"
-  scratch: "data/generated/scratch"
-  regs:
-    extraction: "data/generated/regs/extraction"
-    parse: "data/generated/regs/parse"
-    dfo_salmon: "data/generated/regs/dfo_salmon"
-    entries_backup: "data/generated/regs/entries_backup"
-  gauges:
-    feeds: "data/generated/gauges/feeds"
-    match: "data/generated/gauges/match.json"
-    candidates: "data/generated/gauges/candidates.json"
-    datum_proposals: "data/generated/gauges/datum_proposals.json"
-  runtiming: "data/generated/runtiming"
-  inseason: "data/generated/inseason"
-  review: "data/generated/review"
-  sloughs: "data/generated/sloughs"
-  side: "data/generated/side"
-  release: "data/release"
-
-data:
-  fetch:
-    output_gpkg: "data/source/bc_fisheries_data.gpkg"
-    temp_dir: "data/source/temp_bc_data"
-
-data_accessor:
-  gpkg_path: "data/source/bc_fisheries_data.gpkg"
-  coast_gpkg_path: "data/source/fwa_coast.gpkg"
-
-data_tree:
+roots:
   source: "data/source"
+  curated: "data/curated"
   generated: "data/generated"
+  release: "data/release"
+  cache: "cache"
 
-cache:
-  dfo_salmon: "cache/dfo_salmon"
+source:
+  fwa_gpkg: "bc_fisheries_data.gpkg"
+  coast_gpkg: "fwa_coast.gpkg"
+  synopsis_pdf: "fishing_synopsis.pdf"
+  fetch_temp: "temp_bc_data"
 
 curated:
-  base: "data/curated"
   waters:
-    cuts: "data/curated/waters/cuts.json"
-    name_variants: "data/curated/waters/name_variants.json"
-    found_names: "data/curated/waters/found_names.json"
-    found_name_calls: "data/curated/waters/found_name_calls.json"
-    areas: "data/curated/waters/area_closures.json"
-    continuations: "data/curated/waters/continuations.json"
-    tidal: "data/curated/waters/tidal_limits.json"
-    tidal_split_authority: "data/curated/waters/tidal_split_authority.json"
-    shore_held: "data/curated/waters/shore_held.json"
-    slough_calls: "data/curated/waters/slough_calls.json"
-    pond_calls: "data/curated/waters/pond_calls.json"
-    slough_page_calls: "data/curated/waters/slough_page_calls.json"
-    steelhead_waters: "data/curated/waters/steelhead_waters.json"
-    added_areas: "data/curated/waters/added_areas.geojson"
-    added_lakes: "data/curated/waters/added_lakes.geojson"
-    added_streams: "data/curated/waters/added_streams.json"
-    added_stream_calls: "data/curated/waters/added_stream_calls.json"
-    unmapped_waters: "data/curated/waters/unmapped_waters.json"
-    unplaced_piece_calls: "data/curated/waters/unplaced_piece_calls.json"
+    cuts: "waters/cuts.json"
+    name_variants: "waters/name_variants.json"
+    found_names: "waters/found_names.json"
+    found_name_calls: "waters/found_name_calls.json"
+    area_closures: "waters/area_closures.json"
+    continuations: "waters/continuations.json"
+    tidal_limits: "waters/tidal_limits.json"
+    tidal_split_authority: "waters/tidal_split_authority.json"
+    shore_held: "waters/shore_held.json"
+    slough_calls: "waters/slough_calls.json"
+    pond_calls: "waters/pond_calls.json"
+    slough_page_calls: "waters/slough_page_calls.json"
+    steelhead_waters: "waters/steelhead_waters.json"
+    added_areas: "waters/added_areas.geojson"
+    added_lakes: "waters/added_lakes.geojson"
+    added_streams: "waters/added_streams.json"
+    added_stream_calls: "waters/added_stream_calls.json"
+    unmapped_waters: "waters/unmapped_waters.json"
+    unplaced_piece_calls: "waters/unplaced_piece_calls.json"
   dfo_salmon:
-    places: "data/curated/dfo_salmon/places"
-    wording: "data/curated/dfo_salmon/wording.json"
-    tidal_calls: "data/curated/dfo_salmon/tidal_calls.json"
-    scope_places: "data/curated/dfo_salmon/scope_places.json"
+    places: "dfo_salmon/places"
+    wording: "dfo_salmon/wording.json"
+    tidal_calls: "dfo_salmon/tidal_calls.json"
+    scope_places: "dfo_salmon/scope_places.json"
+    closed_areas: "dfo_salmon/closed_areas.json"
   regulations:
-    synopsis: "data/curated/regulations/synopsis"
-    book_name_links: "data/curated/regulations/book_name_links.json"
-    reference: "data/curated/regulations/reference"
-    word_reads: "data/curated/regulations/word_reads.json"
-    under_closure_calls: "data/curated/regulations/under_closure_calls.json"
-    local_closures: "data/curated/regulations/local_closures"
+    synopsis: "regulations/synopsis"
+    book_name_links: "regulations/book_name_links.json"
+    reference: "regulations/reference"
+    word_reads: "regulations/word_reads.json"
+    under_closure_calls: "regulations/under_closure_calls.json"
+    local_closures: "regulations/local_closures"
   review:
-    marks: "data/curated/review/marks.jsonl"
-    proposal_overrides: "data/curated/review/proposal_overrides.json"
-    closed: "data/curated/review/closed.json"
+    marks: "review/marks.jsonl"
+    proposal_overrides: "review/proposal_overrides.json"
+    closed: "review/closed.json"
+    owner_carries: "review/owner_carries.json"
+    recheck: "review/recheck.json"
   runtiming:
-    run_calls: "data/curated/runtiming/run_calls.json"
+    run_calls: "runtiming/run_calls.json"
   inseason:
-    notice_waters: "data/curated/inseason/notice_waters.json"
+    notice_waters: "inseason/notice_waters.json"
   gauges:
-    matches: "data/curated/gauges/matches.json"
-    match_calls: "data/curated/gauges/match_calls.json"
-    tidal_stations: "data/curated/gauges/tidal_stations.json"
-    backwater_stations: "data/curated/gauges/backwater_stations.json"
-    diversion_stations: "data/curated/gauges/diversion_stations.json"
-    datum_change_stations: "data/curated/gauges/datum_change_stations.json"
+    matches: "gauges/matches.json"
+    match_calls: "gauges/match_calls.json"
+    tidal_stations: "gauges/tidal_stations.json"
+    backwater_stations: "gauges/backwater_stations.json"
+    diversion_stations: "gauges/diversion_stations.json"
+    datum_change_stations: "gauges/datum_change_stations.json"
+  bathymetry:
+    matches: "bathymetry/matches.json"
+    contour_matches: "bathymetry/contour_matches.json"
+  stocking:
+    matches: "stocking/matches.json"
+
+generated:
+  atlas:
+    builds: "atlas"
+    default_build: "full"
+  reaches: "reaches"
+  bundle: "bundle"
+  tiles: "tiles"
+  added_streams: "added_streams"
+  scratch: "scratch"
+  regs:
+    extraction: "regs/extraction"
+    parse: "regs/parse"
+    dfo_salmon: "regs/dfo_salmon"
+    entries_backup: "regs/entries_backup"
+    export: "regs/ui-rules-export.json"
+  gauges:
+    feeds: "gauges/feeds"
+    match: "gauges/match.json"
+    candidates: "gauges/candidates.json"
+    datum_proposals: "gauges/datum_proposals.json"
+    hydat_daily: "gauges/hydat_daily"
+  runtiming: "runtiming"
+  inseason: "inseason"
+  review: "review"
+  sloughs: "sloughs"
+  side: "side"
+  bathymetry: "bathymetry"
+  stocking: "stocking"
+  debug: "debug"
+  synopsis: "synopsis"
+  steelhead: "steelhead"
+  curated_writes: "curated_writes"
+
+cache:
+  dfo_salmon: "dfo_salmon"

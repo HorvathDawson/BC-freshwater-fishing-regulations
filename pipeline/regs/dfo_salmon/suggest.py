@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Mapping, Optional, Protocol
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, SOURCE
 from pipeline.common.names import key as name_key
 from pipeline.common.utils.wsc import groups, is_strictly_below
 
@@ -1538,8 +1538,7 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
               "confidence": p["confidence"]}
              for p in decided.shared(M.load_overrides(CURATED.review.proposal_overrides))]
     if gpkg is None:
-        from project_config import get_config
-        gpkg = str(get_config().fwa_data_gpkg)
+        gpkg = str(SOURCE.fwa_gpkg)
     look: Lookup = FwaLookup(registry, gpkg) if Path(gpkg).exists() else NoLookup()
     # (owner 2026-11-15) a bound place whose tributary call is not what DFO's words say gets a suggestion too
     todo = [(lid, loc, w) for lid, (_s, loc, w) in D.locations().items()
@@ -1659,7 +1658,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", type=Path, default=OUT_DIR)
     ap.add_argument("--marks", type=Path, default=None, help="the marks store (default: the curated one)")
-    ap.add_argument("--gpkg", default=None, help="the FWA GeoPackage (default: config fwa_data_gpkg)")
+    ap.add_argument("--gpkg", default=None, help="the FWA GeoPackage (default: SOURCE.fwa_gpkg)")
     a = ap.parse_args()
     rs = run(a.out, marks_path=a.marks, gpkg=a.gpkg)
     print(json.dumps(summarize(rs)))

@@ -53,8 +53,8 @@ def build(decided, src=None, existing: Optional[list] = None) -> tuple[list, lis
         src = P.Sources.live()
     if existing is None:
         from pipeline.common.curated import CURATED
-        if not Path(CURATED.waters.tidal).exists():        # the first write: no owner row to keep (said, T545)
-            print(f"tidal: no {CURATED.waters.tidal} yet — written from the marks alone")
+        if not Path(CURATED.waters.tidal_limits).exists():        # the first write: no owner row to keep (said, T545)
+            print(f"tidal: no {CURATED.waters.tidal_limits} yet — written from the marks alone")
             existing = []
         else:
             try:

@@ -22,7 +22,7 @@
  * that state is `reads` (`donorCounted`). The rest — not real-time, quiet, reporting but unranked, no forecast that far
  * ahead — fold under one closed disclosure per group.
  */
-import { donorState, type DonorReading, type DonorState, type Horizon } from "./conditions";
+import { donorState, type DonorAsk, type DonorReading, type DonorState, type Horizon } from "./conditions";
 
 export type GaugeSide = "own" | "donor";
 
@@ -119,7 +119,7 @@ function foldWords(side: GaugeSide, states: readonly DonorState["kind"][], horiz
 export interface CountedGauge { side: GaugeSide; state: DonorState["kind"] }
 
 /** A member's state at the horizon, through `donorState` — the one test of a donor's reading fields. */
-export const stateAt = (r: DonorReading, ask: { ref?: number; horizon?: Horizon } = {}): DonorState["kind"] =>
+export const stateAt = (r: DonorReading, ask: DonorAsk = {}): DonorState["kind"] =>
   donorState(r, ask).kind;
 
 /**

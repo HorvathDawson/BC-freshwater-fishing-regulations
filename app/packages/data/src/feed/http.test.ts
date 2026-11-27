@@ -5,7 +5,7 @@
  * app that is the ordinary case rather than the exception. A rejected promise on a river
  * bank turns into an error screen where "we could not check" is the truth.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GAUGE_FEED_FORMAT } from "@app/core";
 import { httpFeed, lastReportAt } from "./http";
 import { draftSeriesOf, seriesOf } from "../sql/shared";
@@ -37,6 +37,10 @@ const INDEX = {
   stations: { "08MH001": { percentile: 0.038, observedAt: "2026-09-01T11:30:00Z",
                            forecast: [0.04, 0.05, 0.07] } },
 };
+
+// (T1205) a reading is current by the clock: these fixtures are of 2026-09-01T12:00:00Z, so the clock is too
+beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(Date.parse("2026-09-01T12:00:00Z")); });
+afterEach(() => { vi.useRealTimers(); });
 
 describe("httpFeed", () => {
   it("reads a reading addressed by station id alone", async () => {

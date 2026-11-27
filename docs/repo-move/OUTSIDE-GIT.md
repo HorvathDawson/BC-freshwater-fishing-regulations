@@ -109,7 +109,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
 | Production run token | `app/workers/feeds/.run-token.prod` | prod reports, prod builds | secret: owner's backup, else rotate prod | partly: secrets.md says "not on this Mac yet" |
 | Worker secrets (RUN_TOKEN, REPORT_SALT, …) | Cloudflare, per worker | feeds workers | `wrangler secret put`; names in secrets.md | yes: secrets.md |
 | GitHub Actions secrets | GitHub repo settings | CI jobs | `gh secret set`; they stay with the repo | yes: secrets.md; PREP.md for the move |
-| `.env` (repo root, 1 KB, not opened) | main checkout, ignored | unknown (nothing in code or docs reads it) | owner adds its variable names | NO: secrets.md says so itself |
+| `.env` (repo root, 1 KB, not opened) | main checkout, ignored | nothing: Gemini keys only (owner 2026-11-27); the load went in T1222 | delete it | yes: secrets.md |
 | rclone remote `r2:` | `~/.config/rclone/rclone.conf` | uploads, backups, test bed | secret: new R2 token, `rclone config` | yes: secrets.md |
 | wrangler login | wrangler's own config | deploys, token rotation | `npx --prefix app wrangler login` | yes: secrets.md |
 | gh login | keychain | CI status, pushes, workflows | `gh auth login` | yes: secrets.md |
@@ -143,7 +143,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
    RTK notes. A fresh clone has no `CLAUDE.md`, so an agent there does not see the parser rule. AGENTS.md rule A1 says
    the same, so the rule survives, but the file itself exists only on this Mac. `.claude/CLAUDE.md` likewise.
 2. **`data/source/fwa_coast.gpkg` (559 MB) is not pinned or fetched by bootstrap.** The atlas reads it
-   (`config.yaml` `coast_gpkg_path`, `pipeline/atlas/inputs.py`); `pins.json` has no entry and `bootstrap.sh` skips it.
+   (`config.yaml` `source.coast_gpkg`, `pipeline/atlas/inputs.py`); `pins.json` has no entry and `bootstrap.sh` skips it.
    The T416 proof (2026-11-05) pre-dates T678, so a fresh atlas build may stop here. Needs a try (T1120 step 2).
 3. **Installs bootstrap does not do:** no `pnpm install`, no `core.hooksPath`, no Node or pnpm version check. A fresh
    clone's first push fails `pre-push` (`.githooks/pre-push` needs `.venv`) until hooks and installs are done by hand.
@@ -158,8 +158,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
 7. **`shellcheck` is not installed on this Mac** though `scripts/fast-fail.sh` and `sync-inputs.sh` call it; unknown
    whether fast-fail skips or fails without it (not run: a build is in progress). Check in step 2.
 8. **secrets.md is stale in places:** it says `.run-token.prod` is "not on this Mac yet" (it is there now); it
-   does not list `~/.canifishthis/app-store-url`; it says `.env` "exists, not read" with no variable names
-   (nothing in the code or docs reads a root `.env` at all: unknown purpose, kept only as a name); it says the APNs
+   does not list `~/.canifishthis/app-store-url`; its `.env` row is answered (T1222); it says the APNs
    code "is not on `redesign/stream-sections` yet", but that branch is not the trunk any more.
 9. **The two extra `.p8` keys** (`AuthKey_6T3DBFF92H`, `AuthKey_843F3K6BSH`): no script reads them and secrets.md
    only guesses ("probably"); the owner must say which is the APNs key (the worker's `APNS_KEY`).
@@ -193,7 +192,6 @@ Names only. For each: can you get it back if this Mac is gone?
 - GitHub Actions secrets: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`.
 - rclone remote `r2:` (R2 token), wrangler login, `gh` login, Claude CLI login.
 - `~/.ssh/id_ed25519_personal` and the `github.com-personal` entry in `~/.ssh/config`.
-- Root `.env`: what is in it, and does anything still read it?
 - Accounts: Play Console, App Store Connect and Apple Developer, Cloudflare, Google Cloud, GitHub, the registrar.
 
 ## Fresh clone, light half (2026-11-25): what happened

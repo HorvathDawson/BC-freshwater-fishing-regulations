@@ -114,8 +114,10 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
     - Tier 0 is the file you touched; Tier 1 `scripts/test-smoke.sh` (the smoke set is chosen by rule in
       `pipeline/tests/smoke.py`, no hand list); Tier 2 `scripts/test-full.sh` through `scripts/heavy.sh`, at
       milestones or before a merge. Test what changed while iterating; whole suites once at the end.
-    - `pytest.ini` deselects `slow` tests, where the determinism and full-build guards live: Tier 2 runs `-m slow`
-      explicitly. Runner scripts source `scripts/test-env.sh`.
+    - A plain `pytest` is CI's no-data tier; its NOT RUN line (hidden by rtk's filter: `rtk proxy` shows it) counts the
+      data tests left out. With builds, Tier 0 adds `--with-data` (T1193). `slow` tests, where the determinism and
+      full-build guards live, are left out either way: Tier 2 runs `-m slow` explicitly. Runner scripts source
+      `scripts/test-env.sh`.
     - **Heavy jobs** (atlas build, reach run, `pipeline.deliver`, tile builds, full pytest, emulators and simulators)
       run as `scripts/heavy.sh <label> <min free %> -- <cmd>`: one at a time per lane (three lane locks), waiting
       for free memory and killed when it runs out. Ask `scripts/heavy.sh --status` before deciding a job died or

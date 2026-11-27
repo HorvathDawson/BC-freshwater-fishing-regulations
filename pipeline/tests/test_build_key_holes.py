@@ -89,8 +89,8 @@ RUN = textwrap.dedent("""
     import yaml                                      # a package: PyYAML (P line)
     pathlib.Path(sys.argv[1]).read_text()            # code that is no module: the schema
     pathlib.Path(sys.argv[2]).read_text()            # data: keyed by the stage's own parts, never as code
-    from project_config import get_config
-    get_config().get_path("data_accessor", "gpkg_path")      # one config value (C line)
+    from pipeline.common.curated import SOURCE
+    SOURCE.fwa_gpkg                                  # one named source file: two config values (C lines)
 """)
 
 
@@ -192,10 +192,24 @@ def test_pick_a_only_a_package_the_stage_imports_moves_its_key(scratch, config_c
 
 def test_pick_a_only_a_config_value_the_stage_reads_moves_its_key(scratch, config_copy):
     key, code, plan_key, _files = _keyed(scratch, "clim")
-    assert "data_accessor.gpkg_path" in code["config"]
+    assert {"source.fwa_gpkg", "roots.source"} <= set(code["config"])
     config_copy("cache.dfo_salmon", "elsewhere/dfo")          # a path this stage never reads
     assert plan_key() == key
-    config_copy("data_accessor.gpkg_path", "elsewhere/fwa.gpkg")
+    config_copy("source.fwa_gpkg", "elsewhere.gpkg")
+    assert plan_key() != key
+
+
+def test_a_named_source_file_keys_its_own_name_and_the_source_root_only(scratch, config_copy):
+    """(T1192) `SOURCE.fwa_gpkg` is the source root joined with the gpkg's name, and records exactly those two values:
+    a stage that reads only the gpkg is not keyed on the coast file, the other names or the other roots, and is keyed
+    on the root its gpkg sits under."""
+    key, code, plan_key, _files = _keyed(scratch, "tiles")
+    assert {k for k in code["config"] if k.startswith(("source", "roots"))} == {"source.fwa_gpkg", "roots.source"}
+    for other in ("source.coast_gpkg", "source.synopsis_pdf", "source.fetch_temp", "roots.generated", "roots.release",
+                  "roots.curated", "roots.cache"):
+        config_copy(other, "elsewhere")
+        assert plan_key() == key, other
+    config_copy("roots.source", "elsewhere")
     assert plan_key() != key
 
 
@@ -306,9 +320,9 @@ def test_l1_a_config_value_edited_while_the_stage_ran_keys_nothing(scratch, conf
     the value read, so it cannot be keyed on the value there now."""
     _mod, schema, data = _tree(scratch)
     tr = _traced_run(scratch, schema, data)
-    config_copy("data_accessor.gpkg_path", "elsewhere/fwa.gpkg")           # after the stage read it
+    config_copy("source.fwa_gpkg", "elsewhere.gpkg")           # after the stage read it
     key, _i, _c, note = B._traced_key("deliver", tr, {"x": 1})
-    assert key is None and "config data_accessor.gpkg_path" in note
+    assert key is None and "config source.fwa_gpkg" in note
 
 
 def test_l1_a_config_value_read_before_the_recorder_is_still_written(tmp_path):
@@ -572,8 +586,8 @@ ATLAS = textwrap.dedent("""
     assert own
     import t1171mod
     import yaml
-    from project_config import get_config
-    get_config().get_path("data_accessor", "gpkg_path")
+    from pipeline.common.curated import SOURCE
+    SOURCE.fwa_gpkg
     from pipeline.atlas import inputs as I
     from pipeline.common import stepcache as SC
     SC.CODE_READ_ROOTS = (sys.argv[3],)
@@ -600,7 +614,7 @@ def test_hole3_an_atlas_code_package_or_config_change_is_behind(scratch, config_
     atlas = _atlas(scratch, schema)
     code = I.read_meta(atlas)[I.CODE]
     assert rel(mod) in code["modules"] and rel(schema) in code["reads"]
-    assert "pyyaml" in code["packages"] and "data_accessor.gpkg_path" in code["config"]
+    assert "pyyaml" in code["packages"] and "source.fwa_gpkg" in code["config"]
     assert {code["python"], code["sqlite"]} == set(SC.stage_env().values())
     monkeypatch.setattr(I, "ATLAS_INPUTS", {"k": "a stand-in input"})
     current = lambda: I.behind(atlas, {"k": "v"})              # noqa: E731
@@ -618,10 +632,9 @@ def test_hole3_an_atlas_code_package_or_config_change_is_behind(scratch, config_
     config_copy("cache.dfo_salmon", "elsewhere/dfo")          # a value it never read
     bump(monkeypatch, "pytest")                                # a package it never imported
     assert current() == []
-    config_copy("data_accessor.gpkg_path", "elsewhere/fwa.gpkg")
+    config_copy("source.fwa_gpkg", "elsewhere.gpkg")
     assert [g.split(" (")[1].split(")")[0] for g in current()] == ["code: config"]
-    config_copy("data_accessor.gpkg_path", yaml.safe_load((REPO_ROOT / "config.yaml").read_text())
-                ["data_accessor"]["gpkg_path"])
+    config_copy("source.fwa_gpkg", yaml.safe_load((REPO_ROOT / "config.yaml").read_text())["source"]["fwa_gpkg"])
     bump(monkeypatch, "pyyaml")
     got = current()
     # (L5, owner pick A) a routine bump of a package it imports is a reason, naming the package and both versions
@@ -663,7 +676,7 @@ def test_finding2_the_record_machinery_is_not_the_atlas_s_code(scratch):
 
 def test_finding3_the_atlas_module_records_what_its_own_imports_read(scratch):
     """`python -m pipeline.atlas.build` starts the recorder before the module's imports: the config values they read
-    (curated paths, the generated tree) and `project_config` are in its trace."""
+    (curated paths, the generated tree, the gpkg's `source.fwa_gpkg`) and the config loader module are in its trace."""
     probe = textwrap.dedent("""
         import json, runpy, sys
         sys.argv = ["pipeline.atlas.build", "--help"]
@@ -679,7 +692,8 @@ def test_finding3_the_atlas_module_records_what_its_own_imports_read(scratch):
     got = subprocess.run([PY, "-c", probe], check=True, cwd=REPO_ROOT, env=_env(scratch), capture_output=True,
                          text=True)
     seen = json.loads(got.stdout.strip().splitlines()[-1])
-    assert "project_config.py" in seen["modules"] and "pipeline/atlas/build.py" in seen["modules"]
+    assert "pipeline/common/curated.py" in seen["modules"] and "pipeline/atlas/build.py" in seen["modules"]
+    assert "source.fwa_gpkg" in seen["config"]
     assert seen["config"], "the atlas module's imports read config.yaml before any value was recorded"
 
 

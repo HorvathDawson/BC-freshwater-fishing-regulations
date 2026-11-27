@@ -35,7 +35,7 @@ from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carv
 from pipeline.atlas.reach.build import entry_scope as _entry_scope
 from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.atlas.reach import extent as _resolve
-from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, ROOTS, SOURCE
 from pipeline.atlas.splits.sectionizer import minted_id as _auto_split
 from pipeline.common.models.registry import bare_split_id
 from pipeline.atlas.splits.splits import splits_on
@@ -72,7 +72,7 @@ MARKS_PATH = CURATED.review.marks
 REACH_DIR = (Path(os.environ["CURATION_REACH_DIR"]) if os.environ.get("CURATION_REACH_DIR")
              else GENERATED.reaches / _BUILD.name)
 RELEASE_ROOT = (Path(os.environ["CURATION_RELEASE_ROOT"]) if os.environ.get("CURATION_RELEASE_ROOT")
-                else GENERATED.release)
+                else ROOTS.release)
 #: The tile set a rebuild of THIS target writes (T136): only the printed commands name it — the tool
 #: reads no tile. `CURATION_TILES` points it at a copy.
 TILES_DIR = (Path(os.environ["CURATION_TILES"]) if os.environ.get("CURATION_TILES")
@@ -2105,7 +2105,7 @@ def _fwa_lake_poly(wbk: str):
     from contextlib import closing
     from shapely import wkb as _wkb
     from shapely.ops import unary_union
-    src = SOURCE / "bc_fisheries_data.gpkg"
+    src = SOURCE.fwa_gpkg
     if not src.exists():
         raise FileNotFoundError(f"{src} is missing: the lake outlines on the verification map are read from it "
                                 "(fetch it with data/fetch_data.py)")
