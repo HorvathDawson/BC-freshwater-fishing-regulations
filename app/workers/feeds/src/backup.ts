@@ -12,7 +12,7 @@
 // (one hop, never a chain), so one manifest still describes the whole store. Each one is copied afresh at most every
 // REFRESH_DAYS days (spread over the days by its key), because the backup bucket's lifecycle expires a copy 30 days after
 // it was written whoever names it: a snapshot is then whole for at least DAILY_KEEP_DAYS - REFRESH_DAYS days, and
-// the restore (deploy/staging/restore-test.sh) fails naming any link that is gone. The state (non-personal) is copied
+// a restore fails naming any link that is gone. The state (non-personal) is copied
 // whole every day as before. A copy the prune deletes is taken out of EVERY manifest that names it.
 //
 // Retention is the backup bucket's lifecycle rules (daily/ 30 days, monthly/ 400 days; set by wrangler, see T246). The
@@ -33,8 +33,8 @@
 // them): skipped, named, and the run is failed.
 //
 // What is NOT here (and why): the release (release/<id>/, release/tiles/, basemap — immutable, content-named, copied once
-// per release by deploy/staging/backup.sh release); feeds/live/<station>.json (rebuilt every 30 min from ECCC);
-// the curated data (git + deploy/staging/backup.sh curated, which also carries the uncommitted review marks).
+// per release, by hand); feeds/live/<station>.json (rebuilt every 30 min from ECCC);
+// the curated data (git; the uncommitted review marks are the owner's to keep).
 
 import { CRASH_RETENTION_DAYS, CRASHES_PREFIX, TEST_CRASHES_PREFIX } from "./crashes";
 import { REPORTS_PREFIX, RETENTION_DAYS, TEST_REPORTS_PREFIX } from "./reports";

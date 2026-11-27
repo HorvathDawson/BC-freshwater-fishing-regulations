@@ -4,7 +4,7 @@ Status: OPEN — lane: the repo clean chat, after T1192 PR 1; the audit (`repo-u
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | — | PR 1: deleted 9 ran/superseded files; kept drop-v1.sh, feeds-placeholder, perfetto/pinch.py (still referenced; see Done); PR 2: one ledger-hook script |
+| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | — | PR 1: deleted 11 ran/superseded files; kept drop-v1.sh, feeds-placeholder, perfetto/pinch.py (still referenced; see Done); PR 2: one ledger-hook script |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "same with scripts too and a few others that feel like they
 have way too many things that it would be hard for a human to use the repo themselves." and "also these scripts feel
@@ -30,3 +30,4 @@ Deleted: `data/process_tidal_boundary.py`, `deploy/staging/{play-listing-images.
 Kept: `deploy/prod/drop-v1.sh` (docs/release/PRODUCTION.md, upload.sh and test_prod_prune.py name it; the doc is a
 release page), `deploy/prod/feeds-placeholder*` (feeds.sh tells a person to run it, app/tools/seo/build.ts and
 deploy/lib/input-formats.sh name it, a test pins its worker.js), `app/tools/perfetto/pinch.py` (the zoom-pinch scenario's reader).
+Also deleted (owner: "I do not run them; delete"): `deploy/staging/backup.sh`, `restore-test.sh` and the one test that only read restore-test.sh; the feeds worker's own backup.ts stays (its comments no longer name them).
