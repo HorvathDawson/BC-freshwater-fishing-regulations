@@ -1611,9 +1611,10 @@
     "4-34"
    ]
   },
-  "note": "FWA has MU 4-20, regulation has MU 4-34 (boundary issue)",
-  "gnis_ids": [
-   "36134"
+  "note": "REBOUND to the Hall Lakes inside MU 4-34 (owner 2026-11-26, T1118 D6: \"twin lakes if there is a set in the unit should match to those. same with hall lake.\"): wbk 329094665 + 329094669 (gnis 36138, BC Geographical Names id 35097, \"W. of Frances Creek\"), stocked with cutthroat 1938-1990 (FIDQ 00263COLR), about 5 km from Twin Lakes, Botts and Big Fish lakes, which carry the same kind of motor rule. The book has printed \"HALL LAKE 4-34 Electric motors only\" in 2015-17, 2019-21 and 2025-27. Dropped: Hall Lake at the head of Hall Lake Creek (wbk 329523986, gnis 36134, MU 4-20, 109 km out, no stocking record), which the old note called a boundary issue. Settled by the federal Vessel Operation Restriction Regulations, Schedule 3 item 61, \"Hall Lake west of Brisco\" (50°44′56″ 116°19′10″): the point lies on these 4-34 lakes (0.0 km) and 126 km from Hall Lake 4-20 (out-of-unit full audit, 2026-11-26). The two polygons are small (0.7 and 0.6 ha).",
+  "waterbody_keys": [
+   "329094665",
+   "329094669"
   ]
  },
  {

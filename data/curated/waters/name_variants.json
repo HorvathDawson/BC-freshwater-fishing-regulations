@@ -2523,18 +2523,19 @@
  {
   "target": {
    "wbks": [
-    "329523986"
+    "329094665",
+    "329094669"
    ]
   },
   "names": [
    {
     "name": "HALL LAKE",
     "source": "regulation",
-    "note": "FWA has MU 4-20, regulation has MU 4-34 (boundary issue); REGION 4 - Kootenay; MU 4-34"
+    "note": "HALL LAKE 4-34 is the Hall Lakes in the unit (owner 2026-11-26, T1118 D6); moved here from Hall Lake 4-20 (wbk 329523986) with the row's binding; REGION 4 - Kootenay; MU 4-34"
    }
   ],
   "_gnis": [
-   "36134"
+   "36138"
   ]
  },
  {
