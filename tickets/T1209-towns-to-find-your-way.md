@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane T1208 (worktree wt-T1208); release 0.10.0 re-cut
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1209 | Towns to find your way: three tiers of towns from our own file (province, z6, z8) | IN PROGRESS — 0.10.0 re-cut | — | build in progress (lane T1208) |
+| T1209 | Towns to find your way: three tiers of towns from our own file (province, z6, z8) | IN PROGRESS — 0.10.0 re-cut | 13d06f5cd, 0d625ea71 | built on feat/T1208-map-look-A: PR with T1208; at z4.0 a few tier-1 towns give way to the region names |
 
 Source: T1200 (owner 2026-11-26: "i want you to choose best judgement for users to have the best experience across bc
 and make it easy to find a location by zooming in from far out"; "build A ...").

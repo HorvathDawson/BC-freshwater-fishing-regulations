@@ -4,7 +4,7 @@ Status: IN PROGRESS — lane T1208 (worktree wt-T1208); release 0.10.0 re-cut
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1211 | A floating "Map key" over the map, and the words "Its own rules / Region rules only" | IN PROGRESS — 0.10.0 re-cut | — | build in progress (lane T1208) |
+| T1211 | A floating "Map key" over the map, and the words "Its own rules / Region rules only" | IN PROGRESS — 0.10.0 re-cut | 284b425c6 | built on feat/T1208-map-look-A: PR with T1208; the store video now reads the mode from the rail (tools/store-video/checks.mjs) |
 
 Source: T1200 (owner 2026-11-26: "Floating \"Map key\" over the map, near the bottom (Recommended)"; the key's words:
 "Its own rules / Region rules only").
