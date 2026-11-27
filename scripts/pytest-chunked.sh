@@ -10,7 +10,8 @@
 #                 process (below), is always a chunk of its own
 #   --only REGEX  only the test files whose path matches (Tier 0 / trying the runner on a few files)
 #   --dry-run     print the chunks, run nothing
-#   pytest args   passed to every chunk, e.g. `-- -m slow` (pytest.ini's default `-m "not slow"` holds otherwise)
+#   pytest args   passed to every chunk, e.g. `-- -m slow`; with none, each chunk is a plain pytest, the no-data tier
+#                 (T1193), and `-- --with-data` is the data tier
 #
 # A FILE THAT STARTS A CHILD PROCESS RUNS ALONE (T792 B): a child forked from a process where an earlier test file loaded
 # pyproj dies between fork and exec (PROJ's after-fork handler closes its cached proj.db through Apple's SQLite logging:
