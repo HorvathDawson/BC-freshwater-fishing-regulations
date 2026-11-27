@@ -1,10 +1,10 @@
 # T1194 — Conditions map: tap a gauge to open that gauge's page (BEFORE the 0.10.0 re-cut)
 
-Status: OPEN. BEFORE the 0.10.0 re-cut (owner: "should do before recut"). Visible change: owner looks at screenshots before it merges (owner: see ## Owner).
+Status: IN REVIEW — owner: see ## Owner (built and reviewed; his look at the built pages; the tap checked on a phone or emulator is owed); 0.10.0 re-cut.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1194 | Conditions map: tap a gauge dot to open that gauge's page, tidal and water-less gauges included | OPEN | on feat/T1194 (see Built) | built; owner looks at the last sheet; OWED: the tap checked on a device (emulator run); T1206 after the re-cut |
+| T1194 | Conditions map: tap a gauge dot to open that gauge's page, tidal and water-less gauges included | IN REVIEW — owner: see ## Owner (built and reviewed; his look at the built pages; the tap checked on a phone or emulator is owed); 0.10.0 re-cut | on feat/T1194 (see Built) | his look at the built pages; the tap on a phone or emulator; T1206 after the re-cut |
 
 Source: owner 2026-11-26, verbatim: "also we should make it so that in the conditions map add a way to click on the gauegs to
 get the gauge page itself. that way even the lower tidal fraser gaguges are accessible etc. should do before recut".
