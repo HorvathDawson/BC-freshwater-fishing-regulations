@@ -24,8 +24,8 @@ def _stable_sort(xs, key):
 #: (both reaching the section by the tributary walk, `via` "trib") the one whose row's water is the more upstream
 #: (`read._upstream_of`, the bundle's `trib_upstream`: `trib_nearer` and the rows whose tributary walks nest). Words
 #: only: both still close (RULINGS T14: a closure is never beaten by a nearer row), the day, the fish and the status are
-#: the same. Two closures in two rows' own extents are not ordered by it (an open question, T1251). Asked before T206's
-#: year-round-before-dated and the fish count. False = T206's order alone (Lower Campbell Lake's creeks name John Hart
+#: the same. Two closures in two rows' own extents are ordered by `OWN_ROW_FIRST` (the water's own row first, then the
+#: most upstream). Asked before T206's year-round-before-dated and the fish count. False = T206's order alone (Lower Campbell Lake's creeks name John Hart
 #: Lake's closure by entry key, and the banner lists closures in rule order).
 THE_MOST_UPSTREAM_ROW_IS_NAMED = True
 

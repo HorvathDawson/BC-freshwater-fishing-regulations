@@ -251,3 +251,85 @@ def test_the_reader_refuses_a_bundle_without_the_table(tmp_path):
     read._UPSTREAM_BY_PATH.pop(str(p), None)
     assert read._upstream_of(str(p)) == {(LOWER, HART)}
     read._UPSTREAM_BY_PATH.pop(str(p), None)
+
+
+def test_the_reader_refuses_a_bundle_without_set_own(tmp_path):
+    p = tmp_path / "bundle.sqlite"
+    db = sqlite3.connect(p)
+    db.execute("CREATE TABLE rule (entry_id TEXT)")
+    db.commit()
+    db.close()
+    with pytest.raises(SystemExit, match="set_own"):
+        read._own_of(str(p))
+    db = sqlite3.connect(p)
+    db.execute("CREATE TABLE set_own (set_id INTEGER, entry_id TEXT)")
+    db.execute("INSERT INTO set_own VALUES (?,?)", (9, NORTH))
+    db.commit()
+    db.close()
+    read._OWN_BY_PATH.pop(str(p), None)
+    assert read._own_of(str(p)) == {9: frozenset({NORTH})}
+    read._OWN_BY_PATH.pop(str(p), None)
+
+
+def _own_db():
+    db = _campbell()
+    db.executescript("""CREATE TABLE item_section (ord INTEGER, sid INTEGER);
+        CREATE TABLE trib_nearer (near TEXT, far TEXT); CREATE TABLE trib_upstream (near TEXT, far TEXT);
+        CREATE TABLE set_own (set_id INTEGER, entry_id TEXT);""")
+    db.executemany("INSERT INTO trib_nearer VALUES (?,?)", sorted(N.compute_trib_nearer(db)))
+    db.executemany("INSERT INTO trib_upstream VALUES (?,?)", sorted(N.compute_trib_upstream(db)))
+    return db
+
+
+def test_prove_refuses_a_set_own_that_is_not_what_the_rows_give():
+    db = _own_db()
+    N.prove(db)                                      # empty and right: no set where two rows print by their own extents
+    db.execute("INSERT INTO set_own VALUES (?,?)", (1, LOWER))
+    with pytest.raises(SystemExit, match="set_own"):
+        N.prove(db)
+
+
+def test_the_banner_order_takes_the_own_rows():
+    """The banner path (`display.section` passes `own_rows`): the water's own row first within its rung, the rest kept."""
+    zone = _closure("zp:superior_closures", rank=4, via="reach")
+    got = EV.most_upstream_first([_closure(ALOUETTE, rank=0, via="reach"), zone, _closure(NORTH, rank=0, via="reach")],
+                                 frozenset({(NORTH, ALOUETTE)}), frozenset({NORTH}))
+    assert [c.entry_id for c in got] == [NORTH, "zp:superior_closures", ALOUETTE]
+
+
+def _gate(entry, *, when=None, species=("ALL_GAME_FISH",), exempts=None):
+    x = {"_rank": 0, "dimension": "daily", "entry": entry, "entry_id": entry, "extents": [{"op": "whole"}],
+         "family": "retention", "may_target": 0, "period": "daily", "rule": "r1", "rule_id": "r1", "scope": "section",
+         "species": list(species), "species_except": [], "take": 0, "type": "retention_limit", "label": "No fishing",
+         "verbatim": "No Fishing"}
+    if when:
+        x["when"] = when
+    if exempts:
+        x["exempts"] = exempts
+    return x
+
+
+def test_what_the_card_shows_when_a_dated_own_closure_and_a_year_round_one_both_close():
+    """Review round 3 (pinned): the North Alouette's own dated closure and the Alouette's year-round one printed for it,
+    one rung: the own row governs (named), the year-round one AGREES (still listed, never hidden); the lift notes and the
+    trout date line read the named closure (`liftNotes` of the winner; `closure_scope` of its fish)."""
+    from pipeline.deliver.answers.rows.part import Part
+    from pipeline.deliver.answers.trout.timeline import closure_scope
+    dated = {"dates": [{"from_month": 5, "from_day": 1, "to_month": 6, "to_day": 30}]}
+    own, far = f"{NORTH}::r1", f"{ALOUETTE}::r1"
+    B = SimpleNamespace(sets={7: [(NORTH, "r1", "reach"), (ALOUETTE, "r1", "reach")]},
+                        rules={(NORTH, "r1"): _gate(NORTH, when=dated, species=("RB",)), (ALOUETTE, "r1"): _gate(ALOUETTE)},
+                        path="mem:t1251-own")
+    read._OWN_BY_PATH["mem:t1251-own"] = {7: frozenset({NORTH})}
+    read._UPSTREAM_BY_PATH["mem:t1251-own"] = frozenset({(NORTH, ALOUETTE)})
+    try:
+        speak = {own: ("speaks", False, None, None), far: ("speaks", False, None, None)}
+        P = Part(B, 7, False, False, "stream", None, {"RB": {"hatchery": speak, "wild": speak}}, (6, 1))
+        got = EV.eval_sp(P, "RB", "wild")
+        roles = {k: v["role"] for k, v in got["roles"].items()}
+        assert (got["status"], got["win"].key, roles[far]) == ("closed", own, "agrees")
+        assert got["liftNotes"] == []
+        assert closure_scope(got["win"].species) == ("RB",) and closure_scope(B.rules[(ALOUETTE, "r1")]["species"]) == "trout_char"
+    finally:
+        read._OWN_BY_PATH.pop("mem:t1251-own")
+        read._UPSTREAM_BY_PATH.pop("mem:t1251-own")
