@@ -613,9 +613,10 @@ def test_the_held_out_basins_stay_possible(db, item_id, name):
 
 @pytest.mark.needs_bundle
 def test_the_nooksack_side_of_basin_970_is_a_pacific_stream(db):
-    """970-030628 (Pepin Creek, to the Nooksack: no dam) is not the Skagit's branch: known as a Pacific stream."""
+    """970-030628 (Pepin Creek, to the Nooksack: no dam) is not the Skagit's branch: known as a Pacific stream. Its piece
+    across the border (356286496:3118, `outside_bc.jsonl`, no unit) carries no presence, as every water outside B.C."""
     got = _presence(db, "gnis:43645")
-    assert set(got) == {"known"} and _sources(db, "gnis:43645") == {"Pacific stream"}
+    assert set(got) == {"known", None} and len(got[None]) == 1 and _sources(db, "gnis:43645") == {"Pacific stream"}
 
 
 @pytest.mark.needs_bundle
