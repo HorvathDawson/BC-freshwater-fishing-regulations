@@ -88,9 +88,10 @@ def _one(job):
             continue
         shore = None
         for gap in GAPS:
-            shore = place.shore(cont, snd, max_gap=gap)
+            shore, how = place.shore_report(cont, snd, max_gap=gap)
             if shore is not None and shore.area > 0:
                 row["gap_m"] = gap
+                row["shore"] = how           # its joins (straight or completed with the sheet's arcs), depth outside
                 break
         if shore is None or shore.area <= 0:
             rows.append(dict(row, state="no_shore"))
