@@ -1,9 +1,7 @@
 import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { REGION_PREFIX, RegionCascade, RegionOptions } from "./RegionCascade";
 import { useEffect, useMemo, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { Protocol } from "pmtiles";
+import { maplibregl, KEEP_OVERZOOM } from "../mapGl";
 import { layers, LIGHT } from "@protomaps/basemaps";
 
 export const CASCADE_HASH = "cascade/";
@@ -36,9 +34,6 @@ const MAX_STRIPES = 8;
 const BACKGROUND_SHARE = 0.9;
 
 const BASEMAP_URL = "pmtiles:///basemap/bc.pmtiles";
-const g = globalThis as unknown as { __pm?: Protocol; __pmAdded?: boolean };
-const protocol = (g.__pm ??= new Protocol());
-if (!g.__pmAdded) { maplibregl.addProtocol("pmtiles", protocol.tile); g.__pmAdded = true; }
 
 /** distinct colours: golden-angle hues, alternating lightness; scope defaults get muted greys/browns */
 function placeColor(i: number, p: Place): string {
@@ -122,6 +117,7 @@ function WatershedCascade({ name, setName }: { name: string; setName: (n: string
   useEffect(() => {
     if (!box.current || map.current) return;
     const m = new maplibregl.Map({
+      ...KEEP_OVERZOOM,
       container: box.current,
       style: {
         version: 8,

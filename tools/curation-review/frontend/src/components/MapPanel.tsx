@@ -1,8 +1,6 @@
 import { approxBetween } from "../approxStretch";
 import { useEffect, useMemo, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { Protocol } from "pmtiles";
+import { maplibregl, KEEP_OVERZOOM } from "../mapGl";
 import { layers, LIGHT } from "@protomaps/basemaps";
 import { api } from "../api";
 import type { EntryReaches, EntrySplits, ReachIdentity, RuleResolved } from "../types";
@@ -115,13 +113,6 @@ const NAMED_TO_VERIFY = "#d97706";
 // geometry is delivered in EPSG:4326 by the backend.
 const BASEMAP_URL = "pmtiles:///basemap/bc.pmtiles";
 
-// Register the pmtiles protocol once for the whole app.
-const g = globalThis as unknown as { __pm?: Protocol; __pmAdded?: boolean };
-const protocol = (g.__pm ??= new Protocol());
-if (!g.__pmAdded) {
-  maplibregl.addProtocol("pmtiles", protocol.tile);
-  g.__pmAdded = true;
-}
 
 const CUT_COLOR = "#94a3b8";   // muted slate: an automatic cut no rule names
 
@@ -313,6 +304,7 @@ export function MapPanel({
   useEffect(() => {
     if (!container.current || map.current) return;
     map.current = new maplibregl.Map({
+      ...KEEP_OVERZOOM,
       container: container.current,
       style: {
         version: 8,
