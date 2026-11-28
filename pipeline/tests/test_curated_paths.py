@@ -328,7 +328,7 @@ class TestTheWholeFileIsStrict:
                 blob = blob[k]
             return True
         got = {".".join(k): (bool(at), has(stated, k)) for k, at in walk(C.Config) if k[0] in C.TREES}
-        assert len(got) == 80 and all(has(names, k.split(".")) == a for k, (a, _s) in got.items())
+        assert len(got) == 81 and all(has(names, k.split(".")) == a for k, (a, _s) in got.items())
         assert {k for k, (a, s) in got.items() if s} == {"source.fwa_gpkg"}          # the file's one path
         assert not [k for k, (a, s) in got.items() if a == s], "a path named in both places, or in neither"
 
@@ -486,7 +486,7 @@ class TestOneRootPerTree:
             for k in keys[1:]:
                 got = getattr(got, k)
             assert got == C.ROOT / roots[keys[0]] / _at(blob, keys), keys
-        assert len(leaves) == 80
+        assert len(leaves) == 81
         assert set(roots) == set(C.Roots.model_fields) == {*C.TREES, "release"}
 
     @pytest.mark.parametrize("at", [("curated", "waters", "cuts"), ("curated", "review", "marks"),
