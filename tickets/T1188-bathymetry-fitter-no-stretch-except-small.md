@@ -48,22 +48,26 @@ neighbours within 3 km); 87 small stretches (33 at the 5 % limit: flagged `small
 stretch would help (NOT adopted; each with what it would change); 4 lifts refused (3 ambiguous, 1 a different name).
 No mirror was adopted. Pictures and the CSV: planning night notes `T1188/`. Not done here: item 6.
 
-**Review fixes and the trust checks (2026-11-27, same branch; rerun once, 16 min, lane 3):** the stretch keeps the
-ambiguity rule (both mirrors; the best fit on every other target an earlier step searched is a rival); a found lake
-must be free (a find on a lake another sheet ends on is refused and rerun; one on a lake only coded for a sheet that
-moved off is kept, flagged `takes_a_coded_lake`: Fowl Creek 1); an empty zips folder raises. Two sheets on one lake are
+**Review fixes and the trust checks (2026-11-27, same branch; two re-reviews, final rerun 14 min, lane 3):** the
+stretch keeps the ambiguity rule (both mirrors; the best fit on every other target an earlier step searched is a rival,
+weighed against the placing before its stretch); a found lake (a wrong-lake find or a union neighbour) must be free (on
+a lake another sheet ends on: refused and rerun; on a lake only coded for a sheet that moved off: kept, flagged
+`takes_a_coded_lake`: Fowl Creek 1); an empty zips folder raises. Two sheets on one lake are
 legitimate only when it is coded for both (today: Carp and Mahood, two surveys each). Then EVERY placed sheet: the best
-lake within 50 km and its gap (`neighbour_rival` within 0.03; never moves a placing), a strict baseline's turn /
-mirror check, the shore's complexity (1 - its best raster IoU on itself turned > 20 deg or mirrored, over unturned;
-min 0.04, median 0.29, max 0.68) and `confidence`: `high` 287 / `high_stretched` 50 / `review` 175 (14 unplaced). A
-shore below 0.10 (18 of 498) is `review` unless its lake is the only one its size in the radius (13 strict moved).
+lake within 50 km (screened plain and mirrored) and its gap from the unstretched placing (`neighbour_rival` within
+0.03; never moves a placing), a strict baseline's turn / mirror check, the shore's complexity (1 - its best raster IoU
+on itself turned > 20 deg or mirrored, over unturned; min 0.04, median 0.29, max 0.68) and `confidence`: `high` 284 /
+`high_stretched` 49 / `review` 179 (14 unplaced). `high` = the repo's own strict placing on its coded lake, unstretched,
+nothing flagged; a two-lake / wrong-lake find, or a placing the wider rigid search moved (`rigid_wider`), is `review`.
+A shore below 0.10 (18 of 498) is `review` unless its lake is the only one its size in the radius (13 strict moved).
 
 | after | strict | strict, stretch <= 5 % | loose | loose, stretch <= 5 % | poor |
 |---|---|---|---|---|---|
-| 4. with the review fixes | 309 | 73 | 53 | 10 | 53 |
+| 4. with the review fixes | 309 | 73 | 53 | 5 | 58 |
 
-Four stretches refused as ambiguous (loose stretched to poor): Abruzzi (mirror), Dunlevy, McKay, Myles (another lake
-fits as well unstretched). Pictures: night notes `T1188/v2/` (the review set by reason, then `high_stretched`).
+Nine stretches refused as ambiguous (loose stretched to poor): Abruzzi (mirror), Dunlevy, McKay, Myles, Blenkinsop,
+Gataiga, Idleback, Azuklotz, Hoover (another lake fits as well unstretched).
+Pictures: night notes `T1188/v2/` (the review set by reason, then `high_stretched`).
 
 ## Acceptance
 The strict/loose/poor counts before and after; the flagged-stretch list with before / after pictures; nothing ships without his look at each placing.
