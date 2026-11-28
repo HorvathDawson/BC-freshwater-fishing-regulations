@@ -4,7 +4,7 @@ Status: OPEN — the fitter merged in #386 (faffa736c, 2026-11-28); the vector d
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1188 | Bathymetry fitter: no stretch except small ones; flag the lakes a stretch would help; a reorientation trial | OPEN — fitter merged (#386); depth maps wanted in 0.10.0 (T201); owner: see ## Owner | faffa736c (#386) | his look on the review page; the shoreline joins + depth lines branch; the four name variants; item 6 (T201's order) |
+| T1188 | Bathymetry fitter: no stretch except small ones; flag the lakes a stretch would help; a reorientation trial | OPEN — fitter merged (#386); depth maps wanted in 0.10.0 (T201); owner: see ## Owner | faffa736c (#386) | his look on the review page; the shoreline joins + depth lines branch; item 6 (T201's order) |
 
 Source: the owner on the bathymetry sample page, 2026-11-26: "It seems like a lot of the poor ones could be reoriented to match better? Not all but
 definitely some. Then others like elk lake one need to be reoriented then it also matches 2 lakes. This could be considered for actually implementing
@@ -74,7 +74,7 @@ v2 counts: `high` 284 / `high_stretched` 49 / `review` 179. The review page is a
 4 names differ, 15 partly, 177 review; the marks are his, read with ArtifactData; link in the planning chat's notes); 23 marks so far.
 - The page: "Options A also the names that differ for definite should have those names added to the name variants for those lakes" (2026-11-27);
   when: "After I mark each one Right (Recommended)" (2026-11-27); he then marked the four Right (Grizzly, Snow, Walkin, Kitwanga; branch
-  `fix/T1188-chart-names-as-variants`, PR without auto-merge). "the artifact needs bigger images so i can tell" (2026-11-27).
+  `fix/T1188-chart-names-as-variants`, merged in #388). "the artifact needs bigger images so i can tell" (2026-11-27).
 - Confidence: "the complexity of the shape matetrs too" (2026-11-27). Abruzzi: "okay i went through a bunch and for exampel (ABRUZZI LAKE) i
   think would match better if you looked at the first ring in the vector too? maybe that is why it looked weird? it has a big shallow area for
   example. look at it and see if it changes anything" and "at least would help align it" (2026-11-27). Reading: the first-ring trial
