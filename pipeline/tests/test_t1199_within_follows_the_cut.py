@@ -114,3 +114,38 @@ def test_on_the_mini_chain_the_stretch_within_restricted_land_carries_it(tmp_pat
     parts = rel.wire["sections"]["display"]["waters"]["gnis:990004"]["parts"]
     assert parts[1]["label"].startswith("Within Mock Range")
     assert all("Outside" not in (p or {}).get("label", "") for p in parts), json.dumps(parts)[:300]
+
+
+# --- (review of 254f2e1fe) one key on both sides; an area the bundle does not know is refused; the refusal is wired --
+
+def test_an_area_is_matched_by_one_key_on_both_sides():
+    # the mutation pin of `part.area_key`: a name spelled with other case or spacing on one side is still the same area
+    r = _run(12.3, 13.3)
+    assert P._run_txt(DOC, r, ["YOHO  national park of canada"]) == f"Within {YOHO}"
+    assert P.area_key("Yoho  National Park of Canada ") == P.area_key("YOHO NATIONAL PARK OF CANADA")
+
+
+def test_a_stretch_naming_an_area_the_bundle_does_not_know_is_refused():
+    w = {"parts": [{"runs": [_run(12.1, 12.3)]}]}
+    with pytest.raises(AnswersError, match=r"no cut area of that name in the bundle"):
+        held_facts("gnis:11132", w, {("cut_areas",): {P.area_key("Kootenay National Park of Canada")}})
+    with pytest.raises(AnswersError, match=r"the bundle names no cut areas"):
+        held_facts("gnis:11132", w, {})
+    got = held_facts("gnis:11132", w, {("cut_areas",): {P.area_key(YOHO)}, ("gnis:11132", "held", 0): {YOHO}})
+    assert got["parts"][0][P.AREA_HELD] == [YOHO]
+    # a water with no stretch between crossings needs no vocabulary
+    assert held_facts("gnis:1", {"parts": [{"runs": []}]}, {})["parts"][0][P.AREA_HELD] == []
+
+
+def test_produce_parts_stops_on_words_that_disagree_with_the_rule(monkeypatch):
+    """The refusal through its wiring (`produce_parts`): a part whose shipped words say "within" an area whose rule it
+    does not carry stops the build — removing `stops += within_disagreements(...)` fails here."""
+    from pipeline.deliver.answers.display import builders as BL
+    from pipeline.tests.test_t1140_inside_area import MAIN, _produce, _run as run
+    stretch = [run(f"area:{YOHO}", f"area:{YOHO}", 12.3, 12.1)]
+    cr = {("cut_areas",): {P.area_key(YOHO)}}                               # known, and part 1 does not carry it
+    facts, _log = _produce(monkeypatch, [MAIN, stretch], cr)
+    assert facts[1]["runs"] == f"Outside {YOHO} (between its boundaries)"
+    monkeypatch.setattr(BL, "part_labels", lambda Wg: [f"Within {YOHO}" for _ in Wg.parts])
+    with pytest.raises(AnswersError, match=r"says within 'Yoho National Park of Canada' but does not carry its rule"):
+        _produce(monkeypatch, [MAIN, stretch], cr)

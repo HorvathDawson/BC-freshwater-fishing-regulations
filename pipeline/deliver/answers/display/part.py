@@ -405,6 +405,19 @@ def _end_name(doc: dict, e: Optional[str], side: str = "") -> str:
 #: the words of a stretch between two crossings of an area's edge that lies OUTSIDE the area (it does not carry the
 #: area's rule): the Beaverfoot River's two open stretches beside Yoho. ONE constant, the owner's pick.
 OUTSIDE_BETWEEN = "Outside {area} (between its boundaries)"
+def area_key(name: str) -> str:
+    """(T1199 PR 2, review) THE ONE KEY an area is matched by, on both sides: the area name a part's end token carries
+    (`area:<name>@…`) and the names the bundle writes (`part_area_held`, `cut_area`): Unicode NFC, spaces collapsed,
+    case folded. Two spellings of one area never read as two areas, nor one area as "not carried"."""
+    import unicodedata
+    return " ".join(unicodedata.normalize("NFC", str(name)).split()).casefold()
+
+
+def area_of_token(tok: str) -> str:
+    """The area name an `area:<name>[@…]` end token stands for."""
+    return str(tok)[len("area:"):].split("@")[0]
+
+
 #: (T1199 PR 2) a part's field: the cut areas whose rule it carries (the bundle's `part_area_held`: the area's registry
 #: item holds every section of it), set on every part by the answers step (`builders.held_facts`)
 AREA_HELD = "area_held"
@@ -423,7 +436,7 @@ def _run_txt(doc: dict, r: dict, held: Optional[Sequence[str]] = None) -> str:
         if held is None:
             raise AnswersError(f"display: a stretch between two crossings of {area}: whether it lies inside is not "
                                f"given (`{AREA_HELD}`)")
-        inside = str(r["from"])[len("area:"):].split("@")[0] in set(held)
+        inside = area_key(area_of_token(r["from"])) in {area_key(h) for h in held}
         return ("Within " + area) if inside else OUTSIDE_BETWEEN.format(area=area)
     a, b = end_name(doc, r.get("from"), "from"), end_name(doc, r.get("to"), "to")
     t = f"From {b} up to {a}"

@@ -610,7 +610,8 @@ def test_the_old_kootenay_river_channel_is_measured_and_named_by_its_area(tmp_pa
     p = tmp_path / "b.sqlite"
     db.executescript("CREATE TABLE crossing_near (ord INTEGER, token TEXT, km REAL, near TEXT);"
                      "CREATE TABLE part_near (ord INTEGER, part_ix INTEGER, near TEXT);"
-                     "CREATE TABLE part_area_held (ord INTEGER, part_ix INTEGER, area TEXT);")
+                     "CREATE TABLE part_area_held (ord INTEGER, part_ix INTEGER, area TEXT);"
+                     "CREATE TABLE cut_area (area TEXT PRIMARY KEY);")
     disk = sqlite3.connect(p)
     db.backup(disk)
     disk.close()
@@ -641,7 +642,8 @@ def test_the_old_kootenay_river_channel_unreviewed_goes_to_the_next_rung_but_its
     p = tmp_path / "b.sqlite"
     db.executescript("CREATE TABLE crossing_near (ord INTEGER, token TEXT, km REAL, near TEXT);"
                      "CREATE TABLE part_near (ord INTEGER, part_ix INTEGER, near TEXT);"
-                     "CREATE TABLE part_area_held (ord INTEGER, part_ix INTEGER, area TEXT);")
+                     "CREATE TABLE part_area_held (ord INTEGER, part_ix INTEGER, area TEXT);"
+                     "CREATE TABLE cut_area (area TEXT PRIMARY KEY);")
     disk = sqlite3.connect(p)
     db.backup(disk)
     disk.close()
@@ -1023,6 +1025,8 @@ def test_the_answers_step_reads_the_bundles_new_tables(tmp_path):
         CREATE TABLE part_own_name (ord INTEGER, part_ix INTEGER, name TEXT, label TEXT);
         CREATE TABLE part_area_held (ord INTEGER, part_ix INTEGER, area TEXT);
         INSERT INTO part_area_held VALUES (1, 0, 'X RESERVE');
+        CREATE TABLE cut_area (area TEXT PRIMARY KEY);
+        INSERT INTO cut_area VALUES ('X RESERVE');
         CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT, how TEXT);
         CREATE TABLE part_section (ord INTEGER, sid INTEGER, part_ix INTEGER, m INTEGER);
         CREATE TABLE section_span (sid INTEGER PRIMARY KEY, lo_m INTEGER, hi_m INTEGER, lo INTEGER, hi INTEGER,
@@ -1040,6 +1044,7 @@ def test_the_answers_step_reads_the_bundles_new_tables(tmp_path):
     got = _crossings(str(p))
     assert got[("gnis:36111", "inside", 0)] == ("X RESERVE", "at", True)
     assert got[("gnis:36111", "held", 0)] == {"X RESERVE"}                 # (T1199 PR 2) the areas it carries
+    assert got[("cut_areas",)] == {"x reserve"}                             # and the vocabulary, by the one key
     assert got[("gnis:23366", "own", 4)] == ("Turner Creek", "Port Moody")
 
 

@@ -1298,6 +1298,9 @@ CREATE TABLE salmon_section (sid INTEGER PRIMARY KEY, chain INTEGER NOT NULL) WI
 -- boundaries)" (RULINGS E36).
 CREATE TABLE part_area_held (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area TEXT NOT NULL,
                              PRIMARY KEY (ord, part_ix, area)) WITHOUT ROWID;
+-- (T1199 PR 2, review) every cut area a part's end can name (a region aside), holding water or not: the vocabulary the
+-- answers step checks each `area:<name>` end token of a stretch between two crossings against (`part.area_key`)
+CREATE TABLE cut_area (area TEXT PRIMARY KEY) WITHOUT ROWID;
 CREATE TABLE part_inside (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area TEXT NOT NULL, share REAL NOT NULL,
                           how TEXT NOT NULL CHECK (how IN ('inside', 'at')), cut INTEGER NOT NULL CHECK (cut IN (0, 1)),
                           PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;

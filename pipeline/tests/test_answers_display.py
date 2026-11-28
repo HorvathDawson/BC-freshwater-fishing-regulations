@@ -146,6 +146,7 @@ def test_part_labels_match_the_page(page, monkeypatch):
         held = {(want["id"], "held", i): {str(r["from"])[5:].split("@")[0] for r in p.get("runs") or []
                                          if str(r.get("from") or "").startswith("area:") and r["from"] == r.get("to")}
                 for i, p in enumerate(ws[want["id"]].get("parts") or []) if p}
+        held[("cut_areas",)] = {X.part.area_key(a) for v in held.values() for a in v}
         wf = held_facts(want["id"], side_facts(want["id"], ws[want["id"]], {}), held)
         W = X.Water(want["id"], wf, doc)
         lone = sum(1 for p in W.parts if X.part.side_only(p)) == 1

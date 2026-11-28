@@ -643,9 +643,13 @@ def area_held_rows(db: sqlite3.Connection, holds: Dict[str, frozenset]) -> List[
 
 
 def write_area_held(db: sqlite3.Connection, holds: Dict[str, frozenset], cov) -> None:
+    """`part_area_held`, and `cut_area`: the VOCABULARY, every cut area a part's end can name (`cut_area_holds`' keys,
+    holding water or not), against which the answers step refuses an end token naming an area it does not know."""
     rows = area_held_rows(db, holds)
     db.executemany("INSERT INTO part_area_held (ord, part_ix, area) VALUES (?,?,?)", rows)
     cov.filled("part_area_held", len(rows))
+    db.executemany("INSERT INTO cut_area (area) VALUES (?)", [(n,) for n in sorted(holds)])
+    cov.filled("cut_area", len(holds))
 
 
 def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,

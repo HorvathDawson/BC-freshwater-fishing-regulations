@@ -216,6 +216,8 @@ def _crossings(path: str) -> Dict[tuple, list]:
         for iid, p, area in db.execute("SELECT i.item_id, h.part_ix, h.area FROM part_area_held h JOIN item i "
                                        "ON i.ord = h.ord ORDER BY i.item_id, h.part_ix, h.area"):
             out.setdefault((iid, "held", p), set()).add(area)
+        from pipeline.deliver.answers.display.part import area_key
+        out[("cut_areas",)] = {area_key(a) for (a,) in db.execute("SELECT area FROM cut_area")}
         out.update(_flows_into(db))
         return out
     finally:
@@ -397,8 +399,22 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
 def held_facts(item_id: str, w: dict, crossings: Dict[tuple, object]) -> dict:
     """(T1199 PR 2) the water with the cut areas whose rule each part carries set on EVERY part (`part.AREA_HELD`,
     read by `runs_label`: a stretch between two crossings of an area is "within" it only when it carries its rule)."""
+    from pipeline.deliver.answers.display.part import area_key, area_of_token
     parts = [dict(p, **{AREA_HELD: sorted(crossings.get((item_id, "held", i), ()))}) if p is not None else p
              for i, p in enumerate(w.get("parts") or [])]
+    # (review) an area a stretch between two crossings names must be a cut area the bundle knows, by the one key
+    # (`part.area_key`): a name that drifted, or an area not cut, would read every stretch of it "Outside" — never silent
+    named = sorted({area_of_token(r["from"]) for p in parts if p for r in p.get("runs") or []
+                    if str(r.get("from") or "").startswith("area:") and r["from"] == r.get("to")})
+    if named:
+        known = crossings.get(("cut_areas",))
+        if known is None:
+            raise AnswersError(f"display: {item_id}: the bundle names no cut areas (`cut_area`), so whether its "
+                               f"stretches between crossings of {named} lie inside cannot be said")
+        unknown = [a for a in named if area_key(a) not in known]
+        if unknown:
+            raise AnswersError(f"display: {item_id}: a stretch between two crossings of {unknown}: no cut area of that "
+                               f"name in the bundle (`cut_area`), so its words cannot be said")
     return {**w, "parts": parts}
 
 
