@@ -127,6 +127,7 @@ leave them out.
 | D20 | 2026-11-25 | in person | owner | 0.10.0 candidate | The game-fish status bar showed "open" in a different colour from the salmon bar | T1145 | fixed (#260) | 0.10.0 |
 | D21 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | At a larger system font the Salmon label of the mode switch wrapped onto two lines and the Conditions tab label was cut short | T1201 (follow-up T1203) | in progress (fixed on `main`; the screens not yet walked: T1203) | 0.10.0 (pending) |
 | D22 | 2026-11-26 | seen in a tester's picture | Claude | 0.9.0 Android | A lake with no salmon (Arctic drainage) led with a Salmon status bar (the regional rule applies; the question is whether to show it) | T1202 | answered, no change | — |
+| D23 | 2026-11-27 | Play Console warning | owner | 0.9.0 Android (closed testing) | Three Play Console warnings: deprecated edge-to-edge APIs (Android 15), orientation and resizability limits ignored on large screens (Android 16), native libraries not aligned for 16 KB pages (may fail to install or start) | T1261, T1262, T1263 | open | - |
 
 ## Counts (refresh before applying)
 
@@ -136,6 +137,5 @@ the owner's read pending (F34), 6 fixed in 0.9.0 (shipped 2026-11-24, r-0aec88ed
 owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 10 open (F40–F44 added 2026-11-24, F45 on 11-25).
 Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
 answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2); D14 open (0.9.1); D15–D17 open (0.9.2); D18 open (0.9.1).
-2026-11-26: F47–F52 added (tag CT-3, by email; all open, for the 0.10.0 re-cut) and D21, D22; later that day F53 (a crash kind, T1195), F54 (an in-app feature report, T1197), F55 (26 old-build staging items marked noise, no tickets) and F56 (a fresh native-crash occurrence on 0.9.0, T1057); not in the numbers above.
-Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not
-know how to use the Play form). Recount before applying.
+2026-11-26: F47–F52 added (tag CT-3, by email; all open, for the 0.10.0 re-cut) and D21, D22; later that day F53 (a crash kind, T1195), F54 (an in-app feature report, T1197), F55 (26 old-build staging items marked noise, no tickets) and F56 (a fresh native-crash occurrence on 0.9.0, T1057); 2026-11-27: D23 (three Play Console warnings); not in the numbers above.
+Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not know how to use the Play form). Recount before applying.
