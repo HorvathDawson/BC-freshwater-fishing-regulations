@@ -73,6 +73,9 @@ Pictures: night notes `T1188/v2/` (the review set by reason, then `high_stretche
 The strict/loose/poor counts before and after; the flagged-stretch list with before / after pictures; nothing ships without his look at each placing.
 Severity: low (feature). Model: Opus. Size: M-L.
 
+## Built
+- 2026-11-27, branch `fix/T1188-chart-names-as-variants`: the four definite charts whose printed name differs from their lake's (owner: "the names that differ for definite should have those names added to the name variants for those lakes", each marked Right on his depth-chart review) are name variants in `waters/name_variants.json`, source `bathymetry`, chart number and his review cited: Grizzly Lake (00153501) on Simpson Lake, Snow Lake (00158801) on Iver Lake, Walkin Lake (00168601) on Zippermouth Lake, Kitwanga Lake (00177201) on Kitwancool Lake; the label stays the gazetted name, and no regulation binding moves (`backfill_matched --dry-run` identical with the names added).
+
 ## Owner
 
 - [ ] 2026-11-26 — Look at the flagged-stretch list and the reorientation results before any lake ships; the matching checks are why you asked to wait. Default: nothing ships.
