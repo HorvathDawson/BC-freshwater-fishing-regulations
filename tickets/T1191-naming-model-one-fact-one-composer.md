@@ -1,10 +1,10 @@
 # T1191 — The naming model: one `part_place` fact, one composer, names and chips for every part
 
-Status: OPEN — design done; the owner picked P3 and the full first stage for the 0.10.0 re-cut; his naming answers of 2026-11-27 are recorded (one pick open: Q4's explanation, below); build tickets are numbered by the planning chat from the plan.
+Status: OPEN — design done; the owner picked P3 and the full first stage for the 0.10.0 re-cut; his naming answers of 2026-11-27 are recorded (Q4 settled 2026-11-27, below); build tickets are numbered by the planning chat from the plan.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1191 | The naming model: one `part_place` fact, one composer, names and chips for every part | OPEN — design done; build in the 0.10.0 re-cut; owner: see ## Owner | — | the one open pick (Q4); the 7 build tickets (planning chat numbers them); a Python facts step and one TypeScript composer |
+| T1191 | The naming model: one `part_place` fact, one composer, names and chips for every part | OPEN — design done; build in the 0.10.0 re-cut | — | the 7 build tickets (planning chat numbers them); a Python facts step and one TypeScript composer |
 
 Source: the owner's naming rulings, 2026-11-26 (planning chat), verbatim; the notes `naming-pathway-audit` (the audit),
 `naming-model-design` (README rounds 1-3 and the sheets P1..P3-6). Related: #312 and T1172 (the words already built),
@@ -86,7 +86,7 @@ If the re-cut cannot take it all, the smallest safe slice is 1 + 2 + 5.
 
 ### What the first stage builds, after his rulings of 2026-11-27
 - **No access:** ALL closed land in the layer counts as "No public access" (no filtering to military and watersheds). The
-  card layout waits on Q4 (he likes P3-5; confirm after the explanation).
+  card layout is P3-5 (Q4 settled 2026-11-27: "Yes, settled (Recommended)").
 - **Indigenous land** (placed in the first stage by the planning chat; the Work plan lists "Indigenous land words" under
   0.11.0): the chip replaces the banner; a chip when wholly on reserve land; a "crosses" chip on any touch (no 5% floor).
 - **Words:** "Cowichan 1 reserve"; "Main channel" for a mouth-to-source main line beside side-channel parts; a water with
@@ -106,4 +106,6 @@ Depends: T1196 (first), T1199 (an eco-reserve part is wholly inside). Severity: 
 
 ## Owner
 
-- [ ] 2026-11-27 — No-access on the card (Q4): his words were "i like the layout in p3-5 access" (the chip layout; the status-pill version for 0.11.0 was not chosen), but he did not follow the Cottonwood River example, the salmon stretch tag or the Noons Creek tag. The planning chat owes him a plain explanation of the three; then confirm (a): the "No public access" chip ranks first and the day answer is unchanged, for 0.10.0.
+- [x] 2026-11-27 — No-access on the card (Q4): his words were "i like the layout in p3-5 access" (the chip layout; the status-pill version for 0.11.0 was not chosen), but he did not follow the Cottonwood River example, the salmon stretch tag or the Noons Creek tag. The planning chat owes him a plain explanation of the three; then confirm (a): the "No public access" chip ranks first and the day answer is unchanged, for 0.10.0.
+  → with the plain sheet (night notes `T1191-Q4/`): "Yes, settled (Recommended)" (2026-11-27). Reading: the layout as P3-5; the three tags are NOT built (Cottonwood "Build STOP" was a build fold; Klinaklini's salmon tag is the T1240 defect; Noons: both streams get the Noons regs).
+- [x] 2026-11-27 — Should Turner Creek take the Noons row "No Fishing upstream of railway bridge" (open → closed, about 2.65 km)? → "No, leave Turner as today (Recommended)" (2026-11-27). The city's Noons / West Noons lines already get the Noons row: no clash with T1246.

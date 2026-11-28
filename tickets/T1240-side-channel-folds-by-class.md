@@ -24,7 +24,8 @@ to say why it is separate; if nothing nameable differs, the split is suspect.
    WRONG ANSWERS on the shipped release today (Campbell reads open Jul 15-Aug 31). First in line; it is option A's
    whole content.
 2. **A park rule bound by overlap** (Strathcona: Burman, Bedwell, Rees, Comox, Thelwood): the cut of T1149; the channels
-   fold into their river's part.
+   fold into their river's part. In the 0.10.0 re-cut, by "Hold the re-cut for all of them" (2026-11-26) and "Yes, treat it
+   as Strathcona Park (Recommended)" (2026-11-27); for Strathcona this replaces T1149's "others later" of 2026-11-25.
 3. **The tributary walk stops at a canal or lake** (Mahood p1 and three more): a canal piece of a river goes with its
    river (`may_enter`).
 4. **A licence or salmon cut placed differently on the braid** (Skeena p4, Klinaklini p1, MacMillan p2; the Peace's Site C

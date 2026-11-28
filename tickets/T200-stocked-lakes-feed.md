@@ -1,10 +1,10 @@
 # T200 — stocked lakes: feed the prepared Stocked mode
 
-Status: OPEN — NEXT AFTER CLOSED TESTING (first). Was POSTPONED (deferred, owner 2026-11-05).
+Status: OPEN — NEXT AFTER CLOSED TESTING (first); in the next version, after a careful review of the stocking matching with the owner (owner 2026-11-27). Was POSTPONED (deferred, owner 2026-11-05).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T200 | stocked lakes: feed the prepared Stocked mode; NEXT AFTER CLOSED TESTING, first (plan: docs/research/stocking.md; matcher = lake code picks, FISS point + name confirm, frozen reviewed file) | OPEN | — | owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history … (detail: ticket file) |
+| T200 | stocked lakes: feed the prepared Stocked mode; NEXT AFTER CLOSED TESTING, first (plan: docs/research/stocking.md; matcher = lake code picks, FISS point + name confirm, frozen reviewed file) | OPEN | — | next version (owner 2026-11-27): the stocking matching reviewed with him first; pick 1 (card look) after the T1189 prototype; Credits and NOTICE name GoFishBC (his permission, 2026-11-26) |
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet".
@@ -61,4 +61,6 @@ Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `stocking-depth-plan.md`.
 ## Owner
 
 - [x] 2026-11-25 — Picks (defaults first): stocking v1 from open FISS records only / wait for the licence / ask the Society; the look: a card plus the map colour; alerts: later with T234 / now / never; a source lag is fine if the card says "records to <date>": yes / no. → "i got permission to use go fish bc data we are ok" (2026-11-26 00:50: GoFishBC data may be used, so the richer GoFishBC report, not only FISS); the first slice → "Full report on the lake page (Recommended)" (2026-11-26 00:54)
-- [ ] 2026-11-26 — The 11 picks of the stocking and depth build plan (the planning chat's notes `stocking-depth-build-plan`; mock-ups of the stocking and depth cards to be published for you). Pick 10: a scheduled fetch of GoFishBC's JSON rests on your permission (their robots.txt asks robots to stay off /wp-json/). Default: none built before you pick.
+- [x] 2026-11-26 — The 11 picks of the stocking and depth build plan (the planning chat's notes `stocking-depth-build-plan`; mock-ups of the stocking and depth cards to be published for you). Pick 10: a scheduled fetch of GoFishBC's JSON rests on your permission (their robots.txt asks robots to stay off /wp-json/). Default: none built before you pick.
+  → pick 10: "i got permission to use go fish bc data we are ok" (2026-11-26; Credits and NOTICE must say so). Pick 2 (depth card = a picture): "the bathy map pdfs we would convert to iamges if shipping with app to compress them best" (2026-11-26). Pick 3 (which lakes get a Lake tab): superseded by T1189's Info tab (2026-11-27). Picks 4-9 and 11, the recommended set: "everything is good except the stocking matching we need to spend some time with to make sure everything is matched correctly. and that is the reason this is in next version" (2026-11-27). Reading: the recommended set stands; the lake matching (the 132 unnamed lakes with it) is reviewed with him before it ships.
+- [ ] 2026-11-27 — Pick 1, the stocking card look (A release list / B one line a year / C latest + calendar), asked with a picture after the T1189 prototype (the cards now live in the Info view).

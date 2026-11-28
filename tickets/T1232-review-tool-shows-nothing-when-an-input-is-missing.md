@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1232 | The review tool shows nothing when an input file is missing | OPEN | — | a missing input is a 503 naming the file and its command; marks health says "input missing"; owner: what a closed domain keeps |
+| T1232 | The review tool shows nothing when an input file is missing | OPEN | — | a missing input is a 503 naming the file and its command; marks health says "input missing"; what a closed domain keeps is T1233's |
 
 Source: repo clean chat, 2026-11-27 (scoping note of 2026-11-26 and the review of PR #366). The backend swallows a
 missing generated input and renders an empty list, e.g. `tools/curation-review/backend/awaiting_water.py:36` and
@@ -29,8 +29,9 @@ checked against stay committed; health reads "input missing" for the rest.
 
 ## Owner
 
-- [ ] 2026-11-27 — What must a CLOSED review domain (Q154: 80 marks) keep on disk so its marks are never read as
-  orphans? Default: the marks plus the one input file they were checked against, committed.
+- [x] 2026-11-27 — What must a CLOSED review domain (Q154: 80 marks) keep on disk so its marks are never read as
+  orphans? Default: the marks plus the one input file they were checked against, committed. → superseded by T1233:
+  "A: a "review evidence" folder (Recommended)" (2026-11-27): every file a mark's check reads moves to `data/review/<domain>/`, q154 included.
 - [x] 2026-11-27 — Which order: "C: Safe order (Recommended)" = the loud refusal first; then ONLY the DFO closure entries
   (`dfo_closure_entries.json`) and the tidal pre-verify (`tidal/tidal-preverify.json`) leave git; the tidal pass-2
   proposals stay for good (5 tidal marks point at rows that exist only there); the entry split suggestions and the DFO

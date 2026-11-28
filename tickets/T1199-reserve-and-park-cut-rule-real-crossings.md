@@ -1,10 +1,10 @@
 # T1199 — Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside
 
-Status: OPEN — ruled by the owner; the opens list answered 2026-11-27 ("Merge with the list; close both edge stretches (Recommended)"); lands in the 0.10.0 re-cut.
+Status: OPEN — ruled by the owner; the opens list answered 2026-11-27 ("Merge with the list; close both edge stretches (Recommended)"); merged in #372 (2026-11-27); left: the deliver fix for parts named "inside" after the cut (owner 2026-11-28: one rule across the board, ## Owner), in the 0.10.0 re-cut.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — in the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | the PR into the 0.10.0 re-cut; that build's area-cut gate proves the two accepted calls |
+| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — merged (#372); in the 0.10.0 re-cut | — | the deliver fix (`fix/T1199-reviewed-inside-after-the-cut-rule`) with the across-the-board proof; the re-cut's area-cut gate proves the two accepted calls |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim. On the cut rule: "we need to figure out a way that everything
 get simplified a lot.... like the skeena river er example is crazy... we want to maybe do braid simplification here
@@ -73,3 +73,4 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
 
 - [x] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him. Answered 2026-11-27: "Merge with the list; close both edge stretches (Recommended)"; the Klanawa creek, after its picture: "Stop at 370 m".
   - 2026-11-27: the lane's list (26 stretches, 12.43 km open, plus 252 m on 10 lines that only graze an area; 254 stretches, 14.74 km close; figures may move up to 0.25 km) was put to him. His answer, verbatim: "Hold for the loop-removal trial". Reading: the rule and its list wait for the T1242 trial; he sees both in one look.
+- [x] 2026-11-28 — Main's deliver refused after #372 (parts the review named "inside" no longer said so); the Skeena side channel at the Skeena River Eco Reserve to read "Side channel inside Skeena River Eco Reserve" → "yes but we need to make sure the rule is consistent across the board here not just a ranom special case" (2026-11-28). Left: before merge, one stated rule, a whole-release list of mismatches both ways, no per-part exception, a test.

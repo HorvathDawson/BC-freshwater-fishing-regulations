@@ -1,10 +1,10 @@
 # T1188 — Bathymetry fitter: no stretch except small ones; flag the lakes a stretch would help; a reorientation trial
 
-Status: OPEN — before any lake ships (extends T201's fitter step); owner: see ## Owner
+Status: OPEN — the fitter merged in #386 (faffa736c, 2026-11-28); the vector depth maps are now wanted in 0.10.0 (T201, owner 2026-11-28); owner: see ## Owner (his look at each placing)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1188 | Bathymetry fitter: no stretch except small ones; flag the lakes a stretch would help; a reorientation trial | OPEN — before any lake ships (extends T201's fitter step); owner: see ## Owner | branch feat/T1188-bathymetry-fitter | items 1-5 built and measured, review fixes + neighbour check + confidence built (branch, not merged: re-review, before_pr, PR); his look at the review set; item 6 (T201's order, 3-lake pilot) |
+| T1188 | Bathymetry fitter: no stretch except small ones; flag the lakes a stretch would help; a reorientation trial | OPEN — fitter merged (#386); depth maps wanted in 0.10.0 (T201); owner: see ## Owner | faffa736c (#386) | his look on the review page; the shoreline joins + depth lines branch; item 6 (T201's order) |
 
 Source: the owner on the bathymetry sample page, 2026-11-26: "It seems like a lot of the poor ones could be reoriented to match better? Not all but
 definitely some. Then others like elk lake one need to be reoriented then it also matches 2 lakes. This could be considered for actually implementing
@@ -27,7 +27,7 @@ points 40 km away (fits strict by name).
 5. **Reorientation trial** on the poor and loose placings (the 83 + 117), results as a list; his eye-check per placing stays.
 6. Then the order of T201: the chart card, the 28-lake layer, the ~300 tight-fit vector lakes, a 3-lake pilot. No bulk tracing; images, not PDFs, ship.
 
-## Built 2026-11-27 (items 1-5; branch feat/T1188-bathymetry-fitter, not merged)
+## Built 2026-11-27 (items 1-5; merged in #386, 2026-11-28)
 `pipeline/bathymetry/refit.py` (the steps) and `refit_all.py` (the run; `GENERATED.bathymetry/refit.json`, `.csv`,
 `_shapes.json`); `place_more._one` now takes the zip's path. A step is adopted only when it lifts the class and is not
 ambiguous (another turn, the mirror or another lake within 0.03 IoU). Tests: `pipeline/tests/test_bathymetry_t1188.py`
@@ -68,6 +68,21 @@ A shore below 0.10 (18 of 498) is `review` unless its lake is the only one its s
 Nine stretches refused as ambiguous (loose stretched to poor): Abruzzi (mirror), Dunlevy, McKay, Myles, Blenkinsop,
 Gataiga, Idleback, Azuklotz, Hoover (another lake fits as well unstretched).
 Pictures: night notes `T1188/v2/` (the review set by reason, then `high_stretched`).
+
+## 2026-11-27/28: the review page and his words (verbatim)
+v2 counts: `high` 284 / `high_stretched` 49 / `review` 179. The review page is a private claude.ai Artifact ("Depth chart review", 196 charts:
+4 names differ, 15 partly, 177 review; the marks are his, read with ArtifactData; link in the planning chat's notes); 23 marks so far.
+- The page: "Options A also the names that differ for definite should have those names added to the name variants for those lakes" (2026-11-27);
+  when: "After I mark each one Right (Recommended)" (2026-11-27); he then marked the four Right (Grizzly, Snow, Walkin, Kitwanga; branch
+  `fix/T1188-chart-names-as-variants`, merged in #388). "the artifact needs bigger images so i can tell" (2026-11-27).
+- Confidence: "the complexity of the shape matetrs too" (2026-11-27). Abruzzi: "okay i went through a bunch and for exampel (ABRUZZI LAKE) i
+  think would match better if you looked at the first ring in the vector too? maybe that is why it looked weird? it has a big shallow area for
+  example. look at it and see if it changes anything" and "at least would help align it" (2026-11-27). Reading: the first-ring trial
+  (night notes `T1188/v4-first-ring/`) found a stream-coded shore closed by an 830 m straight join; follow-up branch `feat/T1188-shore-and-depth-lines`.
+- The page: "draw depth lines in artifact too. and also i could have a way to scale and rotate etc. also one last thing have a way to show
+  satellite of the area please so i can reference other things in the pdf" (2026-11-28); "also the map matching should allow me to translate the
+  lakes too. as well as scale and rotate (while aving the lines)" (2026-11-28). Built in page v3 except satellite (Esri forbids exported tiles):
+  links open Google / Bing aerial at the lake instead.
 
 ## Acceptance
 The strict/loose/poor counts before and after; the flagged-stretch list with before / after pictures; nothing ships without his look at each placing.

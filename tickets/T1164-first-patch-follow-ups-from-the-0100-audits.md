@@ -20,7 +20,8 @@ reads the 0.10.0 formats and the reverse. These are what was left:
    does not `throw`.
 2. T1146's walk has no outflow guard (`tributaries.py:1154-1159`): a channel that drains into another basin can
    take the river's rules (MacMillan Creek's channel into Diana Lake; no visible change today, it already carries
-   the Skeena bait ban).
+   the Skeena bait ban). The owner, 2026-11-27/28 (OWNER-UNFILED "T1146 follow-ups"): the channel is NOT Skeena water and
+   does not take the Skeena River's own row; built here, after 0.10.0, unless he pulls it into the re-cut.
 3. T1140's distance words (`side_channels.py:273-275`, `164-170`): a channel that leaves the river and flows into
    another named water is measured from its far end; the "nearest" wording has no distance cap; "into <Lake>" can
    name a lake the channel flows OUT of; the orientation uses the nearest section below by distance, not the one

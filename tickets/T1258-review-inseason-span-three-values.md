@@ -64,4 +64,4 @@ Depends: —. Size: S. Owner: no.
 ## Follow-ups
 
 - `tools/curation-review/backend/inseason.py:89-93` `_in_effect` re-implements the in-force rule and disagrees with `M.on` on a row with no dates (`in_effect: None` but banner "in force"): derive it from the banner; not done here.
-- The intermittent fork crash and the fixture memory growth in the review data tests get their own ticket from the planning chat.
+- The intermittent fork crash and the fixture memory growth in the review data tests are T1265.
