@@ -65,6 +65,8 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
   Schmidt, Lost Shoe, Camper, Clanninick). Fixed in cce1cd50a (`shore.leaves_at_mouth`): the four rows are back
   byte-identical, and 488 more lines are now recorded "not cut: the mouth is the coast crossing"; coast cuts and
   tidal water unchanged; records only (no consumer reads row counts).
+- 2026-11-27 (lane L, after #372): a deliver of main stopped at the answers step: "reviewed inside parts no longer said inside" (the Gordon River in Pacific Rim, the Okanagan River Oxbows at Hayne's Lease). The 100 m floor grew their 47 m and 37 m inside pieces to 100 m (46 % and 36 % inside the polygons); the area items still hold them, but `side_channels.inside_rows` measured the shapes. Fixed: in a cut area the part's lines are measured by the cut (E30), shapes only for lakes and membership-only areas; `REVIEWED_INSIDE` unchanged. `test_t1199_inside_follows_the_cut.py`.
+- 2026-11-28 (lane L, review of the fix): only the clean-cut areas follow the cut, EXACTLY (all its lines held), both ways refused by name (RULINGS E35, his two sentences); a cut place with no water holds nothing; the Skeena's side channel by the reserve takes his yes ("Side channel inside Skeena River Eco Reserve", `REVIEWED_INSIDE`). Main-stem parts and whole waters: an open owner question (release audit). The Beaverfoot's "within Yoho" on two open stretches: his pick of 11-28, a second PR.
 - Follow-up: two constants are both `STUB_M` (`coast.STUB_M` 25 m, `tolerances.STUB_M` 100 m); rename one later.
 
 ## Owner

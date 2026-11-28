@@ -264,8 +264,9 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     for p in W.parts:
         run_n[(p["grp"], p["run"])] = run_n.get((p["grp"], p["run"]), 0) + 1
     # (T1140, owner 2026-11-25: "itshould have the real name … it will say eco reserve here") a part with no main stem
-    # lying at least 95 % inside one area, measured on its shapes (the bundle's `part_inside`), is said by it: "Squamish
-    # River inside Baynes Island Ecological Reserve" (the token `part.INSIDE`, the same as both its ends)
+    # inside one area (the bundle's `part_inside`: in a clean-cut area EXACTLY when the cut puts all its lines there,
+    # T1199 E35; elsewhere at least 95 % on its shapes) is said by it: "Squamish River inside Baynes Island Ecological Reserve" (the token `part.INSIDE`,
+    # the same as both its ends)
     several = sum(1 for t in toks if t is None) > 1
     # (T1172) the NAME says only a reviewed area (`part.REVIEWED_INSIDE`): an unreviewed one the atlas cuts at stops the
     # build below; an unreviewed membership-only one is passed over here (the part's subtitle still says it,

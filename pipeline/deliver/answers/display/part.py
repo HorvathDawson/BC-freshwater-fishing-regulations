@@ -635,7 +635,8 @@ SIDE = "near:side:"
 UNNAMED_ENDS = ("mouth", "source", "polygon", "lake_inlet", "lake_outlet")
 #: T1140: the parts the build may NAME "<water> inside <area>" / "<water> at <area>", each checked by a reviewer on its
 #: picture (item id, the area's catalogue name, how): THE NAME'S GATE ONLY. (T1172, owner 2026-11-26: "universally")
-#: the bundle measures every part in every area by one rule (`bundle.side_channels.inside_rows`) and the part's SUBTITLE
+#: the bundle measures every part in every area by one rule (`bundle.side_channels.inside_rows`: in a clean-cut area by
+#: the cut, T1199 E30; else on its shapes) and the part's SUBTITLE
 #: says its area whether or not it is listed here (`runs_label`). An unlisted area the atlas cuts at stops the build
 #: until it is looked at and added here; an unlisted membership-only one (a park or WMA the atlas does not cut at) is
 #: listed in the build log ("INSIDE candidate") and the name takes its next rung; a listed part no longer said inside
@@ -648,7 +649,12 @@ REVIEWED_INSIDE = frozenset({("gnis:25671", "BAYNES ISLAND ECOLOGICAL RESERVE", 
                              ("gnis:2123", "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside"),
                              # (T1172, owner 2026-11-26: "yes name it but this is something we need to fix generally")
                              # Thelwood Creek's side part: 100 % inside the park (membership-only)
-                             ("gnis:21681", "STRATHCONA - WESTMIN PARK", "inside")})
+                             ("gnis:21681", "STRATHCONA - WESTMIN PARK", "inside"),
+                             # (T1199, RULINGS E35, owner 2026-11-28, shown its picture: "yes but we need to make sure
+                             # the rule is consistent across the board here not just a ranom special case") the Skeena's
+                             # side channel by the reserve: all its lines edge water the cut puts in the reserve (71.7 %
+                             # by shape), "Side channel inside Skeena River Eco Reserve"
+                             ("gnis:2936", "SKEENA RIVER ECOLOGICAL RESERVE", "inside")})
 
 
 def named_end(tok: Optional[str]) -> Optional[str]:
