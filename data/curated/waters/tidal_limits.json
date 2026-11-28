@@ -1062,6 +1062,7 @@
 {"blk": "360880719", "name": "Hogan Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "0d2f3bcfdbf7", "why": "the mouth"},
 {"blk": "360880747", "name": "Awun River", "limit": "mouth", "decided": "2026-10-28", "mark": "e623de877d68", "why": "the mouth"},
 {"blk": "360880849", "name": "Noons Creek", "limit": "split", "split": "noons_creek__railway_bridge", "decided": "2026-10-29", "why": "owner 2026-10-29: \"The railway bridge crossing Noons Creek serves as the definitive boundary separating tidal from freshwater regulations.\" (Ioco Spur rail bridge, OSM basemap, 0.2 m from this point)"},
+{"blk": "-2200000392", "name": "Turner Creek", "limit": "split", "split": "turner_creek__railway_bridge", "decided": "2026-11-27", "why": "owner 2026-11-27 (T1246): \"tidal limit is rail bridge again I think. like noons\" (Ioco Spur, OSM basemap, the same railway as Noons Creek's bridge, 126 m above Turner Creek's mouth)"},
 {"blk": "360881072", "name": "Copper Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "a73cf73d83f0", "why": "the mouth"},
 {"blk": "360881119", "name": "Ellerslie Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "8e4580ea8bda", "why": "the mouth"},
 {"blk": "360881124", "name": "Owyacumish Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "695571b0361c", "why": "the mouth"},

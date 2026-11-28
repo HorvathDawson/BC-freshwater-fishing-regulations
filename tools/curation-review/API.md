@@ -426,8 +426,10 @@ banner on the water in the app, never changes an answer.
   match on a row the feed no longer holds (`state: "stale"`). Each row: the feed's fields (`region, section,
   water` as printed, `effective` text, `from, to, change, parsed, status`), `state` matched | unmatched | stale,
   `match` (`extents[]` with `item_name` / `split_labels`, `effective`, `note, by, at`) or null, `dates`
-  `{from, to, source: curated | feed}` (the curated `effective` overrides the feed's field by field),
-  `in_effect` (from ≤ today ≤ to; `to` null = open-ended; null when no dates) and `history[]` (this row's
+  `{from, to, source: curated | feed, dated}` (the curated `effective` overrides the feed's field by field;
+  `dated`: by the notice's own range or a cell with both ends, T1167), `in_effect` (from ≤ today ≤ to; `to` null =
+  open-ended; null when no dates), `banner` (T1258: what the app shows today, `"in force"` | `"upcoming"` | null —
+  `matches.on`; null on a removed or stale row) and `history[]` (this row's
   edits). No feed file: 200 with `available: false` and a message. Progress counts live rows only.
   `match.source` owner | auto | claude (the auto matcher was removed in T520; its matches stay labelled), with
   `match.confidence` / `match.evidence` where it wrote them; `progress.auto`. (T520) `match.waters` is where the

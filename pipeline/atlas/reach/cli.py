@@ -156,7 +156,8 @@ def main() -> int:
         dfo_diags: list = []
         # T632 (owner 2026-11-11): the run's tidal water comes out of every DFO place but those with a stated reason
         rows = dfo_salmon.resolve_all(registry, graph, outside=result.outside or None, diagnostics=dfo_diags,
-                                      tidal=result.tidal, keep_tidal=dfo_salmon.load_tidal_calls())
+                                      tidal=result.tidal, keep_tidal=dfo_salmon.load_tidal_calls(),
+                                      stops=result.stops)
         cut = sum(d["payload"].get("removed", 0) for d in dfo_diags if d["kind"] == "tidal")
         print(f"  dfo tidal    {sum(1 for d in dfo_diags if d['kind'] == 'tidal'):,} place(s) lost {cut:,} tidal "
               "section(s) (T632)")

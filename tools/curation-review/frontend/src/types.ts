@@ -1813,8 +1813,13 @@ export interface InSeasonRow {
            source: "owner" | "auto" | "claude"; confidence: "high" | "medium" | "low" | null;
            evidence: InSeasonEvidence | null } | null;
   /** the dates in force: the curated `effective` over the feed's, field by field */
-  dates: { from: string | null; to: string | null; source: "curated" | "feed" };
+  dates: { from: string | null; to: string | null; source: "curated" | "feed";
+           /** (T1167) dated by the notice's own range or a cell with both ends: only a dated row is ever "upcoming" */
+           dated: boolean };
   in_effect: boolean | null;
+  /** (T1258) what the app shows on the water today (`matches.on`, core's `inSeasonOn`); null: none, or a removed /
+   *  stale row */
+  banner: "in force" | "upcoming" | null;
   history: InSeasonHistory[];
 }
 export interface InSeasonQueue {
