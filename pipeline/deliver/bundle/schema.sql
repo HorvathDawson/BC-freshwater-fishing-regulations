@@ -1292,6 +1292,12 @@ CREATE TABLE salmon_section (sid INTEGER PRIMARY KEY, chain INTEGER NOT NULL) WI
 -- straddles its edge ("<water> at <area>"). `share`: the lines' share. A part neither has no row. (T1172) `cut`: 1 for an
 -- area the atlas cuts streams at, 0 for a membership-only park, WMA, ecological reserve or national park; every such
 -- area is measured, reviewed or not (the answers step: the subtitle says it always, the name for a reviewed pair).
+-- (T1199 PR 2) THE CUT AREAS WHOSE RULE A PART CARRIES: its area's registry item holds every section of it
+-- (`side_channels.area_held_rows`; every cut area a part's ends can name, a region aside). Read by the answers step: a
+-- stretch between two crossings of an area's edge is said "Within <area>" only then, else "Outside <area> (between its
+-- boundaries)" (RULINGS E36).
+CREATE TABLE part_area_held (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area TEXT NOT NULL,
+                             PRIMARY KEY (ord, part_ix, area)) WITHOUT ROWID;
 CREATE TABLE part_inside (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area TEXT NOT NULL, share REAL NOT NULL,
                           how TEXT NOT NULL CHECK (how IN ('inside', 'at')), cut INTEGER NOT NULL CHECK (cut IN (0, 1)),
                           PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;
