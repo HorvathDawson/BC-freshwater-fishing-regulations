@@ -4,7 +4,7 @@ Status: OPEN — the fitter merged in #386 (faffa736c, 2026-11-28); the vector d
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1188 | Bathymetry fitter: no stretch except small ones; flag the lakes a stretch would help; a reorientation trial | OPEN — fitter merged (#386); depth maps wanted in 0.10.0 (T201); owner: see ## Owner | faffa736c (#386) | his look on the review page; the shoreline joins + depth lines branch; item 6 (T201's order) |
+| T1188 | Bathymetry fitter: no stretch except small ones; flag the lakes a stretch would help; a reorientation trial | OPEN — fitter merged (#386); depth maps wanted in 0.10.0 (T201); owner: see ## Owner | faffa736c (#386); v5 shore joins + depth lines (this PR) | his look on the review page; the review page moved to the v5 placings; item 6 (T201's order) |
 
 Source: the owner on the bathymetry sample page, 2026-11-26: "It seems like a lot of the poor ones could be reoriented to match better? Not all but
 definitely some. Then others like elk lake one need to be reoriented then it also matches 2 lakes. This could be considered for actually implementing
@@ -83,6 +83,32 @@ v2 counts: `high` 284 / `high_stretched` 49 / `review` 179. The review page is a
   satellite of the area please so i can reference other things in the pdf" (2026-11-28); "also the map matching should allow me to translate the
   lakes too. as well as scale and rotate (while aving the lines)" (2026-11-28). Built in page v3 except satellite (Esri forbids exported tiles):
   links open Google / Bing aerial at the lake instead.
+
+## Built 2026-11-28 (v5: the shore's joins, depth lines; branch feat/T1188-shore-and-depth-lines)
+The owner on Abruzzi: "i think would match better if you looked at the first ring in the vector too? ... it has a big
+shallow area". Cause: its north-west shore is coded GA2485 (stream), so the fitter closed the shore with an 830 m chord
+across the shallows.
+1. **Shore joins** (`place.shore_report`): a join over 300 m (`JOIN_TRUSTED_M` = the first pass's gap: the 769 joins
+   run continuously 0-296 m, then only the 29 joins of the 26 sheets that close at the 1,000 m pass) is first
+   completed with the sheet's own G-coded arcs between its two ends, kept only when the ring closes and holds the
+   depth lines (<= 1 % outside). Of the 26 placed: 6 completed with real arcs (Abruzzi 26.2 ha, the PDF prints 26.0;
+   Bruce, Beale, Fox, Grayling, Blackwater), 20 keep a straight join and are flagged `shore_joined_straight` (Boy
+   Lake: its west shore is a river's two banks that never meet; French: a road); 3 unplaced sheets alike. Flag
+   `depth_lines_outside_shore` over 1 %: Boy only (19.4 %). Either flag is `review`: 7 high and 4 high_stretched
+   moved to review (Dahl, Davie, Ed Asp, Hallett, Hesquiat, Kedahda, Kluachesi; Mud, Ghost, Azure, Boy).
+2. **Depth lines as a witness** (`depth_on_land_pct`, > 10 m outside our lake at the adopted placing): over 10 % on
+   43, flagged `depth_lines_on_land`, all already review; the worst high one 7.6 % (no high sheet moved).
+3. **A depth line as the outline** (refit step 5, `refit.depth_line_step`): only when the shore fit is not strict on
+   its coded lake; adopted only when it lifts the class with no turn, mirror or lake within 0.03 (the full 50 km
+   check on the line's own shape) and our lake inside the chart's shoreline; always `review` (`fitted_on_depth_line`,
+   `fit_line`, `shore_over_lake`). 11 adopted: Abruzzi (2 m, poor 0.76 -> loose 0.82; with the true shore the plain
+   shoreline is poor 0.68, 1.46x our lake and mirror-tied, so the line is still needed), Blenkinsop, Shesta, Sundance
+   East, Wrigglesworth, Kitsumkalum, Suzanne, Azuklotz, Black (87), Jacko, Mackill. 10 refused at the last checks
+   (Dunlevy, Green, South Caribou, Fifteen Mile, Og by another lake; Myles and Abruzzi's 1 m line by the mirror).
+
+Confidence `high` 277 / `high_stretched` 46 / `review` 189 (v2 284 / 49 / 179); Blackwater moved up (its completed
+shore fits strict stretched). No lake changed; 12 placings moved more than 5 m. None of the owner's 23 marked charts
+moved. Tests: `test_bathymetry_t1188.py` (9 new). Outputs and pictures: night notes `T1188/v5/`.
 
 ## Acceptance
 The strict/loose/poor counts before and after; the flagged-stretch list with before / after pictures; nothing ships without his look at each placing.

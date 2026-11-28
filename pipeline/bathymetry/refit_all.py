@@ -6,7 +6,11 @@ Every sheet it grades loose or poor then goes through `refit.refit_sheet` (rigid
 small stretch; the bigger stretch only listed). The failures (no shore, no candidate, unreadable, duplicate coverage)
 are carried as they are. Then EVERY placed sheet, strict ones too, gets the trust checks (`check`): the best
 neighbouring lake and its gap (`refit.neighbour_check`), a strict baseline's other turns and mirror
-(`refit.orientation_check`), the shape's complexity (`refit.self_similarity`); and its `confidence` (`confidence`).
+(`refit.orientation_check`), the shape's complexity (`refit.self_similarity`), the depth lines as a second witness
+(`depth_on_land_pct`: the share more than ON_LAND_TOL_M outside our lake at the adopted placing; over
+ON_LAND_FLAG_PCT it is flagged, a warning, never a tie-breaker); and its `confidence` (`confidence`). The shore's own
+flags (`place.shore_flags`: a straight join over `place.JOIN_TRUSTED_M`, depth lines outside the shore) and a placing
+on a depth line (`refit.depth_line_step`) are always review.
 
 A lake is free (`claims`): a wrong-lake find that lands on a lake another sheet ends on is refused (that sheet is rerun
 with the lake taken, until nothing changes); one that lands on a lake only coded for another sheet which itself moved
@@ -35,12 +39,13 @@ import json
 import os
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from pipeline.bathymetry.place_more import LICENCE_FLAG
 
 STEP_LABELS = {"baseline": "the repo's fitter", "rigid": "rigid, wider", "two_lake": "two-lake fit",
-               "other_lake": "wrong-lake code", "small_stretch": "small stretch (<= 5 %)"}
+               "other_lake": "wrong-lake code", "small_stretch": "small stretch (<= 5 %)",
+               "depth_line": "a depth line as the outline (safe rule)"}
 
 
 #: the steps whose found lift can be refused (ambiguous, a name that differs, a lake the sheet does not draw)
@@ -54,7 +59,8 @@ SIMPLE_BELOW = 0.10
 AMBIGUOUS = ("rigid_ambiguous", "two_lake_ambiguous", "other_lake_ambiguous", "small_stretch_ambiguous",
              "orientation_ambiguous")
 #: why a placing needs the owner's look, in the order a contact sheet groups it (the first that applies)
-REASONS = ("neighbour_rival", "ambiguous", "takes_a_coded_lake", "other_lake", "two_lake", "rigid_wider", "mirror",
+REASONS = ("fitted_on_depth_line", "shore_joined_straight", "depth_lines_outside_shore", "depth_lines_on_land",
+           "neighbour_rival", "ambiguous", "takes_a_coded_lake", "other_lake", "two_lake", "rigid_wider", "mirror",
            "simple_shape", "stretch_at_limit", "loose", "poor")
 SETTLE_ROUNDS = 6
 
@@ -96,11 +102,30 @@ def zip_names(zdir: Path, vec_dir: Path) -> List[str]:
 
 
 def _sheet_of(zpath: str, coverage: str, gap_m: float):
+    """the sheet's water (`place.shore`), its arcs as (depth, LineString), its depth lines (`place.depth_lines`)"""
     from shapely.geometry import LineString
     from pipeline.bathymetry import e00, place
     sh = {s.lines.name: s for s in e00.read_zip_all(zpath)}[coverage]
     cont, snd = sh.contours(), sh.soundings()
-    return place.shore(cont, snd, max_gap=gap_m), [(d, LineString(p)) for d, _fc, p in cont if len(p) >= 2]
+    return (place.shore(cont, snd, max_gap=gap_m), [(d, LineString(p)) for d, _fc, p in cont if len(p) >= 2],
+            place.depth_lines(cont))
+
+
+#: T1188 v5, the depth lines as a second witness: a depth line more than this far (m) outside our lake is on land
+ON_LAND_TOL_M = 10.0
+#: over this share (percent) of the depth-line length on land, the placing is flagged `depth_lines_on_land` (a
+#: warning, never a tie-breaker: it favours the bigger lake). The 2026-11-28 experiment: 45 placings over it, all
+#: already review; the worst high one 7.6 %.
+ON_LAND_FLAG_PCT = 10.0
+
+
+def depth_on_land_pct(deep, place_fn, target) -> Optional[float]:
+    """percent of the depth lines' length more than ON_LAND_TOL_M outside `target` once placed by `place_fn`"""
+    from pipeline.bathymetry import place
+    if not deep:
+        return None
+    v = place.outside_share([place_fn(l) for l in deep], target, ON_LAND_TOL_M)
+    return None if v is None else round(100 * v, 2)
 
 
 def job(j):
@@ -117,39 +142,63 @@ def job(j):
     for r in rows:
         if r.get("state") != "fitted":
             continue
-        sheet, lines = _sheet_of(zpath, r["coverage"], r["gap_m"])
+        sheet, lines, deep = _sheet_of(zpath, r["coverage"], r["gap_m"])
         c = sheet.centroid
         o = (c.x, c.y)
         tol = max(1.0, (sheet.area ** 0.5) / 400)
         base = place._place(sheet, r["fit"]["angle_deg"], r["fit"]["dx"], r["fit"]["dy"], False, tuple(r["fit"]["origin"]))
         bw = int(r["fit"]["wbk"].split(":")[1])
         check: Dict[str, object] = {"orientation": None}
+        outline, line_placed = sheet, None   # the outline fitted: the shore, or a depth line (refit step 5)
         if r["grade"] == "strict":       # the repo's fitter placed it strict: checked, never refitted
             got, geoms_used = None, {bw: lakes[bw]}
             final_fit, members, placed = r["fit"], [bw], base
             check["orientation"] = refit.orientation_check(sheet, lakes[bw], o, r["fit"])
+            fo = tuple(r["fit"]["origin"])
+
+            def place_fn(g, f=r["fit"], fo=fo):
+                return place._place(g, f["angle_deg"], f["dx"], f["dy"], False, fo)
         else:
             coded = {w: {"geom": lakes[w], **info.get(w, {})} for w in sorted(lakes)}
             got = refit.refit_sheet(sheet, lines, coded, near, base_fit=r["fit"], units=r["units"], titles=titles,
                                     taken=taken)
             geoms_used = got.pop("_geoms")
+            outline = got.pop("_outline")
             r["refit"] = got
             o = tuple(got["origin"])
             final_fit, members = got["after"]["fit"], refit._members(got["after"]["target"])
             placed = refit.apply(sheet, refit.pose_of(final_fit), o)
+
+            def place_fn(g, f=final_fit, o=o):
+                return refit.apply(g, refit.pose_of(f), o)
         target = unary_union([geoms_used[w] for w in members])
-        # the neighbours are fitted without a stretch: the gap is from the placing before its stretch
-        own = float(final_fit["iou"]) if got is None else refit.unstretched_iou(got)
-        nb, nb_geom = refit.neighbour_check(sheet, o, own, target, members, near)
+        dl = (got or {}).get("steps", {}).get("depth_line", {})
+        r["fit_line"] = dl.get("line", "shore") if dl.get("adopted") else "shore"
+        if dl.get("adopted"):
+            r["fit_line_depth"] = dl["depth"]
+            line_placed = place_fn(outline)
+        r["shore_over_lake"] = round(sheet.area / target.area, 3)
+        r["depth_on_land_pct"] = depth_on_land_pct(deep, place_fn, target)
+        if dl.get("adopted"):
+            # the depth line's own neighbour check (its shape and size, its unstretched IoU) is the placing's
+            nb, nb_geom = dl["neighbour"], None
+            if nb.get("lake"):
+                nb_geom = near(target.bounds, refit.NEIGHBOUR_M)[int(nb["lake"].split(":")[1])]["geom"]
+        else:
+            # the neighbours are fitted without a stretch: the gap is from the placing before its stretch
+            own = float(final_fit["iou"]) if got is None else refit.unstretched_iou(got)
+            nb, nb_geom = refit.neighbour_check(sheet, o, own, target, members, near)
         check["neighbour"] = nb
-        check["shape"] = refit.self_similarity(sheet, o)
+        check["shape"] = refit.self_similarity(outline, o)
         check["lakes"] = {f"wbk:{w}": {"name": (info.get(w) or {}).get("name")} for w in members if w in lakes}
         r["check"] = check
         sh = {"lakes": {f"wbk:{w}": _wkt(g, tol) for w, g in sorted(geoms_used.items())},
               "before": _wkt(base, tol), "after": _wkt(placed, tol)}
+        if line_placed is not None:
+            sh["after_line"] = _wkt(line_placed, tol)
         if nb_geom is not None:
             sh["lakes"][nb["lake"]] = _wkt(nb_geom, tol)
-            sh["neighbour"] = _wkt(refit.apply(sheet, refit.pose_of(nb["fit"]), o), tol)
+            sh["neighbour"] = _wkt(refit.apply(outline, refit.pose_of(nb["fit"]), o), tol)
         if got is None:
             shapes[f"{r['zip']}/{r['coverage']}"] = sh
             continue
@@ -235,8 +284,13 @@ def settle(results: Dict[str, tuple], coded_by: Dict[int, List[str]], rerun) -> 
 
 
 def all_flags(r: dict) -> List[str]:
-    """the row's refit flags and its check flags (`neighbour_rival`, `orientation_ambiguous`)"""
+    """the row's refit flags, its shore's flags (`place.shore_flags`: `shore_joined_straight`,
+    `depth_lines_outside_shore`) and its check flags (`neighbour_rival`, `orientation_ambiguous`,
+    `depth_lines_on_land`)"""
     fl = set(r.get("refit", {}).get("flags", []))
+    fl |= set((r.get("shore") or {}).get("flags", []))
+    if float(r.get("depth_on_land_pct") or 0) > ON_LAND_FLAG_PCT:
+        fl.add("depth_lines_on_land")
     ch = r.get("check") or {}
     if (ch.get("neighbour") or {}).get("rival"):
         fl.add("neighbour_rival")
@@ -257,6 +311,9 @@ def confidence(r: dict) -> Tuple[str, List[str]]:
     after = f["after"] if f else {"grade": r["grade"], "step": "baseline", "fit": dict(r["fit"], mirror=False)}
     fl = all_flags(r)
     why = []
+    for x in ("fitted_on_depth_line", "shore_joined_straight", "depth_lines_outside_shore", "depth_lines_on_land"):
+        if x in fl:                                   # T1188 v5: the shore or the depth lines say look
+            why.append(x)
     if "neighbour_rival" in fl:
         why.append("neighbour_rival")
     if any(x in fl for x in AMBIGUOUS):
@@ -274,7 +331,7 @@ def confidence(r: dict) -> Tuple[str, List[str]]:
     cx = (ch.get("shape") or {}).get("complexity")
     if cx is not None and cx < SIMPLE_BELOW and (ch.get("neighbour") or {}).get("similar_size", 1) > 0:
         why.append("simple_shape")
-    stretched = bool(f and f["steps"]["small_stretch"].get("adopted"))
+    stretched = _stretched(r)
     if "small_stretch_at_limit" in fl:
         why.append("stretch_at_limit")
     if after["grade"] != "strict":
@@ -284,6 +341,17 @@ def confidence(r: dict) -> Tuple[str, List[str]]:
     return ("high_stretched" if stretched else "high"), []
 
 
+def _stretched(r: dict, step: str = "depth_line") -> bool:
+    """is the row's placing after `step` stretched (a small stretch, or a depth line fitted with one)"""
+    f = r.get("refit")
+    if not f or step not in ("small_stretch", "depth_line"):
+        return False
+    dl = f["steps"].get("depth_line", {})
+    if step == "depth_line" and dl.get("adopted"):
+        return abs(float(dl["fit"].get("scale", 1.0)) - 1) > 1e-9
+    return bool(f["steps"]["small_stretch"].get("adopted"))
+
+
 def _cls(r: dict, step: str) -> str:
     """the class of a row after `step` (a failure state when it was never fitted); a small stretch is its own class"""
     if r.get("state") != "fitted":
@@ -291,9 +359,7 @@ def _cls(r: dict, step: str) -> str:
     if "refit" not in r:
         return r["grade"]
     g = r["refit"]["classes"][step]
-    if step == "small_stretch" and r["refit"]["steps"]["small_stretch"].get("adopted"):
-        return f"{g} (stretch <= 5 %)"
-    return g
+    return f"{g} (stretch <= 5 %)" if _stretched(r, step) else g
 
 
 def summarise(rows: List[dict]) -> dict:
@@ -310,8 +376,11 @@ def summarise(rows: List[dict]) -> dict:
             lists["high_stretched"].append(_key(r))
         elif c == "review" and why != ["not_placed"]:
             lists[f"review_{why[0]}"].append(_key(r))
-        if "neighbour_rival" in all_flags(r):
-            lists["neighbour_rival"].append(_key(r))
+        for x in ("neighbour_rival", "shore_joined_straight", "depth_lines_outside_shore", "depth_lines_on_land"):
+            if x in all_flags(r):
+                lists[x].append(_key(r))
+        if any(j["how"] == "arcs" for j in (r.get("shore") or {}).get("joins", [])):
+            lists["shore_completed_with_arcs"].append(_key(r))
         f = r.get("refit")
         if not f:
             continue
@@ -325,6 +394,8 @@ def summarise(rows: List[dict]) -> dict:
             lists["other_lake"].append(k)
         if st["small_stretch"].get("adopted"):
             lists["small_stretch"].append(k)
+        if st.get("depth_line", {}).get("adopted"):
+            lists["fitted_on_depth_line"].append(k)
         if f["would_help"]:
             lists["bigger_stretch_would_help"].append(k)
         # a lift a step found but refused (ambiguous, a name that differs, a lake the sheet does not draw), listed
@@ -351,7 +422,9 @@ CSV_COLS = ["zip", "coverage", "title", "codes", "units", "class_before", "class
             "lake_after", "lake_names_after", "rotation_deg", "mirror", "scale", "iou_before", "iou_after",
             "median_m_before", "median_m_after", "area_ratio_after", "flags", "stretch_would_change",
             "stretch_scale", "stretch_iou", "stretch_class", "neighbour_lake", "neighbour_name", "neighbour_iou",
-            "neighbour_gap", "similar_size_lakes", "complexity", "confidence", "review_reasons"]
+            "neighbour_gap", "similar_size_lakes", "complexity", "confidence", "review_reasons", "fit_line",
+            "fit_line_depth", "shore_over_lake", "depth_on_land_pct", "depth_lines_outside_shore_pct",
+            "longest_straight_join_m", "shore_joins"]
 
 
 def csv_rows(rows: List[dict], titles: Dict[str, List[str]]) -> str:
@@ -367,6 +440,7 @@ def csv_rows(rows: List[dict], titles: Dict[str, List[str]]) -> str:
         flags = all_flags(r) if r.get("state") == "fitted" else []
         ch = r.get("check") or {}
         nb = ch.get("neighbour") or {}
+        sh = r.get("shore") or {}
         conf, why = confidence(r)
         names = []
         if f:
@@ -376,7 +450,7 @@ def csv_rows(rows: List[dict], titles: Dict[str, List[str]]) -> str:
         wh = f["would_help"] if f else None
         w.writerow({"zip": r["zip"], "coverage": r.get("coverage", ""), "title": "; ".join(titles.get(r["zip"], [])),
                     "codes": " ".join(r.get("codes", [])), "units": r.get("units", ""),
-                    "class_before": r.get("grade", r["state"]), "class_after": _cls(r, "small_stretch"),
+                    "class_before": r.get("grade", r["state"]), "class_after": _cls(r, "depth_line"),
                     "changed_by": after["step"] if f and after["grade"] != r["grade"] else "",
                     "lake_before": fit.get("wbk", ""), "lake_after": after["target"], "lake_names_after": "; ".join(names),
                     "rotation_deg": af.get("angle_deg", ""), "mirror": af.get("mirror", "") if af else "",
@@ -390,8 +464,19 @@ def csv_rows(rows: List[dict], titles: Dict[str, List[str]]) -> str:
                     "neighbour_iou": nb.get("iou", ""), "neighbour_gap": nb.get("gap", ""),
                     "similar_size_lakes": nb.get("similar_size", ""),
                     "complexity": (ch.get("shape") or {}).get("complexity", ""), "confidence": conf,
-                    "review_reasons": " ".join(why)})
+                    "review_reasons": " ".join(why), "fit_line": r.get("fit_line", ""),
+                    "fit_line_depth": r.get("fit_line_depth", ""), "shore_over_lake": r.get("shore_over_lake", ""),
+                    "depth_on_land_pct": _blank(r.get("depth_on_land_pct")),
+                    "depth_lines_outside_shore_pct": _blank(sh.get("depth_lines_outside_shore_pct")),
+                    "longest_straight_join_m": _blank(sh.get("longest_straight_join_m")),
+                    "shore_joins": " ".join(f"{j['m']:g}:{j['how']}" + (f"({'/'.join(j['codes'])} {j['arcs_m']:g})"
+                                                                         if j["how"] == "arcs" else "")
+                                            for j in sh.get("joins", []))})
     return buf.getvalue()
+
+
+def _blank(v) -> object:
+    return "" if v is None else v
 
 
 def _write(path: Path, text: str) -> None:
@@ -486,6 +571,9 @@ def resummarise() -> int:
     if not p.exists():
         raise SystemExit(f"no {p} to summarise: run `python -m pipeline.bathymetry.refit_all` first")
     d = json.loads(p.read_text())
+    if any("refit" in r and "depth_line" not in r["refit"]["classes"] for r in d["rows"]):
+        raise SystemExit(f"{p} predates step 5 (no depth_line class, T1188 v5): rerun "
+                         f"`python -m pipeline.bathymetry.refit_all`")
     if "titles" not in d:
         raise SystemExit(f"{p} predates --resummarise (no titles): rerun `python -m pipeline.bathymetry.refit_all`")
     return _publish("refit", d["rows"], d["titles"], None, d.get("taken", {}))
