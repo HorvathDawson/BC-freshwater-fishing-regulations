@@ -328,6 +328,8 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
       own row's water (`LAKES_ONLY_BY_OWN_ROW`); no tributary walk. It carries the provincial set through the twins
       (extent op `steelhead_waters`). Never put an item or region extent on a base steelhead rule: it changes its
       competition key.
+    - A PACIFIC STREAM is known too (RULINGS S14, `PACIFIC_STREAMS_ARE_STEELHEAD_WATER`): every stream of those regions
+      whose FWA basin reaches the Pacific, less what `steelhead_barriers.json` holds out (stays "possible"); lakes out.
     - STEELHEAD RULES APPLY where every rule of the provincial set binds (`Presence.rules_apply`); elsewhere a known
       part carries `steelhead_rules: false` and its rainbow rules answer for every rainbow. An outright stamp waiver
       lifts the steelhead stamp; "unless fishing for steelhead" lifts only the classified-water stamp.

@@ -203,6 +203,11 @@ def steelhead_lake_problems(doc: dict) -> list[str]:
     return out
 
 
+#: The `steelhead_source` values that make a water known without a steelhead row binding it: the curated list (S5)
+#: and a Pacific stream of the steelhead regions (S14). Neither binds a rule.
+_PRESENCE_ONLY = frozenset({"curated list", "Pacific stream"})
+
+
 def steelhead_set_problems(doc: dict) -> list[str]:
     """EVERY WATER A STEELHEAD ROW BINDS CARRIES THE WHOLE PROVINCIAL STEELHEAD SET, WHEREVER IT IS
     (user rulings 2026-10-02) — and nothing else does; THE CURATED LIST ADDS NONE OF IT. Per part:
@@ -212,8 +217,8 @@ def steelhead_set_problems(doc: dict) -> list[str]:
       REVERSE  a part carrying any member of the set is (a) a stream of a steelhead region
                (`_in_steelhead_region`) or (b) bound by a steelhead row — being "known" by the
                curated list alone is NOT a reason;
-      LIST     a "known" part no steelhead row binds is known by the curated list, which its
-               water's `steelhead_source` says."""
+      LIST     a "known" part no steelhead row binds is known by the curated list or as a Pacific
+               stream of the steelhead regions (S14), which its water's `steelhead_source` says."""
     R, L, out = doc["rules"], doc["licensing"], []
     srows = steelhead_rows(doc)
     for item, w in sorted(doc["waters"].items()):
@@ -221,8 +226,9 @@ def steelhead_set_problems(doc: dict) -> list[str]:
             known = p.get("steelhead") == "known"
             tag = f"water {item} part {n}"
             if not p["ruleset"]:
-                if known and "curated list" not in (w.get("steelhead_source") or ()):
-                    out.append(f"{tag}: known, bound by no rule, and not on the curated list")
+                if known and not _PRESENCE_ONLY & set(w.get("steelhead_source") or ()):
+                    out.append(f"{tag}: known, bound by no rule, and neither on the curated list nor a "
+                               f"Pacific stream")
                 continue
             rules = _members(doc["rulesets"], p["ruleset"], R)
             recs = _members(doc["licensing_sets"], p["licensing_set"], L)
@@ -237,9 +243,9 @@ def steelhead_set_problems(doc: dict) -> list[str]:
                 if not known:
                     out.append(f"{tag}: {rows[0]} (a steelhead row) binds it, but it is not "
                                f"known steelhead water")
-            elif known and "curated list" not in (w.get("steelhead_source") or ()):
-                out.append(f"{tag}: known, but no steelhead row binds it and the water is not on "
-                           f"the curated list")
+            elif known and not _PRESENCE_ONLY & set(w.get("steelhead_source") or ()):
+                out.append(f"{tag}: known, but no steelhead row binds it and the water is neither "
+                           f"on the curated list nor a Pacific stream")
             have = sorted(i for i in rules | recs
                           if province_steelhead_member((R.get(i) or L.get(i))))
             if have and not ((region and w.get("kind") == "stream") or rows):
@@ -270,7 +276,8 @@ def steelhead_presence_problems(doc: dict) -> list[str]:
         if w.get("steelhead") != top:
             out.append(f"water {item}: steelhead {w.get('steelhead')!r}, parts say {top!r}")
         src = w.get("steelhead_source") or []
-        if bool(src) != (top == "known") or not set(src) <= {"regulations", "curated list"}:
+        if bool(src) != (top == "known") or not set(src) <= {"regulations", "curated list",
+                                                             "Pacific stream"}:
             out.append(f"water {item}: steelhead_source {src!r} for a {top or 'unmarked'} water")
         bound = [bool(_row_bound(doc, p, srows, w)) for p in w["parts"]]
         if (any(bound) and "regulations" not in src) or bool(w.get("steelhead_rows")) != (

@@ -118,7 +118,7 @@ def _record(reg, g, splits=(TIDE,), whole=()):
 def _run(estuary, rules, tidal_splits=(TIDE,), **kw):
     g, reg = estuary
     res = build_reaches([_row("r1:river@1-1", rules, **kw)], reg, g,
-                        tidal_record=_record(reg, g, tidal_splits) if tidal_splits else None)
+                        tidal_record=_record(reg, g, tidal_splits) if tidal_splits else None, steelhead_barriers=())
     return res, {b.rule_id: b for b in res.bindings}
 
 
@@ -165,7 +165,7 @@ def test_zone_rules_stop_at_the_tidal_boundary(estuary):
     g, reg = estuary
     zone = {"entry_id": "z1:quota", "matched": [],
             "rules": [{"rule_id": "z", "extents": [{"op": "within", "area_id": "area:region:1"}]}]}
-    res = build_reaches([zone], reg, g, tidal_record=_record(reg, g))
+    res = build_reaches([zone], reg, g, tidal_record=_record(reg, g), steelhead_barriers=())
     assert set(res.bindings[0].sections) == {"R:1000", "R:3000", "T1:0", "T2:0"}
 
 
@@ -303,7 +303,7 @@ def test_a_whole_tidal_water_is_every_section_of_it_and_off_the_map(estuary):
         T.tidal_whole_owner(reg, ["gnis:404"])
     res = build_reaches([_row("r1:river@1-1", [{"rule_id": "r1", "extents": [{"op": "whole"}],
                                                 "includes_tributaries": True}])],
-                        reg, g, tidal_record=_record(reg, g, (), ("gnis:2",)))
+                        reg, g, tidal_record=_record(reg, g, (), ("gnis:2",)), steelhead_barriers=())
     b = res.bindings[0]
     assert "T1:0" not in b.sections and {"R:0", "R:1000", "T2:0"} <= set(b.sections)
     assert res.tidal == {"T1:0": "water:gnis:2"}
@@ -313,7 +313,7 @@ def test_a_rule_on_a_whole_tidal_water_is_unresolved_and_listed(estuary):
     g, reg = estuary
     res = build_reaches([{"entry_id": "r1:one@1-1", "matched": ["gnis:2"],
                           "rules": [{"rule_id": "c", "extents": [{"op": "whole"}]}]}],
-                        reg, g, tidal_record=_record(reg, g, (), ("gnis:2",)))
+                        reg, g, tidal_record=_record(reg, g, (), ("gnis:2",)), steelhead_barriers=())
     assert res.bindings[0].reason is Reason.tidal
     assert res.report.tidal_emptied == [{"entry_id": "r1:one@1-1", "rule_id": "c", "splits": ["water:gnis:2"]}]
 
@@ -339,7 +339,7 @@ def test_a_row_marked_tidal_keeps_its_own_water_when_a_cut_exists_elsewhere(estu
     g, reg = estuary
     row = {"entry_id": "r1:two@1-1", "matched": ["gnis:3"], "tidal": True,
            "rules": [{"rule_id": "n", "extents": [{"op": "whole"}]}]}
-    res = build_reaches([row], reg, g, tidal_record=_record(reg, g))
+    res = build_reaches([row], reg, g, tidal_record=_record(reg, g), steelhead_barriers=())
     b = res.bindings[0]
     assert b.outcome is Outcome.bound and set(b.sections) == {"T2:0"}
     assert res.tidal["T2:0"] == "r1:two@1-1" and res.tidal["R:0"] == f"split:{TIDE}"
@@ -354,7 +354,7 @@ def test_a_zone_rule_keeps_the_creek_and_loses_its_crossing(estuary):
     rec = {**_record(reg, g), "T1:0": "crossing:T1:0"}
     zone = {"entry_id": "z1:quota", "matched": [],
             "rules": [{"rule_id": "z", "extents": [{"op": "within", "area_id": "area:region:1"}]}]}
-    res = build_reaches([zone], reg, g, tidal_record=rec)
+    res = build_reaches([zone], reg, g, tidal_record=rec, steelhead_barriers=())
     assert set(res.bindings[0].sections) == {"R:1000", "R:3000", "T2:0"}
     diag = [d.payload for d in res.diagnostics if d.kind == "tidal"][0]
     assert diag["splits"] == [TIDE] and diag["crossings"] == 1

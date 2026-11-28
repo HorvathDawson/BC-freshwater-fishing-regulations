@@ -239,5 +239,12 @@ from __future__ import annotations
 #:     through-river and a whole-water place climbs its head lake as the book's rows do, and the lake rows' printed
 #:     exceptions stop its walks too (`dfo_salmon.resolve_all(stops=)`). No classify.py outcome changed; the bump marks
 #:     the DFO places' binding diff (on top of the walk's 53, which merges first).
-POLICY_VERSION = "54"
+#: 55: (T1250, owner 2026-11-27 "Pacific streams now, barriers in 0.11.0 (Recommended)"; RULINGS S14) A PACIFIC
+#:     STREAM OF THE STEELHEAD REGIONS IS STEELHEAD WATER (`steelhead.PACIFIC_STREAMS_ARE_STEELHEAD_WATER`): every
+#:     "possible" stream of Regions 1, 2, 3, 5, 6 whose FWA basin reaches the Pacific (`steelhead.pacific_basin`) is
+#:     known (source "Pacific stream"), so a rainbow over 50 cm there is a steelhead where steelhead rules apply. The
+#:     Arctic and Yukon drainage (basins 200, 800) stays "possible"; lakes stay out. Only the steelhead presence
+#:     table and its digest change; no rule binding, licensing placement or classify.py outcome changed. On top of
+#:     the DFO branch's 54.
+POLICY_VERSION = "55"
 

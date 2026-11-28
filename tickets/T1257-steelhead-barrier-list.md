@@ -21,6 +21,16 @@ lakes and ponds on the way 67,762.
 - The book's test (p.80): "a rainbow trout longer than 50 cm in waters where anadromous rainbow trout are found".
 - Lakes do not stop steelhead everywhere (Babine, Morice, Lakelse are passed), so a lake is not a barrier by itself.
 - Not known: the full barrier list beyond Kenney Dam (Nechako), Terzaghi and La Joie (Bridge); each needs a source.
+- Built in T1250 (owner: "Hold both but make sure it will be compatible with a larger barrier list"): the curated
+  file `data/curated/waters/steelhead_barriers.json` with its two kinds of row, `basin` and `upstream_of` (a blue
+  line and a measure); this ticket adds rows. Its first rows: the Mackenzie (200), the Yukon (800), the Columbia (300)
+  and the Skagit above Ross Dam (970-106243).
+- Ross Dam (Washington) has no fish passage: every B.C. section of the Skagit lies above it. Basin 970's other branch
+  (970-030628: Bertrand, Fishtrap, Pepin creeks, to the Nooksack) is not held. Source still to attach.
+- `upstream_of` walks the graph up from the pieces wholly above its measure: a tributary joining exactly at the
+  measure goes with whichever piece the graph attaches it to. Proven only on the mini world (review 3).
+- The Columbia (300): its sea-run fish are stopped downstream in Washington (Chief Joseph and Grand Coulee on the
+  Columbia; Enloe Dam on the Similkameen, below the B.C. reach). Sources still to attach.
 
 ## Work (proposal)
 A curated barrier list (dam / falls, location, source, passage status); streams above a barrier return to the rainbow
