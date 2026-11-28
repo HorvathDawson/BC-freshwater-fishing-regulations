@@ -34,12 +34,20 @@ That gives three steps, and no step needs the flow graph:
 Then every section whose code starts with that basin's prefix carries that Area — mainstem,
 tributaries and braids alike, in one lookup.
 
-**The layer is `pfma_areas`** (`WHSE_ADMIN_BOUNDARIES.DFO_PFMA_STAT_AREA_BDRY_SP`), fetched by
-`data.fetch_data --layers pfma_areas`. Section E names Areas, so Areas are the right granularity,
-and the subareas layer is not on the public WFS anyway.
+**A CITY CREEK WITH ITS OWN TIDAL MOUTH (T1246, owner 2026-11-27 "Fix it properly now").** An added city line that
+drains straight to the sea has a code of its own (`added_streams.coastal`), so no FWA line marks its basin's mouth and
+step 2 found none: such creeks of Burnaby, Port Moody and Squamish drained to no Area, and DFO's "waters of
+Region 2 flowing into Areas 28 and 29" missed them. Its own mouth (the line's first point, `city_tidal_mouths`) is a
+candidate in step 2 beside the FWA mouths (`OWN_MOUTH_TAKES_ITS_AREA`). A city creek that drains into a river or
+another creek has a code under its receiver's, so it takes its receiver's Area through the prefix, as an FWA
+tributary does; it needs no mouth of its own.
 
-⚠️ **120 of that layer's 171 polygons carry `MANAGEMENT_AREA == 0`** — land and filler. Drop them
-or every stream in BC lands in "Area 0".
+**A MOUTH ON AN AREA LINE.** "The Area its mouth lies in" is the NEAREST Area polygon (distance 0 inside it). A city
+creek's mouth equally near two Areas (on the line between them) is REFUSED by name (`CITY_MOUTH_ON_AN_AREA_LINE`):
+no rule picks one of two Areas for it. None does today. FWA's basins keep their pick as before (T1246 measured 56
+basins whose mouth touches two Areas, the Skeena's 3 and 4 among them; that pick is row order, unchanged here and
+listed for a look, never silently re-ruled). A city creek's own mouth answers only a basin no FWA mouth answers: the
+lines still on an FWA code (T1150's seven) keep that FWA basin's Area.
 """
 
 from __future__ import annotations
@@ -102,9 +110,15 @@ OUT_OF_PROVINCE_GROUPS = {"960", "970", "990"}
 #: because the worst OBSERVED coastal mouth offset is 6.0 km.
 MAX_MOUTH_OFFSET_M = 10_000
 
+#: (T1246) A city creek with its own tidal mouth takes the Area that mouth lies in (`city_tidal_mouths`). Off, the
+#: city creeks with codes of their own drain to no Area and DFO's Area scopes skip them (before 2026-11-27).
+OWN_MOUTH_TAKES_ITS_AREA = True
+#: (T1246) A city creek's mouth equally near two Areas is refused by name, never given one of them.
+CITY_MOUTH_ON_AN_AREA_LINE = "refuse"
+
 #: `basin_areas` reads the whole province, so memoise it: a second call in the same process (the
 #: report, a test, a build step) costs nothing.
-_CACHE: Dict[str, Dict[str, int]] = {}
+_CACHE: Dict[str, dict] = {}   # {gpkg|all: {"fwa": {basin: (distance, area)}, "areas": polygons}}
 
 
 def area_id(area: int) -> str:
@@ -135,7 +149,26 @@ def basin_of(watershed_code: str) -> Optional[str]:
     return groups[0] + "-"
 
 
-def basin_areas(areas: Iterable[int] = SECTION_E_AREAS, gpkg: str = _GPKG) -> Dict[str, int]:
+def city_tidal_mouths(streams: Iterable[dict]) -> list[tuple[str, float, float, str]]:
+    """(basin prefix, x, y, its name and blk) in EPSG:3005 of every added city line that drains straight to the sea (`receiver_kind`
+    "tidal"): its mouth is its line's first point (the added streams are stored mouth first). The input to
+    `basin_areas(city_mouths=...)`; a line whose receiver is a river or another creek is not one (it inherits)."""
+    out = []
+    for s in streams:
+        if s.get("receiver_kind") != "tidal":
+            continue
+        basin = basin_of(s.get("wsc") or "")
+        segs = s.get("segments") or []
+        if not basin or not segs or not segs[0].get("coords3005"):
+            raise ValueError(f"added stream {s.get('blk')} ({s.get('name')}) drains to the sea but has no code or no "
+                             "line: its Area cannot be found")
+        x, y = segs[0]["coords3005"][0][:2]
+        out.append((basin, float(x), float(y), f"{s.get('name') or '(unnamed)'} (blk {s.get('blk')})"))
+    return sorted(out)
+
+
+def basin_areas(areas: Iterable[int] = SECTION_E_AREAS, gpkg: str = _GPKG, *,
+                city_mouths: Iterable[tuple[str, float, float, str]]) -> Dict[str, int]:
     """`{basin prefix -> area number}` for every basin draining into one of `areas`.
 
     A section belongs to a basin iff its watershed code starts with the prefix, so this map is the
@@ -145,6 +178,9 @@ def basin_areas(areas: Iterable[int] = SECTION_E_AREAS, gpkg: str = _GPKG) -> Di
     a bug that bites twice: a basin's mouth may sit outside the Areas being asked about (ask only
     for Area 5 and the Skeena's mouth is out of view, so its tributaries in the Ecstall get filed
     under 5 instead of 4), and a neighbouring Area that was not offered cannot win.
+
+    ``city_mouths`` (`city_tidal_mouths`, required: a build with no added streams passes ``()``): the city creeks'
+    own mouths, candidates beside the FWA mouths (T1246).
     """
     import geopandas as gpd
     from shapely.geometry import Point
@@ -178,16 +214,41 @@ def basin_areas(areas: Iterable[int] = SECTION_E_AREAS, gpkg: str = _GPKG) -> Di
         # One mouth per basin: the candidate closest to the sea. This absorbs a river's braids —
         # they share the prefix, and the inland ones are simply further away.
         best = near.sort_values("_d").groupby("_basin").first()
-        reached = best[best["_d"] <= MAX_MOUTH_OFFSET_M]
-        logger.info("%d basins; %d drain to a Pacific tidal Area, %d do not "
-                    "(inland majors — Arctic, Peace, Liard)",
-                    len(best), len(reached), len(best) - len(reached))
-        _CACHE[key] = {b: int(r[AREA_FIELD]) for b, r in reached.iterrows()}
+        _CACHE[key] = {"fwa": {b: (float(r["_d"]), int(r[AREA_FIELD])) for b, r in best.iterrows()},
+                       "areas": every[[AREA_FIELD, "geometry"]]}
 
-    missing = want - set(_CACHE[key].values()) - set(range(1, 200))
+    picked = dict(_CACHE[key]["fwa"])
+    if OWN_MOUTH_TAKES_ITS_AREA:
+        from shapely.geometry import Point
+        polys = _CACHE[key]["areas"]
+        city: Dict[str, tuple] = {}
+        for basin, x, y, who in city_mouths:
+            if basin in picked:
+                continue                          # an FWA basin: its own mouth answers (T1150's seven)
+            dist = polys.geometry.distance(Point(x, y))
+            dmin = float(dist.min())
+            near_areas = sorted({int(a) for a in polys.loc[dist == dmin, AREA_FIELD]})
+            if len(near_areas) > 1:
+                raise ValueError(f"city creek {who}: its mouth at ({x:.0f}, {y:.0f}) (code {basin}) lies on the line "
+                                 f"between Areas {near_areas}: no rule picks one (pfma_drainage.CITY_MOUTH_ON_AN_AREA_LINE)")
+            if dmin > MAX_MOUTH_OFFSET_M:          # FWA's far basins (inland majors) drop; a city creek to the sea never
+                raise ValueError(f"city creek {who}: its mouth at ({x:.0f}, {y:.0f}) (code {basin}) lies {dmin:,.0f} m "
+                                 f"from the nearest Area, beyond MAX_MOUTH_OFFSET_M: it drains to the sea but to no Area")
+            prev = city.get(basin)
+            if prev is not None and prev[1] != near_areas[0] and prev[0] == dmin:
+                raise ValueError(f"two mouths of one city creek (code {basin}: {prev[2]}, {who}) lie equally near "
+                                 f"Areas {sorted({prev[1], near_areas[0]})}")
+            if prev is None or dmin < prev[0]:
+                city[basin] = (dmin, near_areas[0], who)
+        picked.update({b: (d, a) for b, (d, a, _w) in city.items()})
+    reached = {b: a for b, (d, a) in picked.items() if d <= MAX_MOUTH_OFFSET_M}
+    logger.info("%d basins; %d drain to a Pacific tidal Area, %d do not (inland majors — Arctic, Peace, Liard)",
+                len(picked), len(reached), len(picked) - len(reached))
+
+    missing = want - set(reached.values()) - set(range(1, 200))
     if missing:                                   # an Area number that exists in no polygon
         raise ValueError(f"{LAYER} carries no polygon for Area(s) {sorted(missing)}")
-    return {b: a for b, a in _CACHE[key].items() if a in want}
+    return {b: a for b, a in reached.items() if a in want}
 
 
 def area_of(watershed_code: str, basins: Dict[str, int]) -> Optional[int]:
@@ -205,7 +266,7 @@ def waters_in_area(area: int, gpkg: str = _GPKG, named_only: bool = True):
     """
     import geopandas as gpd
 
-    basins = basin_areas((area,), gpkg)          # province-wide search, filtered to this Area
+    basins = basin_areas((area,), gpkg, city_mouths=())   # FWA's waters (the reverse lookup lists FWA names)
     every = gpd.read_file(gpkg, layer=LAYER, engine="pyogrio")
     every = every[every[AREA_FIELD] == area]
     if every.empty:
@@ -229,7 +290,7 @@ def report(areas: Iterable[int] = SECTION_E_AREAS, gpkg: str = _GPKG) -> str:
     """
     import geopandas as gpd
 
-    basins = basin_areas(areas, gpkg)
+    basins = basin_areas(areas, gpkg, city_mouths=())     # FWA's named basins only
     counts = collections.Counter(basins.values())
     lines = [f"{len(basins):,} basins drain into Areas {sorted(counts)}"]
     for a in sorted(counts):

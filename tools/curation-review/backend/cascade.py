@@ -95,11 +95,17 @@ def _model(name: str, _key: tuple) -> dict:
     order = S.chain_order({lid: loc.get("precedence", 0) for lid, (_s, loc, _w) in locs.items()},
                           S.extent_sizes(placed.values()),
                           S.rides_on_others(loc for _s, loc, _w in locs.values()))
+    # (T1177) and the water's own place first within a tier (`salmon.own_first`, `THE_WATERS_OWN_PLACE_SPEAKS_FIRST`)
+    own_on: dict[str, set] = {}
+    for lid, (_s, loc, water) in locs.items():
+        own_on[lid] = {h for it in ((water or {}).get("item_ids") or ())
+                       for h in (getattr(reg.get(it), "section_ids", None) or ())}
     chain_ix: dict[tuple, int] = {}
     chains: list[dict] = []
     sec_chain: dict[str, int] = {}
     for s in frame:
-        key = (tuple(sorted(set(covering.get(s, ())), key=order)), tuple(sorted(undrawn_on.get(s, ()))))
+        at = S.own_first(order, lambda lid, s=s: s in own_on.get(lid, ()))
+        key = (tuple(sorted(set(covering.get(s, ())), key=at)), tuple(sorted(undrawn_on.get(s, ()))))
         if key not in chain_ix:
             chain_ix[key] = len(chains)
             chains.append({"places": list(key[0]), "undrawn": list(key[1]), "n": 0})

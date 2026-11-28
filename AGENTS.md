@@ -236,7 +236,7 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
     also stops every walk through that lake, `build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT`). A rule
     bound to its WHOLE water climbs through the lake that water flows out of
     (`tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`, RULINGS T18); a stretch rule stops at the lake at its top
-    (a stream is not a tributary of itself); DFO places and licensing records stop there too.
+    (a stream is not a tributary of itself), as does a licensing record; a DFO place walks as the rows do (T1177).
 16. **The review app and the builder share one implementation.** `entry_reaches` calls `pipeline.atlas.reach.classify`
     (pinned by `test_review_reaches.py`). Never give the review app its own resolver: it is where a human signs off,
     so divergence stays invisible until an angler hits it.

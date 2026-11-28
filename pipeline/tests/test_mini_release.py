@@ -100,7 +100,7 @@ def test_the_drainage_areas_read_the_gpkg_the_registry_is_given(monkeypatch, inp
     from pipeline.atlas.splits import pfma_drainage
     from pipeline.common.models import StreamGraph
     seen = []
-    monkeypatch.setattr(pfma_drainage, "basin_areas", lambda areas, gpkg: seen.append(gpkg) or {})
+    monkeypatch.setattr(pfma_drainage, "basin_areas", lambda areas, gpkg, **kw: seen.append(gpkg) or {})
     build_registry(StreamGraph(), pinned={}, gpkg=str(inputs[0]))
     build_registry(StreamGraph(), pinned={})
     assert seen == [str(inputs[0]), pfma_drainage._GPKG]               # the default is the configured file, as before
@@ -108,7 +108,7 @@ def test_the_drainage_areas_read_the_gpkg_the_registry_is_given(monkeypatch, inp
 
 def test_the_mini_basin_drains_to_its_invented_area(inputs):
     from pipeline.atlas.splits import pfma_drainage
-    assert pfma_drainage.basin_areas(pfma_drainage.MINTED_AREAS, str(inputs[0])) == {"920-123456-": 29}
+    assert pfma_drainage.basin_areas(pfma_drainage.MINTED_AREAS, str(inputs[0]), city_mouths=()) == {"920-123456-": 29}
 
 
 def test_the_atlas_input_flags_default_to_the_configured_files():

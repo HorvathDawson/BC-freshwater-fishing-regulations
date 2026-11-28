@@ -58,9 +58,10 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
 3. (PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is fixed
    in hardening") A PART OF ADDED LINES WITH ITS OWN NAME (`part_own_name`): every section an added-stream line (a
    negative blk in `section_measure`), all one added stream's name (the atlas graph's name tuple for it,
-   `added_stream_names`), not the water's: named by it, with the words of its source (`name_source.label`). Noons Creek p4 is the City of
-   Port Moody's Turner Creek, Seymour River p3 the City of Burnaby's Tunnel Creek (a watershed-code collision filed them
-   there). One with no own name gets no row (the answers step then says it by its label, the plain count).
+   `added_stream_names`), not the water's: named by it, with the words of its source (`name_source.label`). Noons Creek p4 was the City of
+   Port Moody's Turner Creek, Seymour River p3 the City of Burnaby's Tunnel Creek, until T1246 gave both a code of
+   their own (a watershed-code collision had filed them there). One with no own name gets no row (the answers step
+   then says it by its label, the plain count).
 """
 from __future__ import annotations
 
