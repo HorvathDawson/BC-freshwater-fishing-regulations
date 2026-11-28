@@ -2020,8 +2020,8 @@ def test_the_basket_engine_reads_the_same_cap(monkeypatch):
 def test_the_closure_scan_asks_a_rows_rainbow_cap_about_the_steelhead_and_the_owners_list_decides():
     """S15 makes a water row's capped rainbow line speak for a steelhead, so the export's closure scan asks it about
     the steelhead too (no code exemption: AGENTS 57, the owner's `under_closure_calls.json` decides). The final side
-    build met three: Clearwater r6, Mahood r2 and Buckley Creek r2, listed as quota rows awaiting his yes. A row's own
-    steelhead line and a group holding the steelhead are asked as before."""
+    build met three: Clearwater r6, Mahood r2 and Buckley Creek r2, listed as quota rows, each checked by him on
+    2026-11-27. A row's own steelhead line and a group holding the steelhead are asked as before."""
     from pipeline.deliver.export.closures import scan_fish, under_closure_calls
     asked = {"RB", "ST", "CT", "DV"}
     assert scan_fish(_rb(), asked) == ["RB", "ST"]

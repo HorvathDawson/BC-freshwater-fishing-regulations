@@ -373,6 +373,14 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   Q16); Muchalat's "no wild rainbow trout over 50 cm" "is the same as regiuonal no wild steelhead". His full words: S12a.
   Kitimat's hatchery steelhead against Region 6's winter release: "(b) Leave as today" (released Nov 1-Jun 30). The
   Regions 1-2 box as built: "Yes, as built (Recommended)". The over-50 follow-ups are answered; nothing built beyond S15.
+  The three under-closure rows S15 meets (2026-11-27, `under_closure_calls.json`), each answered "Yes, mark it checked
+  (Recommended)": "Clearwater River (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30
+  closed; Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked by you?" "Mahood
+  River below Goodwin Falls (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30 closed
+  (the row's own closure); Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked
+  by you?" "Buckley Creek (Region 6). ONE change, the one you ruled today: Aug 1, hatchery steelhead: keep 1 ->
+  RELEASE (the row's "none over 50 cm" holds). Unchanged: May 15-Jun 15 steelhead closed; wild steelhead released;
+  rainbow keep 1. OK to mark this row as checked by you?"
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".

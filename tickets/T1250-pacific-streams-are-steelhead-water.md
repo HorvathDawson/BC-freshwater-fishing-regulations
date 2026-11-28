@@ -1,6 +1,6 @@
 # T1250 — Pacific streams of the steelhead regions are steelhead water
 
-Status: IN PROGRESS — built; three under-closure rows await his yes; left: the final side build's measure, then the PR (no auto-merge until he answers)
+Status: IN PROGRESS — built, every owner answer in (the three under-closure rows checked 2026-11-27); left: the final side build's measure, then the PR
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -41,12 +41,12 @@ The data tests pass on the final side build; the every-day comparison has nothin
 line; the T1053 release-backed pins and the T666 fixtures are re-cut on the 0.10.0 candidate.
 
 Follow-up: T1257 (0.11.0) — dams and falls as barriers (a curated barrier list; the planning chat writes it).
-Depends: none. Size: M. Owner: three under-closure rows await his yes (below). Default: as built.
+Depends: none. Size: M. Owner: answered (below). Default: as built.
 
-Under-closure rows (S15): three quota rows in `regulations/under_closure_calls.json` await his yes (one box each,
-below). Under S15 the export's closure scan asks each row's capped rainbow line about the steelhead and finds it
+Under-closure rows (S15): three quota rows in `regulations/under_closure_calls.json`, each checked by him on
+2026-11-27 (one box each, below). Under S15 the export's closure scan asks each row's capped rainbow line about the steelhead and finds it
 silenced on closed days; the guard (AGENTS 57) refuses it unless he lists it. Inside each closure the card reads
-closed with or without S15. Each row, its printed words and the reason it would carry:
+closed with or without S15. Each row, its printed words, the reason it carries and his answer:
 
 ## Owner
 - [x] 2026-11-27 — Buckley Creek: under S14 a hatchery fish over 50 cm there can be kept (1, Jul 1-Oct 31), where its
@@ -62,11 +62,20 @@ closed with or without S15. Each row, its printed words and the reason it would 
   (the region's "Trout of any size from streams" release; its rainbow row lifts it, its steelhead row does not).
   Asked (offered "(a) Row holds, general rule (Recommended)", "(a) Row holds, Kitimat only", "(b) Leave as today"):
   "(b) Leave as today". The Regions 1-2 box as built: "Yes, as built (Recommended)". Nothing built beyond S15.
-- [ ] 2026-11-27 — Clearwater River r6 (p.29): "Rainbow trout daily quota = 2 (none over 35 cm)". Region 3's "ALL STEELHEAD" release
+- [x] 2026-11-27 — Clearwater River r6 (p.29): "Rainbow trout daily quota = 2 (none over 35 cm)". Region 3's "ALL STEELHEAD" release
   names the steelhead and beats the cap, on the days Region 3's "No Fishing in any stream ... Jan 1-June 30" (p.28)
   also holds: the river reads closed; the 2 per day holds for a rainbow up to 35 cm.
-- [ ] 2026-11-27 — Mahood River r2 (p.31): "Downstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm)". The row's
+  Asked: "Clearwater River (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30 closed;
+  Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked by you?" Answer: "Yes,
+  mark it checked (Recommended)".
+- [x] 2026-11-27 — Mahood River r2 (p.31): "Downstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm)". The row's
   own "No Fishing Jan 1-June 30" closes it on the days Region 3's spring stream closure also holds; the 2 holds from Jul 1.
-- [ ] 2026-11-27 — Buckley Creek r2 (p.50): "rainbow trout daily quota = 1 (none over 50 cm". Region 6's "No fishing: in all rivers
+  Asked: "Mahood River below Goodwin Falls (Region 3). What changes for the angler: NOTHING. Before and after: Jan
+  1-Jun 30 closed (the row's own closure); Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this
+  row as checked by you?" Answer: "Yes, mark it checked (Recommended)".
+- [x] 2026-11-27 — Buckley Creek r2 (p.50): "rainbow trout daily quota = 1 (none over 50 cm". Region 6's "No fishing: in all rivers
   and streams for steelhead, May 15 – June 15" (p.49; its exceptions do not name Buckley Creek) holds, as for Station
   Creek; outside it a steelhead over 50 cm is released (his S15 answer) and the rainbow 1 per day holds.
+  Asked: "Buckley Creek (Region 6). ONE change, the one you ruled today: Aug 1, hatchery steelhead: keep 1 -> RELEASE
+  (the row's "none over 50 cm" holds). Unchanged: May 15-Jun 15 steelhead closed; wild steelhead released; rainbow
+  keep 1. OK to mark this row as checked by you?" Answer: "Yes, mark it checked (Recommended)".
