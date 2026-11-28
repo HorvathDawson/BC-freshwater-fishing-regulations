@@ -2017,26 +2017,22 @@ def test_the_basket_engine_reads_the_same_cap(monkeypatch):
     assert not EN._covers(r, "ST")
 
 
-def test_the_closure_scan_asks_a_rows_rainbow_cap_about_the_rainbow_not_the_steelhead():
-    """The laneN final build's export refused Clearwater r6, Mahood r2 and Buckley Creek r2 as quotas "silenced
-    under a blanket closure" for ST: S15 makes their capped rainbow line speak for a steelhead (take 0 over the cap),
-    and the zone's spring / steelhead stream closure beats it while closed: the closure's win, not a missed
-    exemption. The scan asks it about the rainbow, as for S12's size-free rule; a rule that names steelhead, or a
-    group holding it, is still asked. MUTATION: the unfiltered list (what the scan asked before the fix) holds ST,
-    so the exclusion is doing the work."""
-    from pipeline.deliver.bundle.read import facts as F
-    from pipeline.deliver.export.closures import scan_fish
+def test_the_closure_scan_asks_a_rows_rainbow_cap_about_the_steelhead_and_the_owners_list_decides():
+    """S15 makes a water row's capped rainbow line speak for a steelhead, so the export's closure scan asks it about
+    the steelhead too (no code exemption: AGENTS 57, the owner's `under_closure_calls.json` decides). The final side
+    build met three: Clearwater r6, Mahood r2 and Buckley Creek r2, listed as quota rows awaiting his yes. A row's own
+    steelhead line and a group holding the steelhead are asked as before."""
+    from pipeline.deliver.export.closures import scan_fish, under_closure_calls
     asked = {"RB", "ST", "CT", "DV"}
-    assert F.speaks_for(_rb(), "ST") and scan_fish(_rb(), asked) == ["RB"]
-    assert [f for f in ("RB", "ST") if F.speaks_for(_rb(), f)] == ["RB", "ST"]           # the unfiltered list
-    assert scan_fish(_rb(species=("RB", "ST")), asked) == ["RB", "ST"]
-    # as narrow as S12's: a row's own steelhead line (a real keep quota, Kitimat's "Hatchery steelhead ... daily
-    # quota = 2") and a group holding the steelhead are still asked about it, beside a capped rainbow line or not
+    assert scan_fish(_rb(), asked) == ["RB", "ST"]
     own = {"entry_id": _rb()["entry_id"], "species": ["ST"], "take": 2, "origin": "hatchery",
            "row_names_steelhead": True}
     assert scan_fish(own, asked) == ["ST"]
     assert "ST" in scan_fish(_rb(species=("TROUT_CHAR",)), asked)
-    assert "ST" in scan_fish({**_rb(species=("TROUT_CHAR",)), "row_names_steelhead": True}, asked)
+    _release, quota = under_closure_calls()
+    for k in (("r3:clearwater_river@3-40+3-46", "clearwater_river.r6"), ("r3:mahood_river@3-46", "mahood_river.r2"),
+              ("r6:buckley_creek@6-21", "buckley_creek.r2")):
+        assert "S15" in quota[k], k
 
 
 def test_mutation_without_s15_a_capped_rainbow_line_is_rainbow_only(monkeypatch):
