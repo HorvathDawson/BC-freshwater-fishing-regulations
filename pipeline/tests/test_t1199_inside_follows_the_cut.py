@@ -1,6 +1,7 @@
-"""T1199 (RULINGS E30; owner 2026-11-26: "be intelligent about the split then where the river is cut will define the
-section that falls inside the area when cut happens it gets inside area"). In a CUT area the part's lines are inside
-when the atlas's cut puts them there (the registry's area item holds them, `side_channels.cut_area_members`), never by
+"""T1199 (RULINGS E35; owner 2026-11-27: "how can skeena river inside skeena river eco reseve be 72% inside. we cut on
+eco reserves so it should be 1005 always for eco reserves"; 2026-11-28: "yes but we need to make sure the rule is
+consistent across the board here not just a ranom special case"). In a CLEAN-CUT area a part of side channels only is
+inside exactly when the atlas's cut puts all its lines there (the registry's area item holds them, `side_channels.cut_area_members`), never by
 their shapes' share: E30's 100 m floor grows a short inside piece outward, and the piece is the area's water all the
 same. The two real shapes that stopped the answers step after the cut rule (`builders.reviewed_still_said`):
 
@@ -14,7 +15,8 @@ same. The two real shapes that stopped the answers step after the cut rule (`bui
 Only the CLEAN-cut areas (national parks, ecological reserves, the Chilkoot: `area_splits.cut_mode` "clean") follow
 the cut. A `first_last` area (restricted land, `membership: both_sides`: a whole piece is in it when any of it is) and a
 membership-only area are measured on the shapes as before; a disagreement is logged in either kind. The reviewed list
-(`part.REVIEWED_INSIDE`) is unchanged: the parts are still inside."""
+(`part.REVIEWED_INSIDE`) keeps the Gordon and the Oxbows (still inside) and takes the Skeena's side channel (his yes of
+2026-11-28); it stays a gate."""
 import pytest
 from shapely.geometry import LineString, Polygon, box
 

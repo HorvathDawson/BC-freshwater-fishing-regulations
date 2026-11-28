@@ -609,9 +609,10 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
     neither). The areas, reviewed or not (T1172): every cut area that is a place (not `NOT_A_PLACE`), and every
     membership-only one of the `MEMBERSHIP_PLACES` kinds. ONE AREA: a part in two cut areas, or in no cut area and two
     membership-only ones, has no row (logged); a part in one cut area is said by it, whatever membership-only areas
-    hold it too (the atlas's own line before an area it does not cut at). (T1199, E30) A CLEAN-cut area's lines
-    (`follow`) are measured by the cut: the share of their length in sections the area holds (`held`,
-    `cut_area_members`), not by shape; every other area by shape. Where the two measures fall on different sides of
+    hold it too (the atlas's own line before an area it does not cut at). (T1199, E35) A CLEAN-cut area (`follow`)
+    says it EXACTLY by the cut: inside when the area's item holds ALL its lines (`held`, `cut_area_members`), never by
+    shape; a part the cut puts only partly in such an area, or one it puts there without the area as its row, stops
+    the build by name. Every other area by shape. Where the cut and the shapes fall on different sides of
     `INSIDE_SHARE` it is logged, in either kind of area."""
     import pyogrio
     from shapely.ops import unary_union
