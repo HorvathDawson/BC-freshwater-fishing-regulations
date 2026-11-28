@@ -371,6 +371,8 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   On the over-50 sheet (S12a): "the rows specific water rules always beat regional for specific quotas like that?"
   (Kitimat's 2 hatchery steelhead stand); "it is 1 trout over 50cm 2 if one is a steelhead (rainbow)" (Regions 1-2,
   Q16); Muchalat's "no wild rainbow trout over 50 cm" "is the same as regiuonal no wild steelhead". His full words: S12a.
+  Kitimat's hatchery steelhead against Region 6's winter release: "(b) Leave as today" (released Nov 1-Jun 30). The
+  Regions 1-2 box as built: "Yes, as built (Recommended)". The over-50 follow-ups are answered; nothing built beyond S15.
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".
