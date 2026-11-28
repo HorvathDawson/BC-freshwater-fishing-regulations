@@ -131,7 +131,7 @@
    "rule_id": "mahood_river.r2",
    "list": "quota",
    "date": "2026-10-06",
-   "why": "under the DENETIAH ruling the row's own 'No Fishing Jan 1-June 30' silences its quota - the water closing itself, not a zone closure hiding a missed exemption; `_closure_scan` counts such a quota as speaking"
+   "why": "under the DENETIAH ruling the row's own 'No Fishing Jan 1-June 30' silences its quota - the water closing itself, not a zone closure hiding a missed exemption; `_closure_scan` counts such a quota as speaking (2026-11-27, T1250: back on the `quota` list: under RULINGS S15 the scan asks this cap about the steelhead, where the row's own 'No Fishing' wins for the steelhead by the ladder, not as `water_closure`, so it is a finding again; the owner checked it the same day)"
   },
   {
    "entry_id": "r4:duncan_river@4-19",
