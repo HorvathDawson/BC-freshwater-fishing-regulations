@@ -1,10 +1,10 @@
 # T1250 — Pacific streams of the steelhead regions are steelhead water
 
-Status: IN PROGRESS — built, every owner answer in (the three under-closure rows checked 2026-11-27); left: the final side build's measure, then the PR
+Status: IN PROGRESS — built, every owner answer in, measured on the final side build (r-020b95e5abc6, 2026-11-27); left: the review, before_pr, the PR
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1250 | Pacific streams of the steelhead regions are steelhead water | IN PROGRESS | — | the final side build (barrier list + S15), the every-day comparison; the release-backed pins and fixtures re-cut on the 0.10.0 candidate |
+| T1250 | Pacific streams of the steelhead regions are steelhead water | IN PROGRESS | — | the review, before_pr, the PR; the release-backed pins and fixtures re-cut on the 0.10.0 candidate |
 
 Source: the Shelagyote feeders trace (19 creeks became steelhead-known through T1146; owner 2026-11-25 "Accept") and
 his follow-up: "accept but i am a bit concerned about this for other streams that might have missed becoming a
