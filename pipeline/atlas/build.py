@@ -878,9 +878,9 @@ def small_loops_fact(args) -> dict:
 #: that each is offered, so dropping one fails. Loops that touch a lake / are part of a longer blue line: `small_loops`.
 LOOP_KEEP_KINDS = ("named", "a found name", "a curated cut", "a gauge", "a tidal limit", "an owner call",
                    "an owner call (pond)")
-#: the anchor kinds the loop pass resolves itself (where a cut lands on ONE line). A boundary anchor (unit, area, the
-#: B.C. border) cuts every line that crosses it, the main line too: removing a loop moves no such cut.
-_LOOP_RESOLVED_ANCHORS = ("point", "gauge", "line", "confluence", "lake")
+#: the anchor kinds the loop pass resolves with the cut placement's own resolver, before any loop goes: every kind but
+#: the B.C. border, whose crossings the border pass makes later (a border cut scoped to a blue line keeps that line)
+_LOOP_RESOLVED_ANCHORS = ("point", "gauge", "line", "confluence", "lake", "mu_boundary", "area_boundary")
 
 
 def loop_keep_inputs(b: _Build, graph) -> tuple[Path, dict, dict]:
@@ -902,9 +902,18 @@ def loop_keep_inputs(b: _Build, graph) -> tuple[Path, dict, dict]:
         # asked before any loop goes. A cut anchored by coordinate, tributary code or lake lands on the nearest LIVE
         # line, so a cut on a removed loop would otherwise land quietly on the main line beside it.
         from pipeline.atlas.splits.anchors import resolve_split_defs
-        defs = [d for d in splits if str(getattr(d.anchor.type, "value", d.anchor.type)) in _LOOP_RESOLVED_ANCHORS]
-        pts = resolve_split_defs(defs, b.chains, live_blks={n.blk for n in graph.nodes.values() if n.blk})
-        sets["a curated cut"] = {p.blk for p in pts if p.source != "gauge"}
+        kind = lambda d: str(getattr(d.anchor.type, "value", d.anchor.type))          # noqa: E731
+        defs = [d for d in splits if kind(d) in _LOOP_RESOLVED_ANCHORS]
+        # a unit or area boundary cut (scoped by blue line, name or code) lands where the boundary crosses: the
+        # polygons the sectionizer loads for the same defs (`cut_curated`)
+        mu_polys = get_mu_polys(b.fwa) if any(kind(d) == "mu_boundary" for d in defs) else None
+        specs = [(d.anchor.area_layer, d.anchor.area_name_field, d.anchor.area_name) for d in defs
+                 if kind(d) == "area_boundary"]
+        area_polys = get_area_polys(b.fwa, specs, bbox=b.bbox) if specs else None
+        pts = resolve_split_defs(defs, b.chains, mu_polys=mu_polys, area_polys=area_polys,
+                                 live_blks={n.blk for n in graph.nodes.values() if n.blk})
+        sets["a curated cut"] = ({p.blk for p in pts if p.source != "gauge"}
+                                 | {str(d.blk) for d in splits if kind(d) == "border" and getattr(d, "blk", None)})
         sets["a gauge"] = {p.blk for p in pts if p.source == "gauge"}
         files["a tidal limit"] = CURATED.waters.tidal_limits          # its mouth rows are no cut, but stand on a line
         if getattr(b, "matches_sha", None):
@@ -1861,7 +1870,13 @@ def build_registry(b: _Build) -> None:
     (out / "lake_loop_report.json").write_text(json.dumps(_lrep, indent=1) + "\n", encoding="utf-8")
     _mined_rep = _info["mined_report"]
     print(f"  mined names: {_mined_rep['labelled']} on an existing item, {_mined_rep['own_items']} item(s) of "
-          f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent)")
+          f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent) -> mined_names_report.json")
+    # EACH ONE NAMED (T1242 review): an accepted name whose line is not in the atlas is listed by blue line and name, in
+    # the log and the atlas record, never only counted (non-fatal: the 12 of 2026-11-27 predate the loop pass)
+    for _a in _mined_rep.get("absent_named") or []:
+        print(f"    not in the atlas: {', '.join(_a['blks']) or '(no blue line)'}  {' / '.join(_a['names'])}")
+    (out / "mined_names_report.json").write_text(json.dumps(_mined_rep, indent=1, sort_keys=True) + "\n",
+                                                 encoding="utf-8")
     if added_lake_parts:
         print(f"  {len(added_lake_parts)} curated lake part(s) name their lake (part_of)")
     _tick("build_registry")

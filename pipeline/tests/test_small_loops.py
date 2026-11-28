@@ -394,26 +394,30 @@ def test_a_keep_the_pass_removes_anyway_stops_the_build(tmp_path, monkeypatch):
 
 
 def test_a_cut_is_kept_where_the_cut_placement_puts_it(tmp_path, monkeypatch):
-    """A cut anchored by coordinate, tributary code or lake names no blue line; the pass asks the cut placement's own
-    resolver (before any loop goes) and keeps the loop it lands on. Boundary anchors (unit, area, border) are not
-    asked: they cut every line that crosses, the main line too."""
+    """A cut anchored by coordinate, tributary code, lake, unit or area boundary names no blue line; the pass asks the
+    cut placement's own resolver (before any loop goes, with the boundary polygons the sectionizer loads) and keeps
+    the loop it lands on. A B.C. border cut is made later by the border pass: one scoped to a blue line keeps it."""
     from types import SimpleNamespace
-    from pipeline.atlas.build import loop_keep_inputs
+    from pipeline.atlas import build as B
     from pipeline.atlas.splits import anchors
     seen = {}
 
-    def fake(defs, chains, live_blks=None, **kw):
-        seen["types"] = sorted(d.anchor.type for d in defs)
-        seen["live"] = live_blks
+    def fake(defs, chains, live_blks=None, mu_polys=None, area_polys=None, **kw):
+        seen.update(types=sorted(d.anchor.type for d in defs), live=live_blks, mu=mu_polys, area=area_polys)
         return [SimpleNamespace(blk="L", source="curated"), SimpleNamespace(blk="G", source="gauge")]
     monkeypatch.setattr(anchors, "resolve_split_defs", fake)
-    defs = [SimpleNamespace(anchor=SimpleNamespace(type=t)) for t in
-            ("point", "confluence", "lake", "line", "gauge", "mu_boundary", "area_boundary", "border")]
+    monkeypatch.setattr(B, "get_mu_polys", lambda fwa: {"mu": fwa})
+    monkeypatch.setattr(B, "get_area_polys", lambda fwa, specs, bbox=None: {"area": specs})
+    a = lambda t, **kw: SimpleNamespace(anchor=SimpleNamespace(type=t, area_layer="parks", area_name_field="n",  # noqa: E731
+                                                               area_name="P"), **kw)
+    defs = [a(t) for t in ("point", "confluence", "lake", "line", "gauge", "mu_boundary", "area_boundary")]
+    defs += [a("border", blk="B1"), a("border", blk=None)]
     g, geoms = _river(creek=False)
-    b = _b(tmp_path, g, geoms, splits=defs, chains=[], matches_sha=None)
-    _ex, files, sets = loop_keep_inputs(b, g)
-    assert sets["a curated cut"] == {"L"} and sets["a gauge"] == {"G"}
-    assert seen["types"] == ["confluence", "gauge", "lake", "line", "point"]
+    b = _b(tmp_path, g, geoms, splits=defs, chains=[], matches_sha=None, fwa="FWA", bbox=None)
+    _ex, files, sets = B.loop_keep_inputs(b, g)
+    assert sets["a curated cut"] == {"L", "B1"} and sets["a gauge"] == {"G"}
+    assert seen["types"] == ["area_boundary", "confluence", "gauge", "lake", "line", "mu_boundary", "point"]
+    assert seen["mu"] == {"mu": "FWA"} and seen["area"] == {"area": [("parks", "n", "P")]}
     assert seen["live"] == {"M", "L"}, "asked on the graph before any loop goes"
     keep = prune.loop_keeps(_ex, {}, sets)
     assert small_loops(g, geoms, float("inf"), set(keep)) == []
