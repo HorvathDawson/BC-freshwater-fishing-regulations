@@ -601,6 +601,57 @@ def cut_area_members(registry_items: Sequence[dict], handle_by_id, build_dir: Pa
     return held, follow
 
 
+def cut_area_holds(registry_items: Sequence[dict], handle_by_id, build_dir: Path) -> Dict[str, frozenset]:
+    """(T1199 PR 2) {area name: the section handles its registry area item holds} for EVERY area the atlas cuts at whose
+    edge a part's ends can name (`area:<name>` tokens: parks, reserves, the Chilkoot, restricted land, MU groups, sign
+    zones; never a region, whose lines are `region_line:` tokens). Two catalogue rows of one name are one area (their
+    sections together). A cut area with no item holds nothing; an area section with no handle stops the build."""
+    import pyogrio
+    cat = Path(build_dir) / "area_catalog.gpkg"
+    if not cat.exists():
+        raise SideChannelError(f"cut_area_holds: {cat} not found — an atlas build writes it")
+    df = pyogrio.read_dataframe(cat, layer="areas", read_geometry=False)
+    name_of = {a: n for a, n, k, c in zip(df["area_id"], df["name"], df["kind"], df["cut"]) if bool(c) and k != "region"}
+    out: Dict[str, set] = {n: set() for n in name_of.values()}
+    for it in registry_items:
+        if it.get("id") in name_of:
+            missing = [s for s in it.get("section_ids") or () if s not in handle_by_id]
+            if missing:
+                raise SideChannelError(f"cut_area_holds: {it['id']}: {len(missing)} section(s) not in the handle table "
+                                       f"({missing[:5]})")
+            out[name_of[it["id"]]].update(handle_by_id[s] for s in it.get("section_ids") or ())
+    return {n: frozenset(s) for n, s in out.items()}
+
+
+def area_held_rows(db: sqlite3.Connection, holds: Dict[str, frozenset]) -> List[tuple]:
+    """(T1199 PR 2) (ord, part_ix, area name) for every LISTED part every section of which the area's item holds: the
+    cut areas whose rule the part carries (`part_area_held`, read by the answers step's end words: a stretch between two
+    crossings of an area is "within" it only then)."""
+    by_sec: Dict[int, set] = defaultdict(set)
+    for n, ss in holds.items():
+        for s in ss:
+            by_sec[s].add(n)
+    parts: Dict[Tuple[int, int], List[int]] = defaultdict(list)
+    for o, s, p in db.execute("SELECT ps.ord, ps.sid, ps.part_ix FROM part_section ps JOIN part pt ON pt.ord = ps.ord "
+                              "AND pt.part_ix = ps.part_ix WHERE pt.key_ix IS NOT NULL ORDER BY ps.ord, ps.part_ix"):
+        parts[(o, p)].append(s)
+    out = []
+    for (o, p), ss in sorted(parts.items()):
+        common = set.intersection(*(by_sec.get(s, set()) for s in ss)) if ss else set()
+        out += [(o, p, n) for n in sorted(common)]
+    return out
+
+
+def write_area_held(db: sqlite3.Connection, holds: Dict[str, frozenset], cov) -> None:
+    """`part_area_held`, and `cut_area`: the VOCABULARY, every cut area a part's end can name (`cut_area_holds`' keys,
+    holding water or not), against which the answers step refuses an end token naming an area it does not know."""
+    rows = area_held_rows(db, holds)
+    db.executemany("INSERT INTO part_area_held (ord, part_ix, area) VALUES (?,?,?)", rows)
+    cov.filled("part_area_held", len(rows))
+    db.executemany("INSERT INTO cut_area (area) VALUES (?)", [(n,) for n in sorted(holds)])
+    cov.filled("cut_area", len(holds))
+
+
 def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
                 span: Dict[int, tuple], held: Dict[str, frozenset], follow: frozenset, *, log=print) -> List[tuple]:
     """(ord, part_ix, the area's catalogue name, the lines' share, "inside" | "at", 1 if the atlas cuts at the area else

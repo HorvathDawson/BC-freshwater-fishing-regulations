@@ -137,11 +137,17 @@ def test_part_labels_match_the_page(page, monkeypatch):
     # channel's own ends ("Side channel (from the mouth up to …)"); a water of several keeps the page's words. The
     # distances (which the page never said: read as it did here) are pinned in `test_side_channel_parts_say_where_they_join`
     monkeypatch.setattr(X.part, "_from_mouth", lambda side: "")
-    from pipeline.deliver.answers.display.builders import side_facts
+    from pipeline.deliver.answers.display.builders import held_facts, side_facts
     doc, ws = page_doc(page)
     bad = []
     for want in page["expect"]["waters"]:
-        wf = side_facts(want["id"], ws[want["id"]], {})
+        # (T1199 PR 2) the page was cut before the cut rule: every stretch between two crossings of one area lay inside
+        # it, and carried its rule (`part.AREA_HELD`, which a bundle gives)
+        held = {(want["id"], "held", i): {str(r["from"])[5:].split("@")[0] for r in p.get("runs") or []
+                                         if str(r.get("from") or "").startswith("area:") and r["from"] == r.get("to")}
+                for i, p in enumerate(ws[want["id"]].get("parts") or []) if p}
+        held[("cut_areas",)] = {X.part.area_key(a) for v in held.values() for a in v}
+        wf = held_facts(want["id"], side_facts(want["id"], ws[want["id"]], {}), held)
         W = X.Water(want["id"], wf, doc)
         lone = sum(1 for p in W.parts if X.part.side_only(p)) == 1
         got = {"labels": X.part_labels(W), "runs": [X.runs_label(doc, p) for p in W.parts],

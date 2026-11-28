@@ -545,9 +545,11 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # (T1199, E30) the sections each cut area's CUT puts inside it, for the inside measure (`side_channels.inside_rows`)
     from pipeline.common.section_handles import read as _handle_table
     from pipeline.atlas.splits.area_splits import load_area_split_defs as _area_split_defs
+    from pipeline.deliver.bundle.side_channels import cut_area_holds as _cut_area_holds
     from pipeline.deliver.bundle.side_channels import cut_area_members as _cut_area_members
     _area_held, _area_follow = _cut_area_members(registry_items, _handle_table(build_dir)[1], build_dir,
                                                  _area_split_defs())
+    _area_holds = _cut_area_holds(registry_items, _handle_table(build_dir)[1], build_dir)
     # THE BOOK'S RIVER PAIRINGS, READ FROM THE CATALOGUE NOW (T76): the donor panels below treat a continuation's gauges
     # as a section's own, and they are built while the graph is loaded — before `entry` exists. Read from the catalogue
     # the rules will be written from (the same sources, the same registry, `rules.read_entries`), against `item` alone,
@@ -779,6 +781,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         _side_channels.write(db, named_geo, build_dir, cov, added=_added_names, marks=_stem_marks, held=_area_held,
                              follow=_area_follow)
         del _stem_marks, _area_held, _area_follow
+        # (T1199 PR 2) the cut areas whose rule each part carries, for the end words ("Within" / "Outside … between")
+        _side_channels.write_area_held(db, _area_holds, cov)
+        del _area_holds
         _topology.write(db, named_geo, cov, mouths=_mouths, codes=_codes,
                         dfo_places=(_place_words, _chain_places) if _reaches is not None else None)
         del named_geo

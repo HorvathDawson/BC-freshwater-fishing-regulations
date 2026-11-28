@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.deliver.answers.common import AnswersError, when_words
 from pipeline.deliver.answers.display.rule import _num, cut_points, rule_facts
 from pipeline.deliver.answers.display.part import (
-    SIDE_APART, SIDE_AREA, STEM_LICENSING, Water, own_end, part_km, part_label, part_labels, part_place, picker,
+    AREA_HELD, SIDE_APART, SIDE_AREA, STEM_LICENSING, Water, own_end, part_km, part_label, part_labels, part_place, picker,
     runs_label, side_only, stem_licensing, water_ends_km
 )
 
@@ -181,7 +181,12 @@ def _by_grp(item_id: str, w: dict, doc: dict):
                        # (T1172) a group of side-channel parts: apart if any member is; its area only if all share one
                        SIDE_APART: any(q.get(SIDE_APART) for q in qs),
                        SIDE_AREA: qs[0].get(SIDE_AREA) if all(q.get(SIDE_AREA) == qs[0].get(SIDE_AREA) for q in qs)
-                       else None})
+                       else None,
+                       # (T1199 PR 2) the areas its members carry: a group is one rule set, so a stretch of it between
+                       # two crossings of an area is the member's that carries it (Blaney Creek: one member in each of
+                       # two restricted lands, one rule set)
+                       AREA_HELD: sorted(set().union(*(set(q.get(AREA_HELD) or ()) for q in qs)))
+                       if all(AREA_HELD in q for q in qs) else None})
     return Water(item_id, {**w, "parts": merged}, doc), members
 
 
@@ -207,6 +212,12 @@ def _crossings(path: str) -> Dict[tuple, list]:
         for iid, p, nm, lb in db.execute("SELECT i.item_id, n.part_ix, n.name, n.label FROM part_own_name n JOIN item i "
                                          "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
             out[(iid, "own", p)] = (nm, lb)
+        # (T1199 PR 2) the cut areas whose rule each part carries (`bundle.side_channels.area_held_rows`)
+        for iid, p, area in db.execute("SELECT i.item_id, h.part_ix, h.area FROM part_area_held h JOIN item i "
+                                       "ON i.ord = h.ord ORDER BY i.item_id, h.part_ix, h.area"):
+            out.setdefault((iid, "held", p), set()).add(area)
+        from pipeline.deliver.answers.display.part import area_key
+        out[("cut_areas",)] = {area_key(a) for (a,) in db.execute("SELECT area FROM cut_area")}
         out.update(_flows_into(db))
         return out
     finally:
@@ -385,6 +396,53 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             for i in range(len(W.parts))]
 
 
+def held_facts(item_id: str, w: dict, crossings: Dict[tuple, object]) -> dict:
+    """(T1199 PR 2) the water with the cut areas whose rule each part carries set on EVERY part (`part.AREA_HELD`,
+    read by `runs_label`: a stretch between two crossings of an area is "within" it only when it carries its rule)."""
+    from pipeline.deliver.answers.display.part import area_key, area_of_token
+    parts = [dict(p, **{AREA_HELD: sorted(crossings.get((item_id, "held", i), ()))}) if p is not None else p
+             for i, p in enumerate(w.get("parts") or [])]
+    # (review) an area a stretch between two crossings names must be a cut area the bundle knows, by the one key
+    # (`part.area_key`): a name that drifted, or an area not cut, would read every stretch of it "Outside" — never silent
+    named = sorted({area_of_token(r["from"]) for p in parts if p for r in p.get("runs") or []
+                    if str(r.get("from") or "").startswith("area:") and r["from"] == r.get("to")})
+    if named:
+        known = crossings.get(("cut_areas",))
+        if known is None:
+            raise AnswersError(f"display: {item_id}: the bundle names no cut areas (`cut_area`), so whether its "
+                               f"stretches between crossings of {named} lie inside cannot be said")
+        unknown = [a for a in named if area_key(a) not in known]
+        if unknown:
+            raise AnswersError(f"display: {item_id}: a stretch between two crossings of {unknown}: no cut area of that "
+                               f"name in the bundle (`cut_area`), so its words cannot be said")
+    return {**w, "parts": parts}
+
+
+def within_disagreements(item_id: str, parts: Sequence[dict], labels: Sequence[str], doc: dict) -> List[str]:
+    """(T1199 PR 2, RULINGS E36) every part whose words say it lies "within" an area whose rule it does not carry, or
+    "outside … (between its boundaries)" one whose rule it carries — read back from the words shipped, so a later
+    composer cannot drift from the rule unseen."""
+    from pipeline.deliver.answers.display.part import OUTSIDE_BETWEEN, end_name
+    out = []
+    for i, (p, lab) in enumerate(zip(parts, labels)):
+        if p is None or not lab:
+            continue
+        held = set(p.get(AREA_HELD) or ())
+        for r in p.get("runs") or []:
+            t = str(r.get("from") or "")
+            if not (t.startswith("area:") and t == r.get("to")):
+                continue
+            area = re.sub(r" boundary$", "", end_name(doc, t))
+            low = lab.lower()
+            inside = t[len("area:"):].split("@")[0] in held
+            said_in = f"within {area}".lower() in low
+            said_out = OUTSIDE_BETWEEN.format(area=area).lower() in low
+            if (said_in and not inside) or (said_out and inside):
+                out.append(f"{item_id} part {i}: says {'within' if said_in else 'outside'} {area!r} but "
+                           f"{'carries' if inside else 'does not carry'} its rule")
+    return out
+
+
 def side_facts(item_id: str, w: dict, crossings: Dict[tuple, object]) -> dict:
     """(T1172, owner 2026-11-26) the water with what its parts of side channels only say beside their channels, set on
     each such part (`part.SIDE_APART`, `part.SIDE_AREA`, read by `runs_label`), ONE rule for every water: a distance
@@ -474,7 +532,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
     candidates: List[str] = []
     for item_id in sorted(parts):
         # (T1172) a part of side channels only carries its distance rule and its area (`side_facts`)
-        w = side_facts(item_id, doc["waters"][item_id], crossings)
+        w = held_facts(item_id, side_facts(item_id, doc["waters"][item_id], crossings), crossings)
         candidates += inside_candidates(item_id, w, crossings)
         W = Water(item_id, w, doc)
         if not W.parts:
@@ -509,6 +567,9 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                 "km": part_km(p),
                 "closed_all_year": closed[-1],
                 "paper_licence": [rule_ref(r) for r in paper_licence(B, rk, w.get("kind"), store=store)]}
+        # (T1199 PR 2) no part says it lies within an area whose rule it does not carry, nor outside one it carries
+        stops += within_disagreements(item_id, W.parts, [f"{facts[ex]['runs']} | {facts[ex]['label']}"
+                                                         for ex in W.export_ix], doc)
         shut = {p["grp"]: c for p, c in zip(W.parts, closed)}
         pk = picker(Wg, labels_g, [shut[g] for g in Wg.export_ix])
         for c in pk["choices"]:
