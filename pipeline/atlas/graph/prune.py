@@ -582,3 +582,434 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
         graph.up_adj.setdefault(e.to_node, []).append(i)
         graph.down_adj.setdefault(e.from_node, []).append(i)
     return graph, len(drop), fids
+
+
+# ---- T1242: creek-less braid loops (owner option D, "simplify the water itself"; ruling E31) ---------------------
+#
+# ON in every map build (`pipeline.atlas.build`, `--drop-small-loops inf` by default; `--keep-small-loops` turns it
+# off for comparisons). Only `SMALL_LOOP_CREEKS = "keep"` ships: a loop a creek flows into is never touched (T1260).
+# The "tail" and "rehome" modes are the measured trial variants, kept for T1260 and never used by a build.
+#
+# What survives `prune_mainstem_loops` and why (T1242 part A, the 2026-11-26 atlas): of the 11,875 loop groups the
+# design found "meeting every stated condition", 9,445 are kept by `nests.essential_routes` as the one route an
+# UNNAMED creek has out of the nest (the design counted creeks by the bundle's `section_down` pointer, which unnamed
+# water does not have), 760 because the loop leaves and rejoins the SAME graph piece (the water is already where it
+# is going, but `_reaches_without(src, want=src)` can never say so: a bug), 754 as the river's own route where the
+# river cannot reach the exit another way, 571 have a name of their own, the rest are lakes / restored ends.
+#
+# The trial's rule: a component of the river's own anonymous braiding (`loop_nodes`) that leaves the river's MAIN
+# blue line and rejoins it (every same-water neighbour is a main-line piece), whose every vertex lies within
+# `max_offset_m` of those main-line pieces, and that holds no blk of the keep list, is removed. Never removed: a loop
+# that touches a lake (the river's feed into a lake: removing it let the Bulkley r2 and Serpentine closures go), a
+# loop that is only PART of a blue line whose other pieces stay (it leaves a fragment: Attichika Creek's 585 m piece
+# "leaves BC unjoined"), a loop off a kept side channel, a piece without geometry.
+#
+# A creek on a removed loop (`SMALL_LOOP_CREEKS`):
+#   "tail"   (variant d, owner 2026-11-27: "every stream simply a single line the whole way down") the creek TAKES THE
+#            LOOP'S LOWER PART as its own last reach: the pieces from its junction down to the river (the shortest way,
+#            one tree for the whole loop) stay, renamed to the creek (its watershed code, names, gnis), the entry piece
+#            cut at the junction; the rest of the loop goes. No gap: the creek's mouth is where the loop met the river.
+#            Two creeks whose ways down meet: the bigger (magnitude) owns the shared reach, the smaller joins it.
+#   "rehome" (variant a) the creek's mouth edge moves onto the nearest main-line piece; its line stops short.
+#   "keep"   (variant c) a loop with a creek on it is not removed.
+
+#: The trial's threshold (braids-design option C/D at 100 m: 5,209 loops, 1,231 km by the design's count).
+SMALL_LOOP_TRIAL_M = 100.0
+#: What happens to a creek on a removed loop: "tail" (d), "rehome" (a) or "keep" (c). The owner's direction for 0.10.0
+#: (2026-11-27): "just drop loops without tributary input streams" = "keep": a loop a creek flows into is not removed,
+#: so no creek moves, no tail is renamed, no rule question arises.
+SMALL_LOOP_CREEKS = "keep"
+#: Whose water a "tail" is (the owner's open question, 2026-11-27):
+#:   "creek"          the tail is renamed to the creek: its code, names, rules (136 tails lost a river closure);
+#:   "river"          the tail stays the river's side channel (no rule moves; the creek's line ends at the channel);
+#:   "unless-looser"  (e) renamed to the creek EXCEPT where that would take a river rule off it: the keep list's
+#:                    `tail_river` blue lines (worked out from the baseline's bindings) stay the river's.
+SMALL_LOOP_TAIL_RULES = "unless-looser"
+
+
+def _tail_plan(graph: StreamGraph, comp: set[str], river: set[str], foreign: list[int]):
+    """For SMALL_LOOP_CREEKS == "tail": {kept node: (owner creek, metres kept from its downstream end or None = whole)},
+    or a reason string when the loop cannot become single lines. One shortest-way-down tree for the whole loop (each
+    piece's next piece towards the river), so two creeks' ways down meet and stay together."""
+    import heapq as _hq
+    dist: dict[str, float] = {}
+    nxt: dict[str, str | None] = {}
+    pq = []
+    for x in sorted(comp):
+        if any(graph.edges[j].to_node in river for j in graph.down_adj.get(x, [])):
+            dist[x], nxt[x] = graph.nodes[x].length_m or 0.0, None
+            pq.append((dist[x], x))
+    _hq.heapify(pq)
+    while pq:
+        d, u = _hq.heappop(pq)
+        if d != dist[u]:
+            continue
+        for j in graph.up_adj.get(u, []):
+            v = graph.edges[j].from_node
+            if v in comp:
+                nd = d + (graph.nodes[v].length_m or 0.0)
+                if nd < dist.get(v, float("inf")) or (nd == dist.get(v) and u < (nxt.get(v) or "~")):
+                    dist[v], nxt[v] = nd, u
+                    _hq.heappush(pq, (nd, v))
+    entries: dict[str, list] = {}
+    for i in foreign:
+        e = graph.edges[i]
+        if e.to_node not in dist:
+            return "a creek has no way down inside the loop"
+        entries.setdefault(e.to_node, []).append((e.at_measure, e.from_node))
+    def size(c):
+        n = graph.nodes[c]
+        return (n.stream_magnitude or 0, n.length_m or 0.0, c)
+    owner: dict[str, str] = {}
+    paths = {}
+    for x, js in entries.items():
+        for _m, c in js:
+            u, p = x, []
+            while u is not None:
+                p.append(u)
+                u = nxt[u]
+            paths[(c, x)] = p
+    for (c, x), p in sorted(paths.items(), key=lambda kv: size(kv[0][0]), reverse=True):
+        for u in p:
+            owner.setdefault(u, c)
+    fed = {nxt[u] for u in owner if nxt[u] is not None}
+    plan = {}
+    for u, c in owner.items():
+        keep_m = None
+        if u in entries and u not in fed:          # the creek's own entry piece, nothing above it kept: cut there
+            n = graph.nodes[u]
+            m = max(mm for mm, _c in entries[u])
+            keep_m = max(0.0, min(m - (n.down_m or 0.0), n.length_m or 0.0))
+        plan[u] = (c, keep_m)
+    return plan
+
+
+#: A blue-line key inside a curated file: 8 to 10 digits standing alone (FWA keys; added streams are negative).
+_BLK_IN_TEXT = r"(?<![\d.])-?\d{8,10}(?![\d.])"
+
+
+#: `waters/loop_exemptions.json`: the document's keys, and each row's (all required but `reading`; `words` may be "")
+EXEMPTION_TOP_KEYS = ("_about", "format", "rows")
+EXEMPTION_ROW_KEYS = ("water", "blks", "why", "id", "words", "date")
+EXEMPTION_ROW_OPTIONAL = ("reading",)
+
+
+def exemption_problems(doc) -> list[str]:
+    """Every way `waters/loop_exemptions.json` is malformed (empty: well formed). For `loop_keeps` (the build stops on
+    any) and `check_curated --waters`. A row names blue-line keys only (a lake is never a loop), a unique id, a reason,
+    the words that name the water (the book's or DFO's printed text, whole; the owner's words for his own rows) and a
+    date; an unknown key is refused, never ignored."""
+    import re as _re
+    if not isinstance(doc, dict):
+        return ["loop_exemptions: the file must be a JSON object"]
+    out = [f"loop_exemptions: unknown key {k!r}" for k in doc if k not in EXEMPTION_TOP_KEYS]
+    out += [f"loop_exemptions: no `{k}`" for k in EXEMPTION_TOP_KEYS if k not in doc]
+    rows = doc.get("rows")
+    if not isinstance(rows, list):
+        return out + ["loop_exemptions: `rows` must be a list"]
+    seen: set = set()
+    for i, r in enumerate(rows):
+        where = f"loop_exemptions.rows[{i}]"
+        if not isinstance(r, dict):
+            out.append(f"{where}: not an object")
+            continue
+        where = f"loop_exemptions.rows[{r.get('id') or i}]"
+        out += [f"{where}: unknown key {k!r}" for k in r if k not in EXEMPTION_ROW_KEYS + EXEMPTION_ROW_OPTIONAL]
+        out += [f"{where}: no `{k}`" for k in EXEMPTION_ROW_KEYS if k not in r]
+        blks = r.get("blks")
+        if not isinstance(blks, list) or not blks:
+            out.append(f"{where}: `blks` must be a non-empty list")
+        else:
+            out += [f"{where}: {b!r} is not a blue-line key (digits; a lake is never a loop)" for b in blks
+                    if not (isinstance(b, str) and b.lstrip("-").isdigit())]
+        for k in ("water", "why", "id"):
+            if k in r and not (isinstance(r[k], str) and r[k].strip()):
+                out.append(f"{where}: `{k}` must be a non-empty string")
+        for k in ("words", "reading"):
+            if k in r and not isinstance(r[k], str):
+                out.append(f"{where}: `{k}` must be a string")
+        if "date" in r and not (isinstance(r["date"], str) and _re.fullmatch(r"\d{4}-\d{2}-\d{2}", r["date"])):
+            out.append(f"{where}: `date` must be YYYY-MM-DD")
+        if r.get("id") in seen:
+            out.append(f"{where}: the id is used twice")
+        seen.add(r.get("id"))
+    return out
+
+
+def loop_keeps(exemptions, structural: dict, blk_sets: dict | None = None) -> dict[str, list[str]]:
+    """THE ONLY THINGS THAT KEEP A LOOP (owner 2026-11-27: "the simplification should happen at the build level before
+    regulations apply"), all read in the map build itself, never from a rules run: {blk: [reasons]}.
+
+      * `exemptions`: the curated `waters/loop_exemptions.json`, one row per water kept BY NAME (a book row or DFO place
+        names it, or the owner keeps it), its blue lines listed. Malformed (`exemption_problems`): the build stops;
+      * `structural`: {reason: curated file} whose blue lines a loop must keep because something is placed ON it: a
+        tidal limit, a gauge, an owner call. Any blue-line key the file names counts (over-inclusive by design:
+        keeping a loop too many is safe, removing one a cut stands on is not);
+      * `blk_sets`: {reason: blue lines} the build works out itself: the lines its curated and gauge cuts RESOLVE onto
+        (every anchor kind, placed by the cut placement itself), the lines an accepted found name labels.
+
+    Loops that touch a lake and loops that are part of a longer blue line are kept by `small_loops` itself."""
+    import json as _json
+    import re as _re
+    out: dict[str, list[str]] = {}
+    doc = _json.loads(open(exemptions, encoding="utf-8").read())
+    bad = exemption_problems(doc)
+    if bad:
+        raise SystemExit("waters/loop_exemptions.json is malformed:\n  " + "\n  ".join(bad))
+    for row in doc["rows"]:
+        for b in row["blks"]:
+            out.setdefault(str(b), []).append(f"named: {row['id']}")
+    for reason, path in sorted(structural.items()):
+        for b in sorted(set(_re.findall(_BLK_IN_TEXT, open(path, encoding="utf-8").read()))):
+            if reason not in out.setdefault(b, []):
+                out[b].append(reason)
+    for reason, blks in sorted((blk_sets or {}).items()):
+        for b in sorted({str(x) for x in blks}):
+            if reason not in out.setdefault(b, []):
+                out[b].append(reason)
+    return out
+
+
+#: a blue-line key named in free text that also holds hex digests (the review marks): digits standing alone, not
+#: inside a longer word (a sha's digit run is never matched)
+_BLK_IN_PROSE = r"(?<![\w.])-?\d{8,10}(?![\w.])"
+
+
+def marked_removed_lines(removed_blks, marks_text: str) -> list[str]:
+    """(T1242 review) The removed loops' blue lines the owner's review marks name, sorted. Marks are no keep by design
+    (E31 keeps by name and structure); a removed line a mark names is a refusal, never a quiet removal."""
+    import re as _re
+    named = set(_re.findall(_BLK_IN_PROSE, marks_text))
+    return sorted({str(b) for b in removed_blks} & named)
+
+
+def _mains(graph: StreamGraph, fwa_main) -> dict[str, str]:
+    """{trimmed watershed code: its mainstem blk}, exactly as `loop_nodes` chooses it."""
+    from pipeline.common.utils.wsc import trim_wsc
+    by_wsc: dict[str, list] = {}
+    for n in graph.nodes.values():
+        if n.kind == NodeKind.stream and n.blk and n.wsc:
+            by_wsc.setdefault(trim_wsc(n.wsc), []).append(n)
+    return {w: _mainstem_blk(ns, fwa_main) for w, ns in by_wsc.items()}
+
+
+def small_loops(graph: StreamGraph, geoms: dict, max_offset_m: float, keep_blks: set[str] | frozenset = frozenset(),
+                fwa_main: frozenset[str] | set[str] | None = None, why: dict | None = None,
+                tail_river_blks: set[str] | frozenset = frozenset()) -> list[dict]:
+    """The loop components the trial removes, in node-id order: [{nodes, blks, offset_m, length_m, wsc, tribs}].
+
+    ``why`` (a dict) collects a count per reason a surviving component was NOT removed."""
+    import numpy as np
+    import shapely
+    from shapely.ops import unary_union
+    from pipeline.common.utils.wsc import trim_wsc
+
+    if not geoms:
+        raise ValueError("small_loops needs the geometry sidecar: an offset cannot be judged without it")
+    why = why if why is not None else {}
+
+    def count(k):
+        why[k] = why.get(k, 0) + 1
+
+    keep = {str(b) for b in keep_blks}
+    mains = _mains(graph, fwa_main)
+    pieces_of_blk: dict[str, int] = {}
+    for n in graph.nodes.values():
+        if n.kind == NodeKind.stream and n.blk:
+            pieces_of_blk[n.blk] = pieces_of_blk.get(n.blk, 0) + 1
+    records: list = []
+    loop_nodes(graph, keep, True, records, fwa_main=fwa_main)
+    out = []
+    for comp, in_edges, foreign, exits, _out_edges in sorted(records, key=lambda r: min(r[0])):
+        wsc = trim_wsc(graph.nodes[min(comp)].wsc)
+        main = mains.get(wsc, "")
+        fset = set(foreign)
+        own_srcs = {graph.edges[i].from_node for i in in_edges if i not in fset}
+        nbrs = own_srcs | set(exits)
+
+        def on_river(nid):
+            n = graph.nodes.get(nid)
+            if n is None:
+                return False
+            if n.kind == NodeKind.stream:
+                return n.blk == main
+            return trim_wsc(n.wsc or "") == wsc           # a lake on the river carries its code
+
+        if not own_srcs:
+            count("fed by other water only")
+            continue
+        srcs_all = {graph.edges[i].from_node for i in in_edges}
+        if any(graph.nodes[x].kind != NodeKind.stream for x in srcs_all | set(exits) if x in graph.nodes):
+            count("touches a lake")
+            continue
+        blks = {graph.nodes[x].blk for x in comp}
+        if sum(pieces_of_blk.get(b, 0) for b in blks) != len(comp):
+            count("part of a longer blue line")
+            continue
+        if not all(on_river(x) for x in nbrs):
+            count("off a side channel or another water, not the main line")
+            continue
+        river = sorted(x for x in nbrs if graph.nodes[x].kind == NodeKind.stream)
+        if not river:
+            count("off a lake only")
+            continue
+        if any(graph.nodes[x].blk in keep for x in comp):
+            count("keep list")                                # defensive: loop_nodes already skips them
+            continue
+        if foreign and SMALL_LOOP_CREEKS == "keep":
+            count("a creek flows into it")
+            continue
+        plan = None
+        if foreign and SMALL_LOOP_CREEKS == "tail":
+            plan = _tail_plan(graph, set(comp), set(river), list(foreign))
+            if isinstance(plan, str):
+                count(plan)
+                continue
+        gs = [geoms.get(x) for x in sorted(comp)]
+        rg = [geoms.get(x) for x in river]
+        if any(g is None or g.is_empty for g in gs) or any(g is None or g.is_empty for g in rg):
+            count("no geometry")
+            continue
+        pts = np.vstack([np.asarray(p.coords)[:, :2] for g in gs for p in getattr(g, "geoms", [g])])
+        off = float(shapely.distance(shapely.points(pts), unary_union(rg)).max())
+        if off >= max_offset_m:
+            count(f"far side {max_offset_m:.0f} m or more from the river")
+            continue
+        rename = bool(plan) and (SMALL_LOOP_TAIL_RULES == "creek" or (
+            SMALL_LOOP_TAIL_RULES == "unless-looser" and not any(graph.nodes[x].blk in tail_river_blks for x in plan)))
+        if plan and not rename:
+            count("tail stays the river's" if SMALL_LOOP_TAIL_RULES == "river" else "tail stays the river's: a rule would go")
+        out.append({"nodes": sorted(comp), "blks": sorted({graph.nodes[x].blk for x in comp}), "rename": rename,
+                    # T1247's case: the loop leaves and rejoins the SAME main-line piece (the braid prune can never
+                    # take it); flagged so its share of a build can be told apart
+                    "same_piece": bool(own_srcs & set(exits)),
+                    "offset_m": round(off, 1), "length_m": round(sum(graph.nodes[x].length_m or 0.0 for x in comp), 1),
+                    "wsc": wsc, "river": river, "tribs": sorted({graph.edges[i].from_node for i in foreign}),
+                    "tail": ({k: [v[0], None if v[1] is None else round(v[1], 1)] for k, v in sorted(plan.items())}
+                             if plan else {})})
+        count("removed, creek takes the tail" if plan else "removed")
+    return out
+
+
+def drop_small_loops(graph: StreamGraph, geoms: dict, loops: list[dict],
+                     moved: list | None = None) -> tuple[StreamGraph, int, set[str]]:
+    """Remove the `small_loops` components. Returns (graph, pieces removed, fids). ``moved`` collects
+    ``(creek, old target, new target, new measure, metres of gap)``: a "tail" loop's creek keeps its own junction (the
+    gap is 0; the new target is where its new last reach meets the river), a "rehome" loop's creek is moved onto the
+    nearest main-line piece at the point of that line nearest its old mouth.
+
+    The river's own inflow into a loop is dropped (the river goes on down its main line). A loop is put back, whole,
+    when removing it would leave any source with no way downstream (connectivity is checked, never assumed)."""
+    from shapely.ops import substring
+    drop: set[str] = set()
+    plan: dict[int, tuple[str, float, float, float, float]] = {}
+    tails: dict[str, tuple[str, float | None]] = {}
+    unnamed: dict[str, tuple] = {}                     # tails that stay the river's: cut, never renamed
+    tail_moves: list = []
+    for lp in loops:
+        comp = set(lp["nodes"])
+        tail = {k: (v[0], v[1]) for k, v in (lp.get("tail") or {}).items()}
+        if not lp.get("rename", True):
+            unnamed.update(tail)
+        gone = comp - set(tail)
+        river = [r for r in lp["river"] if r in graph.nodes and r not in drop]
+        local: dict[tuple, tuple] = {}
+        ok = bool(river)
+        for nid in sorted(comp):
+            for i in graph.up_adj.get(nid, []):
+                e = graph.edges[i]
+                src = e.from_node
+                if src in comp:
+                    continue
+                others = [graph.edges[j].to_node for j in graph.down_adj.get(src, []) if j != i]
+                if src in river or (graph.nodes[src].kind != NodeKind.stream):
+                    back = any(graph.edges[j].to_node == src for x in comp for j in graph.down_adj.get(x, []))
+                    if not back and not [t for t in others if t not in comp and t not in drop]:
+                        ok = False                     # the loop was its only way on
+                    continue                           # the river's own inflow: goes with the loop
+                if tail:
+                    continue                           # "tail": the creek keeps its junction on its new last reach
+                if _joins_already(graph, src, river[0], drop | comp, i):
+                    continue                           # the creek already has its own junction on the river
+                here = Point(e.x, e.y) if (e.x or e.y) else None
+                if here is None:
+                    sg = geoms.get(src)
+                    here = Point(sg.coords[0]) if sg is not None and sg.geom_type == "LineString" else None
+                if here is None:
+                    ok = False
+                    continue
+                tgt = min(river, key=lambda r: (float(geoms[r].distance(here)), r))
+                line, node = geoms[tgt], graph.nodes[tgt]
+                m = (node.down_m or 0.0) + float(line.project(here))
+                m = min(max(m, node.down_m), node.up_m if node.up_m is not None else m)
+                pt = line.interpolate(max(0.0, min(m - (node.down_m or 0.0), line.length)))
+                gap = float(here.distance(pt))
+                key = (src, tgt)
+                cand = (gap, i, tgt, m, float(pt.x), float(pt.y))
+                if key not in local or cand < local[key]:
+                    local[key] = cand
+        if not ok:
+            continue
+        drop |= gone
+        tails.update(tail)
+        for gap, i, tgt, m, x, y in local.values():
+            plan[i] = (tgt, m, x, y, gap)
+        for c in lp.get("tribs") or ():
+            # where the creek's water now reaches the river: the end of its kept way down
+            u = next((k for k, v in tail.items() if v[0] == c), None)
+            seen = set()
+            while u is not None and u not in seen:
+                seen.add(u)
+                nx = [graph.edges[j] for j in graph.down_adj.get(u, []) if graph.edges[j].to_node in tail]
+                if not nx:
+                    out = [graph.edges[j] for j in graph.down_adj.get(u, []) if graph.edges[j].to_node in river]
+                    if out:
+                        tail_moves.append((c, u, out[0].to_node, round(out[0].at_measure, 1), 0.0))
+                    break
+                u = nx[0].to_node
+    if not drop and not tails:
+        return graph, 0, set()
+    for i, (tgt, m, x, y, gap) in sorted(plan.items()):
+        e = graph.edges[i]
+        if moved is not None:
+            moved.append((e.from_node, e.to_node, tgt, round(m, 1), round(gap, 1)))
+        graph.edges[i] = replace(e, to_node=tgt, at_measure=m, x=x, y=y)
+    if moved is not None:
+        moved.extend(tail_moves)
+    # the tails become their creeks' last reaches: the creek's code, names and size; an entry piece is cut at the junction
+    for nid, (c, keep_m) in sorted(tails.items()):
+        n, cr = graph.nodes[nid], graph.nodes[c]
+        kw = {} if nid in unnamed else dict(wsc=cr.wsc, gnis_id=cr.gnis_id, display_name=cr.display_name,
+                                            name_tuples=cr.name_tuples, stream_magnitude=cr.stream_magnitude,
+                                            stream_order=cr.stream_order)
+        if keep_m is not None and keep_m < (n.length_m or 0.0) - 0.5:
+            kw.update(up_m=(n.down_m or 0.0) + keep_m, length_m=keep_m)
+            g = geoms.get(nid)
+            if g is not None and g.geom_type == "LineString":
+                geoms[nid] = substring(g, 0, keep_m)
+        if kw:
+            graph.nodes[nid] = replace(n, **kw)
+    fids = {f for nid in drop for f in graph.nodes[nid].member_fids}
+    for nid in drop:
+        graph.nodes.pop(nid, None)
+        geoms.pop(nid, None)
+
+    creeks = {c for lp in loops for c in (lp.get("tribs") or ())}
+
+    def keeps(e):
+        if e.from_node in drop or e.to_node in drop:
+            return False
+        if e.to_node in tails and e.from_node not in tails:
+            if e.from_node not in creeks:
+                return False                       # the river's own inflow into what is now a creek's reach
+            n = graph.nodes[e.to_node]
+            if e.at_measure > (n.up_m or 0.0) + 0.5:
+                return False                       # it entered the part of the entry piece that went
+        return True
+
+    graph.edges = [e for e in graph.edges if keeps(e)]
+    graph.up_adj, graph.down_adj = {}, {}
+    for i, e in enumerate(graph.edges):
+        graph.up_adj.setdefault(e.to_node, []).append(i)
+        graph.down_adj.setdefault(e.from_node, []).append(i)
+    return graph, len(drop), fids

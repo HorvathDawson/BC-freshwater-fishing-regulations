@@ -1,0 +1,16 @@
+{
+ "_about": "The mini release's braid loops kept by name (T1242, invented): the Fixture River's one braid, so the release keeps a river holding a second blue line (test_mini_release's plans inventory) and the named keep runs end to end.",
+ "format": 1,
+ "rows": [
+  {
+   "water": "Fixture River braid",
+   "blks": [
+    "900000005"
+   ],
+   "why": "the mini release keeps its one braid by name (invented)",
+   "id": "mini:fixture-river-braid",
+   "words": "",
+   "date": "2026-11-27"
+  }
+ ]
+}

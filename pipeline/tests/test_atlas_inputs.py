@@ -92,13 +92,12 @@ def test_a_skipped_or_unrecorded_input_is_behind(tmp_path, gpkg):
 
 
 def test_an_atlas_recorded_before_an_input_was_listed_says_so(tmp_path, gpkg):
-    """(T1229) An atlas recorded before `regulations.book_name_links` was an input is behind on it, saying why: never
-    a crash, never "changed"."""
+    """(T1229) An atlas recorded before an input was listed (`regulations.book_name_links`, T1242's
+    `waters.loop_exemptions`) is behind on it, saying why: never a crash, never "changed"."""
     now = I.digests(_src(gpkg))
     got = I.behind(_atlas(tmp_path, {k: v for k, v in now.items() if k not in I.LISTED_AFTER}), now)
-    key = "curated:regulations.book_name_links"
     assert got == [f"{I.curated_path(key).name} ({key}): the atlas was recorded before this input was listed "
-                   f"({I.LISTED_AFTER[key]}) — rebuild: {I.REBUILD}"]
+                   f"({I.LISTED_AFTER[key]}) — rebuild: {I.REBUILD}" for key in I.LISTED_AFTER]
 
 
 def test_build_paths_follow_the_build_flags(gpkg):

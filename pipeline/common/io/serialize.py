@@ -13,12 +13,16 @@ from pathlib import Path
 from typing import Any
 
 
-def write_artifact(obj: Any, path: str, input_hashes: dict[str, str] | None = None) -> None:
+def write_artifact(obj: Any, path: str, input_hashes: dict[str, str] | None = None, build: dict | None = None) -> None:
+    """Pickle `obj` and write its meta beside it: the input digests and (T1242 review) `build`, the facts about how it
+    was built that no input digest shows (the creek-less loop pass on or off, its limit)."""
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "wb") as f:
         pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
     meta = {"input_hashes": input_hashes or {}, "build_ts": time.time()}
+    if build:
+        meta["build"] = build
     p.with_suffix(p.suffix + ".meta.json").write_text(json.dumps(meta, indent=2))
 
 
