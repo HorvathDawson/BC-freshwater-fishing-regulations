@@ -144,7 +144,7 @@ def _stellako():
 
 
 def _run(entries, listed=()):
-    return build_reaches(entries, REG, G, steelhead_list=[SH.ListWater(**w) for w in listed])
+    return build_reaches(entries, REG, G, steelhead_list=[SH.ListWater(**w) for w in listed], steelhead_barriers=())
 
 
 def _on(result, sid) -> set[str]:
@@ -612,7 +612,7 @@ def test_the_list_marks_only_water_in_bc():
                                        up_m=1.0, length_m=1.0, out_of_bc=True))
     reg = {"gnis:8231": _item("gnis:8231", ["t1", "t9"], "Taku River", mus=("6-26",)),
            "area:region:6": _item("area:region:6", ["t1"])}
-    got = build_reaches([_province()], reg, g, steelhead_list=[SH.ListWater(item_id="gnis:8231")])
+    got = build_reaches([_province()], reg, g, steelhead_list=[SH.ListWater(item_id="gnis:8231")], steelhead_barriers=())
     assert _code(got, "t1") == "known" and _code(got, "t9") is None
     assert got.report.steelhead["curated"][0]["sections"] == 1
 

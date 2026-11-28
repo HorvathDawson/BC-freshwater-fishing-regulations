@@ -45,11 +45,14 @@ widening (`Presence.anadromous`): an unnamed pond a steelhead row's OWN river ta
 in WATERS where anadromous rainbow trout are found", and the row's own size split ("Hatchery rainbow
 trout (adipose clipped, <50 cm)" / "Hatchery steelhead (adipose clipped, >50 cm)", p.51) reads only so.
 
-  known     book-known (above) or listed; each row says which (`regulations`, `listed`), whether
+  known     book-known (above), listed, or a PACIFIC STREAM of the steelhead regions (S14,
+            `PACIFIC_STREAMS_ARE_STEELHEAD_WATER`: every stream the base rules bind whose FWA basin
+            reaches the Pacific); each row says which (`regulations`, `listed`, `pacific`), whether
             steelhead rules apply (`rules`), and `anadromous`.
   possible  any other stream section a provincial steelhead base rule binds (`zp:steelhead`, the
-            streams of the steelhead regions): "steelhead rules apply; steelhead may not be present
-            in this water".
+            streams of the steelhead regions): since S14 the Arctic and Yukon drainage of Region 6
+            and a stream with no watershed code — "steelhead rules apply; steelhead may not be
+            present in this water".
   absent    everywhere else.
 
 THE PROVINCIAL SET ON A BOOK-KNOWN WATER. The base rules bind streams of the steelhead regions only;
@@ -127,6 +130,129 @@ LAKES_ONLY_BY_OWN_ROW = True
 #: by `Presence.anadromous`. False: the pond is a lake, its wild 60 cm rainbow keepable under the zone's lake
 #: quota while the river's own row splits rainbow from steelhead at 50 cm.
 A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS = True
+
+#: A PACIFIC STREAM OF THE STEELHEAD REGIONS IS STEELHEAD WATER (T1250, owner 2026-11-27: "Pacific streams now,
+#: barriers in 0.11.0 (Recommended)"; RULINGS S14). p.80: "steelhead: a rainbow trout longer than 50 cm in waters
+#: where anadromous rainbow trout are found"; "anadromous: swimming up rivers from the ocean to spawn". Every STREAM
+#: section the provincial steelhead base rules bind (the streams of Regions 1, 2, 3, 5 and 6) whose water reaches the
+#: Pacific (`pacific_basin`) is KNOWN (`PACIFIC_STREAM` its source), so a rainbow over 50 cm there is a steelhead
+#: where steelhead rules apply (S6, `Presence.anadromous`). Decided by the water's FWA basin, never by a list of
+#: waters. Stays "possible": a stream the curated barrier list holds out (`steelhead_barriers.json`, `load_barriers`:
+#: the Arctic and Yukon basins, and by the owner's word "Hold both but make sure it will be compatible with a larger
+#: barrier list" the Columbia and the Skagit above Ross Dam; T1257 adds dams and falls), and a section with no
+#: watershed code (counted, `possible_no_basin_code`). A stream in a basin that is neither Pacific nor held out stops
+#: the run. Lakes stay out (S3). False: only the book's rows and the curated list make water known (the S4 model).
+PACIFIC_STREAMS_ARE_STEELHEAD_WATER = True
+
+#: The source a stream known by `PACIFIC_STREAMS_ARE_STEELHEAD_WATER` carries (`steelhead_source`), beside the
+#: steelhead rows' entry ids and `CURATED_LIST`.
+PACIFIC_STREAM = "Pacific stream"
+
+#: WHAT "PACIFIC" MEANS, the one basin constant the code keeps: the FIRST group of a section's FWA watershed code
+#: names its drainage (`common.utils.wsc.root`), and these reach the Pacific: 100 the Fraser, 300 the Columbia, 400
+#: the Skeena, 500 the Nass, 600 the Stikine, 700 the Taku, and the Coastal Rivers groups 900-995
+#: (`wsc.COASTAL_ROOTS`). Every hold-out (a basin that does not reach it, or water cut off from the sea) is a row of
+#: the curated barrier list, never a constant here.
+PACIFIC_BASINS = frozenset({"100", "300", "400", "500", "600", "700"})
+
+
+def pacific_basin(wsc: str) -> bool | None:
+    """Does a water with this FWA watershed code reach the Pacific? True by the code's first group
+    (`PACIFIC_BASINS`, the Coastal Rivers `wsc.COASTAL_ROOTS`), False for any other group, None when the code places
+    nothing (no code, or FWA's `999` no-watershed sentinel, `wsc.is_unknown`)."""
+    from pipeline.common.utils import wsc as W
+    if W.is_unknown(str(wsc or "").strip()):
+        return None
+    head = W.root(str(wsc).strip())
+    return head in PACIFIC_BASINS or head in W.COASTAL_ROOTS
+
+
+# ----------------------------------------------------------------------------- the barrier list
+#: THE CURATED STEELHEAD BARRIER LIST (`data/curated/waters/steelhead_barriers.json`): water a steelhead cannot
+#: reach from the sea, held out of `PACIFIC_STREAMS_ARE_STEELHEAD_WATER` (it stays "possible"). Two kinds of row,
+#: one file: `basin` (every stream whose FWA code is at or below `selector.basin`) and `upstream_of` (everything
+#: upstream of a point on a blue line: `selector.blk` and `selector.measure`, the pieces wholly above it and all
+#: that flows into them). T1257 grows it with dams and falls.
+BARRIER_KINDS = ("basin", "upstream_of")
+
+
+class Barrier(BaseModel):
+    """One row of the barrier list. Every field is required; `selector` is checked per `kind`."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    id: str = Field(..., pattern=r"^[a-z0-9_]+$")
+    what: str = Field(..., min_length=1)
+    kind: str
+    selector: dict
+    reason: str = Field(..., min_length=1)
+    source: str = Field(..., min_length=1)
+    added_by: str = Field(..., min_length=1)
+    added: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+    @model_validator(mode="after")
+    def _selector(self) -> "Barrier":
+        if self.kind not in BARRIER_KINDS:
+            raise ValueError(f"barrier {self.id}: kind {self.kind!r}, one of {BARRIER_KINDS}")
+        want = {"basin": {"basin"}, "upstream_of": {"blk", "measure"}}[self.kind]
+        if set(self.selector) != want:
+            raise ValueError(f"barrier {self.id}: a {self.kind} selector holds exactly {sorted(want)}, "
+                             f"not {sorted(self.selector)}")
+        if self.kind == "basin" and not re.fullmatch(r"\d{3}(-\d{6})*", str(self.selector["basin"])):
+            raise ValueError(f"barrier {self.id}: basin {self.selector['basin']!r} is no FWA code")
+        if self.kind == "upstream_of":
+            int(self.selector["blk"]), float(self.selector["measure"])
+        return self
+
+
+class BarrierList(BaseModel):
+    """The file: `barriers` REQUIRED (a misspelled or missing key is refused, never read as no rows), `$comment`
+    allowed, nothing else."""
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    comment: object = Field(default=None, alias="$comment")
+    barriers: List[Barrier]
+
+
+def load_barriers(path: Path | None = None) -> list[Barrier]:
+    """The curated barrier list, validated (an unknown kind or field, a missing field, a bad selector, an id twice
+    are refused by name). A missing file RAISES (AGENTS 37)."""
+    if path is None:
+        from pipeline.common.curated import CURATED
+        path = CURATED.waters.steelhead_barriers
+    path = Path(path)
+    if not path.is_file():
+        raise FileNotFoundError(f"the steelhead barrier list {path} is missing")
+    rows = list(BarrierList.model_validate(json.loads(path.read_text(encoding="utf-8"))).barriers)
+    ids = [r.id for r in rows]
+    if len(ids) != len(set(ids)):
+        raise ValueError(f"{path}: a barrier id twice: {sorted(i for i in set(ids) if ids.count(i) > 1)}")
+    return rows
+
+
+def barrier_sections(graph, row: Barrier) -> frozenset[str]:
+    """The sections a barrier row holds out — every graph node, a lake-typed node too (a polygon the registry makes a
+    stream, `water_kind.flows`, is a "possible" stream all the same). `basin`: every node whose trimmed FWA code is at
+    or below the selector's code. `upstream_of`: the pieces of `blk` wholly above `measure` (`down_m >= measure`; the
+    piece the point falls in is partly below it and stays) and everything that flows into them, through lakes."""
+    from pipeline.common.utils import wsc as W
+    nodes = getattr(graph, "nodes", {})
+    if row.kind == "basin":
+        code = str(row.selector["basin"])
+        return frozenset(s for s, n in nodes.items()
+                         if W.is_at_or_below(W.trim_wsc(str(getattr(n, "wsc", "") or "")), code))
+    blk, m = str(int(row.selector["blk"])), float(row.selector["measure"])
+    todo = [s for s, n in nodes.items() if str(getattr(n, "blk", "")) == blk and float(n.down_m) >= m]
+    seen = set(todo)
+    up, edges = getattr(graph, "up_adj", {}), getattr(graph, "edges", [])
+    while todo:
+        for i in up.get(todo.pop(), ()):
+            f = edges[i].from_node
+            if f not in seen:
+                seen.add(f)
+                todo.append(f)
+    return frozenset(s for s in seen if s in nodes)
 
 
 #: A STEELHEAD ROW'S OWN WATER: its matched waters within its own scope, as its rules are held (its
@@ -369,6 +495,22 @@ class Presence:
         #: section -> the steelhead row that binds it (the lowest entry id)
         self._book: dict[str, str] | None = None
         self.by_entry: dict[str, dict[str, int]] = {}
+        #: the curated barrier list (`add_barriers`): section -> the row holding it out, and each row's sections
+        self.held: dict[str, str] = {}
+        self.barriers: list[dict] = []
+
+    def add_barriers(self, rows) -> None:
+        """THE CURATED BARRIER LIST (`load_barriers`): each row's stream sections (`barrier_sections`) stay out of
+        `PACIFIC_STREAMS_ARE_STEELHEAD_WATER`. A row that holds nothing of this graph is REFUSED by name: a stale
+        or mistyped selector never passes as "nothing to hold"."""
+        for r in rows:
+            secs = barrier_sections(self.graph, r)
+            if not secs:
+                raise ValueError(f"steelhead barrier {r.id} ({r.what}): its {r.kind} selector {r.selector} "
+                                 f"holds nothing of this graph — fix data/curated/waters/steelhead_barriers.json")
+            for x in sorted(secs):
+                self.held.setdefault(x, r.id)
+            self.barriers.append({"id": r.id, "kind": r.kind, "sections": len(secs)})
 
     def add_row(self, e: dict, own=None) -> None:
         """`own()` is `build_reach` of `OWN_WATER_RULE` in this entry's own context (covered items,
@@ -413,6 +555,11 @@ class Presence:
             self._book = book
         return frozenset(self._book)
 
+    def wsc(self, s: str) -> str:
+        """The section's FWA watershed code (`StreamNode.wsc`), "" when the graph holds none."""
+        node = getattr(self.graph, "nodes", {}).get(s)
+        return str(getattr(node, "wsc", "") or "")
+
     def kind(self, s: str) -> str:
         """The section's water kind (`water_kind.kind_of`: a slough or canal is a stream)."""
         return _resolve._kind_of(self.graph, s, self.registry)
@@ -455,20 +602,47 @@ class Presence:
         base = {s for b in bindings if b.entry_id == PROVINCE_STEELHEAD
                 and (b.entry_id, b.rule_id) not in twins for s in b.sections}
         possible = {s for s in base if s not in known and self.kind(s) == "stream"}
+        # PACIFIC_STREAMS_ARE_STEELHEAD_WATER (S14): a "possible" stream whose water reaches the Pacific is known
+        pacific: set[str] = set()
+        no_code = 0
+        held: dict[str, int] = {}
+        if PACIFIC_STREAMS_ARE_STEELHEAD_WATER:
+            outside: dict[str, list[str]] = {}
+            for s in possible:
+                if s in self.held:
+                    held[self.held[s]] = held.get(self.held[s], 0) + 1
+                    continue
+                got = pacific_basin(self.wsc(s))
+                if got is None:
+                    no_code += 1
+                elif got:
+                    pacific.add(s)
+                else:
+                    from pipeline.common.utils import wsc as W
+                    outside.setdefault(W.root(str(self.wsc(s)).strip()), []).append(s)
+            if outside:
+                raise ValueError(
+                    "steelhead: streams of a basin that is neither Pacific (`steelhead.PACIFIC_BASINS`) nor held out "
+                    "by the barrier list (data/curated/waters/steelhead_barriers.json): "
+                    + "; ".join(f"basin {b}: {len(v):,} section(s), e.g. {sorted(v)[:3]}"
+                                for b, v in sorted(outside.items())))
+            possible -= pacific
+            known |= pacific
         apply = self.rules_apply(bindings)
         rows = []
         for s in known:
             kind = self.kind(s)
             rows.append({"section_id": s, "steelhead": KNOWN,
-                         "entry_id": book.get(s, CURATED_LIST),
+                         "entry_id": book.get(s, CURATED_LIST if s in self.listed else PACIFIC_STREAM),
                          "regulations": s in book, "listed": s in self.listed,
+                         "pacific": s in pacific,
                          "rules": s in apply,
                          # p.80 where steelhead rules apply, on a stream (user ruling 2026-10-03) or
                          # a steelhead river's widening (T153)
                          "anadromous": self.anadromous(s, kind, apply),
                          "kind": kind})
         rows += [{"section_id": s, "steelhead": POSSIBLE, "entry_id": PROVINCE_STEELHEAD,
-                  "regulations": False, "listed": False, "rules": s in apply,
+                  "regulations": False, "listed": False, "pacific": False, "rules": s in apply,
                   "anadromous": False, "kind": "stream"}
                  for s in possible]
         rows.sort(key=lambda r: r["section_id"])
@@ -489,7 +663,16 @@ class Presence:
             "anadromous": sum(1 for r in rows if r["anadromous"]),
             #: ... of it, known by the curated list alone (user ruling 2026-10-03)
             "anadromous_list_only": sum(1 for r in rows if r["anadromous"]
-                                        and not r["regulations"]),
+                                        and not r["regulations"] and r["listed"]),
+            #: known as a Pacific stream of the steelhead regions alone (S14, `PACIFIC_STREAMS_ARE_STEELHEAD_WATER`)
+            "known_pacific": len(pacific),
+            #: ... of it, where a rainbow over 50 cm is a steelhead
+            "anadromous_pacific": sum(1 for r in rows if r["anadromous"] and r["pacific"]),
+            #: streams of the steelhead regions left "possible" with no FWA watershed code: never guessed (S14)
+            "possible_no_basin_code": no_code,
+            #: "possible" streams each barrier row holds out of S14 (`add_barriers`), and every row's selection
+            "possible_held": {k: held[k] for k in sorted(held)},
+            "barriers": list(self.barriers),
             #: known, and no steelhead rule applies (the Okanagan River, the Fraser in 7A)
             "known_no_rules": sum(1 for r in rows if r["steelhead"] == KNOWN and not r["rules"]),
             #: book-known sections the stream-only base rules do not bind — the twins' water

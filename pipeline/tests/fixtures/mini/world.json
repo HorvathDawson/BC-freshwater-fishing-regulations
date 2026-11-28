@@ -25,7 +25,9 @@
   {"blk": 900000003, "gnis_id": null, "name": null, "wsc": "222222-500000", "order": 1, "magnitude": 1,
    "vertices": [[10000, 4000], [13000, 4000]], "z": [150, 250], "breaks": []},
   {"blk": 900000004, "gnis_id": 990004, "name": "Stub Creek", "wsc": "666666", "order": 1, "magnitude": 1,
-   "vertices": [[30000, 0], [30000, -6000]], "z": [250, 500], "breaks": []}
+   "vertices": [[30000, 0], [30000, -6000]], "z": [250, 500], "breaks": []},
+  {"blk": 900000006, "gnis_id": 990006, "name": "Northward Creek", "wsc": "", "wsc_root": "200-990006", "order": 1,
+   "magnitude": 1, "vertices": [[38000, 12000], [38000, 14500]], "z": [700, 900], "breaks": []}
  ],
  "waterbodies": [
   {"wbk": 800000001, "layer": "lakes", "gnis_id": 990101, "name": "Fixture Lake", "wsc": "", "box": [15000, -800, 18000, 800]},

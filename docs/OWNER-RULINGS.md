@@ -365,6 +365,24 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   Reading: Turner Creek becomes its own water (T1246). The data chat then found the cause is Noons Creek's watershed
   code on the city line, not an alias; how to fix it (Turner only, or with Tunnel and Capitol creeks, now or in the
   hardening release) is a new question for him; no data change until he answers.
+- **Steelhead water (2026-11-27, option E sheet):** "Pacific streams now, barriers in 0.11.0 (Recommended)". Every stream of
+  Regions 1, 2, 3, 5, 6 draining to the Pacific is steelhead water in 0.10.0 (RULINGS S14, T1250); barriers are T1257.
+  Buckley Creek: "Release: the row's cap holds (Recommended)" (S15). The Columbia and the Skagit: "Hold both but make
+  sure it will be compatible with a larger barrier list" (the barrier list, S14). And: "Also if rainbows over 50cm are
+  ever referred to it always implies the rule is on steelhead too" (S12, measured before it is built: a follow-up).
+  On the over-50 sheet (S12a): "the rows specific water rules always beat regional for specific quotas like that?"
+  (Kitimat's 2 hatchery steelhead stand); "it is 1 trout over 50cm 2 if one is a steelhead (rainbow)" (Regions 1-2,
+  Q16); Muchalat's "no wild rainbow trout over 50 cm" "is the same as regiuonal no wild steelhead". His full words: S12a.
+  Kitimat's hatchery steelhead against Region 6's winter release: "(b) Leave as today" (released Nov 1-Jun 30). The
+  Regions 1-2 box as built: "Yes, as built (Recommended)". The over-50 follow-ups are answered; nothing built beyond S15.
+  The three under-closure rows S15 meets (2026-11-27, `under_closure_calls.json`), each answered "Yes, mark it checked
+  (Recommended)": "Clearwater River (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30
+  closed; Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked by you?" "Mahood
+  River below Goodwin Falls (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30 closed
+  (the row's own closure); Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked
+  by you?" "Buckley Creek (Region 6). ONE change, the one you ruled today: Aug 1, hatchery steelhead: keep 1 ->
+  RELEASE (the row's "none over 50 cm" holds). Unchanged: May 15-Jun 15 steelhead closed; wild steelhead released;
+  rainbow keep 1. OK to mark this row as checked by you?"
 - **Turner, Tunnel and Capitol creeks (T1246):** "All three now, in the re-cut". Built: each its own water with a
   code of its own; the build refuses a city line on an FWA code.
 - **Their salmon Area (T1246):** "(a) Fix it properly now (Recommended)". Built: a city creek that drains to the sea

@@ -6,7 +6,7 @@ THE SOURCE. `CURATED.regulations.local_closures` holds `region-<n>.json` files (
 synopsis's own file shape, so it is a second ENTRY SOURCE beside `synopsis` (`parsing.io.entry_sources`): the reach run
 binds its entries and the bundle writes them with no other change. Only the owner's ACCEPTED rows live there (memory
 `everything-added-is-a-proposal`); the inventory of the others is in the ticket and in
-`data/generated/review/t981_local_closures_proposals.json`, read by nothing.
+`data/generated/review/t981_local_closures_proposals.json` (read by nothing; removed from git 2026-11-27, in history at 9337319f7).
 
 ONE SHAPE, held by `check_entry`: an entry is one water's whole closure — a water row (`r<n>:<slug>_local@<mu>`, see
 below), `matched` exactly one item, `extents` whole, no synopsis page, its `authority` cited (`LocalAuthority`), and ONE

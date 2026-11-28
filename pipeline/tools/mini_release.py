@@ -82,12 +82,13 @@ def load_world(path: Path = WORLD) -> dict:
     return w
 
 
-def full_wsc(world: dict, rel: str | None) -> str:
+def full_wsc(world: dict, rel: str | None, root: str | None = None) -> str:
     """The 21-group FWA code of a code written relative to the world's root (`""` = the root itself; None = FWA's
-    no-code sentinel, a water off the network)."""
+    no-code sentinel, a water off the network). `root`: a stream's own root in another drainage (T1250: Northward
+    Creek drains to the Arctic, FWA 200, so the world keeps one "possible" steelhead stream under RULINGS S14)."""
     if rel is None:
         return _NO_CODE
-    groups = W.groups(world["wsc_root"]) + W.groups(rel)
+    groups = W.groups(root or world["wsc_root"]) + W.groups(rel)
     if len(groups) > _WSC_GROUPS:
         raise ValueError(f"watershed code {rel!r} is deeper than FWA's {_WSC_GROUPS} groups")
     return W.join(*groups, *["000000"] * (_WSC_GROUPS - len(groups)))
@@ -173,7 +174,7 @@ def write_inputs(out_dir: Path, world: dict | None = None) -> tuple[Path, Path]:
         "FEATURE_CODE": "object", "UPSTREAM_ROUTE_MEASURE": "float64", "GEOMETRY_Length": "float64"}
     rows, geoms, fid = [], [], 910000000
     for s in world["streams"]:
-        code = full_wsc(world, s["wsc"])
+        code = full_wsc(world, s["wsc"], s.get("wsc_root"))
         for f in _features(world, s):
             fid += 1
             rows.append([float(fid), 990.0, f["edge_type"], s["blk"], s.get("watershed_key", s["blk"]), code, code,

@@ -154,7 +154,7 @@ def test_siblings_that_cover_everything_leave_no_rest():
 def test_the_rest_goes_through_the_whole_build_like_any_rule():
     """`build_reaches` — the corpus pass — binds the rest too; totality still holds."""
     r1, r2 = _rules()
-    out = B.build_reaches([_entry([r1, r2])], REG, G)
+    out = B.build_reaches([_entry([r1, r2])], REG, G, steelhead_barriers=())
     got = {b.rule_id: b.sections for b in out.bindings}
     assert got == {"r1": ("m2", "m3"), "r2": ("m1", "m4")}
 

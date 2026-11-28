@@ -474,7 +474,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_whole_waters_walk_climbs_its_head_lake": True,
                      "licensing_climbs_head_lakes": False,
                      "a_side_channel_goes_with_its_water": True})
-    assert cache.POLICY_VERSION == "54", "update this pin with the version it was taken at"
+    assert cache.POLICY_VERSION == "55", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

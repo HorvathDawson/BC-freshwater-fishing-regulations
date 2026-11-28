@@ -259,7 +259,7 @@ def test_a_designation_is_not_held_to_the_region_that_prints_it():
     # the Fraser is printed per region (a Region 5 row too), so its Region 3 row's rules stop at
     # the line (`outside.shared_waters`)
     r5 = _entry("r5:fraser_river@5-2", [dict(rule)], extents=[{"op": "whole"}])
-    got = build_reaches([e, r5], REG, G)
+    got = build_reaches([e, r5], REG, G, steelhead_barriers=())
     assert set(next(b for b in got.bindings if b.entry_id == e["entry_id"]).sections) == {"s3"}
     lic = next(p for p in got.licensing if p.record_id == "d")
     assert set(lic.sections) == {"s5", "s3", "lk"}          # every B.C. section of the water
@@ -307,7 +307,7 @@ def test_a_row_its_water_alone_prints_applies_along_the_whole_water():
     from pipeline.atlas.reach.build import build_reaches
     rule = {"rule_id": "r1", "type": "bait_restriction", "extents": [{"op": "whole"}]}
     e = _entry("r3:fraser_river@3-17", [rule], extents=[{"op": "whole"}])
-    got = build_reaches([e], REG, G)
+    got = build_reaches([e], REG, G, steelhead_barriers=())
     assert set(got.bindings[0].sections) == {"s3", "s5", "lk"}
 
 
