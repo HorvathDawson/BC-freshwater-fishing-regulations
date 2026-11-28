@@ -62,12 +62,12 @@ def test_the_streams_read_back_as_fwa_features_mouth_first(inputs):
     from pipeline.atlas.graph.blk_chains import load_stream_fids
     rows = load_stream_fids(str(inputs[0]))
     river = sorted((r for r in rows if r.blk == "900000001"), key=lambda r: r.down_m)
-    assert [round(r.down_m) for r in river] == [0, 6000, 11000, 16000, 19000, 25000, 26000, 27000, 31000, 33000,
-                                                37000]
+    assert [round(r.down_m) for r in river] == [0, 3000, 5000, 6000, 11000, 16000, 19000, 25000, 26000, 27000, 31000,
+                                                33000, 37000]       # 3000 / 5000: the creek-less braid's ends (T1242)
     assert river[-1].up_m == pytest.approx(46000)                      # its mouth 1 km out in the sea (the tidal mouth)
     assert [r.wbk for r in river if r.wbk] == ["800000001", "800000006", "800000006"]   # the two lake runs
     mock = next(r for r in rows if r.blk == "900000002")
-    assert mock.down_node == river[2].down_node                        # the confluence is a shared vertex
+    assert mock.down_node == river[4].down_node                        # the confluence is a shared vertex
     assert mock.wsc == "920-123456-222222"
 
 
@@ -348,8 +348,18 @@ def test_the_mini_world_holds_the_plans_inventory(chain):
     assert {reg[mock]["name"], reg[stub]["name"]} == {"Mock Creek", "Stub Creek"}
     assert not [i for i in reg.values() if "900000003:0" in i.get("section_ids", []) and not i["id"].startswith("area")]
     assert reg["wsc:920-123456-666666-500000"]["name"] == "Mockup Creek"
-    # a braid: the river holds a section of a second blue line
+    # a braid: the river holds a section of a second blue line (900000005, kept BY NAME in the mini tree's
+    # waters/loop_exemptions.json); its second braid 900000007 no creek flows into is removed (T1242, ruling E31)
     assert {s.split(":")[0] for s in secs(river)} == {"900000001", "900000005"}
+    loops = json.loads((out / "atlas" / "small_loops.json").read_text())       # missing with the pass off
+    assert loops["ran"] and loops["max_offset_m"] == float("inf")
+    assert [lp["blks"] for lp in loops["removed"]] == [["900000007"]]
+    assert loops["keep_by_kind"].get("named") == 1
+    assert json.loads((out / "atlas" / "graph.pkl.meta.json").read_text())["build"]["small_loops"] == {
+        "ran": True, "max_offset_m": "inf"}
+    # the found names not in the atlas are NAMED in its record, never only counted (T1242 review)
+    mined = json.loads((out / "atlas" / "mined_names_report.json").read_text())
+    assert mined["absent"] == len(mined["absent_named"])
     # a tidal mouth: the river's piece below the coast is tidal in the bundle
     assert q("SELECT entry_id FROM tidal") == [("crossing:900000001:0",)]
     # two regions: the river straddles the line, and Twofold Lake lies in both

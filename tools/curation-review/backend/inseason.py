@@ -118,7 +118,9 @@ def _row_view(rid: str, row: dict | None, m: M.Match | None, history: list[dict]
               labels: dict[str, str], doc_words: dict[str, str] | None = None) -> dict:
     doc_words = doc_words or {}
     eff = m.effective if m else None
-    frm, to = M.span(row or {}, eff)
+    # (T1258) `span` gives (from, to, dated) since T1167: `dated` is what makes the app's "upcoming" banner, so the
+    # tab shows it and the app's own word for today (`M.on`, core's `inSeasonOn`), never drops it
+    frm, to, dated = M.span(row or {}, eff)
     base = row or {"id": rid, "region": m.region if m else "", "water": m.water if m else "",
                    "status": "gone", "removed": True}
     state = "stale" if row is None else ("matched" if m else "unmatched")
@@ -143,8 +145,11 @@ def _row_view(rid: str, row: dict | None, m: M.Match | None, history: list[dict]
                        for k, w in sorted(m.waters.items())},
             "words": {t: doc_words.get(t, t) for w in m.waters.values() for p in w.ends for t in p},
             "unresolved": m.unresolved},
-        "dates": {"from": frm, "to": to, "source": "curated" if eff else "feed"},
+        "dates": {"from": frm, "to": to, "source": "curated" if eff else "feed", "dated": dated},
         "in_effect": _in_effect(frm, to, today),
+        # what the app shows on the water today: "in force" | "upcoming" | None (a removed or stale row: the feed the
+        # app reads no longer holds it)
+        "banner": None if base.get("removed") else M.on(frm, to, dated, today),
         "history": history,
     }
 

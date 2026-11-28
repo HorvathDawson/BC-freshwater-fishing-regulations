@@ -120,7 +120,8 @@ def test_2_a_good_save_writes_the_match_and_its_history(env):
     assert got["sync"]["state"] == "off"
     # the curated dates override the feed's field by field: the feed's `from`, the curated `to`
     assert got["state"] == "matched" and got["in_effect"] is True and got["dates"] == \
-        {"from": "2025-07-04", "to": "2099-12-31", "source": "curated"}
+        {"from": "2025-07-04", "to": "2099-12-31", "source": "curated", "dated": True}
+    assert got["banner"] == "in force"                                          # (T1258) the app's word for today
     doc = json.loads((env["dir"] / "matches.json").read_text())
     m = doc["matches"][LIVE]
     assert m["extents"] == [{"op": "upstream_of", "item_id": COWICHAN, "splits": [TRESTLE]}]

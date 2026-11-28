@@ -223,6 +223,8 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/graph/nests.py", "nest_ports"): "a nest's ports, one level",
     ("pipeline/atlas/graph/prune.py", "loop_nodes"): "mainstem loop detection",
     ("pipeline/atlas/graph/prune.py", "prune_mainstem_loops"): "rebuilds the adjacency",
+    ("pipeline/atlas/graph/prune.py", "drop_small_loops"): "T1242 creek-less loop pass: rebuilds the adjacency",
+    ("pipeline/atlas/graph/prune.py", "_tail_plan"): "T1242 trial variant (d), never shipped: a creek's way down a loop",
     ("pipeline/atlas/graph/windows.py", "polygon_window"): "a polygon's inlets, one level, for its window",
     ("pipeline/atlas/splits/sectionizer.py", "split_graph_at"): "rebuilds the adjacency",
     ("pipeline/atlas/splits/braid_sweep.py", "_rebuild_adj"): "rebuilds the adjacency after a re-home",
