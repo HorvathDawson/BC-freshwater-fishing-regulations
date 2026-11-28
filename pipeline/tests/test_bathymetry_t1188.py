@@ -128,7 +128,7 @@ def test_a_two_lake_sheet_fits_the_union_and_splits_its_contours():
     assert split["unassigned_contours"] == 1
     assert all(v["lake_covered"] > 0.95 for v in split["per_lake"].values())
     assert got["classes"] == {"baseline": "poor", "rigid": "poor", "two_lake": "strict", "other_lake": "strict",
-                              "small_stretch": "strict"}
+                              "small_stretch": "strict", "depth_line": "strict"}
 
 
 def test_split_reports_a_lake_the_sheet_does_not_cover():
@@ -494,12 +494,15 @@ def test_the_same_sheet_gives_the_same_answer():
         got = refit.refit_sheet(sheet, lines, {1: {"geom": lake_a, "name": "Elk Lake", "layer": "lakes"}}, near,
                                 base_fit=_base(sheet, lake_a), units="metres")
         got.pop("_geoms")
+        got.pop("_outline")
         runs.append(json.dumps(got, sort_keys=True))
     assert runs[0] == runs[1]
 
 
 def _row(zipname, grade, classes, adopted_small=False, after=None, flags=(), would_help=None):
-    steps = {"two_lake": {}, "other_lake": {}, "small_stretch": {"adopted": adopted_small}}
+    steps = {"two_lake": {}, "other_lake": {}, "small_stretch": {"adopted": adopted_small},
+             "depth_line": {"skipped": "test"}}
+    classes = dict(classes, depth_line=classes["small_stretch"])     # step 5 (T1188 v5) left it where step 4 did
     fit = {"wbk": "wbk:1", "iou": 0.85, "median_m": 30.0, "area_ratio": 1.0, "angle_deg": 1.0}
     after = after or {"grade": classes["small_stretch"], "step": "rigid", "target": "wbk:1",
                       "fit": dict(fit, mirror=False, scale=1.0)}
@@ -534,3 +537,140 @@ def test_summary_counts_each_step_and_gives_the_small_stretch_its_own_class():
     lines = text.splitlines()
     assert lines[0].split(",") == refit_all.CSV_COLS and len(lines) == 5
     assert "strict (stretch <= 5 %)" in lines[1] and "grows the chart 9.0%" in lines[2]
+
+
+# ---- T1188 v5: the shore's joins, the depth lines as a witness, a depth line as the outline -------------------------
+
+SOUNDING = [(400.0, 300.0, -5.0)]       # a sounding in the open water: it marks the water face
+
+
+def _gap_sheet(north=None, depth_top=700.0):
+    """an 800 x 600 m lake whose coded shore (GA2711) leaves the north side open (an 800 m gap), a stream running off
+    the east shore, and one depth line reaching `depth_top` (above y = 600: into the north shallows)"""
+    shore = [(0.0, 600.0), (0.0, 0.0), (800.0, 0.0), (800.0, 600.0)]
+    arcs = [(0, "GA27110000", shore), (0, "GA24850000", [(800.0, 300.0), (950.0, 300.0)]),
+            (-1.0, "HA06200000", [(100.0, 100.0), (700.0, 100.0), (700.0, depth_top), (100.0, depth_top),
+                                  (100.0, 100.0)])]
+    if north is not None:
+        arcs.append((0, "GA24850000", north))
+    return arcs
+
+
+def test_a_long_gap_is_completed_with_the_sheets_stream_coded_shore():
+    # Abruzzi: the north-west shore is coded as a stream; the straight join cut the shallows off
+    bulge = [(800.0, 600.0), (600.0, 800.0), (200.0, 800.0), (0.0, 600.0)]
+    water, info = place.shore_report(_gap_sheet(bulge), SOUNDING, max_gap=1000.0)
+    assert abs(water.area - (800 * 600 + (800 + 400) / 2 * 200)) < 1e-6
+    assert info["joins"] == [{"m": 800.0, "how": "arcs", "arcs_m": round(2 * math.hypot(200, 200) + 400, 1),
+                              "codes": ["GA24850000"]}]
+    assert info["flags"] == [] and info["depth_lines_outside_shore_pct"] == 0.0
+    assert info["longest_straight_join_m"] == 0.0
+    assert abs(place.shore(_gap_sheet(bulge), SOUNDING, max_gap=1000.0).area - water.area) < 1e-9
+
+
+def test_a_long_gap_with_no_arcs_keeps_its_straight_join_and_is_flagged():
+    # Boy Lake: nothing runs between the gap's ends; the chord stays, and says so
+    water, info = place.shore_report(_gap_sheet(), SOUNDING, max_gap=1000.0)
+    assert abs(water.area - 800 * 600) < 1e-6
+    assert info["joins"] == [{"m": 800.0, "how": "straight"}] and info["longest_straight_join_m"] == 800.0
+    assert info["flags"] == ["shore_joined_straight", "depth_lines_outside_shore"]
+    assert info["depth_lines_outside_shore_pct"] > 1.0
+
+
+def test_a_completion_that_cuts_the_depth_lines_off_is_refused():
+    dip = [(800.0, 600.0), (600.0, 400.0), (200.0, 400.0), (0.0, 600.0)]       # runs INTO the water
+    water, info = place.shore_report(_gap_sheet(dip, depth_top=550.0), SOUNDING, max_gap=1000.0)
+    assert abs(water.area - 800 * 600) < 1e-6 and info["joins"][0]["how"] == "straight"
+    assert info["flags"] == ["shore_joined_straight"]                         # the chord holds the depth lines
+
+
+def test_no_completion_without_depth_lines_to_check_it():
+    bulge = [(800.0, 600.0), (600.0, 800.0), (200.0, 800.0), (0.0, 600.0)]
+    arcs = [a for a in _gap_sheet(bulge) if a[0] in (None, 0)]          # the depth line dropped
+    water, info = place.shore_report(arcs, SOUNDING, max_gap=1000.0)
+    assert info["joins"] == [{"m": 800.0, "how": "straight"}] and info["flags"] == ["shore_joined_straight"]
+    assert abs(water.area - 800 * 600) < 1e-6
+
+
+def test_a_completion_never_runs_through_another_shore_node_and_stays_short():
+    a, b = (0.0, 0.0), (100.0, 0.0)
+    arcs = [("GA24850000", LineString([a, (50.0, 50.0)])), ("GA24850000", LineString([(50.0, 50.0), b])),
+            ("GA24850000", LineString([a, (50.0, -500.0), b]))]
+    ks, m = place._completion(a, b, arcs, set(), 3 * 100.0)
+    assert ks == [0, 1] and abs(m - 2 * math.hypot(50, 50)) < 1e-9
+    assert place._completion(a, b, arcs, {(50.0, 50.0)}, 3 * 100.0) is None     # the short way crosses the shore
+    assert place._completion(a, b, arcs, {(50.0, 50.0)}, 1e4)[0] == [2]          # the long way, when allowed
+
+
+def test_a_short_join_is_never_replaced():
+    bulge = [(800.0, 600.0), (600.0, 800.0), (200.0, 800.0), (0.0, 600.0)]
+    arcs = [(cv, fc, [(x * 0.3, y * 0.3) for x, y in p]) for cv, fc, p in _gap_sheet(bulge)]   # a 240 m gap
+    water, info = place.shore_report(arcs, [(120.0, 90.0, -5.0)], max_gap=300.0)
+    assert info["joins"] == [{"m": 240.0, "how": "straight"}] and "shore_joined_straight" not in info["flags"]
+    assert abs(water.area - 240 * 180) < 1e-6
+
+
+def test_the_shore_flags_and_the_depth_lines_on_land_make_a_placing_review():
+    boy = _placed()
+    boy["shore"] = {"flags": ["shore_joined_straight", "depth_lines_outside_shore"]}
+    assert refit_all.confidence(boy) == ("review", ["shore_joined_straight", "depth_lines_outside_shore"])
+    assert refit_all.confidence(dict(_placed(), depth_on_land_pct=12.5)) == ("review", ["depth_lines_on_land"])
+    assert refit_all.confidence(dict(_placed(), depth_on_land_pct=7.6)) == ("high", [])   # the worst high one: a warning
+    part = {"after": {"grade": "loose", "step": "depth_line", "target": "wbk:1",
+                      "fit": {"iou": 0.82, "median_m": 10.0, "area_ratio": 0.91, "angle_deg": 5.0, "mirror": False,
+                              "scale": 1.0}},
+            "flags": ["fitted_on_depth_line"]}
+    part["steps"] = {"small_stretch": {}, "depth_line": {"adopted": True, "fit": part["after"]["fit"]}}
+    assert refit_all.confidence(_placed(grade="poor", refit_part=part)) == ("review", ["fitted_on_depth_line", "loose"])
+
+
+def test_depth_on_land_is_the_share_more_than_10_m_outside_our_lake():
+    lake = box(0, 0, 100, 100)
+    lines = [LineString([(10, 50), (90, 50)]), LineString([(50, 105), (50, 125)])]     # 80 m in, 20 m: 5 near, 15 out
+    assert refit_all.depth_on_land_pct(lines, lambda g: g, lake) == 15.0
+    assert refit_all.depth_on_land_pct([], lambda g: g, lake) is None
+
+
+def _depth_line_case(ring_shape, rival_m=None):
+    """a chart whose shoreline is 1.5 x our lake (it fits poorly) and whose first depth line is our lake's shape"""
+    inner = ring_shape(400.0)
+    sheet = affinity.scale(inner, 1.5, 1.5, origin=(0, 0))
+    lines = [(0, LineString(sheet.exterior.coords)), (-1.0, LineString(inner.exterior.coords)),
+             (-2.0, LineString(affinity.scale(inner, 0.5, 0.5, origin=(0, 0)).exterior.coords))]
+    lake = _earth(inner)
+    lakes = {1: {"geom": lake, "name": "A Lake", "layer": "lakes"}}
+    if rival_m is not None:
+        lakes[2] = {"geom": affinity.translate(lake, rival_m, 0), "name": "Other Lake", "layer": "lakes"}
+    return sheet, lines, lake, lakes
+
+
+def test_a_depth_line_is_adopted_as_the_outline_under_the_safe_rule():
+    sheet, lines, lake, lakes = _depth_line_case(_chiral)
+    got = refit.refit_sheet(sheet, lines, {1: lakes[1]}, _near(lakes), base_fit=_base(sheet, lake), units="metres")
+    st = got["steps"]["depth_line"]
+    assert st["adopted"] and st["line"] == "depth_1" and st["depth"] == 1.0
+    assert got["after"]["step"] == "depth_line" and got["after"]["grade"] == "strict"
+    assert got["fit_line"] == "depth_1" and "fitted_on_depth_line" in got["flags"]
+    assert got["classes"]["small_stretch"] == "poor" and got["classes"]["depth_line"] == "strict"
+    assert st["tried"][1]["refused"].startswith("does not lift")             # the second line is too small
+    assert abs(got["_outline"].area - _chiral(400.0).area) < 1.0              # the outline fitted is the 1 m line
+
+
+def test_a_depth_line_is_refused_when_its_mirror_or_another_lake_fits_as_well():
+    sheet, lines, lake, lakes = _depth_line_case(_mirror_symmetric)
+    got = refit.refit_sheet(sheet, lines, {1: lakes[1]}, _near(lakes), base_fit=_base(sheet, lake), units="metres")
+    assert not got["steps"]["depth_line"]["adopted"] and got["fit_line"] == "shore"
+    assert got["steps"]["depth_line"]["tried"][0]["refused"].startswith("ambiguous")
+    sheet, lines, lake, lakes = _depth_line_case(_chiral, rival_m=6000.0)   # the same shape 6 km away
+    got = refit.refit_sheet(sheet, lines, {1: lakes[1]}, _near(lakes), base_fit=_base(sheet, lake), units="metres")
+    assert not got["steps"]["depth_line"]["adopted"]
+    assert got["steps"]["depth_line"]["tried"][0]["refused"].startswith("another lake fits")
+
+
+def test_a_depth_line_is_refused_when_our_lake_is_not_inside_the_charts_shoreline():
+    sheet, lines, lake, lakes = _depth_line_case(_chiral)
+    sheet = affinity.translate(sheet, 450.0, 0.0)               # the shoreline drawn off to one side of the line
+    lines = [(0, LineString(sheet.exterior.coords))] + lines[1:]
+    got = refit.refit_sheet(sheet, lines, {1: lakes[1]}, _near(lakes), base_fit=_base(sheet, lake), units="metres")
+    assert not got["steps"]["depth_line"]["adopted"]
+    assert got["steps"]["depth_line"]["tried"][0]["refused"].startswith("our lake not inside")

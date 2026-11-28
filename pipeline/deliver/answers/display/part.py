@@ -401,14 +401,43 @@ def _end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     raise AnswersError(f"run end {e!r}: a token no rule names (T517: no fallback words)")
 
 
-def _run_txt(doc: dict, r: dict) -> str:
+#: (T1199 PR 2, owner 2026-11-28: "do the recommended the app should auto join them later i think assuming same rules")
+#: the words of a stretch between two crossings of an area's edge that lies OUTSIDE the area (it does not carry the
+#: area's rule): the Beaverfoot River's two open stretches beside Yoho. ONE constant, the owner's pick.
+OUTSIDE_BETWEEN = "Outside {area} (between its boundaries)"
+def area_key(name: str) -> str:
+    """(T1199 PR 2, review) THE ONE KEY an area is matched by, on both sides: the area name a part's end token carries
+    (`area:<name>@…`) and the names the bundle writes (`part_area_held`, `cut_area`): Unicode NFC, spaces collapsed,
+    case folded. Two spellings of one area never read as two areas, nor one area as "not carried"."""
+    import unicodedata
+    return " ".join(unicodedata.normalize("NFC", str(name)).split()).casefold()
+
+
+def area_of_token(tok: str) -> str:
+    """The area name an `area:<name>[@…]` end token stands for."""
+    return str(tok)[len("area:"):].split("@")[0]
+
+
+#: (T1199 PR 2) a part's field: the cut areas whose rule it carries (the bundle's `part_area_held`: the area's registry
+#: item holds every section of it), set on every part by the answers step (`builders.held_facts`)
+AREA_HELD = "area_held"
+
+
+def _run_txt(doc: dict, r: dict, held: Optional[Sequence[str]] = None) -> str:
     if r.get("lakes"):
         n = r["lakes"]
-        return _run_txt(doc, {**r, "lakes": 0}) + f" (through {n} lake{'s' if n > 1 else ''})"
+        return _run_txt(doc, {**r, "lakes": 0}, held) + f" (through {n} lake{'s' if n > 1 else ''})"
     if _js(r.get("polygon")):
         return "" if r["polygon"] == "whole" else str(r["polygon"])
     if r.get("from") and r.get("from") == r.get("to") and str(r["from"]).startswith("area:"):
-        return "Within " + re.sub(r" boundary$", "", end_name(doc, r["from"]))
+        # (T1199 PR 2, RULINGS E36) a stretch between two crossings of one area's edge is "within" it only when it
+        # carries the area's rule; else it lies outside, between its boundaries. Never guessed: no facts, no words
+        area = re.sub(r" boundary$", "", end_name(doc, r["from"]))
+        if held is None:
+            raise AnswersError(f"display: a stretch between two crossings of {area}: whether it lies inside is not "
+                               f"given (`{AREA_HELD}`)")
+        inside = area_key(area_of_token(r["from"])) in {area_key(h) for h in held}
+        return ("Within " + area) if inside else OUTSIDE_BETWEEN.format(area=area)
     a, b = end_name(doc, r.get("from"), "from"), end_name(doc, r.get("to"), "to")
     t = f"From {b} up to {a}"
     return f"Side channel ({t[:1].lower() + t[1:]})" if r.get("branch") else t
@@ -492,7 +521,8 @@ def runs_label(doc: dict, part: dict, w_km: Tuple[Optional[float], Optional[floa
             last["lakes"] = (last.get("lakes") or 0) + 1
         else:
             main.append(dict(r))
-    bits = [b for b in (_run_txt(doc, r) for r in reversed(main)) if b]
+    held = part.get(AREA_HELD)
+    bits = [b for b in (_run_txt(doc, r, held) for r in reversed(main)) if b]
 
     def low(s):
         return s[:1].lower() + s[1:]
@@ -520,7 +550,7 @@ def runs_label(doc: dict, part: dict, w_km: Tuple[Optional[float], Optional[floa
             if where:
                 t += f", {where}"
             elif len(side) == 1 and not area:
-                t = _run_txt(doc, side[0])
+                t = _run_txt(doc, side[0], part.get(AREA_HELD))
     # RULINGS P39: a part WITH a main run never mentions its side channels —
     # they are simply part of it ("… CNR Mile 66 Trestle and 1 side channel" confused the owner)
     return t
@@ -635,7 +665,8 @@ SIDE = "near:side:"
 UNNAMED_ENDS = ("mouth", "source", "polygon", "lake_inlet", "lake_outlet")
 #: T1140: the parts the build may NAME "<water> inside <area>" / "<water> at <area>", each checked by a reviewer on its
 #: picture (item id, the area's catalogue name, how): THE NAME'S GATE ONLY. (T1172, owner 2026-11-26: "universally")
-#: the bundle measures every part in every area by one rule (`bundle.side_channels.inside_rows`) and the part's SUBTITLE
+#: the bundle measures every part in every area by one rule (`bundle.side_channels.inside_rows`: in a clean-cut area by
+#: the cut, T1199 E30; else on its shapes) and the part's SUBTITLE
 #: says its area whether or not it is listed here (`runs_label`). An unlisted area the atlas cuts at stops the build
 #: until it is looked at and added here; an unlisted membership-only one (a park or WMA the atlas does not cut at) is
 #: listed in the build log ("INSIDE candidate") and the name takes its next rung; a listed part no longer said inside
@@ -648,7 +679,12 @@ REVIEWED_INSIDE = frozenset({("gnis:25671", "BAYNES ISLAND ECOLOGICAL RESERVE", 
                              ("gnis:2123", "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside"),
                              # (T1172, owner 2026-11-26: "yes name it but this is something we need to fix generally")
                              # Thelwood Creek's side part: 100 % inside the park (membership-only)
-                             ("gnis:21681", "STRATHCONA - WESTMIN PARK", "inside")})
+                             ("gnis:21681", "STRATHCONA - WESTMIN PARK", "inside"),
+                             # (T1199, RULINGS E35, owner 2026-11-28, shown its picture: "yes but we need to make sure
+                             # the rule is consistent across the board here not just a ranom special case") the Skeena's
+                             # side channel by the reserve: all its lines edge water the cut puts in the reserve (71.7 %
+                             # by shape), "Side channel inside Skeena River Eco Reserve"
+                             ("gnis:2936", "SKEENA RIVER ECOLOGICAL RESERVE", "inside")})
 
 
 def named_end(tok: Optional[str]) -> Optional[str]:

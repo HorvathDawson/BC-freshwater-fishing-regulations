@@ -267,6 +267,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - More tab: sync and data block at the top with a freshness badge, display as three preview tiles, contact inline at the foot, back returns to the previous tab. (owner 2026-10-22, T48)
 - Adding a spot offers "at my location" or "pick on the map"; long-press stays on the map; spots draw in the shown color. (owner 2026-10-22)
 - The region page shows a map preview. (owner 2026-11-22, T1010)
+- A web reload returns to the same spot on the map: the position lives in the page address as query parameters ("adress but as query params?"); a link carries a place, never a section id (AGENTS 5). (owner 2026-11-27, T1264)
 - A part's name drops its suffix; "Mouth" only where the water truly ends. (owner 2026-11-19, T780)
 - Search description facts use open season windows from the year strip, boats and steady marks; nothing from the build day. (owner 2026-11-23, T1042)
 
@@ -277,7 +278,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - A data update keeps downloading when the app is closed, as one packed download through the system downloader; "Wait for Wi-Fi" waits quietly. (owner 2026-11-14 / 2026-11-19, T722, T912)
 - A bad connection still answers first: low-bandwidth mode (automatic, with More-Data Automatic/On/Off), retries, resume. (owner 2026-10-29, T254)
 - Old data for old app versions is deleted automatically to stay under 10 GB of storage; a phone far outside B.C. is told location will not be useful. (owner 2026-11-18, T865, T864)
-- iPhone is portrait only; the Apple account is an individual developer account; only photos and spots need backing up. (owner 2026-11-14, T732)
+- iPhone is portrait only; the Apple account is an individual developer account; only photos and spots need backing up. (owner 2026-11-14, T732) The oldest supported iPhone stays iOS 16.4+ (iPhone 8 / X and newer): "Keep iOS 16.4+, close it (Recommended)". (owner 2026-11-27, T725)
 - Preview cards for shared links are drawn at the feed refresh and served as static files, never rendered per request. (owner 2026-11-08, T487)
 - Gzip everywhere; no middle-man JSON is shipped; `regs.sqlite` is not shipped. (owner 2026-10-20, D29, D30)
 - Release files: the smaller packed formats are read by 0.8.4 and on; the old readers and the switch were removed once packed formats shipped. (owner 2026-11-20 / 2026-11-21, T686, T975)
@@ -325,7 +326,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Versions are computed from the commits (major/minor/patch); release candidates are tagged. (owner 2026-11-21, T998)
 - Conventional Commits `type(Tnnn): subject`; the app version comes from them. Detail: AGENTS W47-W48.
 - The repo moves to the `canifishthis` organisation and is renamed `canifishthis/canifishthis`; the merge queue follows. (owner 2026-11-25, T1041)
-- Before a push run the related tests; the full app suite and pipeline tier run once before opening a PR; mutation testing reports only. (owner 2026-11-23, T1041)
+- Before a push run the related tests; the full app suite and pipeline tier run once before opening a PR; mutation testing reports only. (owner 2026-11-23, T1041) The docs line budgets are checked on main only, not inside each PR: "(b) Checked on main only". (owner 2026-11-27, T1228)
 - Run timing keeps its own weekly feed: "Keep the weekly feed" (owner 2026-11-25, asked by the planning chat with his earlier remark in front of him). No change to the feed.
 - The bottom bar in water mode is as shipped: `bottomBarShown(route)` (`app/packages/ui/src/route.ts:306`) is true only in browse mode with no spot being added, so a water's page (regs mode) and the add-a-spot flow have no bar, on phones, tablets and the web rail alike (`Shell.tsx:180,466,671`, `NavRail.tsx`). (owner 2026-11-25: as shipped)
 - The synopsis PDF on the phone apps is as shipped: an in-app viewer, `react-native-pdf` 7.0.5 (`app/packages/ui-native/package.json:15`, `regs/PdfViewer.native.tsx`, mounted by `Shell.tsx:756`); the web opens the PDF in a browser tab (`synopsisPdf.web.ts`). (owner 2026-11-25: as shipped)

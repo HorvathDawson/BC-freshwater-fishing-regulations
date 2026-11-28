@@ -1,10 +1,10 @@
 # T709 — Store preview video from one command
 
-Status: POSTPONED (owner 2026-11-20: after this release; 11-19 "ignore the video for now"). Step 1 Android built: `node app/tools/store-video/run.mjs`.
+Status: POSTPONED (owner 2026-11-25, on T1072's leftovers: "Drop both for now (Recommended)"; 2026-11-20: after this release; 11-19 "ignore the video for now"). Step 1 Android built: `node app/tools/store-video/run.mjs`.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T709 | Store preview video from ONE command (like T704): Android emulator recording on the final build + staging data, 25-30 s, ffmpeg captions/poster, spec check; iOS version later at Apple's sizes (benched) | POSTPONED (owner 2026-11-20, after this release; step 1 Android built) | — | owner 2026-11-13 "we want to generate a nice App preview"; T704, T319, T244 |
+| T709 | Store preview video from ONE command (like T704): Android emulator recording on the final build + staging data, 25-30 s, ffmpeg captions/poster, spec check; iOS version later at Apple's sizes (benched) | POSTPONED (owner 2026-11-25: "Drop both for now (Recommended)"; step 1 Android built) | — | owner 2026-11-13 "we want to generate a nice App preview"; T704, T319, T244 |
 
 Source: owner 2026-11-13: "we want to generate a nice App preview". Neighbours: T704 (store pictures, one command), T319,
 T244. Nothing is uploaded by this ticket; the owner uploads.

@@ -13,6 +13,10 @@ step at a time, each step its own flag. MEASURES ONLY: every placing stays a pro
     small_stretch  a uniform scale of at most SMALL_STRETCH (5 %): adopted, its own flagged class.
     big_stretch    up to BIG_STRETCH (15 %), or the feet / metres factor on a sheet whose units are not stated: NEVER
                    adopted; the sheet is listed with what the stretch would change (`stretch_change`).
+    depth_line     (T1188 v5) the first or the second depth line as the outline, only on a sheet still not strict on
+                   its coded lake, under the safe rule (`depth_line_step`): it lifts the class, nothing within MARGIN
+                   (turn, mirror, the full neighbour check), our lake inside the chart's shoreline. Always flagged
+                   `fitted_on_depth_line` (the owner looks at each).
 
 Then, on EVERY placed sheet (strict ones too), the checks that say how far a placing can be trusted, never moving it:
     neighbour      the lakes within NEIGHBOUR_M of the placed lake, searched by shape like `other_lake`: the best one,
@@ -460,7 +464,7 @@ def neighbour_check(sheet, origin, placed_iou: float, target, exclude: Iterable[
 
 # ---------------------------------------------------------------- one sheet, every step
 
-STEPS = ("baseline", "rigid", "two_lake", "other_lake", "small_stretch")
+STEPS = ("baseline", "rigid", "two_lake", "other_lake", "small_stretch", "depth_line")
 
 
 def _key(ws: Iterable[int]) -> str:
@@ -688,9 +692,104 @@ def refit_sheet(sheet, lines: Sequence[Tuple[Optional[float], object]], coded: M
             flags.append("bigger_stretch_would_help")
     steps["big_stretch"] = would_help or {"helps": False}
 
-    if mirror and "mirror" not in flags and cur["step"] != "baseline":
+    # 5. a depth line as the outline (T1188 v5), only under the safe rule (`depth_line_step`)
+    outline = sheet
+    if cur["grade"] == "strict":
+        steps["depth_line"] = {"skipped": "already strict"}
+    elif cur["target"] != f"wbk:{bw}":
+        steps["depth_line"] = {"skipped": f"not on the coded lake (on {cur['target']})"}
+    else:
+        st, ring = depth_line_step(sheet, lines, cur, geoms[bw], bw, origin, near_lakes)
+        steps["depth_line"] = st
+        if st.get("adopted"):
+            adopt("depth_line", cur["target"], st["fit"], geoms[bw])
+            outline = ring
+            flags.append("fitted_on_depth_line")
+            if st["fit"]["mirror"]:
+                flags.append("mirror")
+    classes["depth_line"] = cur["grade"]
+    fit_line = steps["depth_line"].get("line", "shore") if steps["depth_line"].get("adopted") else "shore"
+
+    if mirror and "mirror" not in flags and cur["step"] not in ("baseline", "depth_line"):
         flags.append("mirror")
     return {"origin": [round(origin[0], 3), round(origin[1], 3)], "steps": steps, "classes": classes,
             "after": {"grade": cur["grade"], "step": cur["step"], "target": cur["target"], "fit": cur["fit"]},
-            "flags": sorted(set(flags)), "would_help": would_help,
-            "lakes": {f"wbk:{w}": info[w] for w in sorted(info)}, "_geoms": geoms}
+            "flags": sorted(set(flags)), "would_help": would_help, "fit_line": fit_line,
+            "lakes": {f"wbk:{w}": info[w] for w in sorted(info)}, "_geoms": geoms, "_outline": outline}
+
+
+# ---------------------------------------------------------------- a depth line as the outline (T1188 v5)
+
+#: at most this share of our lake may lie outside the chart's shoreline at the depth line's placing: the depth line
+#: is an inner line of THIS chart, so our lake must sit inside the chart's own shore
+LAKE_OUTSIDE_SHORE_MAX = 0.05
+#: the depth lines tried as the outline: the first and the second (shallowest first)
+DEPTH_LINES_TRIED = 2
+
+
+def depth_line_step(sheet, lines: Sequence[Tuple[Optional[float], object]], cur: Mapping[str, object], lake,
+                    wbk: int, origin, near_lakes) -> Tuple[Dict[str, object], Optional[object]]:
+    """The first and the second depth line as the outline to fit, on a sheet whose shore fit is not strict and stands
+    on its coded lake (the caller checks both). A line is a candidate only when it LIFTS THE CLASS (rigid; else a
+    small stretch, its own class, as step 4) with no other turn or the mirror within MARGIN, our lake lies inside the
+    chart's shoreline at that placing (LAKE_OUTSIDE_SHORE_MAX), and the full neighbour check (`neighbour_check`, on
+    the line's own shape and size, its unstretched IoU) finds no lake within MARGIN. Of the candidates the best class,
+    then IoU, then the shallower line is adopted. Every line tried is recorded with why it was refused. Returns the
+    record and the adopted line's outline (None when none)."""
+    from shapely.geometry import LineString
+    from shapely.ops import polygonize, unary_union
+    depths = sorted({abs(float(d)) for d, _l in lines if d not in (None, 0)})[:DEPTH_LINES_TRIED]
+    tried, cands = [], []
+    for k, depth in enumerate(depths, start=1):
+        arcs = [l for d, l in lines if d not in (None, 0) and abs(float(d)) == depth]
+        parts, joins = place.close_lines(arcs, place.MAX_GAP_M)
+        faces = list(polygonize(unary_union(parts + [LineString([p, q]) for _d, p, q in joins])))
+        ring = unary_union(faces) if faces else None
+        rec: Dict[str, object] = {"line": f"depth_{k}", "depth": depth}
+        tried.append(rec)
+        if ring is None or ring.area <= 0:
+            rec["refused"] = "the line does not close"
+            continue
+        rec.update(ha=round(ring.area / 1e4, 2), share_of_shore=round(ring.area / sheet.area, 3))
+        fits = search(ring, lake, origin)
+        b = fits[0]
+        v = verdict(b, rivals_of(b, fits))
+        rigid = b
+        stretched = None
+        if not better(b["grade"], cur["grade"]):
+            sfits = search(ring, lake, origin, scales=SMALL_SCALES, bounds=(1 - SMALL_STRETCH, 1 + SMALL_STRETCH))
+            sb = sfits[0]
+            sv = verdict(sb, rivals_of(sb, sfits))
+            stretched = {"fit": dict(sb), **sv}
+            if better(sb["grade"], cur["grade"]) and not sv["ambiguous"]:
+                b, v = sb, sv
+            elif better(sb["grade"], cur["grade"]):
+                rec["stretch"] = stretched        # it lifts stretched, but a turn or the mirror ties: said, not hidden
+        rec.update(fit=dict(b), **v, rigid_iou=rigid["iou"])
+        if not better(b["grade"], cur["grade"]):
+            rec["refused"] = (f"stretched it lifts but is ambiguous ({stretched['rival']} {stretched['rival_iou']})"
+                              if rec.get("stretch") else f"does not lift the class ({b['grade']})")
+            continue
+        if v["ambiguous"]:
+            rec["refused"] = f"ambiguous ({v['rival']} {v['rival_iou']})"
+            continue
+        placed_shore = apply(sheet, pose_of(b), origin)
+        out = lake.difference(placed_shore).area / lake.area
+        rec["lake_outside_shore"] = round(out, 4)
+        if out > LAKE_OUTSIDE_SHORE_MAX:
+            rec["refused"] = f"our lake not inside the chart's shoreline ({out:.0%} outside)"
+            continue
+        # the neighbours are fitted without a stretch: the gap is from the line's unstretched placing
+        nb, _g = neighbour_check(ring, origin, float(rigid["iou"]), lake, [wbk], near_lakes)
+        rec["neighbour"] = nb
+        if nb.get("rival"):
+            rec["refused"] = f"another lake fits within {MARGIN}: {nb.get('name') or nb['lake']} {nb['iou']}"
+            continue
+        cands.append((RANK[b["grade"]], -float(b["iou"]), k, rec, ring))
+    out: Dict[str, object] = {"tried": tried, "adopted": False}
+    if not cands:
+        return out, None
+    _r, _i, _k, rec, ring = min(cands, key=lambda c: c[:3])
+    out.update(adopted=True, line=rec["line"], depth=rec["depth"], fit=rec["fit"], neighbour=rec["neighbour"],
+               lifts=True, target=f"wbk:{wbk}")
+    return out, ring
