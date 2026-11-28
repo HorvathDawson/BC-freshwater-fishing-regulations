@@ -11,8 +11,10 @@ same. The two real shapes that stopped the answers step after the cut rule (`bui
   71.1 % inside Hayne's Lease by shape, all held by the reserve's area item; its lake polygons straddle the edge: still
   "at Hayne's Lease Ecological Reserve".
 
-A membership-only area (no cut) is measured on the shapes as before. The reviewed list (`part.REVIEWED_INSIDE`) is
-unchanged: the parts are still inside."""
+Only the CLEAN-cut areas (national parks, ecological reserves, the Chilkoot: `area_splits.cut_mode` "clean") follow
+the cut. A `first_last` area (restricted land, `membership: both_sides`: a whole piece is in it when any of it is) and a
+membership-only area are measured on the shapes as before; a disagreement is logged in either kind. The reviewed list
+(`part.REVIEWED_INSIDE`) is unchanged: the parts are still inside."""
 import pytest
 from shapely.geometry import LineString, Polygon, box
 
@@ -35,10 +37,28 @@ def test_a_floor_grown_piece_the_area_holds_is_inside_whatever_its_shape(tmp_pat
                "100.0% of its lines, their shapes lie 46.3% in it" in x for x in log)
 
 
-def test_the_same_piece_by_shape_alone_is_not_inside(tmp_path):
-    # the mutation pin: measured on its shape (the code before T1199's fix) the piece is NOT inside: the answers step
-    # then stopped on the reviewed Gordon River entry. A cut that does not hold it: not inside either
-    assert _inside(tmp_path, GROWN, [GORDON], iid="gnis:18167", held={"a0": frozenset()}) == []
+def test_the_share_is_of_the_held_length_at_95_percent(tmp_path):
+    # the cut's share is by length: 95 m of 100 held is inside, 94 m is not — whatever the shapes say (both lines lie
+    # wholly OUTSIDE the polygon here, so a shape measure would give 0 % either way)
+    two = {10: LineString([(1100, 500), (1195, 500)]), 11: LineString([(1100, 600), (1105, 600)])}
+    got = _inside(tmp_path, two, [GORDON], held={"a0": frozenset({10})})
+    assert got == [(1, 1, "Pacific Rim National Park Reserve of Canada", 0.95, "inside", 1)]
+    two = {10: LineString([(1100, 500), (1194, 500)]), 11: LineString([(1100, 600), (1106, 600)])}
+    assert _inside(tmp_path, two, [GORDON], held={"a0": frozenset({10})}) == []
+
+
+def test_a_first_last_area_is_measured_by_its_shapes(tmp_path):
+    # restricted land (`first_last`, both_sides): its item holds a WHOLE piece any of which lies in it; a side line 10 %
+    # inside would be "inside" by its item. Measured by shape as before, the disagreement logged
+    land = ("SOME RESTRICTED LAND", "restricted_land_access", PARK)
+    tenth = {10: LineString([(990, 500), (1090, 500)])}                       # 10 m of 100 inside
+    log = []
+    assert _inside(tmp_path, tenth, [land], log=log, held={"a0": frozenset({10})}, follow=frozenset()) == []
+    assert any("the cut holds 100.0% of its lines, their shapes lie 10.0% in it — a first_last area: measured by its "
+               "shapes" in x for x in log)
+    whole = {10: LineString([(100, 500), (900, 500)])}
+    assert _inside(tmp_path, whole, [land], held={"a0": frozenset({10})}, follow=frozenset())[0][2:] == \
+        ("SOME RESTRICTED LAND", 1.0, "inside", 1)
 
 
 def test_a_line_wholly_in_the_polygon_the_cut_leaves_outside_is_not_inside(tmp_path):
@@ -80,28 +100,43 @@ def test_a_part_the_cut_holds_outside_the_polygons_box_is_still_measured(tmp_pat
 
 def test_a_cut_area_with_no_held_sections_given_stops(tmp_path):
     with pytest.raises(sc.SideChannelError, match="no held sections given"):
-        _inside(tmp_path, GROWN, [GORDON], held={})
+        _inside(tmp_path, GROWN, [GORDON], held={}, follow=frozenset())
+    with pytest.raises(sc.SideChannelError, match="clean-cut area"):
+        _inside(tmp_path, GROWN, [GORDON], held={"a0": frozenset()}, follow=frozenset({"a0", "a9"}))
 
 
 def test_the_bundle_step_refuses_to_run_without_the_held_sections(tmp_path):
     from pipeline.tests.test_t1140_inside_area import _Cov, _db
     db, geo = _db()
     with pytest.raises(sc.SideChannelError, match="cut_area_members"):
-        sc.write(db, geo, tmp_path, _Cov(), log=lambda *_: None, added={}, unnamed={}, marks={})
+        sc.write(db, geo, tmp_path, _Cov(), log=lambda *_: None, added={}, unnamed={}, marks={}, held={})
+
+
+DEFS = [{"id": "national_parks", "cut": "clean"}, {"id": "ecological_reserves", "cut": "clean"},
+        {"id": "restricted_land_access", "cut": "first_last", "membership": "both_sides"},
+        {"id": "provincial_parks", "kind": "park", "cut": False},
+        {"id": "regions", "kind": "region", "cut": "first_last", "membership": "both_sides"}]
 
 
 def test_cut_area_members_reads_the_registrys_area_items(tmp_path):
-    _catalog(tmp_path, [GORDON, ("SOME PARK", "park", PARK, False), ("Region 6", "region", PARK)])
+    _catalog(tmp_path, [GORDON, ("SOME PARK", "park", PARK, False), ("Region 6", "region", PARK),
+                        ("SOME LAND", "restricted_land_access", PARK),
+                        ("TRIANGLE ISLAND ECOLOGICAL RESERVE", "ecological_reserves", PARK)])
     items = [{"id": "a0", "kind": "area", "section_ids": ["354088108:337", "354088108:437"]},
              {"id": "a1", "kind": "area", "section_ids": ["9:0"]},               # membership-only: not a cut area
              {"id": "a2", "kind": "area", "section_ids": ["9:0"]},               # a region: never a place
+             {"id": "a3", "kind": "area", "section_ids": ["9:0"]},               # first_last: held, not followed
              {"id": "gnis:18167", "kind": "stream", "section_ids": ["354088108:337"]}]
     handles = {"354088108:337": 569, "354088108:437": 570, "9:0": 1}
-    assert sc.cut_area_members(items, handles, tmp_path) == {"a0": frozenset({569, 570})}
+    log = []
+    held, follow = sc.cut_area_members(items, handles, tmp_path, DEFS, log=log.append)
+    # a4, a reserve with no water in it, has no registry item: it holds nothing, named and counted — never a stop
+    assert held == {"a0": frozenset({569, 570}), "a3": frozenset({1}), "a4": frozenset()}
+    assert follow == frozenset({"a0", "a4"})
+    assert any("3 cut places, 2 cut clean (measured by the cut); 1 hold no water (no registry item): TRIANGLE ISLAND "
+               "ECOLOGICAL RESERVE (ecological_reserves)" in x for x in log)
     with pytest.raises(sc.SideChannelError, match="not in the handle table"):
-        sc.cut_area_members([{**items[0], "section_ids": ["1:1"]}], handles, tmp_path)
-    with pytest.raises(sc.SideChannelError, match="have no registry item"):
-        sc.cut_area_members(items[1:], handles, tmp_path)
+        sc.cut_area_members([{**items[0], "section_ids": ["1:1"]}], handles, tmp_path, DEFS, log=log.append)
 
 
 def test_the_reviewed_inside_list_is_unchanged():

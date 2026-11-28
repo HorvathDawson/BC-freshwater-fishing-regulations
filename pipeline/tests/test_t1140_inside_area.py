@@ -145,7 +145,8 @@ def _write(db, geo, tmp_path, monkeypatch, unnamed=None, marks=None):
     monkeypatch.setattr(sc, "inside_rows", lambda *_a, **_k: [])
     monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
     log = []
-    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed=unnamed or {}, marks=marks or {}, held={})
+    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed=unnamed or {}, marks=marks or {}, held={},
+             follow=frozenset())
     assert dict(db.execute("SELECT sid, lo_m FROM section_span WHERE sid = 3")) in ({3: None}, {})   # never written
     return {**{s: None for (s,) in db.execute("SELECT sid FROM section_span")},
             **dict(db.execute("SELECT sid, m FROM section_join WHERE m IS NOT NULL"))}, log
@@ -418,9 +419,10 @@ def _agreeing_cut(shapes, areas):
     return out
 
 
-def _inside(tmp_path, shapes, areas, iid="gnis:1", log=None, held=None):
+def _inside(tmp_path, shapes, areas, iid="gnis:1", log=None, held=None, follow=None):
     """One water (`iid`), one listed part of side channels only (sids 10…), shapes {sid: geometry}; `held` the sections
-    each cut area's cut puts inside it (default: the cut agreeing with the shapes, `_agreeing_cut`)."""
+    each cut area's item holds (default: the cut agreeing with the shapes, `_agreeing_cut`); `follow` the clean-cut
+    areas measured by the cut (default: every cut area held)."""
     db, _ = _db()
     db.execute("UPDATE item SET item_id = ? WHERE ord = 1", (iid,))
     db.execute("DELETE FROM part_section WHERE part_ix = 1")
@@ -430,8 +432,9 @@ def _inside(tmp_path, shapes, areas, iid="gnis:1", log=None, held=None):
     span = {s: (a, b, off, shape) for s, a, b, off, shape in db.execute(
         "SELECT sid, lo_m, hi_m, off_stem, shape FROM section_span")}
     _catalog(tmp_path, areas)
-    return sc.inside_rows(db, {**{1: STEM[0][2], 2: STEM[1][2]}, **shapes}, tmp_path, span,
-                          _agreeing_cut(shapes, areas) if held is None else held,
+    held = _agreeing_cut(shapes, areas) if held is None else held
+    return sc.inside_rows(db, {**{1: STEM[0][2], 2: STEM[1][2]}, **shapes}, tmp_path, span, held,
+                          frozenset(held) if follow is None else follow,
                           log=(log.append if log is not None else lambda *_: None))
 
 
@@ -492,7 +495,7 @@ def test_an_unmeasured_section_means_not_inside(tmp_path):
     span = {s: (a, b, off, shape) for s, a, b, off, shape in db.execute(
         "SELECT sid, lo_m, hi_m, off_stem, shape FROM section_span")}
     geo = {1: STEM[0][2], 2: STEM[1][2], 3: LineString([(10, 10), (90, 90)])}          # sid 11 has no shape
-    assert sc.inside_rows(db, geo, tmp_path, span, {"a0": frozenset({3})}) == []
+    assert sc.inside_rows(db, geo, tmp_path, span, {"a0": frozenset({3})}, frozenset({"a0"})) == []
 
 
 # (T1172, owner 2026-11-26: "Yes, but name it by the area"; "The area shows in the app SUBTITLE, universally") a
@@ -587,7 +590,7 @@ def test_the_old_kootenay_river_channel_is_measured_and_named_by_its_area(tmp_pa
     db, geo, marks = _old_kootenay(tmp_path)
     monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
     log = []
-    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed={}, marks=marks, held={})
+    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed={}, marks=marks, held={}, follow=frozenset())
     assert not any("NO JOIN" in x for x in log)
     joins = dict(db.execute("SELECT sid, m FROM section_join"))
     # both channels where they leave the main line: channel 2 at 379 m from p0; channel 1 at 588 m — its downstream end
@@ -626,7 +629,8 @@ def test_the_old_kootenay_river_channel_unreviewed_goes_to_the_next_rung_but_its
                                                                      "inside")})
     db, geo, marks = _old_kootenay(tmp_path)
     monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
-    sc.write(db, geo, tmp_path, _Cov(), log=lambda *_: None, added={}, unnamed={}, marks=marks, held={})
+    sc.write(db, geo, tmp_path, _Cov(), log=lambda *_: None, added={}, unnamed={}, marks=marks, held={},
+             follow=frozenset())
     assert db.execute("SELECT area, cut FROM part_inside").fetchall() == [("CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 0)]
     p = tmp_path / "b.sqlite"
     db.executescript("CREATE TABLE crossing_near (ord INTEGER, token TEXT, km REAL, near TEXT);"

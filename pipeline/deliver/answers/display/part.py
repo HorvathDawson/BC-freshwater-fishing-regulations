@@ -635,7 +635,8 @@ SIDE = "near:side:"
 UNNAMED_ENDS = ("mouth", "source", "polygon", "lake_inlet", "lake_outlet")
 #: T1140: the parts the build may NAME "<water> inside <area>" / "<water> at <area>", each checked by a reviewer on its
 #: picture (item id, the area's catalogue name, how): THE NAME'S GATE ONLY. (T1172, owner 2026-11-26: "universally")
-#: the bundle measures every part in every area by one rule (`bundle.side_channels.inside_rows`) and the part's SUBTITLE
+#: the bundle measures every part in every area by one rule (`bundle.side_channels.inside_rows`: in a clean-cut area by
+#: the cut, T1199 E30; else on its shapes) and the part's SUBTITLE
 #: says its area whether or not it is listed here (`runs_label`). An unlisted area the atlas cuts at stops the build
 #: until it is looked at and added here; an unlisted membership-only one (a park or WMA the atlas does not cut at) is
 #: listed in the build log ("INSIDE candidate") and the name takes its next rung; a listed part no longer said inside
