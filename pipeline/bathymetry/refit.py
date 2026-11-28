@@ -14,6 +14,14 @@ step at a time, each step its own flag. MEASURES ONLY: every placing stays a pro
     big_stretch    up to BIG_STRETCH (15 %), or the feet / metres factor on a sheet whose units are not stated: NEVER
                    adopted; the sheet is listed with what the stretch would change (`stretch_change`).
 
+Then, on EVERY placed sheet (strict ones too), the checks that say how far a placing can be trusted, never moving it:
+    neighbour      the lakes within NEIGHBOUR_M of the placed lake, searched by shape like `other_lake`: the best one,
+                   its IoU and the gap to the placing; within MARGIN (or better) it is a rival (`neighbour_check`).
+    orientation    a strict placing the repo's fitter made is searched at every turn and the mirror: another turn or
+                   the mirror within MARGIN of it makes it ambiguous (`orientation_check`).
+    shape          how much the sheet looks like itself turned or mirrored (`self_similarity`): a round or oval shore
+                   fits many turns and many lakes, so a good score on it is weak evidence.
+
 A step's fit is adopted only when it LIFTS THE CLASS (strict > loose > poor) and is not AMBIGUOUS: another orientation
 (more than SEP_DEG away), the other mirror, or another target within MARGIN IoU of it. An ambiguous lift is reported,
 never counted. The measures are the repo's own (`place._iou`, `place.shore_distances`, `place_more.grade`).
@@ -46,6 +54,9 @@ SCREEN_MIN = 0.65       # a screened target is searched in full from this coarse
 SEARCHED = 5            # at most this many screened targets searched in full
 RING_MIN = 0.02         # a ring smaller than this share of the sheet is not split to a lake
 DRAWN_MIN = 0.5         # a union member counts as drawn when the placed sheet covers this share of it
+NEIGHBOUR_M = WIDE_M    # the neighbour check's radius around the placed lake (every sheet)
+NEIGHBOUR_SEARCHED = 3  # at most this many screened neighbours searched in full
+SCREEN_SLACK = 0.15     # a neighbour screened this far below the placing's IoU (less MARGIN) cannot be a rival
 
 SLIVER = 9.0           # the elongation given a shape with no rectangle (ranked last)
 
@@ -374,6 +385,68 @@ def stretch_modes(units: str, raw_area_ratio: float) -> List[Tuple[str, Tuple[fl
 
 SMALL_SCALES = (1 - SMALL_STRETCH, 1 - SMALL_STRETCH / 2, 1.0, 1 + SMALL_STRETCH / 2, 1 + SMALL_STRETCH)
 
+
+# ---------------------------------------------------------------- the trust checks, on every placed sheet
+
+def self_similarity(sheet, origin) -> Dict[str, object]:
+    """How much the sheet looks like itself turned more than SEP_DEG or mirrored (any turn): the best raster IoU of the
+    sheet on itself that way, over the raster IoU of it unturned (the raster's own loss), and `complexity` = 1 - that
+    share. A circle or an ellipse scores about 0 (it fits itself turned half round); an irregular shore scores high."""
+    ident, best, at = 0.0, -1.0, ""
+    for m in (False, True):
+        out, _tx, _ty, angs, _cell = coarse(sheet, sheet, origin, mirror=m)
+        for k, a in enumerate(angs):
+            v = float(out[0, k])
+            if not m and a == 0.0:
+                ident = v
+            if not m and angdiff(a, 0.0) <= SEP_DEG:
+                continue
+            if v > best + 1e-12:
+                best, at = v, ("mirror, turn " if m else "turn ") + f"{a:g}"
+    share = min(1.0, best / ident) if ident > 0 else 1.0
+    return {"self_iou": round(best, 4), "identity_iou": round(ident, 4), "self_rival": at,
+            "complexity": round(1.0 - share, 4)}
+
+
+def orientation_check(sheet, target, origin, placed: Mapping[str, object]) -> Dict[str, object]:
+    """A placing made elsewhere (the repo's fitter) against every turn and the mirror on its own lake: its verdict
+    against the fits that are a different placing (`rivals_of`)."""
+    fits = search(sheet, target, origin)
+    p = dict(placed, mirror=bool(placed.get("mirror", False)))
+    return dict(verdict(p, rivals_of(p, fits)), best_iou=fits[0]["iou"] if fits else None)
+
+
+def neighbour_check(sheet, origin, placed_iou: float, target, exclude: Iterable[int], near_lakes,
+                    radius: float = NEIGHBOUR_M) -> Tuple[Dict[str, object], Optional[object]]:
+    """Every lake within `radius` of the placed lake (`exclude`: the placed lake or lakes), the closest shapes in the
+    area band (`shape_rank`) screened, the best few searched in full (every turn, the mirror): the best neighbour, its
+    IoU and the gap to the placing. `rival` when it fits better or within MARGIN. `similar_size` counts the lakes in
+    the area band: 0 means the placed lake is the only lake of its size around. Returns the record and the best
+    neighbour's outline (None when none was searched)."""
+    ex = set(exclude)
+    wide = {w: e for w, e in sorted(near_lakes(target.bounds, radius).items()) if w not in ex}
+    band = shape_rank(sheet, {w: e["geom"] for w, e in wide.items()}, limit=len(wide))
+    ranked = band[:SHAPES]
+    scr = sorted(((screen(sheet, wide[w]["geom"], origin), w) for w, _d in ranked), key=lambda t: (-t[0], t[1]))
+    floor = min(SCREEN_MIN, float(placed_iou) - MARGIN - SCREEN_SLACK)
+    chosen = [w for v, w in scr if v >= floor][:NEIGHBOUR_SEARCHED]
+    rec: Dict[str, object] = {"radius_m": radius, "lakes_in_radius": len(wide), "similar_size": len(band),
+                              "screened": [[f"wbk:{w}", v] for v, w in scr[:3]], "searched": len(chosen),
+                              "lake": None, "rival": False}
+    best = None
+    for w in chosen:
+        fits = search(sheet, wide[w]["geom"], origin)
+        if fits and (best is None or fits[0]["iou"] > best[1]["iou"]):
+            best = (w, fits[0])
+    if best is None:
+        return rec, None
+    w, f = best
+    gap = round(float(placed_iou) - float(f["iou"]), 4)
+    rec.update(lake=f"wbk:{w}", name=wide[w].get("name"), layer=wide[w].get("layer"),
+               dist_m=round(wide[w]["geom"].distance(target)), iou=f["iou"], grade=f["grade"], gap=gap,
+               fit=dict(f), rival=gap < MARGIN)
+    return rec, wide[w]["geom"]
+
 # ---------------------------------------------------------------- one sheet, every step
 
 STEPS = ("baseline", "rigid", "two_lake", "other_lake", "small_stretch")
@@ -409,7 +482,7 @@ NAME_CONFIRMS = ("title", "coded_name", "unnamed_near")
 
 def refit_sheet(sheet, lines: Sequence[Tuple[Optional[float], object]], coded: Mapping[int, Mapping[str, object]],
                 near_lakes, *, base_fit: Mapping[str, object], units: str,
-                titles: Sequence[str] = ()) -> Dict[str, object]:
+                titles: Sequence[str] = (), taken: Optional[Mapping[int, Sequence[str]]] = None) -> Dict[str, object]:
     """Every step on one sheet that the repo's fitter left loose or poor.
 
     sheet      the sheet's water (`place.shore`), in sheet metres
@@ -419,6 +492,7 @@ def refit_sheet(sheet, lines: Sequence[Tuple[Optional[float], object]], coded: M
     base_fit   the repo's fit (`place.fit` + its `wbk`), the baseline this improves on
     units      the units the sheet states ("not stated" when none)
     titles     the sheet's map titles (they confirm or refuse a wrong-lake find, `name_check`)
+    taken      wbk -> the other sheets that end on it (`refit_all.claims`): a wrong-lake find on one is refused
 
     Returns per step what it found and whether it was adopted, the class after each step, the placing after all
     adopted steps, its flags, and the bigger stretch that would help (never adopted). `_geoms` (not serialisable) holds
@@ -444,6 +518,8 @@ def refit_sheet(sheet, lines: Sequence[Tuple[Optional[float], object]], coded: M
 
     # 1. rigid, wider: every rotation, several starts, the mirror; scale 1
     rig = {f"wbk:{w}": search(sheet, geoms[w], origin) for w in sorted(geoms)}
+    # the best fit on every target any step searched: the rivals of a stretch on another target
+    target_best: Dict[str, float] = {k: max(float(f["iou"]) for f in fs) for k, fs in sorted(rig.items()) if fs}
     b = best_over(rig)
     lifts = better(b["fit"]["grade"], cur["grade"])
     steps["rigid"] = dict(b, lifts=lifts, adopted=lifts and not b["ambiguous"])
@@ -489,6 +565,7 @@ def refit_sheet(sheet, lines: Sequence[Tuple[Optional[float], object]], coded: M
             scr.sort(key=lambda t: (-t[0], t[1]))
         full = {_key(ws): search(sheet, unary_union([geoms[w] for w in ws]), origin)
                 for v, ws in scr[:2] if v >= SCREEN_MIN}
+        target_best.update({k: max(float(f["iou"]) for f in fs) for k, fs in sorted(full.items()) if fs})
         st: Dict[str, object] = {"screened": [[_key(ws), v] for v, ws in scr[:6]]}
         if not full:
             st["skipped"] = f"no union screened at {SCREEN_MIN} or more"
@@ -530,37 +607,47 @@ def refit_sheet(sheet, lines: Sequence[Tuple[Optional[float], object]], coded: M
                 info[w] = {"name": wide[w].get("name"), "layer": wide[w].get("layer"),
                            "dist_m": round(wide[w]["geom"].distance(coded_u))}
             full = {f"wbk:{w}": search(sheet, geoms[w], origin) for w in chosen}
+            target_best.update({k: max(float(f["iou"]) for f in fs) for k, fs in sorted(full.items()) if fs})
             b = best_over(full, single_best)
             lifts = better(b["fit"]["grade"], cur["grade"])
             w = _members(b["target"])[0]
             nc = name_check(info[w]["name"], titles, [coded[x].get("name") for x in sorted(coded)], info[w]["dist_m"])
+            held = sorted((taken or {}).get(w, ()))
             st.update(b, lifts=lifts, dist_m=info[w]["dist_m"], name=info[w]["name"], name_check=nc,
-                      adopted=lifts and not b["ambiguous"] and nc in NAME_CONFIRMS)
+                      adopted=lifts and not b["ambiguous"] and nc in NAME_CONFIRMS and not held)
+            if held:
+                st["taken_by"] = held          # another sheet ends on that lake: the find is refused, listed
             if st["adopted"]:
                 adopt("other_lake", b["target"], b["fit"], geoms[w])
                 flags.append("other_lake")
                 if b["fit"]["mirror"]:
                     flags.append("mirror")
             elif lifts:
-                flags.append("other_lake_ambiguous" if b["ambiguous"] else f"other_lake_name_{nc}")
+                flags.append("other_lake_ambiguous" if b["ambiguous"] else
+                             f"other_lake_name_{nc}" if nc not in NAME_CONFIRMS else "other_lake_taken")
         steps["other_lake"] = st
     classes["other_lake"] = cur["grade"]
 
-    # 4. a small stretch (<= 5 %), its own flagged class; then the bigger stretch, never adopted
+    # 4. a small stretch (<= 5 %), its own flagged class; then the bigger stretch, never adopted. Both mirrors are
+    # searched (the mirror is held only when an earlier step adopted a placing); the rivals are the other turns, the
+    # other mirror and the best fit on every other target an earlier step searched (the same rule as every step).
     mirror = bool(cur["fit"].get("mirror", False))
     would_help = None
     if cur["grade"] == "strict":
         steps["small_stretch"] = {"skipped": "already strict"}
     else:
-        fits = search(sheet, cur["geom"], origin, mirrors=(mirror,), scales=SMALL_SCALES,
-                      bounds=(1 - SMALL_STRETCH, 1 + SMALL_STRETCH))
-        b = fits[0]
-        v = verdict(b, rivals_of(b, fits))
+        fits = search(sheet, cur["geom"], origin, scales=SMALL_SCALES, bounds=(1 - SMALL_STRETCH, 1 + SMALL_STRETCH))
+        pool = [f for f in fits if f["mirror"] == mirror] if cur["step"] != "baseline" else fits
+        b = pool[0]
+        rv = rivals_of(b, fits) + [(f"target {k}", v) for k, v in sorted(target_best.items()) if k != cur["target"]]
+        v = verdict(b, rv)
         lifts = better(b["grade"], cur["grade"])
         steps["small_stretch"] = dict(v, target=cur["target"], fit=b, lifts=lifts, adopted=lifts and not v["ambiguous"])
         if steps["small_stretch"]["adopted"]:
             adopt("small_stretch", cur["target"], b, cur["geom"])
             flags.append("small_stretch")
+            if b["mirror"]:
+                flags.append("mirror")
             if abs(float(b["scale"]) - 1) >= SMALL_STRETCH - 0.001:
                 flags.append("small_stretch_at_limit")       # it wanted more: a bigger stretch may fit better still
         elif lifts:

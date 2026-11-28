@@ -9,8 +9,9 @@ from __future__ import annotations
 import json
 import math
 
+import pytest
 from shapely import affinity
-from shapely.geometry import LineString, Polygon, box
+from shapely.geometry import LineString, Point, Polygon, box
 from shapely.ops import unary_union
 
 from pipeline.bathymetry import place, refit
@@ -26,6 +27,16 @@ def _chiral(size: float, x0: float = 0.0, y0: float = 0.0, n: int = 160) -> Poly
         t = 2 * math.pi * k / n
         r = size * (1 + 0.25 * math.sin(2 * t + 0.4) + 0.15 * math.cos(3 * t) + 0.1 * math.sin(5 * t + 1))
         pts.append((x0 + r * math.cos(t), y0 + 0.6 * r * math.sin(t)))
+    return Polygon(pts)
+
+
+def _mirror_symmetric(size: float, n: int = 160) -> Polygon:
+    """a lake that is its own mirror image (x -> -x) but not its own half turn"""
+    pts = []
+    for k in range(n):
+        t = 2 * math.pi * k / n
+        r = size * (1 + 0.3 * math.sin(t) + 0.15 * math.cos(2 * t) + 0.1 * math.sin(3 * t))
+        pts.append((r * math.cos(t), 0.6 * r * math.sin(t)))
     return Polygon(pts)
 
 
@@ -120,13 +131,26 @@ def test_a_two_lake_sheet_fits_the_union_and_splits_its_contours():
                               "small_stretch": "strict"}
 
 
-def test_a_union_member_the_sheet_does_not_draw_is_not_adopted():
+def test_split_reports_a_lake_the_sheet_does_not_cover():
     sheet = _chiral(900)
     placed = _earth(sheet)
     other = _earth(affinity.translate(_chiral(300), 5000, 0))
     s = refit.split_per_lake(placed, [], {1: placed, 2: other})
     assert s["per_lake"]["2"]["lake_covered"] == 0.0 and s["rings"] == [{"lake": "wbk:1", "ring_ha": round(
         placed.area / 1e4, 2)}]
+
+
+def test_a_union_member_the_sheet_does_not_draw_is_not_adopted(monkeypatch):
+    """the union lifts the class, but a member is covered less than DRAWN_MIN: the placing is refused, kept as it was"""
+    sheet, lines, lake_a, lake_b = _two_lake_case()
+    monkeypatch.setattr(refit, "DRAWN_MIN", 0.999)          # both lakes are covered about 0.97-0.99 here
+    got = refit.refit_sheet(sheet, lines, {1: {"geom": lake_a, "name": "Elk Lake", "layer": "lakes"}},
+                            _near({2: {"geom": lake_b, "name": "Beaver Lake", "layer": "lakes"}}),
+                            base_fit=_base(sheet, lake_a, 1), units="metres")
+    st = got["steps"]["two_lake"]
+    assert st["lifts"] is True and st["every_lake_drawn"] is False and st["adopted"] is False
+    assert "two_lake_not_drawn" in got["flags"] and "two_lake" not in got["flags"]
+    assert got["after"]["target"] == "wbk:1" and got["classes"]["two_lake"] == "poor"
 
 
 def place_grade(f):
@@ -136,7 +160,7 @@ def place_grade(f):
 
 # ---- 3. wrong-lake codes ----------------------------------------------------------------------------------------------
 
-def _wrong_code_case(found_name):
+def _wrong_code_case(found_name, taken=None):
     sheet = _chiral(700)
     coded = _earth(box(-900, -100, 900, 100))                    # the code's lake: a different shape
     true = affinity.translate(_earth(sheet, 81.0), 40_000, 0)     # 40 km away (Stake)
@@ -144,8 +168,9 @@ def _wrong_code_case(found_name):
     near = _near({7: {"geom": true, "name": found_name, "layer": "lakes"},
                   8: {"geom": decoy, "name": "Square Lake", "layer": "lakes"}})
     base = _base(sheet, coded, 5)
+    kw = {"taken": taken} if taken is not None else {}
     return refit.refit_sheet(sheet, [], {5: {"geom": coded, "name": "Long Lake", "layer": "lakes"}}, near,
-                             base_fit=base, units="metres", titles=["STAKE LAKE"])
+                             base_fit=base, units="metres", titles=["STAKE LAKE"], **kw)
 
 
 def test_a_wrong_lake_code_is_found_by_shape_and_confirmed_by_the_title():
@@ -160,6 +185,20 @@ def test_a_shape_find_with_a_different_name_is_refused():
     st = got["steps"]["other_lake"]
     assert st["lifts"] is True and st["adopted"] is False and st["name_check"] == "differs"
     assert "other_lake_name_differs" in got["flags"] and got["after"]["target"] == "wbk:5"
+
+
+def test_an_unnamed_find_far_from_the_coded_lake_is_refused():
+    got = _wrong_code_case(None)                                  # unnamed, 40 km away: beyond NEAR_M
+    st = got["steps"]["other_lake"]
+    assert st["lifts"] is True and st["adopted"] is False and st["name_check"] == "unnamed_far"
+    assert "other_lake_name_unnamed_far" in got["flags"] and got["after"]["target"] == "wbk:5"
+
+
+def test_a_find_on_a_lake_another_sheet_ends_on_is_refused():
+    got = _wrong_code_case("Stake Lake", taken={7: ["00000002.zip/other.e00"]})
+    st = got["steps"]["other_lake"]
+    assert st["lifts"] is True and st["adopted"] is False and st["taken_by"] == ["00000002.zip/other.e00"]
+    assert "other_lake_taken" in got["flags"] and got["after"]["target"] == "wbk:5"
 
 
 def test_name_check_cases():
@@ -216,6 +255,161 @@ def test_stretch_modes_offer_feet_only_when_the_units_are_not_stated():
     assert refit.stretch_change(before, after).startswith("feet drawn as metres?")
 
 
+def test_an_ambiguous_rigid_lift_is_reported_never_adopted():
+    """a rectangle the repo's fitter left poor: every step finds strict, but turned half round it fits as well"""
+    sheet = box(0, 0, 3000, 900)
+    lake = _earth(box(0, 0, 3000, 900), 30.0)
+    origin = (1500.0, 450.0)
+    base = dict(refit.measures(sheet, lake, refit.Pose(angle=75.0), origin), wbk="wbk:1")
+    assert base["grade"] == "poor"
+    got = refit.refit_sheet(sheet, [], {1: {"geom": lake, "name": "A Lake", "layer": "lakes"}}, _near({}),
+                            base_fit=base, units="metres")
+    st = got["steps"]["rigid"]
+    assert st["lifts"] is True and st["ambiguous"] is True and st["adopted"] is False
+    assert "rigid_ambiguous" in got["flags"] and "rigid_wider" not in got["flags"]
+    assert got["steps"]["small_stretch"]["adopted"] is False and "small_stretch_ambiguous" in got["flags"]
+    assert got["after"]["step"] == "baseline" and got["after"]["grade"] == "poor"
+
+
+def test_a_mirror_symmetric_sheet_needing_a_small_stretch_is_not_adopted():
+    """the stretch step searches the mirror too: a sheet that is its own mirror image is ambiguous there"""
+    sheet = _mirror_symmetric(3000)
+    lake = _earth(affinity.scale(sheet, 1.04, 1.04, origin=(0, 0)), 200.0)
+    base = _base(sheet, lake)
+    assert place_grade(base) != "strict"
+    got = refit.refit_sheet(sheet, [], {1: {"geom": lake, "name": "A Lake", "layer": "lakes"}}, _near({}),
+                            base_fit=base, units="metres")
+    st = got["steps"]["small_stretch"]
+    assert st["lifts"] is True and st["ambiguous"] is True and st["adopted"] is False
+    assert st["rival"] == "mirror" and "small_stretch_ambiguous" in got["flags"]
+    assert got["after"]["step"] == "baseline"
+
+
+def test_a_stretch_is_not_adopted_when_another_lake_fits_unstretched_as_well():
+    """Myles: the coded lake needs a stretch; a lake the wrong-lake search found (refused by its name) fits within the
+    margin without one. The stretch is ambiguous."""
+    sheet = _chiral(3000)
+    coded = _earth(affinity.scale(sheet, 1.12, 1.12, origin=(0, 0)), 200.0)
+    other = affinity.translate(_earth(affinity.scale(sheet, 1.07, 1.07, origin=(0, 0)), 81.0), 40_000, 0)
+    base = _base(sheet, coded, 5)
+    assert place_grade(base) == "poor"
+    got = refit.refit_sheet(sheet, [], {5: {"geom": coded, "name": "Myles Lake", "layer": "lakes"}},
+                            _near({7: {"geom": other, "name": "Davies Lake", "layer": "lakes"}}),
+                            base_fit=base, units="metres", titles=["MYLES LAKE"])
+    assert got["steps"]["other_lake"]["name_check"] == "differs" and got["steps"]["other_lake"]["adopted"] is False
+    st = got["steps"]["small_stretch"]
+    assert st["lifts"] is True and st["adopted"] is False and st["rival"] == "target wbk:7" and st["gap"] < refit.MARGIN
+    assert got["after"]["target"] == "wbk:5" and got["after"]["grade"] == "poor"
+
+
+# ---- the trust checks: neighbours, complexity, confidence ----------------------------------------------------------
+
+def test_a_near_identical_neighbour_is_a_rival():
+    sheet = _chiral(800)
+    lake = _earth(sheet)
+    twin = affinity.translate(_earth(affinity.scale(sheet, 1.01, 1.01, origin=(0, 0)), 140.0), 6000, 0)
+    other = affinity.translate(_earth(box(-1000, -330, 1000, 330)), -6000, 0)    # the right size, another shape
+    o = (sheet.centroid.x, sheet.centroid.y)
+    placed = refit.measures(sheet, lake, refit.Pose(angle=37.0, dx=EAST, dy=NORTH), o)
+    near = _near({1: {"geom": lake, "name": "A Lake", "layer": "lakes"}, 2: {"geom": twin, "name": None, "layer": "lakes"},
+                  3: {"geom": other, "name": "Box Lake", "layer": "lakes"}})
+    rec, g = refit.neighbour_check(sheet, o, placed["iou"], lake, [1], near)
+    assert rec["lake"] == "wbk:2" and rec["rival"] is True and rec["gap"] < refit.MARGIN and g is not None
+    assert rec["similar_size"] == 2
+    rec, _g = refit.neighbour_check(sheet, o, placed["iou"], lake, [1, 2], near)
+    assert rec["rival"] is False and (rec["lake"] is None or rec["gap"] >= refit.MARGIN)
+
+
+def test_complexity_is_low_for_an_oval_and_high_for_an_irregular_shore():
+    oval = affinity.scale(Point(0, 0).buffer(1000, 64), 1.6, 1.0)
+    o = refit.self_similarity(oval, (0.0, 0.0))
+    c = _chiral(1000)
+    k = refit.self_similarity(c, (c.centroid.x, c.centroid.y))
+    assert o["complexity"] < refit_all.SIMPLE_BELOW < k["complexity"]
+
+
+def _placed(grade="strict", complexity=0.3, similar=3, rival=False, ambiguous=False, refit_part=None):
+    r = {"zip": "z.zip", "coverage": "z.e00", "state": "fitted", "grade": grade,
+         "fit": {"wbk": "wbk:1", "iou": 0.95, "median_m": 10.0, "area_ratio": 1.0, "angle_deg": 5.0},
+         "check": {"neighbour": {"rival": rival, "similar_size": similar}, "orientation": {"ambiguous": ambiguous},
+                   "shape": {"complexity": complexity}}}
+    if refit_part:
+        r["refit"] = refit_part
+    return r
+
+
+def test_confidence_high_high_stretched_and_review():
+    assert refit_all.confidence(_placed()) == ("high", [])
+    assert refit_all.confidence(_placed(rival=True)) == ("review", ["neighbour_rival"])
+    assert refit_all.confidence(_placed(ambiguous=True)) == ("review", ["ambiguous"])
+    assert refit_all.confidence(_placed(complexity=0.02)) == ("review", ["simple_shape"])
+    assert refit_all.confidence(_placed(complexity=0.02, similar=0)) == ("high", [])    # the only lake its size
+    assert refit_all.confidence(_placed(grade="loose")) == ("review", ["loose"])
+    fit = {"iou": 0.93, "median_m": 12.0, "area_ratio": 1.0, "angle_deg": 5.0, "mirror": False, "scale": 1.03}
+    part = {"after": {"grade": "strict", "step": "small_stretch", "target": "wbk:1", "fit": fit},
+            "steps": {"small_stretch": {"adopted": True}}, "flags": ["small_stretch"]}
+    assert refit_all.confidence(_placed(grade="loose", refit_part=part)) == ("high_stretched", [])
+    part = dict(part, flags=["small_stretch", "small_stretch_at_limit"])
+    assert refit_all.confidence(_placed(grade="loose", refit_part=part)) == ("review", ["stretch_at_limit"])
+    part = dict(part, after=dict(part["after"], step="other_lake"), flags=["other_lake"])
+    assert refit_all.confidence(_placed(grade="poor", refit_part=part))[1] == ["other_lake"]
+    assert refit_all.confidence({"zip": "n.zip", "state": "no_shore"}) == ("review", ["not_placed"])
+
+
+# ---- a lake is free ---------------------------------------------------------------------------------------------------
+
+def _claim_row(z, target, find=False):
+    r = {"zip": z, "coverage": "c.e00", "state": "fitted", "grade": "poor", "fit": {"wbk": target}}
+    r["refit"] = {"after": {"target": target, "step": "other_lake" if find else "baseline", "grade": "poor",
+                            "fit": {"iou": 0.5, "mirror": False, "scale": 1.0}},
+                  "steps": {"other_lake": {"adopted": find}, "small_stretch": {}}, "flags": ["other_lake"] if find else []}
+    return r
+
+
+def test_a_find_on_a_lake_another_sheet_ends_on_is_rerun_with_it_taken():
+    results = {"a.zip": ([_claim_row("a.zip", "wbk:9", find=True)], {}), "b.zip": ([_claim_row("b.zip", "wbk:9")], {})}
+    coded_by = {1: ["a.zip"], 9: ["b.zip"]}
+    calls = []
+
+    def rerun(zs, taken):
+        calls.append((zs, taken))
+        return [([_claim_row("a.zip", "wbk:1")], {})]          # refused: back on its own coded lake
+    taken = refit_all.settle(results, coded_by, rerun)
+    assert calls == [(["a.zip"], {"a.zip": {9: ["b.zip/c.e00"]}})]
+    assert taken == {"a.zip": {9: ["b.zip/c.e00"]}} and results["a.zip"][0][0]["refit"]["after"]["target"] == "wbk:1"
+
+
+def test_a_find_on_a_coded_lake_whose_sheet_moved_off_is_kept_and_flagged():
+    a, b = _claim_row("a.zip", "wbk:9", find=True), _claim_row("b.zip", "wbk:8", find=True)
+    results = {"a.zip": ([a], {}), "b.zip": ([b], {})}
+
+    def rerun(zs, taken):
+        raise AssertionError("nothing to rerun")
+    assert refit_all.settle(results, {1: ["a.zip"], 9: ["b.zip"]}, rerun) == {}
+    assert "takes_a_coded_lake" in a["refit"]["flags"] and a["refit"]["takes_a_coded_lake"] == {"wbk:9": ["b.zip"]}
+    assert "takes_a_coded_lake" not in b["refit"]["flags"]
+    assert refit_all.confidence(dict(a, grade="poor"))[0] == "review"
+
+
+def test_two_sheets_coded_for_one_lake_may_both_end_on_it():
+    rows = [dict(_claim_row("a.zip", "wbk:9"), grade="strict"), dict(_claim_row("b.zip", "wbk:9"), grade="strict")]
+    assert refit_all.claims(rows, {9: ["a.zip", "b.zip"]}) == ({}, {})
+
+
+# ---- the run's inputs -------------------------------------------------------------------------------------------------
+
+def test_an_empty_zips_folder_raises_before_anything_is_read(tmp_path, monkeypatch):
+    (tmp_path / "zips").mkdir()
+    import pipeline.bathymetry.fetch_vectors as fv
+    monkeypatch.setattr(fv, "sheets", lambda *_a: (_ for _ in ()).throw(AssertionError("read before the zips")))
+    with pytest.raises(SystemExit) as e:
+        refit_all.main(["--vec-dir", str(tmp_path)])
+    assert str(tmp_path / "zips") in str(e.value) and "fetch_vectors --out" in str(e.value)
+    with pytest.raises(SystemExit) as e:
+        refit_all.zip_names(tmp_path / "nothing", tmp_path)
+    assert "no vector zips at" in str(e.value)
+
+
 # ---- determinism and the outputs --------------------------------------------------------------------------------------
 
 def test_the_same_sheet_gives_the_same_answer():
@@ -259,7 +453,9 @@ def test_summary_counts_each_step_and_gives_the_small_stretch_its_own_class():
     assert s["counts"]["baseline"] == {"loose": 1, "no_shore": 1, "poor": 1, "strict": 1}
     assert s["counts"]["rigid"] == {"loose": 2, "no_shore": 1, "strict": 1}
     assert s["counts"]["small_stretch"] == {"loose": 1, "no_shore": 1, "strict": 1, "strict (stretch <= 5 %)": 1}
-    assert s["list_sizes"] == {"bigger_stretch_would_help": 1, "changed_class": 1, "small_stretch": 1}
+    assert s["list_sizes"] == {"bigger_stretch_would_help": 1, "changed_class": 1, "high_stretched": 1,
+                               "review_loose": 1, "small_stretch": 1}
+    assert s["confidence"] == {"high": 1, "high_stretched": 1, "review": 2}
     text = refit_all.csv_rows(rows, {"a.zip": ["A LAKE"]})
     lines = text.splitlines()
     assert lines[0].split(",") == refit_all.CSV_COLS and len(lines) == 5
