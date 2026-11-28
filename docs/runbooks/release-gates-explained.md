@@ -245,8 +245,8 @@ and when it is safe). "Never" means there is no escape, or you should not use it
 
 **binding diff** (T992's list): see [What the binding diff checks](#what-the-binding-diff-checks).
 
-The checks also list, without stopping: item ids a phone may have kept that the new release no longer has, and the
-live counts.
+The checks also list, without stopping: item ids a phone may have kept that the new release lost, the live counts, moved
+gauge records, and a WARNING per one-bank place keeping a creek whose side is unread (T1029): look at each on the map.
 
 ### Stage 5: follows (on the candidate)
 

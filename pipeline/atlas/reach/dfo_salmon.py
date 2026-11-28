@@ -45,7 +45,7 @@ import gzip
 import hashlib
 import json
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Optional
+from typing import Dict, Iterable, Iterator, List, Mapping, Optional
 
 FILE = "dfo_salmon.jsonl.gz"
 #: T546 item 4: what `build_reach` said of each placed location (ambiguous_cut picks, unclassified pieces, the
@@ -359,10 +359,11 @@ def one_bank_tributaries(sections: Iterable[str], stem: Iterable[str], graph, wo
     from the stretch piece it joins: `drawn_banks` says which side of the drawn line (mouth -> source) the compass word
     is, so looking DOWNSTREAM it is the other hand. Returns (the sections kept: the stretch's sections the walk bound, the
     tributaries on the bank, and those whose side cannot be read; {reason: [sections]} for the rest — `TRIB_OTHER_BANK`
-    left the place, `TRIB_SIDE_UNDETERMINED` kept and reported, never a guess). KEEPING an undetermined tributary is a
-    PROPOSAL (review #112): the owner's rule names only the tributaries on the bank side, and whether one whose side cannot
-    be read stays (closed) or leaves is his call (the T1029 ticket's question); the reach run prints every one and counts
-    them in report.json. Refuses a graph with no bank fields (`require_bank_fields`). Deterministic: sorted walks."""
+    left the place, `TRIB_SIDE_UNDETERMINED` kept and reported, never a guess). An undetermined tributary is KEPT (owner
+    2026-11-27, T1029: "keep it closed (for trib rules i assume) but one thing to note we should add a thing that warns us
+    if this is ever a thing"): it takes the bank's rule, and the reach run and the release's checks WARN on every one
+    (`one_bank_unread_lines`), counted in report.json. Refuses a graph with no bank fields (`require_bank_fields`).
+    Deterministic: sorted walks."""
     from pipeline.common.bank_side import side_from_code
     stem = set(stem)
     secs = set(sections)
@@ -416,6 +417,29 @@ def one_bank_counts(diagnostics: Iterable[dict]) -> Dict[str, object]:
             TRIB_OTHER_BANK: sum(len(d["payload"].get(TRIB_OTHER_BANK) or []) for d in rows),
             TRIB_SIDE_UNDETERMINED: sum(len(v) for v in und.values()),
             "undetermined_by_place": {k: v for k, v in sorted(und.items()) if v}}
+
+
+#: (T1029, owner 2026-11-27) how the warning for a one-bank tributary kept with no side read starts, wherever it prints
+ONE_BANK_UNREAD_WARNING = "WARNING (T1029): one-bank place"
+
+
+def one_bank_unread_lines(counts: Mapping[str, object]) -> List[str]:
+    """(T1029, owner 2026-11-27: "keep it closed (for trib rules i assume) but one thing to note we should add a thing that
+    warns us if this is ever a thing") THE WARNING for a one-bank place's tributary kept with no side read: one line per
+    place in `counts` (`one_bank_counts`, the reach run's report.json `dfo_one_bank`) that holds one, naming its sections,
+    so a person looks at each. [] when there is none (today). It only SAYS: the tributary stays in the place under its
+    rule (the Kitimat's: closed), as the owner ruled; nothing an angler reads depends on it. Printed by the reach run and
+    listed by the release's checks (`pipeline.release.one_bank_unread`), never a stop. The keys are read directly (W46):
+    a tally without `undetermined_by_place`, or not a mapping, raises instead of reading as none."""
+    out = []
+    for lid, secs in sorted(counts["undetermined_by_place"].items()):
+        if not secs:
+            continue
+        out.append(f"{ONE_BANK_UNREAD_WARNING} {lid}: {len(secs)} tributary section(s) KEPT with no side read, so they "
+                   f"stay in the place under its rule (owner 2026-11-27: \"keep it closed\"): "
+                   f"{', '.join(secs[:12])}{' …' if len(secs) > 12 else ''} — look at each on the map (FWA's side NONE "
+                   "/ UNKNOWN, or the creek reaches the stretch on both banks) and write what you find in a ticket")
+    return out
 
 
 def stale_bindings(ef, registry) -> List[str]:
