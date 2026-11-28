@@ -2017,6 +2017,20 @@ def test_the_basket_engine_reads_the_same_cap(monkeypatch):
     assert not EN._covers(r, "ST")
 
 
+def test_the_closure_scan_asks_a_rows_rainbow_cap_about_the_rainbow_not_the_steelhead():
+    """The laneN final build's export refused Clearwater r6, Mahood r2 and Buckley Creek r2 as quotas "silenced under a
+    blanket closure" for ST: S15 makes their capped rainbow line speak for a steelhead, and the zone's spring / steelhead
+    stream closure beats it while closed — the closure's win, not a missed exemption. The scan asks it about the rainbow,
+    as for S12's size-free rule; a row that names steelhead is still asked. MUTATION: the unfiltered list (what the scan
+    asked before the fix) holds ST, so the exclusion is doing the work."""
+    from pipeline.deliver.bundle.read import facts as F
+    from pipeline.deliver.export.closures import scan_fish
+    asked = {"RB", "ST", "CT", "DV"}
+    assert F.speaks_for(_rb(), "ST") and scan_fish(_rb(), asked) == ["RB"]
+    assert [f for f in ("RB", "ST") if F.speaks_for(_rb(), f)] == ["RB", "ST"]           # the unfiltered list
+    assert scan_fish(_rb(species=("RB", "ST")), asked) == ["RB", "ST"]
+
+
 def test_mutation_without_s15_a_capped_rainbow_line_is_rainbow_only(monkeypatch):
     """MUTATION: with `A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD` off, Buckley Creek's capped rainbow line speaks
     for no steelhead (S12 alone)."""

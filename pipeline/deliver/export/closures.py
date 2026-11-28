@@ -166,12 +166,15 @@ def scan_fish(x: dict, asked) -> list:
     question — does a zone closure hide a missed exemption for this quota? — is the rainbow's, which
     the scan asks. Asked as "ST" it reported the steelhead rules' win as a quota silenced by the
     closure (build 27: Adams River upstream of Adams Lake r1, File Creek r1, "Rainbow trout daily
-    quota = 2" under Region 3's spring stream closure)."""
+    quota = 2" under Region 3's spring stream closure). So is one that speaks for it only as a water row's
+    rainbow cap (`read.rows_rainbow_cap`, T1250, RULINGS S15): asked as "ST" it reported the closure's win over
+    Clearwater r6, Mahood r2 (Region 3's spring stream closure) and Buckley Creek r2 (Region 6's steelhead stream
+    closure), where its "none over N cm" holds for the steelhead only while the water is open."""
     from pipeline.deliver.bundle import read as RD
     from pipeline.regs.parsing.catalogue import expand_species
     named = expand_species(list(x.get("species") or []))
     order = list(dict.fromkeys(named + list(C.GAME_FISH)))
-    widened = RD.size_free_rainbow(x) and "ST" not in named and not RD.names_fish(x, "ST")
+    widened = (RD.size_free_rainbow(x) or RD.rows_rainbow_cap(x)) and "ST" not in named and not RD.names_fish(x, "ST")
     return [f for f in order if f in asked and RD.speaks_for(x, f) and not (f == "ST" and widened)]
 
 
