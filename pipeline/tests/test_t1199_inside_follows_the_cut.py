@@ -37,14 +37,23 @@ def test_a_floor_grown_piece_the_area_holds_is_inside_whatever_its_shape(tmp_pat
                "100.0% of its lines, their shapes lie 46.3% in it" in x for x in log)
 
 
-def test_the_share_is_of_the_held_length_at_95_percent(tmp_path):
-    # the cut's share is by length: 95 m of 100 held is inside, 94 m is not — whatever the shapes say (both lines lie
-    # wholly OUTSIDE the polygon here, so a shape measure would give 0 % either way)
+def test_inside_exactly_when_the_cut_holds_every_line(tmp_path):
+    # (E35) "exactly": all of its lines held is inside, whatever the shapes say (both lines lie wholly OUTSIDE the
+    # polygon here, so a shape measure gives 0 %); some held and some not is a part carrying the area's rule on some
+    # sections only: the build stops, by name — never named by a share
     two = {10: LineString([(1100, 500), (1195, 500)]), 11: LineString([(1100, 600), (1105, 600)])}
-    got = _inside(tmp_path, two, [GORDON], held={"a0": frozenset({10})})
-    assert got == [(1, 1, "Pacific Rim National Park Reserve of Canada", 0.95, "inside", 1)]
-    two = {10: LineString([(1100, 500), (1194, 500)]), 11: LineString([(1100, 600), (1106, 600)])}
-    assert _inside(tmp_path, two, [GORDON], held={"a0": frozenset({10})}) == []
+    got = _inside(tmp_path, two, [GORDON], held={"a0": frozenset({10, 11})})
+    assert got == [(1, 1, "Pacific Rim National Park Reserve of Canada", 1.0, "inside", 1)]
+    with pytest.raises(sc.SideChannelError, match="the cut puts 95.0% of its lines in 'Pacific Rim"):
+        _inside(tmp_path, two, [GORDON], held={"a0": frozenset({10})})
+
+
+def test_a_part_the_cut_puts_in_a_reserve_is_never_left_unnamed(tmp_path):
+    # the mutation pin of E35's second direction: carrying the area's rule without the area in its name stops the build
+    # (a lake of the part lying outside the reserve: it can be named neither inside nor at)
+    shapes = {**GROWN, 11: Polygon([(1300, 400), (1400, 400), (1400, 600), (1300, 600)])}
+    with pytest.raises(sc.SideChannelError, match="gnis:18167 part 1: carries the rule of .'Pacific Rim"):
+        _inside(tmp_path, shapes, [GORDON], iid="gnis:18167", held={"a0": frozenset({10})})
 
 
 def test_a_first_last_area_is_measured_by_its_shapes(tmp_path):
@@ -139,11 +148,103 @@ def test_cut_area_members_reads_the_registrys_area_items(tmp_path):
         sc.cut_area_members([{**items[0], "section_ids": ["1:1"]}], handles, tmp_path, DEFS, log=log.append)
 
 
-def test_the_reviewed_inside_list_is_unchanged():
-    # the parts are still inside: the list a reviewer checked is not edited to make a build pass
+def test_the_reviewed_inside_list_holds_the_reviewed_parts_and_his_one_new_yes():
+    # the Gordon and the Oxbows are still inside: their entries stay (never edited to make a build pass); the Skeena's
+    # side channel is his yes of 2026-11-28 (E35). Still a GATE: any other part newly said inside a cut area stops the
+    # build until he has looked (`builders._names`)
     assert P.REVIEWED_INSIDE == frozenset({
+        ("gnis:2936", "SKEENA RIVER ECOLOGICAL RESERVE", "inside"),
         ("gnis:25671", "BAYNES ISLAND ECOLOGICAL RESERVE", "inside"),
         ("gnis:18167", "Pacific Rim National Park Reserve of Canada", "inside"),
         ("wsc:300-432687-459615", "HAYNE'S LEASE ECOLOGICAL RESERVE", "at"),
         ("gnis:2123", "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside"),
         ("gnis:21681", "STRATHCONA - WESTMIN PARK", "inside")})
+
+
+# --- on a built world: the mini chain's atlas and bundle -----------------------------------------------------------
+
+def name_rule_disagreements(bundle, atlas_dir) -> list:
+    """(E35) Every LISTED part with no main stem whose area in its name (`part_inside`, a clean-cut area) differs from
+    the clean-cut areas whose cut puts ALL its sections in them (the registry's area items), both ways."""
+    import json
+    import sqlite3
+    from collections import defaultdict
+    from pathlib import Path
+    import pyogrio
+    from pipeline.atlas.splits.area_splits import cut_mode, load_area_split_defs
+    atlas_dir = Path(atlas_dir)
+    clean_kinds = {ad.get("kind", ad["id"]) for ad in load_area_split_defs() if cut_mode(ad) == "clean"}
+    cat = pyogrio.read_dataframe(atlas_dir / "area_catalog.gpkg", layer="areas", read_geometry=False)
+    clean = {a: n for a, n, k, c in zip(cat["area_id"], cat["name"], cat["kind"], cat["cut"]) if c and k in clean_kinds}
+    ids = (atlas_dir / "section_handles.txt").read_text().split("\n")
+    hid = {s: i + 1 for i, s in enumerate(ids) if s}
+    holds = defaultdict(set)
+    for it in json.loads((atlas_dir / "registry.json").read_text())["items"]:
+        if it["id"] in clean:
+            for s in it.get("section_ids") or ():
+                holds[hid[s]].add(clean[it["id"]])
+    db = sqlite3.connect(str(bundle))
+    off = dict(db.execute("SELECT sid, off_stem FROM section_span"))
+    parts = defaultdict(list)
+    for iid, o, p, s in db.execute("SELECT i.item_id, ps.ord, ps.part_ix, ps.sid FROM part_section ps JOIN item i ON "
+                                   "i.ord = ps.ord JOIN part pt ON pt.ord = ps.ord AND pt.part_ix = ps.part_ix WHERE "
+                                   "pt.tidal = 0 AND pt.key_ix IS NOT NULL"):
+        parts[(iid, o, p)].append(s)
+    named = {(o, p): a for o, p, a in db.execute("SELECT ord, part_ix, area FROM part_inside WHERE cut = 1")}
+    out = []
+    for (iid, o, p), ss in sorted(parts.items()):
+        if not all(off.get(s) == 1 for s in ss):
+            continue
+        carried = set.intersection(*(holds.get(s, set()) for s in ss))
+        said = named.get((o, p))
+        if said in clean.values() or carried:
+            if not (said in carried and len(carried) == 1):
+                out.append((iid, p, said, sorted(carried)))
+    return out
+
+
+def test_on_the_mini_chain_every_side_part_is_named_with_the_reserve_it_carries(tmp_path_factory):
+    import json
+    import shutil
+    import sqlite3
+    import geopandas as gpd
+    import pandas as pd
+    from shapely.geometry import box as _box
+    from pipeline.tests import mini_chain
+    b = mini_chain.built(tmp_path_factory)
+    bundle, atlas = b / "deliver" / "bundle.sqlite", b / "atlas"
+    assert name_rule_disagreements(bundle, atlas) == []
+    # the mutation pins, on a tampered copy of the built world (the mini world has no part of side channels only and
+    # no clean-cut reserve): one listed part made a part of side channels only and put in a clean-cut reserve by its
+    # registry item, with no name (carries, not named: caught); named with it (agreed); the item then gone (named, not
+    # carrying: caught)
+    t = tmp_path_factory.mktemp("tamper")
+    shutil.copy(atlas / "section_handles.txt", t / "section_handles.txt")
+    copy = t / "bundle.sqlite"
+    src, dst = sqlite3.connect(str(bundle)), sqlite3.connect(str(copy))
+    src.backup(dst)
+    src.close()
+    o, p = dst.execute("SELECT pt.ord, pt.part_ix FROM part pt WHERE pt.tidal = 0 AND pt.key_ix IS NOT NULL "
+                       "ORDER BY pt.ord, pt.part_ix LIMIT 1").fetchone()
+    sids = [s for (s,) in dst.execute("SELECT sid FROM part_section WHERE ord = ? AND part_ix = ?", (o, p))]
+    dst.executemany("UPDATE section_span SET off_stem = 1 WHERE sid = ?", [(s,) for s in sids])
+    dst.commit()
+    cat = gpd.read_file(atlas / "area_catalog.gpkg", layer="areas")
+    row = gpd.GeoDataFrame({"area_id": ["area:ecological_reserves:x"], "name": ["X ECOLOGICAL RESERVE"],
+                            "kind": ["ecological_reserves"], "cut": [True]}, geometry=[_box(0, 0, 1, 1)], crs=cat.crs)
+    gpd.GeoDataFrame(pd.concat([cat, row], ignore_index=True), crs=cat.crs).to_file(t / "area_catalog.gpkg", layer="areas")
+    reg = json.loads((atlas / "registry.json").read_text())
+    ids = (atlas / "section_handles.txt").read_text().split("\n")
+    reg["items"].append({"id": "area:ecological_reserves:x", "name": "area:ecological_reserves:x", "kind": "area",
+                         "variants": [], "mus": [], "section_ids": [ids[s - 1] for s in sids]})
+    (t / "registry.json").write_text(json.dumps(reg))
+    iid = dst.execute("SELECT item_id FROM item WHERE ord = ?", (o,)).fetchone()[0]
+    assert name_rule_disagreements(copy, t) == [(iid, p, None, ["X ECOLOGICAL RESERVE"])]
+    dst.execute("DELETE FROM part_inside WHERE ord = ? AND part_ix = ?", (o, p))
+    dst.execute("INSERT INTO part_inside VALUES (?, ?, 'X ECOLOGICAL RESERVE', 1.0, 'inside', 1)", (o, p))
+    dst.commit()
+    assert name_rule_disagreements(copy, t) == []
+    reg["items"].pop()
+    (t / "registry.json").write_text(json.dumps(reg))
+    assert name_rule_disagreements(copy, t) == [(iid, p, "X ECOLOGICAL RESERVE", [])]
+    dst.close()

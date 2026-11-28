@@ -649,10 +649,12 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
     from shapely.strtree import STRtree
     tree = STRtree([g for _, g, _c, _a in areas])
     out = []
+    disagree: List[str] = []
     for (o, p), ss in sorted(want.items()):
         shapes = [geo[s] for s in ss]
         whole = unary_union(shapes)
         hits = []
+        clean_holds: set = set()                 # the clean-cut areas whose cut puts any of this part's lines in them
         cand = {int(i) for i in tree.query(whole)} | {i for s in ss for i in held_by.get(s, ())}
         for i in sorted(cand):
             name, poly, cut, aid = areas[i]
@@ -664,11 +666,18 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
             if cut and lines:
                 by_item = sum(g.length for s, g in lines if s in held[aid]) / total
                 if aid in follow:
-                    share_l = by_item
+                    # (T1199, E35) exactly: inside when the cut puts ALL of its lines in the area, else not inside;
+                    # a part the cut puts partly in it carries the area's rule on some sections only: refused below
+                    share_l = 1.0 if by_item >= 1.0 - 1e-9 else 0.0
+                    if by_item > 0:
+                        clean_holds.add(name)
+                        if share_l < 1.0:
+                            disagree.append(f"{iid_of[o]} part {p}: the cut puts {by_item:.1%} of its lines in "
+                                            f"{name!r}, not all of them")
                 if (by_item >= INSIDE_SHARE) != (by_shape >= INSIDE_SHARE):
                     log(f"     side channel INSIDE BY THE CUT: {iid_of[o]} part {p} {name!r}: the cut holds "
                         f"{by_item:.1%} of its lines, their shapes lie {by_shape:.1%} in it — "
-                        + ("measured by the cut (E30)" if aid in follow else "a first_last area: measured by its shapes"))
+                        + ("measured by the cut (E35)" if aid in follow else "a first_last area: measured by its shapes"))
             share_a = (sum(g.intersection(poly).area for g in polys) / sum(g.area for g in polys)) if polys else 1.0
             if share_l < INSIDE_SHARE:
                 continue
@@ -696,4 +705,13 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
             out.append((o, p, name, share, how, cut))
         elif len(pick) > 1:
             log(f"     side channel INSIDE two areas: {iid_of[o]} part {p} in {sorted(h[1] for h in pick)}: no row")
+        said = pick[0][1] if len(pick) == 1 else None
+        if clean_holds and said not in clean_holds:
+            disagree.append(f"{iid_of[o]} part {p}: carries the rule of {sorted(clean_holds)} (the cut puts it there) "
+                            f"but is named {('by ' + repr(said)) if said else 'by no area'}")
+    if disagree:
+        # (T1199, E35) a side-channel part at a clean-cut park or reserve is named with the area exactly when it carries
+        # the area's rule: never silent drift between the name and the rule
+        raise SideChannelError(f"part_inside: {len(disagree)} part(s) whose name would disagree with their area's rule "
+                               f"(E35): " + "; ".join(sorted(disagree)[:10]))
     return out

@@ -649,7 +649,12 @@ REVIEWED_INSIDE = frozenset({("gnis:25671", "BAYNES ISLAND ECOLOGICAL RESERVE", 
                              ("gnis:2123", "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside"),
                              # (T1172, owner 2026-11-26: "yes name it but this is something we need to fix generally")
                              # Thelwood Creek's side part: 100 % inside the park (membership-only)
-                             ("gnis:21681", "STRATHCONA - WESTMIN PARK", "inside")})
+                             ("gnis:21681", "STRATHCONA - WESTMIN PARK", "inside"),
+                             # (T1199, RULINGS E35, owner 2026-11-28, shown its picture: "yes but we need to make sure
+                             # the rule is consistent across the board here not just a ranom special case") the Skeena's
+                             # side channel by the reserve: all its lines edge water the cut puts in the reserve (71.7 %
+                             # by shape), "Side channel inside Skeena River Eco Reserve"
+                             ("gnis:2936", "SKEENA RIVER ECOLOGICAL RESERVE", "inside")})
 
 
 def named_end(tok: Optional[str]) -> Optional[str]:

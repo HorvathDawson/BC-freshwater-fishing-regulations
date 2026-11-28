@@ -471,16 +471,21 @@ def test_never_at_an_area_its_lines_leave_or_its_polygon_misses(tmp_path):
     assert _inside(tmp_path, {**out_lines, **half}, [RESERVE]) == []
     lines = {10: LineString([(10, 10), (90, 10)])}
     away = {11: Polygon([(300, 20), (350, 20), (350, 80), (300, 80)])}                    # a polygon wholly outside
-    assert _inside(tmp_path, {**lines, **away}, [RESERVE]) == []
+    park = ("SOME PARK", "park", box(0, 0, 100, 100), False)
+    assert _inside(tmp_path, {**lines, **away}, [park]) == []
+    # (T1199, E35) at a clean-cut reserve the cut holding its lines makes it the reserve's water: a part that cannot be
+    # named with the reserve (its lake lies outside) stops the build, by name
+    with pytest.raises(sc.SideChannelError, match="carries the rule of ..BAYNES ISLAND"):
+        _inside(tmp_path, {**lines, **away}, [RESERVE])
     assert _inside(tmp_path, half, [RESERVE]) == []                                        # no line: never "at"
 
 
 def test_never_a_region_or_two_areas(tmp_path):
     ch = {10: LineString([(10, 10), (90, 90)])}
     assert _inside(tmp_path, ch, [("Region 2", "region", box(-10, -10, 200, 200))]) == []
-    log = []
-    assert _inside(tmp_path, ch, [RESERVE, ("PARK", "parks", box(-10, -10, 200, 200))], log=log) == []   # two cut areas
-    assert any("INSIDE two areas: gnis:1 part 1" in x for x in log)
+    # two clean-cut areas holding it: no one name, and it carries both rules: the build stops, by name (T1199, E35)
+    with pytest.raises(sc.SideChannelError, match="carries the rule of .'BAYNES ISLAND ECOLOGICAL RESERVE', 'PARK'."):
+        _inside(tmp_path, ch, [RESERVE, ("PARK", "parks", box(-10, -10, 200, 200))])
     two = [("A PARK", "park", box(0, 0, 100, 100), False), ("B WMA", "wma", box(-10, -10, 200, 200), False)]
     log = []
     assert _inside(tmp_path, ch, two, log=log) == []                            # two membership-only areas, no cut one
