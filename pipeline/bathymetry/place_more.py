@@ -57,10 +57,13 @@ def candidates(codes, props: Dict[str, dict]) -> List[int]:
 
 
 def _one(job):
-    zname, codes, cands, geoms = job
+    """One zip, every line coverage in it: shore, candidate lakes, the rigid fit, the grade. `job` is (the zip's path,
+    its codes, its candidate lakes, wbk -> lake geometry as WKB)."""
+    zpath, codes, cands, geoms = job
     from shapely import wkb
     from pipeline.bathymetry import e00, place
-    path = vec_dir() / "zips" / zname
+    path = Path(zpath)
+    zname = path.name
     rows = []
     try:
         sheets = e00.read_zip_all(path)
@@ -135,7 +138,7 @@ def main(argv=None) -> int:
         for l in fwa_lakes(f"WATERBODY_KEY IN ({','.join(map(str, allw[k:k + 500]))})"):
             g = geom.get(l["wbk"])
             geom[l["wbk"]] = l["geometry"] if g is None else g.union(l["geometry"])
-    jobs = [(z, z2c[z], want[z], {w: geom[w].wkb for w in want[z] if w in geom}) for z in zips]
+    jobs = [(str(d / "zips" / z), z2c[z], want[z], {w: geom[w].wkb for w in want[z] if w in geom}) for z in zips]
     with Pool(min(a.workers, 4)) as pool:
         rows = [r for rs in pool.imap(_one, jobs, chunksize=2) for r in rs]
     rows.sort(key=lambda r: (r["zip"], r.get("coverage", "")))
