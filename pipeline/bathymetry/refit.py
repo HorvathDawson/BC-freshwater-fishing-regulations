@@ -755,15 +755,20 @@ def depth_line_step(sheet, lines: Sequence[Tuple[Optional[float], object]], cur:
         b = fits[0]
         v = verdict(b, rivals_of(b, fits))
         rigid = b
+        stretched = None
         if not better(b["grade"], cur["grade"]):
             sfits = search(ring, lake, origin, scales=SMALL_SCALES, bounds=(1 - SMALL_STRETCH, 1 + SMALL_STRETCH))
             sb = sfits[0]
             sv = verdict(sb, rivals_of(sb, sfits))
+            stretched = {"fit": dict(sb), **sv}
             if better(sb["grade"], cur["grade"]) and not sv["ambiguous"]:
                 b, v = sb, sv
+            elif better(sb["grade"], cur["grade"]):
+                rec["stretch"] = stretched        # it lifts stretched, but a turn or the mirror ties: said, not hidden
         rec.update(fit=dict(b), **v, rigid_iou=rigid["iou"])
         if not better(b["grade"], cur["grade"]):
-            rec["refused"] = f"does not lift the class ({b['grade']})"
+            rec["refused"] = (f"stretched it lifts but is ambiguous ({stretched['rival']} {stretched['rival_iou']})"
+                              if rec.get("stretch") else f"does not lift the class ({b['grade']})")
             continue
         if v["ambiguous"]:
             rec["refused"] = f"ambiguous ({v['rival']} {v['rival_iou']})"

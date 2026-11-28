@@ -571,6 +571,9 @@ def resummarise() -> int:
     if not p.exists():
         raise SystemExit(f"no {p} to summarise: run `python -m pipeline.bathymetry.refit_all` first")
     d = json.loads(p.read_text())
+    if any("refit" in r and "depth_line" not in r["refit"]["classes"] for r in d["rows"]):
+        raise SystemExit(f"{p} predates step 5 (no depth_line class, T1188 v5): rerun "
+                         f"`python -m pipeline.bathymetry.refit_all`")
     if "titles" not in d:
         raise SystemExit(f"{p} predates --resummarise (no titles): rerun `python -m pipeline.bathymetry.refit_all`")
     return _publish("refit", d["rows"], d["titles"], None, d.get("taken", {}))

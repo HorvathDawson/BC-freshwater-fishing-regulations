@@ -584,6 +584,24 @@ def test_a_completion_that_cuts_the_depth_lines_off_is_refused():
     assert info["flags"] == ["shore_joined_straight"]                         # the chord holds the depth lines
 
 
+def test_no_completion_without_depth_lines_to_check_it():
+    bulge = [(800.0, 600.0), (600.0, 800.0), (200.0, 800.0), (0.0, 600.0)]
+    arcs = [a for a in _gap_sheet(bulge) if a[0] in (None, 0)]          # the depth line dropped
+    water, info = place.shore_report(arcs, SOUNDING, max_gap=1000.0)
+    assert info["joins"] == [{"m": 800.0, "how": "straight"}] and info["flags"] == ["shore_joined_straight"]
+    assert abs(water.area - 800 * 600) < 1e-6
+
+
+def test_a_completion_never_runs_through_another_shore_node_and_stays_short():
+    a, b = (0.0, 0.0), (100.0, 0.0)
+    arcs = [("GA24850000", LineString([a, (50.0, 50.0)])), ("GA24850000", LineString([(50.0, 50.0), b])),
+            ("GA24850000", LineString([a, (50.0, -500.0), b]))]
+    ks, m = place._completion(a, b, arcs, set(), 3 * 100.0)
+    assert ks == [0, 1] and abs(m - 2 * math.hypot(50, 50)) < 1e-9
+    assert place._completion(a, b, arcs, {(50.0, 50.0)}, 3 * 100.0) is None     # the short way crosses the shore
+    assert place._completion(a, b, arcs, {(50.0, 50.0)}, 1e4)[0] == [2]          # the long way, when allowed
+
+
 def test_a_short_join_is_never_replaced():
     bulge = [(800.0, 600.0), (600.0, 800.0), (200.0, 800.0), (0.0, 600.0)]
     arcs = [(cv, fc, [(x * 0.3, y * 0.3) for x, y in p]) for cv, fc, p in _gap_sheet(bulge)]   # a 240 m gap

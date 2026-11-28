@@ -106,7 +106,7 @@ def _node(xy) -> Tuple[float, float]:
 
 
 def _completion(a, b, arcs: Sequence[Tuple[str, object]], shore_nodes, limit: float):
-    """The shortest run of `arcs` ((code, LineString)) from node a to node b (shortest by length, ties by arc order),
+    """The shortest run of `arcs` ((code, LineString)) from node a to node b (shortest by length; ties by node, then arc),
     through no other shore node, at most `limit` m long; None when there is none."""
     import heapq
     adj: Dict[Tuple[float, float], List[Tuple[float, Tuple[float, float], int]]] = {}
@@ -179,14 +179,14 @@ def shore_report(contours: Iterable[Contour], soundings: Sequence[Tuple[float, f
     water = build()
     for i in sorted(range(len(joins)), key=lambda i: (-joins[i][0], i)):
         d, p, q = joins[i]
-        if d <= JOIN_TRUSTED_M or not others:
+        if d <= JOIN_TRUSTED_M or not others or not deep:      # no depth lines: nothing can check a completion
             continue
         path = _completion(p, q, others, shore_nodes - {_node(p), _node(q)}, COMPLETE_MAX_FACTOR * d)
         if path is None:
             continue
         used[i] = path
         trial = build()
-        out = outside_share(deep, trial, INSIDE_TOL_M) if deep else 0.0
+        out = outside_share(deep, trial, INSIDE_TOL_M)
         if trial is None or out is None or out > COMPLETE_INSIDE_MAX:
             del used[i]                      # it does not close, or the depth lines fall outside: the chord stays
             continue
