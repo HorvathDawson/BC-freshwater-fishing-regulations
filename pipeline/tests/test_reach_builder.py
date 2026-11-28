@@ -388,11 +388,22 @@ def test_policy_version_is_bumped_when_classify_changes():
         "straddlers_in_every_region": regions.STRADDLERS_IN_EVERY_REGION,
         "unnamed_lakes_on_the_river_are_the_river": extent.UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER,
         "a_steelhead_rivers_widening_is_anadromous": steelhead.A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS,
-        "a_lake_rows_unrowed_through_river_is_a_tributary":
-            tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY,
+        # (T1177) pinned at 52: replaces T468's "a_lake_rows_unrowed_through_river_is_a_tributary"
+        "every_inflow_of_a_rules_lake_is_its_tributary": tributaries.EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY,
+        "a_lakes_printed_exception_stops_every_walk_through_it":
+            reach_build.A_LAKES_PRINTED_EXCEPTION_STOPS_EVERY_WALK_THROUGH_IT,
+        "a_lake_at_a_stretchs_top_is_no_lake_the_rule_binds":
+            reach_build.A_LAKE_AT_A_STRETCHS_TOP_IS_NO_LAKE_THE_RULE_BINDS,
+        "a_stop_holds_through_its_lake": tributaries.A_STOP_HOLDS_THROUGH_ITS_LAKE,
+        # (T1177, Whiteswan and Upper Arrow) pinned at 54
+        "water_joining_the_rows_own_stream_above_its_lake_is_the_lakes_tributary":
+            reach_build.WATER_JOINING_THE_ROWS_OWN_STREAM_ABOVE_ITS_LAKE_IS_THE_LAKES_TRIBUTARY,
+        "a_river_stretch_in_a_lake_row_is_the_lakes_own_upper_end":
+            reach_build.A_RIVER_STRETCH_IN_A_LAKE_ROW_IS_THE_LAKES_OWN_UPPER_END,
         "a_failed_scope_unbinds_the_row": reach_build.A_FAILED_SCOPE_UNBINDS_THE_ROW,
         "dfo_joining_water_stays_out": reach_build.DFO_JOINING_WATER_STAYS_OUT,
-        "dfo_through_river_stays_out": reach_build.DFO_THROUGH_RIVER_STAYS_OUT,
+        # (T1177) pinned at 54: replaces T743's "dfo_through_river_stays_out"
+        "one_tributary_logic_for_dfo_places": reach_build.ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES,
         "verbatim_reads_are_guarded": reach_build.A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN,
         "lake_loops_leave_river_items": lake_loops.LAKE_LOOPS_LEAVE_RIVER_ITEMS,
         "lake_loops_join_their_lake": lake_loops.LAKE_LOOPS_JOIN_THEIR_LAKE,
@@ -434,10 +445,15 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "straddlers_in_every_region": True,
                      "unnamed_lakes_on_the_river_are_the_river": True,
                      "a_steelhead_rivers_widening_is_anadromous": True,
-                     "a_lake_rows_unrowed_through_river_is_a_tributary": True,
+                     "every_inflow_of_a_rules_lake_is_its_tributary": True,
+                     "a_lakes_printed_exception_stops_every_walk_through_it": True,
+                     "a_lake_at_a_stretchs_top_is_no_lake_the_rule_binds": True,
+                     "a_stop_holds_through_its_lake": True,
+                     "water_joining_the_rows_own_stream_above_its_lake_is_the_lakes_tributary": True,
+                     "a_river_stretch_in_a_lake_row_is_the_lakes_own_upper_end": True,
                      "a_failed_scope_unbinds_the_row": True,
                      "dfo_joining_water_stays_out": True,
-                     "dfo_through_river_stays_out": True,
+                     "one_tributary_logic_for_dfo_places": True,
                      "verbatim_reads_are_guarded": True,
                      "lake_loops_leave_river_items": True,
                      "lake_loops_join_their_lake": True,
@@ -458,7 +474,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_whole_waters_walk_climbs_its_head_lake": True,
                      "licensing_climbs_head_lakes": False,
                      "a_side_channel_goes_with_its_water": True})
-    assert cache.POLICY_VERSION == "51", "update this pin with the version it was taken at"
+    assert cache.POLICY_VERSION == "55", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

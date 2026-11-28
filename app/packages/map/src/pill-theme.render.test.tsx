@@ -23,6 +23,9 @@ class FakeGl {
   private json: { layers: { id: string }[] };
   touchZoomRotate = { disableRotation: () => {} };
   keyboard = { disableRotation: () => {} };
+  /** (T1252) GL 6 asks this for an image a layer wants and the style lacks (`styleimagemissing` only notifies) */
+  missing: ((id: string) => void) | null = null;
+  setMissingStyleImageResolver(fn: (id: string) => void) { this.missing = fn; }
   constructor(opts: Record<string, unknown>) {
     this.json = opts.style as FakeGl["json"];
     gl = this;
@@ -65,7 +68,8 @@ class FakeGl {
 class Control { constructor(_o?: unknown) {} }
 vi.mock("maplibre-gl", () => ({ Map: FakeGl, NavigationControl: Control, ScaleControl: Control,
                                 Marker: class { setLngLat() { return this; } addTo() { return this; } remove() {} },
-                                Popup: class { setText() { return this; } }, addProtocol: () => {} }));
+                                Popup: class { setText() { return this; } }, addProtocol: () => {},
+                                setWorkerUrl: () => {}, getVersion: () => "6.19.0" }));
 vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
 
 const { Map: WebMap } = await import("./Map.web");
@@ -103,13 +107,13 @@ describe("(T181) the web map's generated images follow a theme switch", () => {
     expect(same(added.get("gauge-pill")?.data, pillIn("cvd"))).toBe(true);
   });
 
-  it("an image MapLibre asks for after a switch (`styleimagemissing`) comes back in the current theme too", async () => {
+  it("an image MapLibre asks for after a switch (its missing-image resolver) comes back in the current theme too", async () => {
     const r = render(<WebMap {...props("light")} />);
     await flush();
     r.rerender(<WebMap {...props("dark")} />);
     await flush();
     added.clear();
-    act(() => gl!.fire("styleimagemissing", { id: "gauge-pill" }));
+    act(() => gl!.missing!("gauge-pill"));
     expect(same(added.get("gauge-pill")?.data, pillIn("dark"))).toBe(true);
   });
 });

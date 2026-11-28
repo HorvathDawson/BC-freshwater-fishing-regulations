@@ -741,20 +741,24 @@ def read(bundle: Path) -> dict:
             w["steelhead"] = top
     # WHY IT IS KNOWN, per water (`steelhead_source`): "regulations" where a steelhead row's rules
     # bind its known sections (those rows: `steelhead_rows`), "curated list" where the curated
-    # known-steelhead list names it — a presence indicator that binds no rule.
-    from pipeline.atlas.reach.steelhead import CURATED_LIST as _LISTED
+    # known-steelhead list names it — a presence indicator that binds no rule — and "Pacific stream"
+    # where a stream of the steelhead regions reaches the Pacific (RULINGS S14).
+    from pipeline.atlas.reach.steelhead import CURATED_LIST as _LISTED, PACIFIC_STREAM as _PACIFIC
     for item_id, eid in db.execute(
             "SELECT i.item_id, s.entry_id FROM steelhead_source s JOIN item i ON i.ord = s.ord "
             "ORDER BY i.item_id, s.entry_id"):
         w = waters[item_id]
         if eid == _LISTED:
             w["_listed"] = True
+        elif eid == _PACIFIC:
+            w["_pacific"] = True
         else:
             w.setdefault("steelhead_rows", []).append(eid)
     for w in waters.values():
         listed = w.pop("_listed", False)
+        pacific = w.pop("_pacific", False)
         src = (["regulations"] if w.get("steelhead_rows") else []) + (
-            [_LISTED] if listed else [])
+            [_LISTED] if listed else []) + ([_PACIFIC] if pacific else [])
         if src:
             w["steelhead_source"] = src
     section_part: dict[int, list[tuple[str, int]]] = defaultdict(list)

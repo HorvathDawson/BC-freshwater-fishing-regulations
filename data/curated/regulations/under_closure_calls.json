@@ -108,6 +108,21 @@
    "entry_id": "r5:quesnel_river@5-2",
    "rule_id": "quesnel_river.r4",
    "why": "the owner's P7b ruling (2026-11-26, T1177, RULINGS L28), the lower Quesnel: \"Yes, close it too (Recommended)\": the Quesnel River below the Cariboo River (about 99.9 km) keeps Region 5's Apr 1-June 30 spring stream closure, because below the Cariboo the row prints only catch and release, this quota and a bait ban, no closure of its own and no 'open all year' (its 'No Fishing upstream of Cariboo River, Mar 1-June 15' lifts the closure above the Cariboo only); the 1 per day (none under 40 cm) downstream of Morehead Creek holds Jul 1-Mar 31 on the river below the Cariboo"
+  },
+  {
+   "entry_id": "r3:clearwater_river@3-40+3-46",
+   "rule_id": "clearwater_river.r6",
+   "why": "the rainbow 2 per day (none over 35 cm), asked for a steelhead Jan 1-Jun 30 (RULINGS S15 (owner 2026-11-27, Buckley Creek: \"Release: the row's cap holds (Recommended)\"): a water row's rainbow cap holds for the steelhead, so this rule is asked about it): Region 3's 'ALL STEELHEAD' release names the steelhead and beats the cap by naming (the ladder, as S12's size-free rule), on days Region 3's Jan 1-June 30 spring stream closure also holds, so the river reads closed; below the old Clearwater Bridge (exempt from the spring closure) the steelhead is released; the 2 per day holds for a rainbow up to 35 cm. The owner, 2026-11-27, asked \"Clearwater River (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30 closed; Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked by you?\": \"Yes, mark it checked (Recommended)\""
+  },
+  {
+   "entry_id": "r3:mahood_river@3-46",
+   "rule_id": "mahood_river.r2",
+   "why": "downstream of Goodwin Falls: the rainbow 2 per day (none over 35 cm), asked for a steelhead (RULINGS S15 (owner 2026-11-27, Buckley Creek: \"Release: the row's cap holds (Recommended)\"): a water row's rainbow cap holds for the steelhead, so this rule is asked about it): the row's OWN 'No Fishing Jan 1-June 30' closes the river on the days Region 3's Jan 1-June 30 spring stream closure also holds (the row closing itself, the DENETIAH shape); the 2 per day holds from Jul 1. The owner, 2026-11-27, asked \"Mahood River below Goodwin Falls (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30 closed (the row's own closure); Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked by you?\": \"Yes, mark it checked (Recommended)\""
+  },
+  {
+   "entry_id": "r6:buckley_creek@6-21",
+   "rule_id": "buckley_creek.r2",
+   "why": "the rainbow 1 per day (none over 50 cm), asked for a steelhead May 15-Jun 15 (RULINGS S15 (owner 2026-11-27, Buckley Creek: \"Release: the row's cap holds (Recommended)\"): a water row's rainbow cap holds for the steelhead, so this rule is asked about it): Region 6's steelhead stream closure (May 15-June 15, p.49; its exemptions are the Skeena, Nass, Iskut, Stikine and Taku mainstems, not Buckley Creek) holds, as for Station Creek: the row lifts nothing for the steelhead; outside it a steelhead over 50 cm is released (the cap) and the rainbow 1 per day holds. The owner, 2026-11-27, asked \"Buckley Creek (Region 6). ONE change, the one you ruled today: Aug 1, hatchery steelhead: keep 1 -> RELEASE (the row's \"none over 50 cm\" holds). Unchanged: May 15-Jun 15 steelhead closed; wild steelhead released; rainbow keep 1. OK to mark this row as checked by you?\": \"Yes, mark it checked (Recommended)\""
   }
  ],
  "left": [
@@ -116,7 +131,7 @@
    "rule_id": "mahood_river.r2",
    "list": "quota",
    "date": "2026-10-06",
-   "why": "under the DENETIAH ruling the row's own 'No Fishing Jan 1-June 30' silences its quota - the water closing itself, not a zone closure hiding a missed exemption; `_closure_scan` counts such a quota as speaking"
+   "why": "under the DENETIAH ruling the row's own 'No Fishing Jan 1-June 30' silences its quota - the water closing itself, not a zone closure hiding a missed exemption; `_closure_scan` counts such a quota as speaking (2026-11-27, T1250: back on the `quota` list: under RULINGS S15 the scan asks this cap about the steelhead, where the row's own 'No Fishing' wins for the steelhead by the ladder, not as `water_closure`, so it is a finding again; the owner checked it the same day)"
   },
   {
    "entry_id": "r4:duncan_river@4-19",

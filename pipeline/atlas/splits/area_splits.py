@@ -23,6 +23,10 @@ _GPKG = str(SOURCE.fwa_gpkg)
 
 #: The cut modes an area may declare (`areas.json` `cut`; see its `_cut_policy`).
 CUT_MODES = ("clean", "first_last")
+#: Per-area distances no area may state: `rejoin_m` (the clean cut's join by length, retired by T1199), the edge band
+#: and the floor (declared once, `tolerances.AREA_EDGE_M` / `AREA_MIN_PIECE_M`), a crossing zone (the border's only).
+#: A stated one would read as a setting the cutter honours, and it does not.
+RETIRED_CUT_KEYS = ("rejoin_m", "edge_m", "min_piece_m", "crossing_zone_m")
 
 
 def cut_mode(area_def: dict) -> str | None:
@@ -34,12 +38,11 @@ def cut_mode(area_def: dict) -> str | None:
     if v not in CUT_MODES:
         raise ValueError(f"areas.json {area_def.get('id')!r}: cut must be one of {CUT_MODES} or false, "
                          f"got {v!r}")
-    if v == "clean" and not (area_def.get("rejoin_m") or 0) > 0:
-        raise ValueError(f"areas.json {area_def.get('id')!r}: a clean cut states rejoin_m")
-    if v == "first_last" and (area_def.get("crossing_zone_m") is not None
-                              or area_def.get("rejoin_m") is not None):
-        raise ValueError(f"areas.json {area_def.get('id')!r}: a first_last area is cut where it "
-                         f"crosses, with no zone or rejoin distance")
+    stated = sorted(k for k in RETIRED_CUT_KEYS if area_def.get(k) is not None)
+    if stated:
+        raise ValueError(f"areas.json {area_def.get('id')!r}: {', '.join(stated)} is no area setting. A clean cut's "
+                         f"edge band and floor are tolerances.AREA_EDGE_M / AREA_MIN_PIECE_M (T1199), for every "
+                         f"closure area; a first_last area is cut where it crosses")
     if v == "first_last" and area_def.get("membership") != "both_sides":
         raise ValueError(f"areas.json {area_def.get('id')!r}: first_last cuts declare "
                          f"membership: both_sides")
@@ -117,6 +120,13 @@ def _resolve_area_file(name: str) -> Path:
     sweep, which is exactly the protection `ungazetted.json` is documented as needing."""
     got = getattr(CURATED.waters, name, None)
     return Path(got) if got is not None else Path(name)
+
+
+def area_files(defs: list[dict] | None = None) -> dict[str, Path]:
+    """(T1229) {the `file` a def names: the file it resolves to} for every areas def that draws its polygons from a
+    curated file (`load_area_polys`), resolved as that does: what the tiles key holds by content (`build.curated_parts`)."""
+    return {ad["file"]: _resolve_area_file(ad["file"])
+            for ad in (load_area_split_defs() if defs is None else defs) if ad.get("file")}
 
 
 def load_area_attrs(area_def: dict) -> dict:

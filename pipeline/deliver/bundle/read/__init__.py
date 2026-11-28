@@ -23,13 +23,15 @@ from pipeline.deliver.bundle.read.facts import (
     _day, IN_FORCE, _days_of, in_force, speaks_for, names_fish, not_yet_mapped, _steelhead_min_cm,
     steelhead_rules, home_region, steelhead_water, STEELHEAD_CODES, steelhead_presence,
     as_rainbow, _spoken_lengths, covers, released_on_water, _base_dimension, size_free_rainbow,
-    A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD,
+    A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD, rows_rainbow_cap, A_ROWS_RAINBOW_CAP_HOLDS_FOR_STEELHEAD,
 )
 from pipeline.deliver.bundle.read.ladder import (
     _RULES_BY_PATH, MOOT_SIZE_CLAUSE_HIDDEN, WATER_CLOSURE_DOMINANT, OWN_ROW_BEATS_INHERITED,
     OWN_ROW_REPLACES_INHERITED, NEARER_ROW_BEATS_FARTHER, SAME_ROW_RELEASE_SILENCES_ANNUAL, SPEAKERS,
     SPEAKER_STATES, LOSS_REASONS,
-    LOSER_STATES, ASKABLE_ORIGINS, VIAS, place, _ladder_place, _NEARER_BY_PATH, _nearer_of, _rules_of,
+    LOSER_STATES, ASKABLE_ORIGINS, VIAS, place, _ladder_place, _NEARER_BY_PATH, _nearer_of,
+    _UPSTREAM_BY_PATH, _upstream_of, _OWN_BY_PATH, _own_of,
+    _rules_of,
     base_region, _count, stricter, effective_rules, origin_matters, _leaf_fish, effective_rules_bound, _Ask,
     _step0_steelhead_sizes, _step1_in_force, _step3_lifts, _own_replacement, _step3b_own_row_replaces,
     _step2_about_this_fish, _step4_competition, _step4a_water_dates_on_a_water_kind, _step4b_zone_release,

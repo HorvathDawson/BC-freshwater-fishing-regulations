@@ -36,7 +36,7 @@ def add_mined_names(registry: dict[str, RegistryItem], graph: StreamGraph, entri
                     report: dict | None = None) -> dict[str, RegistryItem]:
     from pipeline.atlas.registry.build import _ref_ids
     rep = report if report is not None else {}
-    rep.update(labelled=0, own_items=0, absent=0, absent_blks=[])
+    rep.update(labelled=0, own_items=0, absent=0, absent_blks=[], absent_named=[])
     by_blk: dict[str, list] = defaultdict(list)
     for n in graph.nodes.values():
         if n.kind not in WATERBODY_KINDS and n.blk:
@@ -54,6 +54,9 @@ def add_mined_names(registry: dict[str, RegistryItem], graph: StreamGraph, entri
         if not recs or not nodes:
             rep["absent"] += 1
             rep["absent_blks"].extend(blks)
+            # NAMED, never only counted (T1242 review): which accepted name lost its line, by blue line and name
+            rep["absent_named"].append({"blks": blks, "names": sorted({str(n.get("name")) for n in (e.get("names") or [])
+                                                                        if n.get("name")})})
             continue
         sids = sorted({n.node_id for n in nodes})
         owners = sorted({i for s in sids for i in owner.get(s, ())})

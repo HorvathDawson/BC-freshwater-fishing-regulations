@@ -24,7 +24,7 @@ construction.
 | `regs/dfo_salmon/` | `pipeline.regs.dfo_salmon.{locations,parse,untangle}` | the scrape |
 | `regs/entries_backup/` | `pipeline.tools.audit.reparse_candidates --apply` | copies of the catalogue region files, taken before it deletes entries to queue them for re-parse |
 | `gauges/` | `pipeline.gauges.generate` / `.feed` / `pipeline.tools.audit.datum_remarks` | `candidates.json`, `feeds/<station>.json`, `datum_proposals.json` (T1047: HYDAT's datum / relocation remarks parsed, proposals; committed) |
-| `stocking/`, `bathymetry/` | the domain audits | identifier audits awaiting a matcher |
+| `stocking/`, `bathymetry/` | the domain audits | nothing committed (the two frozen identifier audits were removed from git 2026-11-27; in history at 9337319f7) |
 | `municipal/` | `added_streams` cleaning | cleaned source layers |
 | `added_streams/` | `pipeline.atlas.waters.added_streams` | mapcheck / verify html, demo gpkg |
 | `sloughs/` | the T148 finder (`sloughs/v2/revise.py`) / automark (`sloughs/v2/automark/automark.py`; both removed from the tree by T1081, in git history at 03be2862e) | `candidates_v2.json.gz`, `slough-automark.json`: the Sloughs tab's candidates and pre-marks (committed; read by `pipeline.regs.review.slough`) |
@@ -52,6 +52,5 @@ and on any generated path that lands inside `../curated/`.
 
 ## Git
 
-All of this is ignored (`data/.gitignore`), with two temporary exceptions documented there:
-`bathymetry/audit.json` and `stocking/identifier_audit.json` predate their matchers and
-cannot currently be regenerated.
+All of this is ignored (`data/.gitignore`) except the few files it un-ignores by name: `gauges/candidates.json` and
+`gauges/datum_proposals.json`, `sloughs/`, and the review tool's hand-made or unrebuildable inputs under `review/`.

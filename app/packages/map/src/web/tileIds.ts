@@ -8,22 +8,22 @@
  * pipeline writes as the section handle (pipeline/deliver/tiles/layers.py), the same id feature-state is keyed on
  * (the section layers are not promoted: the MVT id IS `feature.id`, T202).
  *
- * PINNED TO 5.24 (`GL_INTERNALS`; `tools/gl-internals.test.ts` fails on any other installed version and checks the
- * names below are still in its bundle and source). Duck-typed, never imported: on a build that does not look like 5.24
+ * PINNED TO 6.19 (`GL_INTERNALS`; `tools/gl-internals.test.ts` fails on any other installed version and checks the
+ * names below are still in its bundle and source). Duck-typed, never imported: on a build that does not look like 6.19
  * these return null and the map takes the PUBLIC route instead (`querySourceFeatures`, in web/handles.ts) — heavier,
  * measured in the colour-latency README, never wrong.
  *
  * Web only: the native binding has no per-tile event at all (T436: its empty twin was deleted; nothing on the phone imported it).
  */
 
-/** The maplibre-gl minor these internals were read from. */
-export const GL_INTERNALS = "5.24";
+/** The maplibre-gl minor these internals were read from (T1252: re-read on 6.19 — the names and the order are 5.24's). */
+export const GL_INTERNALS = "6.19";
 
 type VTLayer = { length: number; feature(i: number): { id?: number } };
 type GLTile = { state?: string; latestFeatureIndex?: { loadVTLayers?: () => Record<string, VTLayer | undefined> } | null };
 
 /**
- * One tile's feature ids per source-layer, for the layers asked — or null when the tile does not carry 5.24's
+ * One tile's feature ids per source-layer, for the layers asked — or null when the tile does not carry 6.19's
  * feature index (another GL version, or a tile not loaded yet), so the caller falls back to the public route.
  */
 export function tileIds(tile: unknown, layers: readonly string[]): Record<string, number[]> | null {
@@ -53,7 +53,7 @@ type GLManager = {
 };
 
 /**
- * Every tile a source holds — in view AND in the out-of-view cache — or null on a build that does not look like 5.24.
+ * Every tile a source holds — in view AND in the out-of-view cache — or null on a build that does not look like 6.19.
  * The cache matters: a cached tile panned back into view fires no load event, so a tile loaded before an index arrived
  * would stay grey for good if only the visible ones were labelled.
  */

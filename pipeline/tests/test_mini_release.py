@@ -44,6 +44,12 @@ def test_codes_are_fwa_width():
     assert M.full_wsc(w, "").startswith("920-123456-000000") and len(M.full_wsc(w, "").split("-")) == 21
     assert M.full_wsc(w, "222222-500000").split("-")[:4] == ["920", "123456", "222222", "500000"]
     assert M.full_wsc(w, None).startswith("999-999999")
+    # (T1250) a stream's own root in another drainage: Northward Creek is the Mackenzie's (200), not the world's
+    assert M.full_wsc(w, "", "200-990006").split("-")[:3] == ["200", "990006", "000000"]
+    assert M.full_wsc(w, "500000", "200-990006").split("-")[:3] == ["200", "990006", "500000"]
+    assert len(M.full_wsc(w, "", "200-990006").split("-")) == 21
+    north = next(s for s in w["streams"] if s["name"] == "Northward Creek")
+    assert M.full_wsc(w, north["wsc"], north.get("wsc_root")).startswith("200-990006")
 
 
 def test_the_gpkg_carries_every_layer_and_column_the_atlas_reads(inputs):
@@ -62,12 +68,12 @@ def test_the_streams_read_back_as_fwa_features_mouth_first(inputs):
     from pipeline.atlas.graph.blk_chains import load_stream_fids
     rows = load_stream_fids(str(inputs[0]))
     river = sorted((r for r in rows if r.blk == "900000001"), key=lambda r: r.down_m)
-    assert [round(r.down_m) for r in river] == [0, 6000, 11000, 16000, 19000, 25000, 26000, 27000, 31000, 33000,
-                                                37000]
+    assert [round(r.down_m) for r in river] == [0, 3000, 5000, 6000, 11000, 16000, 19000, 25000, 26000, 27000, 31000,
+                                                33000, 37000]       # 3000 / 5000: the creek-less braid's ends (T1242)
     assert river[-1].up_m == pytest.approx(46000)                      # its mouth 1 km out in the sea (the tidal mouth)
     assert [r.wbk for r in river if r.wbk] == ["800000001", "800000006", "800000006"]   # the two lake runs
     mock = next(r for r in rows if r.blk == "900000002")
-    assert mock.down_node == river[2].down_node                        # the confluence is a shared vertex
+    assert mock.down_node == river[4].down_node                        # the confluence is a shared vertex
     assert mock.wsc == "920-123456-222222"
 
 
@@ -94,7 +100,7 @@ def test_the_drainage_areas_read_the_gpkg_the_registry_is_given(monkeypatch, inp
     from pipeline.atlas.splits import pfma_drainage
     from pipeline.common.models import StreamGraph
     seen = []
-    monkeypatch.setattr(pfma_drainage, "basin_areas", lambda areas, gpkg: seen.append(gpkg) or {})
+    monkeypatch.setattr(pfma_drainage, "basin_areas", lambda areas, gpkg, **kw: seen.append(gpkg) or {})
     build_registry(StreamGraph(), pinned={}, gpkg=str(inputs[0]))
     build_registry(StreamGraph(), pinned={})
     assert seen == [str(inputs[0]), pfma_drainage._GPKG]               # the default is the configured file, as before
@@ -102,7 +108,7 @@ def test_the_drainage_areas_read_the_gpkg_the_registry_is_given(monkeypatch, inp
 
 def test_the_mini_basin_drains_to_its_invented_area(inputs):
     from pipeline.atlas.splits import pfma_drainage
-    assert pfma_drainage.basin_areas(pfma_drainage.MINTED_AREAS, str(inputs[0])) == {"920-123456-": 29}
+    assert pfma_drainage.basin_areas(pfma_drainage.MINTED_AREAS, str(inputs[0]), city_mouths=()) == {"920-123456-": 29}
 
 
 def test_the_atlas_input_flags_default_to_the_configured_files():
@@ -348,8 +354,18 @@ def test_the_mini_world_holds_the_plans_inventory(chain):
     assert {reg[mock]["name"], reg[stub]["name"]} == {"Mock Creek", "Stub Creek"}
     assert not [i for i in reg.values() if "900000003:0" in i.get("section_ids", []) and not i["id"].startswith("area")]
     assert reg["wsc:920-123456-666666-500000"]["name"] == "Mockup Creek"
-    # a braid: the river holds a section of a second blue line
+    # a braid: the river holds a section of a second blue line (900000005, kept BY NAME in the mini tree's
+    # waters/loop_exemptions.json); its second braid 900000007 no creek flows into is removed (T1242, ruling E31)
     assert {s.split(":")[0] for s in secs(river)} == {"900000001", "900000005"}
+    loops = json.loads((out / "atlas" / "small_loops.json").read_text())       # missing with the pass off
+    assert loops["ran"] and loops["max_offset_m"] == float("inf")
+    assert [lp["blks"] for lp in loops["removed"]] == [["900000007"]]
+    assert loops["keep_by_kind"].get("named") == 1
+    assert json.loads((out / "atlas" / "graph.pkl.meta.json").read_text())["build"]["small_loops"] == {
+        "ran": True, "max_offset_m": "inf"}
+    # the found names not in the atlas are NAMED in its record, never only counted (T1242 review)
+    mined = json.loads((out / "atlas" / "mined_names_report.json").read_text())
+    assert mined["absent"] == len(mined["absent_named"])
     # a tidal mouth: the river's piece below the coast is tidal in the bundle
     assert q("SELECT entry_id FROM tidal") == [("crossing:900000001:0",)]
     # two regions: the river straddles the line, and Twofold Lake lies in both
@@ -404,3 +420,24 @@ def test_under_test_mini_is_the_committed_release_and_ci_no_build_hides_none_of_
     out = subprocess.run([sys.executable, "-c", "import pipeline.tests.ci_no_build; " + code], cwd=M.REPO_ROOT,
                          capture_output=True, text=True, env={**__import__("os").environ, "PYTHONPATH": str(M.REPO_ROOT)})
     assert out.returncode == 0 and out.stdout.strip() == "app-manifest/2", out.stderr[-500:]
+
+
+def test_the_barrier_list_holds_its_two_kinds_of_row_on_the_built_world(chain):
+    """(T1250, RULINGS S14) The mini barrier list on the BUILT world: its `basin` row holds Northward Creek (the
+    Mackenzie, FWA 200) and its `upstream_of` row Mock Creek above its falls (blue line 900000002 from 4,000 m up,
+    with the unnamed trib above); both stay "possible", while Mock Creek below the point and the Fixture River are
+    known Pacific streams."""
+    out = chain[0] / "a"
+    rep = json.loads((out / "reaches" / "report.json").read_text())["steelhead"]
+    assert {b["id"]: b["kind"] for b in rep["barriers"]} == {"mackenzie": "basin",
+                                                             "mock_creek_above_its_falls": "upstream_of"}
+    assert all(b["sections"] > 0 for b in rep["barriers"])
+    pres = {json.loads(l)["section_id"]: json.loads(l) for l in (out / "reaches" / "steelhead_presence.jsonl")
+            .read_text().splitlines() if l.strip()}
+    north = [s for s in pres if s.startswith("900000006:")]
+    above = [s for s in pres if s.startswith("900000002:") and float(s.split(":")[1]) >= 4000]
+    below = [s for s in pres if s.startswith("900000002:") and float(s.split(":")[1]) < 4000]
+    assert north and above and below
+    assert {pres[s]["steelhead"] for s in north + above} == {"possible"}
+    assert {(pres[s]["steelhead"], pres[s]["pacific"]) for s in below} == {("known", True)}
+    assert rep["possible_held"]["mackenzie"] == len(north)

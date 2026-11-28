@@ -248,13 +248,15 @@ describe("the style and the tiles agree", () => {
     //
     //   wma  built for regulation scopes; only Creston Valley ships (T202, owner 2026-10-27), and nothing in the app
     //        draws it yet. `sign_zone` (dashed closure ring) and `watershed` (the Liard wash) are drawn since T202.
-    //   lake_name  (T1210) the lake names zoomed out, one point per lake: the tiles carry it ahead of the style that draws
-    //        it (look A, T1208 / T1210's app half), so a tiles build can ship it while the look waits on the owner.
-    // A label's own tile layer (`label.sourceLayer`: `stream_name`, T299) counts as drawn.
-    const drawn = new Set(source.layers.flatMap((l) =>
-      [l.sourceLayer, (l as { label?: { sourceLayer?: string } }).label?.sourceLayer].filter(Boolean)));
+    // A label's own tile layer (`label.sourceLayer`: `stream_name`, T299) counts as drawn, and so does a layer the
+    // COMPOSED style draws beside the generated one (`runtime-style.ts`: look A's `lake_name` names, T1210's app half).
+    const composed = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", {}, PMTILES) as
+      { layers: { source?: string; "source-layer"?: string }[] };
+    const drawn = new Set([...source.layers.flatMap((l) =>
+      [l.sourceLayer, (l as { label?: { sourceLayer?: string } }).label?.sourceLayer].filter(Boolean)),
+      ...composed.layers.filter((l) => l.source === "atlas").map((l) => l["source-layer"])]);
     const undrawn = Object.keys(contract.layers).filter((n) => !drawn.has(n));
-    expect(undrawn.sort()).toEqual(["lake_name", "wma"]);
+    expect(undrawn.sort()).toEqual(["wma"]);
   });
 });
 

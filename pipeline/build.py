@@ -390,12 +390,87 @@ def clim_key(m: dict | None = None) -> dict:
     """N9: what the envelope is made from — the HYDAT archive (stamp) and its release marker, the station roster that
     restricts it, its code, (T1047) the owner's ACCEPTED datum changes by content (a proposed row reruns nothing) — and
     the YEAR: `climatology` keeps the record up to last year (`date.today()`), so a new year is a new envelope."""
-    from pipeline.gauges.feed import datum
     hydat = SOURCE / "hydat.sqlite3"
     marker = hydat.with_suffix(".release")
     return {"hydat": stamp(hydat), "release": marker.read_text().strip() if marker.exists() else None,
             "stations": stamp(SOURCE / "bc_hydrometric_stations.json"), "year": date.today().year,
-            "datum": datum.digest(datum.load()), "code": stage_code("clim", m)}
+            **curated_parts("clim"), "code": stage_code("clim", m)}
+
+
+#: (T1229) THE REACH RUN'S CURATED FILES KEYED BY THEIR BYTES: {key part: curated leaf} (`curated_parts`)
+REACH_FILES = {
+    # (T632) the run refuses a dead override id and an unplaced piece the owner did not accept: editing either file must
+    # rerun it, or a build would pass on the old answer
+    "overrides": "regulations.book_name_links", "unplaced": "waters.unplaced_piece_calls",
+    # (T679 D4) the accepted printed-word reads the run is guarded by: accepting a list reruns it
+    "word_reads": "regulations.word_reads",
+    # (T1229) a confirmed closed area's new end binds once it has LANDED as a cut in the curated cuts file
+    # (`dfo_salmon.landed_resolver` -> `review.proposals.landed_cut`, which reads the file itself)
+    "cuts": "waters.cuts",
+    # (T1250) the steelhead barrier list holds water out of the Pacific streams (RULINGS S14): a row added, moved or
+    # removed changes the presence set, so editing the list must rerun the reach step
+    "steelhead_barriers": "waters.steelhead_barriers"}
+
+#: (T1229) CURATED FILES A STAGE READS WHOSE CONTENT NEEDS NO PART OF ITS KEY: {stage: {leaf: why}}. The guard
+#: (`test_stage_content_keys.py`) fails on a curated leaf a stage reads that is in none of its content parts
+#: (`curated_parts`; a stage it depends on; the atlas's `atlas.inputs.ATLAS_INPUTS`) and not here (the atlas's own list
+#: is `NOT_ATLAS_INPUTS`), and on an entry here that names no leaf or one the key holds anyway.
+_MATCH_PATH = "a path constant at import (`gauges.matches.MATCH_FILE`, through `pipeline.gauges`): never opened here"
+_ATLAS_ONLY = "read by the atlas build only ({}; in `ATLAS_INPUTS`): this stage reads the atlas, never the file"
+NOT_CONTENT_KEYED: dict[str, dict[str, str]] = {
+    "clim": {"gauges.matches": _MATCH_PATH + " (the roster is the source `bc_hydrometric_stations.json`)"},
+    "reach": {"waters.pond_calls": _ATLAS_ONLY.format("`registry.flowing.load_pond_calls`"),
+              "waters.tidal_split_authority": _ATLAS_ONLY.format("`splits.coast.load_authority`"),
+              "dfo_salmon.scope_places": "read only by the curation commands of `regs.dfo_salmon.entries` (`main`): the "
+                                         "run reads the places they write (`dfo_salmon.places`, the `dfo` part)",
+              "review.proposal_overrides": "loaded by `review.proposals.Sources.live` beside the cuts; `landed_cut` never "
+                                           "reads it (confidence calls only)",
+              "review.marks": "named only by `review.proposals.main` (the `--marks` default), never run by the stage"},
+    "tiles": {"gauges.matches": _MATCH_PATH + " (no tile holds a gauge, P18)",
+              "waters.tidal_split_authority": _ATLAS_ONLY.format("`splits.coast.load_authority`"),
+              "regulations.synopsis": "imported with the `deliver.bundle` package (`place_names`): only the bundle's "
+                                      "`build` reads it"},
+    "deliver": {},
+}
+
+
+def _bytes_digest(leaf: str) -> str:
+    """The sha256 (16 hex) of the file one curated leaf names; a missing file raises, naming it (AGENTS 37)."""
+    v = CURATED
+    for part in leaf.split("."):
+        v = getattr(v, part)
+    return hashlib.sha256(Path(v).read_bytes()).hexdigest()[:16]
+
+
+def curated_parts(stage: str, corpus: str | None = None) -> dict:
+    """(T1229) THE CURATED CONTENT A STAGE'S KEY HOLDS: {key part: digest}, the parts of `keys()` that say what is IN a
+    curated file (a stage's config record, T1192, says only where the file is). The one place per stage: the guard
+    (`test_stage_content_keys.py`) runs this under the recorder and takes the files it OPENS as the files the key holds
+    by content, so no second list can drift from it. The atlas's are `atlas.inputs.ATLAS_INPUTS`. `corpus`: the corpus
+    digest `keys()` read through the atlas's registry; else it is read here without one (the same files)."""
+    if stage == "clim":
+        from pipeline.gauges.feed import datum
+        # (T1047) the owner's ACCEPTED datum changes by content (a proposed row reruns nothing)
+        return {"datum": datum.digest(datum.load())}
+    if stage in ("reach", "deliver") and corpus is None:
+        from pipeline.regs.parsing.io import corpus_digest, read_all_entries
+        corpus = corpus_digest(read_all_entries())
+    if stage == "reach":
+        from pipeline.atlas.reach.dfo_salmon import entries_digest as dfo_entries_digest
+        from pipeline.atlas.reach.steelhead import fingerprint, load_list
+        # (T211) the DFO salmon locations the run places: a curator placing one reruns the reach step
+        return {"corpus": corpus, "steelhead": fingerprint(load_list()), "dfo": dfo_entries_digest(),
+                **{part: _bytes_digest(leaf) for part, leaf in REACH_FILES.items()}}
+    if stage == "tiles":
+        from pipeline.atlas.splits.area_splits import area_files
+        # the curated areas, and (T1229) every file a def of them names by `file` (the hand-drawn sign zones): a moved
+        # vertex redraws the `sign_zone` layer
+        return {"areas": _bytes_digest("waters.area_closures"),
+                "area_files": {name: hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+                               for name, p in sorted(area_files().items())}}
+    if stage == "deliver":
+        return {"corpus": corpus, "curated": curated_digest()}
+    raise KeyError(f"build: no curated parts for stage {stage!r} (the atlas's are atlas.inputs.ATLAS_INPUTS)")
 
 
 def stage_code(stage: str, m: dict | None = None) -> dict:
@@ -436,8 +511,6 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     """Every stage's inputs, as digests (the key is `_sha` of these). `missing_ok`: the plan, before `clim`
     has made the envelope (`deliver_sources`)."""
     from pipeline.atlas.registry import load_registry
-    from pipeline.atlas.reach.steelhead import fingerprint, load_list
-    from pipeline.atlas.reach.dfo_salmon import entries_digest as dfo_entries_digest
     from pipeline.common.section_handles import digest_for, registry_digest_for
     from pipeline.regs.parsing.io import corpus_digest, read_all_entries
 
@@ -446,21 +519,13 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     corpus = corpus_digest(read_all_entries(registry=load_registry(str(build_dir / "registry.json"))))
     return {
         "clim": clim_key(m),
-        "reach": dict(atlas, corpus=corpus, steelhead=fingerprint(load_list()),
-                      # (T211) the DFO salmon locations the run places: a curator placing one reruns the reach step
-                      dfo=dfo_entries_digest(),
+        "reach": dict(atlas, **curated_parts("reach", corpus),
                       # the tidal water the run takes out: T678, the atlas's one tidal record; before it, the
                       # atlas's tidal sidecars (T166/T326 limits, T212 whole waters, T665 inside lines), so an older
                       # atlas's stage keys stay what they were
                       **_tidal_key(build_dir),
-                      # (T632) the run refuses a dead override id and an unplaced piece the owner did not accept:
-                      # editing either file must rerun it, or a build would pass on the old answer
-                      overrides=hashlib.sha256(Path(CURATED.regulations.book_name_links).read_bytes()).hexdigest()[:16],
-                      unplaced=hashlib.sha256(Path(CURATED.waters.unplaced_piece_calls).read_bytes()).hexdigest()[:16],
-                      # (T679 D4) the accepted printed-word reads the run is guarded by: accepting a list reruns it
-                      word_reads=hashlib.sha256(Path(CURATED.regulations.word_reads).read_bytes()).hexdigest()[:16],
                       code=stage_code("reach", m)),
-        "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
+        "deliver": dict(atlas, **curated_parts("deliver", corpus),
                         sources=deliver_sources(missing_ok),
                         code=stage_code("deliver", m)),
         "tiles": tiles_key(build_dir, m),
@@ -482,14 +547,13 @@ def tiles_key(build_dir: Path, m: dict | None = None) -> dict:
     place names or anything a data release changes, so a data-only `pipeline build` never rebuilds (or re-ships) the
     tiles."""
     from pipeline.common.section_handles import digest_for
-    areas = Path(CURATED.waters.area_closures)
     # (T173) the fish obstacles' own fetched file; missing, the key says so and the stage runs (and names the fetch)
     ob = obstacles_source()
     return {"handles": digest_for(build_dir), "gpkg": stamp(sources()["gpkg"]),
             # T166 -> T678: the atlas's tidal water comes off the map (its one record; the pre-T678 sidecar keys
             # `tidal` / `tidal_waters` / `inside_tidal` are retired, 2026-11-20)
             **_tidal_key(build_dir),
-            "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": stage_code("tiles", m),
+            **curated_parts("tiles"), "code": stage_code("tiles", m),
             "tools": tool_versions(),
             "obstacles": stamp(ob) if ob.exists() else None}
 

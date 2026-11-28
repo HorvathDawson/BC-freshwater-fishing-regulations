@@ -5,7 +5,7 @@ handles belongs in its comments. Data files and tests cite these headings: keep 
 
 ## Which "including tributaries" rule a stream answers to
 
-The RULINGS T4, T14 and T18 amendments (T1053; the all-year part is proposed until the owner reads its list):
+The RULINGS T4, T14, T18 amendments (T1053; all-year part proposed) and T19 (T1177: item 1 is "most upstream wins"):
 
 1. **A stream's own row, or the nearer ✱ row, wins on each thing both speak to** (a quota, a release, gear, bait):
    the Duncan's tributaries keep the Duncan's bull trout 2, not Kootenay Lake's tributaries' release
@@ -20,7 +20,20 @@ The RULINGS T4, T14 and T18 amendments (T1053; the all-year part is proposed unt
    and never covers the lake, except a pond the registry holds as a piece of a stream (an oxbow, a slough lake, an
    unnamed widening): it is the stream. Bowman Slough takes Williston Lake's Zone A rule with its streams.
 5. **A whole-water ✱ rule climbs through its head lake** (RULINGS T18): Eagle Creek's "No Fishing" reaches Dick Creek
-   above Dick Lake. A stretch rule, a DFO place and a licensing record stop at the lake.
+   above Dick Lake. A stretch rule and a licensing record stop at the lake; a DFO place climbs (T19: its river's own place first).
+6. **A lake's tributaries are EVERY inflow, through every lake above** (RULINGS T19): its own line's river too, even
+   with a row of its own: Chehalis Lake's "No Fishing" binds the Chehalis above it. A stretch "A from x to y" never takes
+   A above x; inlet rows = the walk. **A lake row's printed exception also stops the rows of the lakes below it** (owner
+   11-27), only on water reached through it: Lake Revelstoke's and Lower Arrow's bull trout release add nothing above
+   Kinbasket; John Hart's and Lower Campbell's closures stop at Buttle's "except Thelwood Creek" (16.3 km, Buttle's r2 closes it all year).
+   **Kootenay Lake's "to the U.S. border" is read as all upstream of the lake** (36,007 km back in B.C.: Koocanusa, Elk,
+   St. Mary): it looks like an over-wide carve-out; it is the owner's reading (11-27). Water joining a lake row's own stream
+   ABOVE its lake is the lake's inflow (Whiteswan's feeders, Hatzic Slough's creeks); Upper Arrow's drawdown stretch is the
+   lake, so the Columbia above the Hwy 1 bridge is its inflow, climbing to Kinbasket's exception.
+7. **Does a DFO lake place "including tributaries" take the river flowing through the lake? Its creeks yes; on the river
+   the river's own place speaks first** (owner 11-27: "make sure that the mainstem ... still overrides the redsand quotas"):
+   Redsand and Kitsumkalum lakes' walks reach the Kitsumkalum River; every fish, every day, the river's places answer
+   (`salmon.THE_WATERS_OWN_PLACE_SPEAKS_FIRST`); a lake's place answers only what they leave unsaid (none here).
 
 ## Questions the owner will put to BC Fish and Wildlife
 
@@ -60,8 +73,8 @@ designations, and some labels sit on the wrong FWA line. Do not drop or rename t
   Creek; Mashiter Side Channel.
 - Labels on the wrong line: Evans Creek on the Squamish River; Dragonfly Creek on Still Creek; Lost Trib.1 on Austin
   Creek; Stoney Trib.4 on Stoney Creek. Several names on one unnamed line: Thunderbird + Newport (`360305166`); Beaver
-  Creek + Beaver Creek BioPond North + Deer Lake Brook (`356297118`); Beecher + Sunken Engine (`356093488`). The Seymour
-  River item holds the city's Tunnel Creek (`-2000000390`).
+  Creek + Beaver Creek BioPond North + Deer Lake Brook (`356297118`); Beecher + Sunken Engine (`356093488`). Tunnel,
+  Turner and Capitol creeks were filed under the Seymour, Noons and "Squatters" creeks by a code fault (T1246).
 
 ## Book errata: an MU printed wrong (Mackenzie Creek "4-21" is 4-31)
 

@@ -2,9 +2,7 @@ import { TopNav } from "./TopNav";
 import { CannotEditNote } from "./CannotEditNote";
 import type { CannotEdit } from "../types";
 import { useEffect, useMemo, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { Protocol } from "pmtiles";
+import { maplibregl, KEEP_OVERZOOM } from "../mapGl";
 import { layers, LIGHT } from "@protomaps/basemaps";
 
 /* EVERY REGION'S DFO CASCADE (owner 2026-11-02): what a region's page says holds BEFORE any table row — its
@@ -42,9 +40,6 @@ interface RegionMap { slug: string; legend: Legend[]; check: Record<string, unkn
 
 const SAYS: Record<string, string> = { closed: "closed", release: "daily limit 0 (release)" };
 const BASEMAP_URL = "pmtiles:///basemap/bc.pmtiles";
-const g = globalThis as unknown as { __pm?: Protocol; __pmAdded?: boolean };
-const protocol = (g.__pm ??= new Protocol());
-if (!g.__pmAdded) { maplibregl.addProtocol("pmtiles", protocol.tile); g.__pmAdded = true; }
 
 let regionsCache: Promise<{ regions: Region[] }> | null = null;
 function loadRegions() {
@@ -81,6 +76,7 @@ export function RegionCascade({ name, setName }: { name: string; setName: (n: st
   useEffect(() => {
     if (!box.current || map.current) return;
     const m = new maplibregl.Map({
+      ...KEEP_OVERZOOM,
       container: box.current,
       style: {
         version: 8,

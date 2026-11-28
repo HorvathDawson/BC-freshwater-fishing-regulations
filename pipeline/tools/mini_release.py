@@ -82,12 +82,13 @@ def load_world(path: Path = WORLD) -> dict:
     return w
 
 
-def full_wsc(world: dict, rel: str | None) -> str:
+def full_wsc(world: dict, rel: str | None, root: str | None = None) -> str:
     """The 21-group FWA code of a code written relative to the world's root (`""` = the root itself; None = FWA's
-    no-code sentinel, a water off the network)."""
+    no-code sentinel, a water off the network). `root`: a stream's own root in another drainage (T1250: Northward
+    Creek drains to the Arctic, FWA 200, so the world keeps one "possible" steelhead stream under RULINGS S14)."""
     if rel is None:
         return _NO_CODE
-    groups = W.groups(world["wsc_root"]) + W.groups(rel)
+    groups = W.groups(root or world["wsc_root"]) + W.groups(rel)
     if len(groups) > _WSC_GROUPS:
         raise ValueError(f"watershed code {rel!r} is deeper than FWA's {_WSC_GROUPS} groups")
     return W.join(*groups, *["000000"] * (_WSC_GROUPS - len(groups)))
@@ -173,7 +174,7 @@ def write_inputs(out_dir: Path, world: dict | None = None) -> tuple[Path, Path]:
         "FEATURE_CODE": "object", "UPSTREAM_ROUTE_MEASURE": "float64", "GEOMETRY_Length": "float64"}
     rows, geoms, fid = [], [], 910000000
     for s in world["streams"]:
-        code = full_wsc(world, s["wsc"])
+        code = full_wsc(world, s["wsc"], s.get("wsc_root"))
         for f in _features(world, s):
             fid += 1
             rows.append([float(fid), 990.0, f["edge_type"], s["blk"], s.get("watershed_key", s["blk"]), code, code,
@@ -503,9 +504,11 @@ def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[st
     ]
 
 
-def build(out: Path, stop_after: str | None = None) -> dict:
+def build(out: Path, stop_after: str | None = None, trace: Path | None = None) -> dict:
     """Inputs then every stage into `out` (emptied first). Each stage's log is `out/logs/<stage>.log`; a failed stage
-    stops the build and raises naming it and its log's last lines. Returns {stage: seconds}."""
+    stops the build and raises naming it and its log's last lines. Returns {stage: seconds}. (T1229) `trace`: each stage
+    runs under the recorder (`PIPELINE_TRACE=<trace>/<stage>`), which the stage-key guard reads
+    (`test_stage_content_keys.py`)."""
     out = Path(out).resolve()
     _refuse_inside_repo_data(out)
     before = listing(watched_dirs())
@@ -526,7 +529,8 @@ def build(out: Path, stop_after: str | None = None) -> dict:
         with log.open("w", encoding="utf-8") as fh:
             fh.write("$ " + " ".join(cmd) + "\n")
             fh.flush()
-            rc = subprocess.run(cmd, cwd=REPO_ROOT, env=_env(), stdout=fh, stderr=subprocess.STDOUT).returncode
+            env = _env() if trace is None else dict(_env(), PIPELINE_TRACE=str(Path(trace).resolve() / name))
+            rc = subprocess.run(cmd, cwd=REPO_ROOT, env=env, stdout=fh, stderr=subprocess.STDOUT).returncode
         took[name] = round(time.perf_counter() - t, 1)
         print(f"mini release: {name:14} {'ok' if rc == 0 else f'FAILED rc={rc}':12} {took[name]:7.1f}s  {log}",
               flush=True)

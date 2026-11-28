@@ -135,7 +135,7 @@ STEELHEAD_NO_RULES = ("Steelhead have been recorded here, but no steelhead rule 
                       "any rainbow, however big, as a rainbow trout.")
 STEELHEAD_TEXT = (
     "HOW SURE WE ARE THAT STEELHEAD ARE HERE — a PRESENCE INDICATOR for display. \"known\": "
-    "steelhead are known to be here, for one of two reasons (`steelhead_source`). "
+    "steelhead are known to be here, for one of three reasons (`steelhead_source`). "
     "\"regulations\": the book names steelhead on this water — it is a STEELHEAD ROW's own water, "
     "or a rule of one binds it "
     "(a row any of whose rules or licensing records PRINTS steelhead: a steelhead quota, release "
@@ -155,7 +155,12 @@ STEELHEAD_TEXT = (
     "steelhead rule applies to: that part carries `steelhead_rules: false`, and there a rainbow "
     "of any size is a rainbow trout (user ruling 2026-10-03). Steelhead rules come only from the "
     "book. "
-    "\"possible\": any other stream of Regions 1, 2, 3, 5 or 6; the steelhead rules apply, but "
+    "\"Pacific stream\": a stream of Regions 1, 2, 3, 5 or 6 that drains to the Pacific "
+    "(its FWA basin; RULINGS S14, owner 2026-11-27). It "
+    "binds no rule either; the provincial steelhead rules already apply on those streams. "
+    "\"possible\": any other stream of Regions 1, 2, 3, 5 or 6 (the Arctic and Yukon drainage "
+    "of Region 6, and the water the curated barrier list holds out: the Columbia side, the "
+    "Skagit above Ross Dam); the steelhead rules apply, but "
     "steelhead may not be present. ABSENT: anywhere else. SHOW: on \"possible\", a quiet line "
     "with the steelhead rules — 'Steelhead rules apply here; steelhead may not be present in "
     "this water.' On \"known\" say steelhead are known to be here, and show the steelhead rules "
@@ -165,7 +170,7 @@ STEELHEAD_TEXT = (
     "known, else \"possible\" if any part is (for a list or a search row). WHERE A RAINBOW OVER "
     "50 CM IS A STEELHEAD (p.80; the part's `anadromous_rainbow`): a KNOWN part of a STREAM (the "
     "water's `kind`: a slough or canal is a stream) WHERE STEELHEAD RULES APPLY — known by the "
-    "book or by the list alike (the Cowichan River); never on a lake, a \"possible\" stream, or "
+    "book, by the list or as a Pacific stream alike (the Cowichan River); never on a lake, a \"possible\" stream, or "
     "a part with `steelhead_rules: false` (user ruling 2026-10-03: 'if no steelhead rules exist, "
     "rainbow rules still apply to a steelhead').")
 
@@ -274,7 +279,9 @@ WATER_TEXT = {
                         "and/or \"curated list\" (the curated known-steelhead list names it, "
                         "`data/curated/regulations/steelhead_waters.json`: it sets the presence "
                         "indicator and binds no rule — outside the steelhead regions such a water "
-                        "carries no steelhead rule, `steelhead_rules: false`). Absent on a "
+                        "carries no steelhead rule, `steelhead_rules: false`) and/or \"Pacific "
+                        "stream\" (a stream of Regions 1, 2, 3, 5, 6 whose water reaches the "
+                        "Pacific, RULINGS S14; binds no rule). Absent on a "
                         "\"possible\" water",
     "steelhead_rows": "ONLY where `steelhead_source` holds \"regulations\": the entry ids of the "
                       "steelhead rows whose rules bind the water's known sections (its own row, "

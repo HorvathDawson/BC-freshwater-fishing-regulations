@@ -618,7 +618,8 @@ describe("the flow ramp's units", () => {
     // layers drew anyway — a grey boundary and a "3" across the field (refinement pass, 2026-10-22).
     const conditions = STYLE_META.views.find((v) => v.id === "conditions");
     expect([...(conditions?.hide ?? [])].sort())
-      .toEqual(["mu", "mu__edge", "mu__label", "region", "region__edge", "region__label"]);
+      // (T1208) the region's number is its runtime companion now (`look-a.ts`), its band one too
+      .toEqual(["mu", "mu__edge", "mu__label", "region", "region-band", "region-names", "region__edge"]);
   });
 });
 

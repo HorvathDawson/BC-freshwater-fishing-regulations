@@ -1,0 +1,50 @@
+{
+ "_about": "T1208: one label point per fishing region, inside its biggest piece (pole of inaccessibility), from the tiles' region layer (pipeline/deliver/tiles, data/generated/tiles/layers/region.geojsonl). Regions do not move; regenerate only if the boundaries do.",
+ "regions": [
+  {
+   "region_id": "1",
+   "lon": -126.674,
+   "lat": 50.527
+  },
+  {
+   "region_id": "2",
+   "lon": -123.376,
+   "lat": 49.955
+  },
+  {
+   "region_id": "3",
+   "lon": -121.254,
+   "lat": 50.6
+  },
+  {
+   "region_id": "4",
+   "lon": -116.605,
+   "lat": 49.989
+  },
+  {
+   "region_id": "5",
+   "lon": -123.677,
+   "lat": 52.2
+  },
+  {
+   "region_id": "6",
+   "lon": -128.194,
+   "lat": 54.468
+  },
+  {
+   "region_id": "8",
+   "lon": -119.223,
+   "lat": 49.556
+  },
+  {
+   "region_id": "7A",
+   "lon": -122.996,
+   "lat": 54.271
+  },
+  {
+   "region_id": "7B",
+   "lon": -122.477,
+   "lat": 58.556
+  }
+ ]
+}

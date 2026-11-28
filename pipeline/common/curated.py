@@ -280,6 +280,9 @@ class Waters(_Tree):
     #: water though no row of the book says so. `pipeline.atlas.reach.steelhead.load_list`; a new generated list is
     #: accepted with `python -m pipeline.regs.steelhead.accept`.
     steelhead_waters: Annotated[FilePath, At("waters/steelhead_waters.json")]
+    #: AUTHORED (T1250, RULINGS S14; T1257 grows it): THE STEELHEAD BARRIER LIST — water held out of "Pacific streams
+    #: are steelhead water", `basin` and `upstream_of` rows. `pipeline.atlas.reach.steelhead.load_barriers`.
+    steelhead_barriers: Annotated[FilePath, At("waters/steelhead_barriers.json")]
     #: AUTHORED: blanket area closures — cut every stream crossing the polygon.
     area_closures: Annotated[FilePath, At("waters/area_closures.json")]
     #: AUTHORED: hand-drawn admin polygons — closure zones a regulation states as an AREA rather than a
@@ -301,6 +304,15 @@ class Waters(_Tree):
     #: unplaced, one row per (entry or DFO place, rule, piece, reason). Any other unplaced piece stops the reach run
     #: (`pipeline.atlas.reach.build.unplaced_gate`); `proposed` rows are not accepted and stop it too.
     unplaced_piece_calls: Annotated[FilePath, At("waters/unplaced_piece_calls.json")]
+    #: AUTHORED: the owner's calls on edge water the closure-area cutter leaves open (a boundary river drawn
+    #: wiggling across the edge): `closed` (the cutter treats it as inside) or `open`, keyed by area + blue line +
+    #: measure range. Only `accepted` rows are read (`splits.area_edge_calls`); the area-cut gate's G6 stops the
+    #: build on any such stretch no accepted row covers, and on a stale row.
+    area_edge_calls: Annotated[FilePath, At("waters/area_edge_calls.json")]
+    #: AUTHORED (T1242, owner 2026-11-27): the braid loops the map build never removes BY NAME (a book row or DFO place
+    #: names them, or the owner holds them), one row per water with its blue lines and the row's own words. Read by
+    #: the atlas build's loop pass (`graph.prune.loop_keeps`); a listed blue line the atlas lacks stops the build.
+    loop_exemptions: Annotated[FilePath, At("waters/loop_exemptions.json")]
 
     _abs = field_validator("*", mode="before")(_under("curated"))
 

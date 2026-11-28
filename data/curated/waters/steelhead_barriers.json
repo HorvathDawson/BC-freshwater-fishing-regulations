@@ -1,0 +1,21 @@
+{
+ "$comment": "THE STEELHEAD BARRIER LIST (T1250, RULINGS S14; T1257 grows it): water a steelhead cannot reach from the sea, held out of 'Pacific streams are steelhead water' (it stays 'possible': a rainbow over 50 cm there is a rainbow). Read by the reach run (pipeline.atlas.reach.steelhead.load_barriers); the reader and the app read the result from the bundle. Two kinds of row in this one file: 'basin' ({basin: an FWA code}: every stream at or below it) and 'upstream_of' ({blk, measure}: everything upstream of that point on that blue line). Every field is required; a row that selects no stream stops the run. Owner 2026-11-27: \"Pacific streams now, barriers in 0.11.0 (Recommended)\" and \"Hold both but make sure it will be compatible with a larger barrier list\".",
+ "barriers": [
+  {"id": "mackenzie", "what": "the Mackenzie basin in B.C. (the Peace and the Liard)", "kind": "basin",
+   "selector": {"basin": "200"}, "reason": "drains to the Arctic Ocean: no sea-run rainbow trout reach it",
+   "source": "FWA watershed code group 200; owner 2026-11-27, \"Pacific streams now, barriers in 0.11.0 (Recommended)\"",
+   "added_by": "Claude (T1250), the owner's ruling", "added": "2026-11-27"},
+  {"id": "yukon", "what": "the Yukon basin in B.C. (Teslin, Atlin, Tagish)", "kind": "basin",
+   "selector": {"basin": "800"}, "reason": "drains to the Bering Sea through 3,000 km of the Yukon: no sea-run rainbow trout reach it; stays with the Arctic by the owner's ruling",
+   "source": "FWA watershed code group 800; owner 2026-11-27, \"Pacific streams now, barriers in 0.11.0 (Recommended)\"",
+   "added_by": "Claude (T1250), the owner's ruling", "added": "2026-11-27"},
+  {"id": "columbia", "what": "the Columbia basin in Regions 1-6 (the upper Similkameen and its feeders, Shrimpton Creek)", "kind": "basin",
+   "selector": {"basin": "300"}, "reason": "cut off from the sea by dams downstream (Enloe Dam on the Similkameen, Chief Joseph and Grand Coulee on the Columbia, all in Washington; to be sourced in T1257)",
+   "source": "owner 2026-11-27, \"Hold both but make sure it will be compatible with a larger barrier list\"",
+   "added_by": "Claude (T1250), the owner's ruling", "added": "2026-11-27"},
+  {"id": "skagit_above_ross_dam", "what": "the Skagit River and its tributaries in B.C., all above Ross Dam", "kind": "basin",
+   "selector": {"basin": "970-106243"}, "reason": "every B.C. section of the Skagit lies above Ross Dam (Washington), which has no fish passage (to be sourced in T1257). Basin 970's other branch, 970-030628 (Bertrand, Fishtrap and Pepin creeks, to the Nooksack), is not held",
+   "source": "owner 2026-11-27, \"Hold both but make sure it will be compatible with a larger barrier list\"",
+   "added_by": "Claude (T1250), the owner's ruling", "added": "2026-11-27"}
+ ]
+}

@@ -457,12 +457,17 @@ CARDS = {
                       "rules": [F.FRASER_ST], "whose": "this river’s rule", "term": "no_fishing_for",
                       "presence": STEELHEAD_KNOWN}],
     },
+    # T1250, RULINGS S15 (owner 2026-11-27, Buckley Creek: "Release: the row's cap holds (Recommended)"): the river's
+    # "Rainbow trout (none over 50 cm)" (r8) holds for its steelhead, so a hatchery steelhead (a rainbow over 50 cm) is
+    # released and leaves the "1 between them" group (was: "Cutthroat trout, rainbow trout or steelhead", with
+    # "Steelhead, hatchery rainbow trout over 50 cm, 1"). The fixture puts the Bella Coola's rows on a Region 2 entry;
+    # the real river (Region 5) releases every steelhead and prints "No fishing for steelhead" (r13): no angler change.
     (F.BELLA_MAY, MAY1): {
         "bucket by BELLA_R5: title, cap, why": (THIS_RIVERS_RULE, 2, "rule"),
-        "bucket by BELLA_R5: group (one) says, n, by": (CT_RB_ST_ONE, 1, F.BELLA_R6),
+        "bucket by BELLA_R5: group (one) says, n, by": ("Cutthroat trout or rainbow trout: 1 between them", 1,
+                                                        F.BELLA_R6),
         "bucket by BELLA_R5: group (one) kinds' name, detail, n": [("Cutthroat trout", "hatchery, 30–33 cm", 1),
-                                                                   ("Rainbow trout", HATCHERY_30_50, 1),
-                                                                   ("Steelhead", ST_DETAIL, 1)],
+                                                                   ("Rainbow trout", HATCHERY_30_50, 1)],
     },
     (F.BELLA_MAY_ST, MAY1): {
         "bucket by BELLA_R5: size (one) says": ("Brown trout, Dolly Varden/bull trout, lake trout or brook trout: "
@@ -572,7 +577,7 @@ GEAR_BUILD = {
     "cowichan": lambda: R11._rules("stream", hook=R11.Z1_HOOK, fly=R11.COWICHAN_FLY),
     "lines: stream": lambda: _lines("stream"),
     "lines: lake": lambda: _lines("lake"),
-    "lines: any water": lambda: _lines(None),
+    "lines: wetland": lambda: _lines("wetland"),
     "lines: kootenay": lambda: _lines("lake", kootenay=True),
 }
 GFIELDS = {
@@ -587,7 +592,8 @@ GEAR = {
     "cowichan": {"summary: says": GEAR_COWICHAN},
     "lines: stream": {"lines: says, cites": (LINES_ONE, [R11.PROVINCE])},
     "lines: lake": {"lines: says, cites": (LINES_LAKE, [R11.PROVINCE])},
-    "lines: any water": {"lines: says": "1 line (rod); 2 while alone in a boat on a lake"},
+    # T1249: every key has a kind (the bundle's); a wetland is no lake, as every named wetland reads
+    "lines: wetland": {"lines: says, cites": (LINES_ONE, [R11.PROVINCE])},
     "lines: kootenay": {"lines: says, cites": (LINES_KOOTENAY, [R11.PROVINCE, R11.KOOTENAY])},
 }
 

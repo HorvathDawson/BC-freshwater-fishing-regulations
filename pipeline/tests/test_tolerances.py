@@ -24,6 +24,11 @@ COPIES = [
     ("pipeline.atlas.splits.sectionizer", "AUTHORED_MERGE_M", "SLIVER_M"),
     ("pipeline.atlas.splits.sectionizer", "SAME_SPOT_M", "AT_CUT_M"),
     ("pipeline.atlas.splits.clean_cut", "DIP_M", "SLIVER_M"),
+    ("pipeline.atlas.splits.clean_cut", "EDGE_M", "AREA_EDGE_M"),
+    ("pipeline.atlas.splits.clean_cut", "MIN_PIECE_M", "AREA_MIN_PIECE_M"),
+    ("pipeline.atlas.splits.area_cut_gate", "DEEP_M", "SLIVER_M"),
+    ("pipeline.atlas.splits.area_cut_gate", "FLOOR_SLACK_M", "AT_CUT_M"),
+    ("pipeline.atlas.splits.area_cut_gate", "RUN_WHOLLY_INSIDE_M", "RUN_WHOLLY_INSIDE_M"),
     ("pipeline.atlas.reach.extent", "WATERSHED_AT_CUT_M", "WATERSHED_AT_CUT_M"),
     ("pipeline.deliver.bundle.spans", "_AT_M", "AT_CUT_M"),
     ("pipeline.deliver.bundle.topology", "TOUCH_M", "TOUCH_M"),
@@ -38,6 +43,8 @@ COPIES = [
 def test_the_values_are_the_ones_the_copies_held():
     assert (T.SAME_PLACE_M, T.SLIVER_M, T.AT_CUT_M, T.WATERSHED_AT_CUT_M, T.TOUCH_M) == (1e-6, 5.0, 1.0, 5.0, 60.0)
     assert (T.CONFLUENCE_NEAR_M, T.STUB_M, T.CONFLUENCE_M, T.OWN_M) == (150.0, 100.0, 200.0, 1000.0)
+    # T1199 (owner 2026-11-26, rule C2 at 50 / 100): new, not a former copy
+    assert (T.AREA_EDGE_M, T.AREA_MIN_PIECE_M, T.RUN_WHOLLY_INSIDE_M) == (50.0, 100.0, 0.5)
 
 
 @pytest.mark.parametrize("module,name,shared", COPIES)

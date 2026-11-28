@@ -52,7 +52,7 @@ TRIBS = {"m2": {"t1"}, "m3": set(), "m4": {"t2"}, "m1": {"q1"}, "q1": set()}
 @pytest.fixture(autouse=True)
 def _walk(monkeypatch):
     def expand(graph, reach, *, only=False, excluded=(), passed=(), cuts=None, registry=None,
-               own=frozenset(), climb_from=frozenset()):
+               own=frozenset(), climb_from=frozenset(), inflows=frozenset(), stops=(), met=None):
         # `own`: the entry's own water, never collected by a walk (AGENTS 63); `climb_from` (T1053): no lakes here
         got = set() if only else set(reach)
         for s in reach:
@@ -154,7 +154,7 @@ def test_siblings_that_cover_everything_leave_no_rest():
 def test_the_rest_goes_through_the_whole_build_like_any_rule():
     """`build_reaches` — the corpus pass — binds the rest too; totality still holds."""
     r1, r2 = _rules()
-    out = B.build_reaches([_entry([r1, r2])], REG, G)
+    out = B.build_reaches([_entry([r1, r2])], REG, G, steelhead_barriers=())
     got = {b.rule_id: b.sections for b in out.bindings}
     assert got == {"r1": ("m2", "m3"), "r2": ("m1", "m4")}
 

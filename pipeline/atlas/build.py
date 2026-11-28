@@ -35,6 +35,7 @@ from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
 from pipeline.common.io.export_gpkg import export_graph_gpkg, export_lake_io, export_tributaries
 from pipeline.atlas.graph.graph import build_section_geometries, build_stream_graph
 from pipeline.atlas.graph.names import resolve_names
+from pipeline.atlas.graph.prune import SMALL_LOOP_TRIAL_M
 from pipeline.common.io.serialize import write_artifact
 from pipeline.atlas.splits.splits import load_split_defs
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
@@ -307,6 +308,18 @@ def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:
     return kept, len(fids) - len(kept)
 
 
+def _refuse_fwa_code_collisions(streams: list[dict], fwa_fids: list, *, whole_province: bool) -> None:
+    """(T1246) REFUSE the build when a city line holds an FWA line's watershed code (the atlas would file the city creek
+    as a part of that FWA water: Turner Creek under Noons Creek), naming each line. ``fwa_fids`` = the FWA lines only
+    (before the added fids join them). The stored curated file is what the atlas reads, so this is the check that
+    matters; the generator runs its twin."""
+    from pipeline.atlas.waters.added_streams.validate import fwa_code_collisions
+    bad = fwa_code_collisions(streams, ((f.wsc, f.blk) for f in fwa_fids), whole_province=whole_province)
+    if bad:
+        raise SystemExit("atlas build: added_streams.json holds city lines on FWA watershed codes (T1246):\n  "
+                         + "\n  ".join(bad))
+
+
 def _streams_in_bbox(streams: list[dict], bbox) -> list[dict]:
     """Keep added streams with a vertex inside ``bbox`` (EPSG:3005) PLUS their added-receiver ancestors, so a
     bbox-limited build doesn't add another region's streams as orphans, yet never severs an added->added chain
@@ -424,6 +437,15 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                     help="keep unnamed headwater capillaries. The leaf prune removes ~9%% of "
                          "stream vertices and is the switch to reach for first if water is "
                          "missing from the map; see pipeline/atlas/graph/leaf_prune.py.")
+    # T1242 (owner 2026-11-27, ruling E31, ON by default): remove the river's own braid loops that no creek flows into,
+    # any size (`prune.small_loops`, `SMALL_LOOP_CREEKS = "keep"`). Kept: the curated `waters/loop_exemptions.json`,
+    # loops that touch a lake, loops a cut / tidal limit / gauge / owner call is placed on, partial blue lines
+    # (`prune.loop_keeps`). Loops a creek flows into are never touched (T1260).
+    ap.add_argument("--drop-small-loops", type=float, default=float("inf"), metavar="METRES",
+                    help="remove creek-less braid loops whose every point lies within METRES of the main line "
+                         f"(default 'inf' = any size, ruling E31; the first trial used {SMALL_LOOP_TRIAL_M:.0f})")
+    ap.add_argument("--keep-small-loops", dest="drop_small_loops", action="store_const", const=None,
+                    help="keep every braid loop (the map before T1242; for comparisons only)")
     ap.add_argument("--out", default=str(GENERATED.build("validate")))
     ap.add_argument("--force", action="store_true",
                     help="build INTO an atlas a shipped bundle or tile set was cut from. Never what "
@@ -482,10 +504,12 @@ class _Build:
         self.area_defs: list = []
         self.catalog_polys: dict[str, dict] = {}   # {area_def id: {name: polygon}} for the lazy catalog
         self.clean_inside: dict[str, dict] = {}
+        self.clean_pending: list = []   # T1199: the closure areas cut_areas loaded, for cut_closure_areas
         self.tidal_limits: list = []    # T326: waters/tidal_limits.json (gauge_cuts)
         self.tidal_ids: dict = {}       # {blk: id} of every mouth alias and tidal cut (`tidal.ids`)
         self.tidal_placed: dict = {}    # {blk: where each mouth alias went} (alias_tidal_mouths)
         self.input_hashes: dict = {}    # T547: {input key: digest} (`atlas.inputs`), set by main before any read
+        self.city_mouths: list = []     # T1246: the added city creeks' own tidal mouths (load_fwa), for their Areas
 
     def tick(self, label: str) -> None:
         now = self._clock()
@@ -510,8 +534,8 @@ def main(argv: list[str] | None = None) -> None:
     load_fwa(b)
     build_graph(b)
     add_waters(b)
+    gauge_cuts(b)           # (T1242) before the prune: the creek-less loop pass resolves the cuts to keep their loops
     prune_graph(b)
-    gauge_cuts(b)
     sectionize(b)
     build_registry(b)
     write_graph(b)          # T678 plan 5: after the registry, so graph.pkl carries the tidal owner on its nodes
@@ -532,7 +556,7 @@ def load_fwa(b: _Build) -> None:
     added streams merged into them.
 
     Reads: args, fwa, bbox. Writes: lake_kind, lake_names, lake_wsc, fids, added_lake_polys,
-    added_lake_parts, add_specs, add_nv."""
+    added_lake_parts, add_specs, add_nv, city_mouths."""
     args, fwa, bbox = b.args, b.fwa, b.bbox
     _tick = b.tick
     print("loading lake/manmade waterbody keys ...")
@@ -577,8 +601,11 @@ def load_fwa(b: _Build) -> None:
         add_streams = _streams_in_bbox(data["streams"], bbox)
         add_fids, add_specs = to_graph_inputs(add_streams)
         fids, n_excl = _apply_fwa_exclude(fids, data.get("fwa_exclude", []))
+        _refuse_fwa_code_collisions(add_streams, fids, whole_province=bbox is None)
         fids += add_fids
         add_nv = data.get("name_variants", [])
+        from pipeline.atlas.splits.pfma_drainage import city_tidal_mouths
+        b.city_mouths = city_tidal_mouths(add_streams)     # T1246: each takes the Area its own mouth lies in
         print(f"  added streams: -{n_excl} superseded FWA fids, +{len(add_fids)} added fids, "
               f"{len(add_specs)} connectors, {len(add_nv)} name variants")
     _tick("load fids + lakes")
@@ -825,8 +852,126 @@ def prune_graph(b: _Build) -> None:
         print(f"  {len(_leaves):,} leaf section(s) removed -> {len(graph.nodes):,} nodes "
               f"({100 * len(_leaves) / max(_before, 1):.1f}% of the graph)")
         _tick("prune unnamed leaves")
+    # T1242: AFTER the leaf prune. Its hop count ("3+ junctions above a named water") reads names, and a tail
+    # renamed to an unnamed creek put that creek's headwaters a hop further from a named water: run first, it made the
+    # leaf prune drop 4,197 more creek lines (3,203 km). Loops are never leaves, so the candidates are the same; only
+    # the creeks on them are fewer (the ones the leaf prune takes anyway).
+    if args.drop_small_loops is not None:
+        _small_loops(b, graph, geoms, fwa_mainstem_blks(fids))
+        pruned_fids = set(pruned_fids) | b.loop_fids
+    else:
+        # THE RECORD SAYS SO (T1242 review): an atlas built with every loop kept never passes for one without them
+        # (`graph.pkl.meta.json` `build.small_loops`; `inputs.behind` reads it)
+        print("!! --keep-small-loops: every braid loop kept (the map before T1242; for comparisons only)")
+    b.build_facts = {**getattr(b, "build_facts", {}), "small_loops": small_loops_fact(args)}
     b.graph = graph
     b.pruned_fids = pruned_fids
+
+
+def small_loops_fact(args) -> dict:
+    """What the atlas record says about the creek-less loop pass (`graph.pkl.meta.json` `build`, `inputs.behind`)."""
+    m = getattr(args, "drop_small_loops", None)
+    return {"ran": m is not None, "max_offset_m": None if m is None else ("inf" if m == float("inf") else float(m))}
+
+
+#: (T1242 review) EVERY KIND OF THING THAT KEEPS A CREEK-LESS LOOP in a default build (`loop_keep_inputs`); a test pins
+#: that each is offered, so dropping one fails. Loops that touch a lake / are part of a longer blue line: `small_loops`.
+LOOP_KEEP_KINDS = ("named", "a found name", "a curated cut", "a gauge", "a tidal limit", "an owner call",
+                   "an owner call (pond)")
+#: the anchor kinds the loop pass resolves with the cut placement's own resolver, before any loop goes: every kind but
+#: the B.C. border, whose crossings the border pass makes later (a border cut scoped to a blue line keeps that line)
+_LOOP_RESOLVED_ANCHORS = ("point", "gauge", "line", "confluence", "lake", "mu_boundary", "area_boundary")
+
+
+def loop_keep_inputs(b: _Build, graph) -> tuple[Path, dict, dict]:
+    """(exemptions file, {reason: curated file}, {reason: blue lines}) the creek-less loop pass keeps loops by, read as
+    THIS build reads them (`--splits` / `--no-splits`, `--no-gauge-splits`, `flowing.FOLD_CONFIRMED`), so
+    `inputs.build_paths` says truthfully what was read. A test hands its own files in `b.loop_keep_paths` = (file,
+    files); the blue lines the build works out (cuts as placed, found names) are worked out all the same."""
+    from pipeline.atlas.registry import flowing as _flowing
+    given = getattr(b, "loop_keep_paths", None)          # (a test's own files; the keeps the build works out stand)
+    files: dict = {"an owner call (pond)": CURATED.waters.pond_calls}
+    if _flowing.FOLD_CONFIRMED:
+        files["an owner call"] = CURATED.waters.slough_calls
+    # an owner-accepted found name is a LABEL, never a graph name (T224), so the prune cannot see it: its line is kept
+    sets: dict = {"a found name": {str(x) for e in (getattr(b, "_mined", None) or [])
+                                   for x in ((e.get("target") or {}).get("blks") or [])}}
+    splits = getattr(b, "splits", None)
+    if splits:
+        # THE CUTS WHERE THE CUT PLACEMENT PUTS THEM: the same resolver, chains and live lines `cut_curated` uses,
+        # asked before any loop goes. A cut anchored by coordinate, tributary code or lake lands on the nearest LIVE
+        # line, so a cut on a removed loop would otherwise land quietly on the main line beside it.
+        from pipeline.atlas.splits.anchors import resolve_split_defs
+        kind = lambda d: str(getattr(d.anchor.type, "value", d.anchor.type))          # noqa: E731
+        defs = [d for d in splits if kind(d) in _LOOP_RESOLVED_ANCHORS]
+        # a unit or area boundary cut (scoped by blue line, name or code) lands where the boundary crosses: the
+        # polygons the sectionizer loads for the same defs (`cut_curated`)
+        mu_polys = get_mu_polys(b.fwa) if any(kind(d) == "mu_boundary" for d in defs) else None
+        specs = [(d.anchor.area_layer, d.anchor.area_name_field, d.anchor.area_name) for d in defs
+                 if kind(d) == "area_boundary"]
+        area_polys = get_area_polys(b.fwa, specs, bbox=b.bbox) if specs else None
+        pts = resolve_split_defs(defs, b.chains, mu_polys=mu_polys, area_polys=area_polys,
+                                 live_blks={n.blk for n in graph.nodes.values() if n.blk})
+        sets["a curated cut"] = ({p.blk for p in pts if p.source != "gauge"}
+                                 | {str(d.blk) for d in splits if kind(d) == "border" and getattr(d, "blk", None)})
+        sets["a gauge"] = {p.blk for p in pts if p.source == "gauge"}
+        files["a tidal limit"] = CURATED.waters.tidal_limits          # its mouth rows are no cut, but stand on a line
+        if getattr(b, "matches_sha", None):
+            # every matched station, a cut or not (the bundle places them all); the file's whole identity is recorded
+            # beside the graph (`gauge_matches.json`)
+            from pipeline.gauges.matches import MATCH_FILE
+            files["a gauge"] = MATCH_FILE
+    if given:
+        return given[0], dict(given[1]), sets
+    return CURATED.waters.loop_exemptions, files, sets
+
+
+def _small_loops(b: _Build, graph, geoms, fwa_main) -> None:
+    """T1242 (ruling E31; off only under --keep-small-loops): remove the creek-less braid loops (`prune.small_loops`)
+    and write every removed line to small_loops.json beside the graph. Sets `loop_fids` (the removed fids, excused by
+    the integrity check)."""
+    import hashlib
+    from pipeline.atlas.graph.prune import drop_small_loops, loop_keeps, small_loops
+    args = b.args
+    ex_path, structural, computed = loop_keep_inputs(b, graph)
+    raw = Path(ex_path).read_bytes()
+    reasons = loop_keeps(ex_path, structural, computed)
+    # A NAMED EXEMPTION THE ATLAS NO LONGER HAS IS AN ERROR, never a silent no-op: the row must be fixed or deleted
+    blks_here = {n.blk for n in graph.nodes.values() if n.blk}
+    missing = sorted({b for b, rs in reasons.items() if b not in blks_here and any(r.startswith("named:") for r in rs)})
+    if missing:
+        raise SystemExit(f"waters/loop_exemptions.json lists blue line(s) the atlas does not have: {missing[:10]} — "
+                         "fix or delete those rows")
+    keep = set(reasons)
+    why: dict = {}
+    loops = small_loops(graph, geoms, args.drop_small_loops, keep, fwa_main=fwa_main, why=why)
+    moved: list = []
+    graph, n, fids = drop_small_loops(graph, geoms, loops, moved)
+    # NOTHING A KEEP NAMES MAY GO (a backstop over `loop_nodes`' own skip): a found name, a cut, a call whose line was
+    # removed stops the build by name, never a silent skip downstream (`registry.mined` only counts an absent line)
+    gone = {blk for lp in loops for blk in lp["blks"]} - {nd.blk for nd in graph.nodes.values() if nd.blk}
+    hit = sorted((blk, reasons[blk]) for blk in gone if blk in reasons)
+    if hit:
+        raise SystemExit("the creek-less loop pass removed line(s) a keep names: "
+                         + "; ".join(f"{blk} ({', '.join(rs)})" for blk, rs in hit[:10]))
+    b.loop_fids = fids
+    # put back = removing it would have stranded a source (a "tail" loop, never shipped, keeps its tail by design)
+    kept = {lp_id for lp_id, lp in enumerate(loops)
+            if any(x in graph.nodes for x in lp["nodes"] if x not in (lp.get("tail") or {}))}
+    kinds = sorted({("named" if r.startswith("named:") else r) for rs in reasons.values() for r in rs})
+    held = {k: sum(1 for rs in reasons.values() if any((r.startswith("named:") if k == "named" else r == k) for r in rs))
+            for k in kinds}
+    print(f"T1242 creek-less braid loops < {args.drop_small_loops:.0f} m: {len(loops) - len(kept)} loop(s), {n} "
+          f"piece(s) removed ({len(kept)} put back: connectivity); not removed: {dict(sorted(why.items()))}; keep "
+          f"lines by kind: {held}")
+    b.out.mkdir(parents=True, exist_ok=True)
+    (b.out / "small_loops.json").write_text(json.dumps({
+        "ran": True, "max_offset_m": args.drop_small_loops, "keep_file": str(ex_path),
+        "keep_sha256": hashlib.sha256(raw).hexdigest(), "keep_blks": len(keep),
+        "keep_by_kind": held, "why": dict(sorted(why.items())),
+        "removed": [lp for i, lp in enumerate(loops) if i not in kept],
+        "put_back": [loops[i]["nodes"] for i in sorted(kept)]}, indent=1) + "\n", encoding="utf-8")
+    b.tick("T1242 creek-less braid loops")
 
 
 def gauge_cuts(b: _Build) -> None:
@@ -932,8 +1077,8 @@ def gauge_cuts(b: _Build) -> None:
 
 
 def sectionize(b: _Build) -> None:
-    """SECTIONS: every cut, in order — the B.C. border, the curated + gauge points, their braid cuts, the blanket
-    areas, the length cap — then the membership passes the pieces need (areas, gates, MUs) and the
+    """SECTIONS: every cut, in order — the B.C. border, the curated + gauge points, their braid cuts, the first/last
+    areas, the coast cut, the closure areas, the length cap — then the membership passes the pieces need (areas, gates, MUs) and the
     reach-qualified names. Each sub-phase says why it sits where it does.
 
     Reads: graph, fids. Writes: fid_index, _short_before_cuts (then the sub-phases' own)."""
@@ -949,6 +1094,7 @@ def sectionize(b: _Build) -> None:
     cut_braids(b)
     cut_areas(b)
     cut_shores(b)          # T678: the coast cut, before the length cap (length is last)
+    cut_closure_areas(b)   # T1199: after every boundary but the length cap, so no area cut lands within its floor
     cut_length(b)
     alias_tidal_mouths(b)
     mark_membership(b)
@@ -1139,30 +1285,24 @@ def cut_braids(b: _Build) -> None:
 
 
 def cut_areas(b: _Build) -> None:
-    """BLANKET AREAS (areas.json): every stream crossing an admin polygon cut at its transitions;
-    membership-only areas just load their polygons.
+    """BLANKET AREAS (areas.json): every stream crossing a first/last polygon cut at its transitions; the closure
+    areas (`cut: clean`) are loaded here and cut after the coast cut (`cut_closure_areas`); membership-only areas just
+    load their polygons.
 
     Reads: fwa, bbox, graph, geoms, chains, fid_index, applied_splits, border_cuts, border_inside.
-    Writes: area_defs, catalog_polys, clean_inside."""
+    Writes: area_defs, catalog_polys, clean_pending, clean_inside (empty until `cut_closure_areas`)."""
     fwa, bbox, graph, geoms, chains, fid_index, applied_splits, border_cuts, border_inside = b.fwa, b.bbox, b.graph, b.geoms, b.chains, b.fid_index, b.applied_splits, b.border_cuts, b.border_inside
     _tick = b.tick
-    # Blanket area closures (areas.json) — cut ALL streams crossing each admin polygon
-    # (national parks, ecological reserves, the Chilkoot trail) at first-enter/last-exit + flag
-    # inside reaches. Runs BEFORE name variants (so cut pieces get named); a no-op where the bbox
-    # hits no such area.
+    # Blanket areas (areas.json) — cut ALL streams crossing each admin polygon and flag inside reaches. Runs BEFORE
+    # name variants (so cut pieces get named); a no-op where the bbox hits no such area.
     from pipeline.atlas.splits.area_splits import (load_area_attrs, load_area_split_defs,
                                                    load_area_polys, resolve_area_splits)
     from pipeline.atlas.splits.area_splits import cut_mode
-    from pipeline.atlas.splits.clean_cut import resolve_clean_cuts
-    from pipeline.atlas.splits.area_catalog import area_id as _area_id
     area_defs = load_area_split_defs()
-    #: {area id: {blk: inside intervals}} — what each CLEAN-cut area's cutter decided. The membership
-    #: pass stamps their stream pieces from these and runs no overlap test on them; first_last areas
-    #: keep the overlap test (both sides) — areas.json _cut_policy.
-    clean_inside: dict[str, dict] = {}
+    #: the CLEAN-cut (closure) areas, in areas.json order, for `cut_closure_areas`: (area def, polygons, scope)
+    clean_pending: list[tuple[dict, dict, dict]] = []
     catalog_polys: dict[str, dict] = {}                # {area_def id: {name: polygon}} for the lazy catalog
     if area_defs:
-        from pipeline.atlas.splits.sectionizer import split_graph_at
         for ad in area_defs:
             polys = load_area_polys(fwa, ad, bbox=bbox)
             if not polys:
@@ -1177,60 +1317,94 @@ def cut_areas(b: _Build) -> None:
                 # `cuts` on each feature narrows the cut to the water the area is about —
                 # blanket for a park, one river for a sign zone drawn across a confluence.
                 scope = {n: a["cuts"] for n, a in load_area_attrs(ad).items() if a.get("cuts")}
-                # every boundary already on the graph, per blue line: an area cut within its
-                # crossing zone of one IS that boundary (`clean_cut.onto_existing`)
-                _existing: dict = {}
-                for _n in graph.nodes.values():
-                    if getattr(_n.kind, "value", _n.kind) != "stream":
-                        continue
-                    for _b in (_n.lower_bound, _n.upper_bound):
-                        if _b is not None:
-                            _existing.setdefault(_n.blk, set()).add(_b.route_measure)
-                _existing = {k: sorted(v) for k, v in _existing.items()}
                 if _mode == "clean":
-                    # CLEAN CUT: one cut per crossing ZONE that changes side, none for a graze; the
-                    # cutter's inside intervals ARE the membership (`clean_cut`, areas.json).
-                    _cc = resolve_clean_cuts(polys, chains, float(ad["rejoin_m"]), scope=scope,
-                                             existing=_existing, bc_inside=border_inside)
-                    apts = _cc.points
-                    for _nm, _spans in _cc.inside.items():
-                        clean_inside[_area_id(ad.get("kind", ad["id"]), _nm)] = _spans
-                    print(f"  area '{ad['id']}': clean cut, rejoin {ad['rejoin_m']} m — "
-                          f"{len(_cc.grazes)} isolated dip(s) ignored")
-                else:
-                    # First-enter/last-exit, as before this round; a crossing on the B.C. outline
-                    # follows the border's single cut, and a cut that would leave a sliver is not
-                    # made (`resolve_area_splits`). Membership stays the overlap test (both sides).
-                    from pipeline.atlas.splits.border import bc_outline as _bc_outline
-                    _outline = _bc_outline(fwa) if border_cuts else None
-                    apts = resolve_area_splits(
-                        polys, chains, term=ad.get("label_term"), scope=scope,
-                        border=((_outline.boundary, border_cuts) if _outline is not None else None),
-                        existing=_existing)
-                # OFFERED IS NOT APPLIED, and the line used to print only the first.
-                #
-                # Cuts are resolved against the FWA CHAINS while the graph has already been
-                # pruned, so an area can be handed a cut on water the graph no longer holds:
-                # blk 360244272 is an unnamed 1.7 km stream inside the Kispiox sign zone, cut
-                # 0 nodes because the leaf prune had removed it. Nothing was harmed — no node,
-                # no binding — but the count said 6 where 3 happened, and a cut that vanishes
-                # without a word is the same shape as the two real bugs this area found.
-                #
-                # Offering is skipped for a blk the graph does not have, and both numbers are
-                # printed so a silent refusal shows up as a gap rather than as nothing.
-                live = {n.blk for n in graph.nodes.values()}
-                apts = [p for p in apts if p.blk in live]
-                before = len(applied_splits)
-                split_graph_at(graph, geoms, apts, fid_index, applied=applied_splits)
-                done = len(applied_splits) - before
-                note = "" if done == len(apts) else f"  ** {len(apts) - done} not applied **"
-                print(f"  area '{ad['id']}': {len(polys)} polygon(s), "
-                      f"{done}/{len(apts)} transition cut(s) applied{note}")
+                    # A CLOSURE AREA is cut after the coast cut (`cut_closure_areas`, T1199): its rule moves a cut
+                    # within its floor of another boundary onto it, so every other boundary must stand first.
+                    clean_pending.append((ad, polys, scope))
+                    print(f"  area '{ad['id']}': {len(polys)} polygon(s), clean cut after the coast cut")
+                    continue
+                # First-enter/last-exit, as before this round; a crossing on the B.C. outline
+                # follows the border's single cut, and a cut that would leave a sliver is not
+                # made (`resolve_area_splits`). Membership stays the overlap test (both sides).
+                from pipeline.atlas.splits.border import bc_outline as _bc_outline
+                _outline = _bc_outline(fwa) if border_cuts else None
+                apts = resolve_area_splits(
+                    polys, chains, term=ad.get("label_term"), scope=scope,
+                    border=((_outline.boundary, border_cuts) if _outline is not None else None),
+                    existing=_standing(graph))
+                _apply_area_cuts(b, ad, polys, apts)
             else:
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), membership-only (no cut)")
         _tick("blanket area splits (cut only)")
     b.area_defs = area_defs
     b.catalog_polys = catalog_polys
+    b.clean_pending = clean_pending
+    b.clean_inside = {}
+
+
+def _standing(graph) -> dict:
+    """Every boundary already on the graph, per blue line: {blk: sorted measures} (stream pieces' bounds)."""
+    _existing: dict = {}
+    for _n in graph.nodes.values():
+        if getattr(_n.kind, "value", _n.kind) != "stream":
+            continue
+        for _b in (_n.lower_bound, _n.upper_bound):
+            if _b is not None:
+                _existing.setdefault(_n.blk, set()).add(_b.route_measure)
+    return {k: sorted(v) for k, v in _existing.items()}
+
+
+def _apply_area_cuts(b: _Build, ad: dict, polys: dict, apts: list) -> None:
+    """Apply one area def's cut points to the graph, and say how many were applied.
+
+    OFFERED IS NOT APPLIED, and the line used to print only the first. Cuts are resolved against the FWA CHAINS while
+    the graph has already been pruned, so an area can be handed a cut on water the graph no longer holds: blk
+    360244272 is an unnamed 1.7 km stream inside the Kispiox sign zone, cut 0 nodes because the leaf prune had removed
+    it. Nothing was harmed — no node, no binding — but the count said 6 where 3 happened, and a cut that vanishes
+    without a word is the same shape as the two real bugs this area found. Offering is skipped for a blk the graph
+    does not have, and both numbers are printed so a silent refusal shows up as a gap rather than as nothing."""
+    from pipeline.atlas.splits.sectionizer import split_graph_at
+    graph = b.graph
+    live = {n.blk for n in graph.nodes.values()}
+    apts = [p for p in apts if p.blk in live]
+    before = len(b.applied_splits)
+    split_graph_at(graph, b.geoms, apts, b.fid_index, applied=b.applied_splits)
+    done = len(b.applied_splits) - before
+    note = "" if done == len(apts) else f"  ** {len(apts) - done} not applied **"
+    print(f"  area '{ad['id']}': {len(polys)} polygon(s), "
+          f"{done}/{len(apts)} transition cut(s) applied{note}")
+
+
+def cut_closure_areas(b: _Build) -> None:
+    """CLOSURE AREAS (`cut: clean`: national parks, ecological reserves, the Chilkoot; T1199, owner 2026-11-26): the
+    clean cut (`clean_cut.resolve_clean_cuts`, rule C2). AFTER the coast cut and the first/last areas, because the
+    rule moves an area cut closer than its floor to another boundary onto that boundary — every boundary but the
+    length cap (which keeps `length_splits.MIN_PIECE_M` from all of them) stands by then. BEFORE the length cap, whose
+    junctions are chosen on the pieces these leave. The cutter's inside intervals ARE the membership.
+
+    Reads: graph, chains, border_inside, clean_pending. Writes: clean_inside (graph, applied_splits in place)."""
+    from pipeline.atlas.splits.area_catalog import area_id as _area_id
+    from pipeline.atlas.splits.clean_cut import resolve_clean_cuts
+    #: {area id: {blk: inside intervals}} — what each CLEAN-cut area's cutter decided. The membership
+    #: pass stamps their stream pieces from these and runs no overlap test on them; first_last areas
+    #: keep the overlap test (both sides) — areas.json _cut_policy.
+    clean_inside: dict[str, dict] = {}
+    from pipeline.atlas.splits import area_edge_calls as _edge_calls
+    # the stretches the owner called edge water (`waters/area_edge_calls.json` accepted `closed`): inside, whatever
+    # the crossings say (the area-cut gate's G6 names the ones the cutter would leave open)
+    _closed = _edge_calls.closed_by_area(_edge_calls.load())
+    for ad, polys, scope in getattr(b, "clean_pending", ()):
+        _forced = {_nm: _closed[_aid] for _nm in polys
+                   if (_aid := _area_id(ad.get("kind", ad["id"]), _nm)) in _closed}
+        _cc = resolve_clean_cuts(polys, b.chains, scope=scope, existing=_standing(b.graph),
+                                 bc_inside=b.border_inside, forced=_forced)
+        for _nm, _spans in _cc.inside.items():
+            clean_inside[_area_id(ad.get("kind", ad["id"]), _nm)] = _spans
+        _st = ", ".join(f"{k} {v}" for k, v in sorted(_cc.stats.items())) or "nothing joined, grown or moved"
+        print(f"  area '{ad['id']}': clean cut (edge band + floor) — {len(_cc.grazes)} isolated dip(s) ignored; {_st}")
+        _apply_area_cuts(b, ad, polys, _cc.points)
+    if getattr(b, "clean_pending", None):
+        b.tick("closure area cuts")
     b.clean_inside = clean_inside
 
 
@@ -1377,7 +1551,13 @@ def cut_shores(b: _Build) -> None:
         n = graph.nodes[nid]
         if n.kind == NodeKind.stream and n.blk and (n.blk not in mouth_node or n.down_m < mouth_node[n.blk].down_m):
             mouth_node[n.blk] = n
-    ends = sorted(bk for bk, n in mouth_node.items() if not graph.down_adj.get(n.node_id) and bk in chains)
+    # A LINE ENDING IN THE SEA: nothing leaves it at its mouth (`shore.leaves_at_mouth`). Not "its lowest piece has no
+    # edge out": since the closure areas are cut after the coast cut (T1199), a lowest piece can hold a distributary
+    # leaving kilometres up, and the line was no longer seen ending in the sea (Lost Shoe, Camper, Schmidt, Clanninick).
+    _view = _bs.View(graph, geoms)
+    _leaves = _shore.edge_leave_measures(graph, geoms, _view)
+    ends = sorted(bk for bk, n in mouth_node.items()
+                  if bk in chains and not _shore.leaves_at_mouth(graph, n, _leaves, _coast.STUB_M))
     sea_mouth = frozenset(bk for bk, s in zip(ends, cg.in_sea([shapely.get_point(chains[bk].geometry, 0) for bk in ends])) if s)
     e1450 = _coast.edge1450_tops(b.fids)
     cache: dict = {}
@@ -1398,11 +1578,9 @@ def cut_shores(b: _Build) -> None:
     if now_governed:
         print(f"  coast: {len(now_governed)} owner-ruled line(s) are governed by a DFO-written boundary now: {now_governed[:5]}")
         held = {k: v for k, v in held.items() if k not in governed}
-    _view = _bs.View(graph, geoms)
     pts, whole, rows = _coast.coast_rule(graph, tidal=tidal, e1450=e1450, edge=edge, sea_mouth=sea_mouth,
                                          governed=governed, held=held,
-                                         existing=_shore.standing_boundaries(graph),
-                                         leaves_at=_shore.edge_leave_measures(graph, geoms, _view))
+                                         existing=_shore.standing_boundaries(graph), leaves_at=_leaves)
     out = Path(args.out)
     # THE OWNER'S RULINGS APPLIED: every row of the held file, as written
     owner_rows = [{**{k: v for k, v in held[bk].items()}, "blk": bk} for bk in sorted(held)]
@@ -1509,6 +1687,15 @@ def mark_membership(b: _Build) -> None:
     # the SOURCE that made it can be fixed. FWA's own short pieces are not cuts and are not counted.
     from pipeline.atlas.splits.sliver_gate import check as _sliver_check
     _sliver_check(graph, _short_before_cuts, _straddlers, Path(args.out))
+    # THE AREA-CUT GATE (T1199). ASSERTS ONLY, like the sliver gate: each closure area's built pieces against its
+    # polygon — no member with more than floor - band of line beyond the edge band, no open piece with line deeper
+    # than 5 m inside, no piece under the floor an area cut made (area_cut_gate.json, written pass or fail).
+    if catalog_polys:
+        from pipeline.atlas.splits import area_cut_gate as _area_gate
+        from pipeline.atlas.splits import area_edge_calls as _edge_calls
+        _area_gate.check(graph, geoms, _area_gate.closure_areas(area_defs, catalog_polys), Path(args.out),
+                         calls=_edge_calls.load())
+        _tick("area-cut gate")
     # THE CLOSE-PAIR REPORT (T179, owner 2026-10-25): every curated cut 5-25 m from any other boundary
     # (curated, gauge, area, border, length, lake edge, line end) -> close_pairs.json. A report, not a gate.
     from pipeline.atlas.splits.close_pairs import report as _close_pairs
@@ -1559,7 +1746,7 @@ def write_graph(b: _Build) -> None:
     # (T1029) each stream piece's compass banks from its own final geometry, before graph.pkl is written
     from pipeline.atlas.graph.graph import stamp_drawn_banks
     print(f"  drawn banks stamped on {stamp_drawn_banks(graph, geoms):,} stream pieces")
-    write_artifact(graph, str(out / "graph.pkl"), input_hashes=b.input_hashes)
+    write_artifact(graph, str(out / "graph.pkl"), input_hashes=b.input_hashes, build=getattr(b, "build_facts", None))
     write_artifact(geoms, str(out / "geometries.pkl"), input_hashes=b.input_hashes)
     b.out = out
 
@@ -1574,14 +1761,15 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     stamped after every cut (`mark_membership`), so no closure area is an item yet and `outside_area_items`, which
     refuses a missing area, is left out; no tidal answer reads an area item.
 
-    Reads: splits, lake_names, wetland_names, _nv_all, wb_polys, _mined, added_lake_parts, area_defs."""
+    Reads: splits, lake_names, wetland_names, _nv_all, wb_polys, _mined, added_lake_parts, area_defs, city_mouths."""
     from pipeline.atlas.registry import (add_boundary_confidence, add_curated_wbk_items, add_lake_parts,
                                          add_waterbody_items, build_registry as _items, outside_area_items)
     info: dict = {}
     # `build_registry` reads overrides.json itself for the waterbody keys a curator pinned by
     # hand, so an FWA-unnamed water a regulation names still becomes an item. See
     # `pipeline.atlas.registry.build.pinned_by_override`.
-    registry = _items(graph, gpkg=b.args.gpkg)       # the drainage areas read the build's own gpkg (T667 slice 8)
+    registry = _items(graph, gpkg=b.args.gpkg,       # the drainage areas read the build's own gpkg (T667 slice 8)
+                      city_mouths=b.city_mouths)    # T1246: the city creeks' own mouths take their Areas
     info["named"] = len(registry)
     # T207: each curated boundary carries its split's authored confidence (display only)
     registry = add_boundary_confidence(registry, b.splits)
@@ -1682,7 +1870,13 @@ def build_registry(b: _Build) -> None:
     (out / "lake_loop_report.json").write_text(json.dumps(_lrep, indent=1) + "\n", encoding="utf-8")
     _mined_rep = _info["mined_report"]
     print(f"  mined names: {_mined_rep['labelled']} on an existing item, {_mined_rep['own_items']} item(s) of "
-          f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent)")
+          f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent) -> mined_names_report.json")
+    # EACH ONE NAMED (T1242 review): an accepted name whose line is not in the atlas is listed by blue line and name, in
+    # the log and the atlas record, never only counted (non-fatal: the 12 of 2026-11-27 predate the loop pass)
+    for _a in _mined_rep.get("absent_named") or []:
+        print(f"    not in the atlas: {', '.join(_a['blks']) or '(no blue line)'}  {' / '.join(_a['names'])}")
+    (out / "mined_names_report.json").write_text(json.dumps(_mined_rep, indent=1, sort_keys=True) + "\n",
+                                                 encoding="utf-8")
     if added_lake_parts:
         print(f"  {len(added_lake_parts)} curated lake part(s) name their lake (part_of)")
     _tick("build_registry")

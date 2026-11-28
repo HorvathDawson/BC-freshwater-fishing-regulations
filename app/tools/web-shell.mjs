@@ -37,6 +37,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { createHash } from "node:crypto";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { withIconLinks } from "./web-icons.mjs";
 import { FONT_DIR, FONTS_RECORD, servedPath } from "./emit-web-fonts.mjs";
 
@@ -174,6 +175,26 @@ export function shellFonts(root) {
 }
 
 /**
+ * (T1252) THE WEB MAP'S GL WORKER, checked in the export: maplibre-gl 6 starts its worker from a file of its own, which
+ * Metro copies into `public/maplibre-gl-<version>/` (apps/mobile/gl-worker.js) and the export carries at the site's root.
+ * Refused: an export without it, or with files not the installed GL's byte for byte. Without them the map draws no tile.
+ */
+export function shellGlWorker(root) {
+  const { glWorkerDir, glWorkerFiles } = createRequire(import.meta.url)("../apps/mobile/gl-worker.js");
+  // the GL the web map's package resolves (`packages/map` declares maplibre-gl)
+  const pkg = createRequire(here("../packages/map/package.json")).resolve("maplibre-gl/package.json");
+  const { version } = JSON.parse(readFileSync(pkg, "utf8"));
+  const dist = join(pkg, "../dist");
+  const dir = glWorkerDir(version);
+  for (const f of glWorkerFiles(dist)) {
+    const got = join(root, dir, f);
+    if (!existsSync(got)) throw new Error(`web-shell: the export has no ${dir}/${f}: the web map would draw no tile (apps/mobile/gl-worker.js runs when Metro starts)`);
+    if (!readFileSync(got).equals(readFileSync(join(dist, f)))) throw new Error(`web-shell: ${dir}/${f} is not maplibre-gl ${version}'s own: export again`);
+  }
+  return `/${dir}/maplibre-gl-worker.mjs`;
+}
+
+/**
  * (T910, owner 2026-11-19 ~11:40) THE HOME PAGE'S DESCRIPTION: `/` had none, the one SEO loss on production (Lighthouse
  * 92). The owner's store words (app/store-listing/listing.json, `websiteHomeDescription`: the one source of the store words, T1072), under 155 characters as the site's pages are.
  * The water pages take it out: their own description is the page's (tools/seo `appDocument`).
@@ -188,15 +209,16 @@ export function withHomeHead(html) {
   return html.replace(HOME_DESCRIPTION_TAG, "").replace(/<\/title>/, `</title>${HOME_DESCRIPTION_TAG}`);
 }
 
-/** Put the shell into a web export in place: frame 0 inlined, the paint first, the faces. (T1011's home link row was dropped, T1045: Google's hidden-links policy.) */
+/** Put the shell into a web export in place: frame 0 inlined, the paint first, the faces, GL's worker checked. (T1011's home link row was dropped, T1045: Google's hidden-links policy.) */
 export function shellExport(dir, f = cohoFacts()) {
   const root = resolve(dir);
   const frame0 = Object.fromEntries(THEMES.map((t) => [t, frame0Uri(t)]));
   const fonts = shellFonts(root);
+  const glWorker = shellGlWorker(root);
   const index = join(root, "index.html");
   // (T1042) the home page names the PNG icons: Google reads a site's favicon from it
   writeFileSync(index, withIconLinks(withHomeHead(paintFirst(withBootCoho(readFileSync(index, "utf8"), bootCoho(f, { frame0 }))))));
-  return { frame0, fonts };
+  return { frame0, fonts, glWorker };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

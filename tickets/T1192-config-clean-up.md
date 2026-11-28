@@ -87,7 +87,8 @@ Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
 
 - [x] 2026-11-26 — Strip the existing notes' ticket ids and dates too: "Yes, strip them too (Recommended)" (PR 8);
   the two stale notes were fixed with the renames (PR 4).
-- [ ] 2026-11-27 — AGENTS rule 36 says "All paths come from config.yaml"; since #358 only the roots, the FWA gpkg name
-  and `atlas_build` do (every other name: `pipeline/common/curated.py`). His wording to change; default: left as it is.
+- [x] 2026-11-27 — AGENTS rule 36 said "All paths come from config.yaml"; since #358 only the roots, the FWA gpkg name
+  and `atlas_build` do (every other name: `pipeline/common/curated.py`) → "Reword as proposed (Recommended)"
+  (2026-11-27); the rule now names `pipeline.common.curated`.
 - [ ] 2026-11-27 — The review tool's tunables (backups kept 500 / 60 days / 120 s burst, debounces): a `review_app:`
   block in config.yaml, or code constants (the table in tools/curation-review/API.md)? Default: kept as code constants.

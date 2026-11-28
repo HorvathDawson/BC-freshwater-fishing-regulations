@@ -1,4 +1,6 @@
-"""T468: a lake row's through-river above the lake is its tributary when the river has no row of its own.
+"""T468, T1177: a lake row's through-river above the lake is its tributary — since T1177 (owner 2026-11-26, "everything in
+is a tributary and only shouldnt be if an exception is listed saying otherwise") whether or not it has a row of its own;
+T468 took it only when it had none.
 
 Owner, 2026-11-07: "powell lake is closed including tributaries in november but powell river (above the
 lake) is not showing as closed". FWA draws the Powell River down through Powell Lake on ONE blue line
@@ -76,11 +78,12 @@ def test_an_unrowed_through_river_goes_with_the_lake(powell):
                       "negated": False, "joined": 2}]
 
 
-def test_a_through_river_with_a_row_of_its_own_stays_out(powell):
-    """Koocanusa / Kinbasket: the river above has rows of its own, and they govern it."""
+def test_a_through_river_with_a_row_of_its_own_is_a_tributary_too(powell):
+    """T1177 (O2, Upper Chehalis River; O7, Forsyth Creek above Connor Lake): a row of its own no longer keeps the river
+    out — it gets both rows (RULINGS T4); only a printed exception keeps it out. Its own row is still reported."""
     got, diags = _bind(powell, owned={"gnis:R": ("r2:powell_river@2-12",)})
-    assert got == {"lake:L", "C"}
-    assert diags[0]["own_row"] == ["r2:powell_river@2-12"] and diags[0]["joined"] == 0
+    assert got == {"lake:L", "C", "R:up", "RT"}
+    assert diags[0]["own_row"] == ["r2:powell_river@2-12"] and diags[0]["joined"] == 2
 
 
 def test_the_rules_words_keep_it_out(powell):
@@ -100,9 +103,12 @@ def test_a_lake_at_the_top_of_a_river_reach_still_ends_it(powell):
 
 
 def test_mutation_pin(powell, monkeypatch):
-    monkeypatch.setattr(T, "A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY", False)
-    got, diags = _bind(powell)
-    assert got == {"lake:L", "C"} and diags == []
+    """False = T468's rule: a through-river with a row of its own stays out (an unrowed one still comes in)."""
+    monkeypatch.setattr(T, "EVERY_INFLOW_OF_A_RULES_LAKE_IS_ITS_TRIBUTARY", False)
+    got, diags = _bind(powell, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    assert got == {"lake:L", "C"} and diags[0]["joined"] == 0
+    got, _ = _bind(powell)
+    assert {"R:up", "RT"} <= got
 
 
 # ---------------------------------------------------------------- T743: a DFO lake place (Redsand Lake)
@@ -120,14 +126,14 @@ def _dfo_rule(**kw):
             "includes_tributaries": True, JOINING_WATER_STAYS_OUT_KEY: True, **kw}
 
 
-def test_a_dfo_lake_places_through_river_stays_out(powell):
+def test_a_dfo_lake_places_through_river_is_its_tributary_as_the_books_is(powell):
+    """T1177 (owner 2026-11-26: "unless you have exact dfo words saying what they mean by tributaries we should have a
+    single tributary logic"; DFO prints none): a DFO lake place walks as a book row does — T743 kept it out."""
     g, reg = powell
     b, d = build_reach(DFO_ROW, _dfo_rule(), reg, g)          # owned None: how `reach.dfo_salmon` resolves a place
-    got = set(b.sections)
-    assert got == {"lake:L", "C"}, "the lake and its own inflows; never the river above it and its basin"
+    assert set(b.sections) == {"lake:L", "C", "R:up", "RT"}
     assert [x.payload for x in d if x.kind == "through_river"] == [
-        {"lake": "lake:L", "inlet": "R:up", "water": "Powell River", "own_row": [], "negated": False, "joined": 0,
-         "stays_out": True}]
+        {"lake": "lake:L", "inlet": "R:up", "water": "Powell River", "own_row": [], "negated": False, "joined": 2}]
 
 
 def test_a_dfo_lake_place_whose_words_name_the_river_takes_it(powell):
@@ -142,12 +148,14 @@ def test_a_lake_row_without_the_dfo_key_is_unchanged(powell):
     assert {"R:up", "RT"} <= got
 
 
-def test_dfo_through_river_mutation_pin(powell, monkeypatch):
+def test_dfo_one_logic_mutation_pin(powell, monkeypatch):
+    """False = T743: a DFO place's through-river stays out unless its words name it."""
     from pipeline.atlas.reach import build as B
-    monkeypatch.setattr(B, "DFO_THROUGH_RIVER_STAYS_OUT", False)
+    monkeypatch.setattr(B, "ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES", False)
     g, reg = powell
-    b, _ = build_reach(DFO_ROW, _dfo_rule(), reg, g)
-    assert {"R:up", "RT"} <= set(b.sections), "False = every DFO through-river goes with the lake, as before"
+    b, d = build_reach(DFO_ROW, _dfo_rule(), reg, g)
+    assert set(b.sections) == {"lake:L", "C"}
+    assert [x.payload.get("stays_out") for x in d if x.kind == "through_river"] == [True]
 
 
 # ---------------------------------------------------------------- T772: the through-river's side channels stay out too
@@ -171,8 +179,12 @@ def braided(powell):
     return g, reg
 
 
+NOT_THE_RIVER = dict(CLOSURE, verbatim="No Fishing Nov 1-Mar 31, not including the Powell River")
+
+
 def test_a_through_river_that_stays_out_stays_out_with_its_side_channels(braided):
-    got, diags = _bind(braided, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    """Kept out by the rule's printed words (since T1177 a row of its own keeps nothing out)."""
+    got, diags = _bind(braided, rule=NOT_THE_RIVER)
     assert got == {"lake:L", "C"}, "the side channel R:ch and the creek CT feeding it are the river's, not the lake's"
     assert diags[0]["channels_out"] == 1
 
@@ -180,20 +192,23 @@ def test_a_through_river_that_stays_out_stays_out_with_its_side_channels(braided
 def test_an_unrowed_through_river_still_comes_in_whole(braided):
     got, _ = _bind(braided)
     assert {"R:up", "RT", "R:ch", "CT"} <= got
+    got, _ = _bind(braided, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    assert {"R:up", "RT", "R:ch", "CT"} <= got, "T1177: rowed or not, the river comes in with its side channels"
 
 
 def test_t772_mutation_pin(braided, monkeypatch):
     from pipeline.atlas.reach import build as B
     monkeypatch.setattr(B, "A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS", False)
-    got, _ = _bind(braided, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    got, _ = _bind(braided, rule=NOT_THE_RIVER)
     assert {"R:ch", "CT"} <= got
 
 
 @pytest.mark.needs_reach_run
 @pytest.mark.needs_atlas
-def test_kitsumkalum_lake_takes_no_piece_of_the_kitsumkalum_river(request):
-    """On the built run (T772): "Kitsumkalum Lake, including tributaries" (DFO Region 6) binds no piece of the
-    Kitsumkalum River (gnis:3942) — not its main line above the lake (T743) and not its 16 side channels (14.6 km)."""
+def test_kitsumkalum_lake_takes_the_kitsumkalum_river_above_it(request):
+    """On the built run (T1177, one tributary logic; T743 and T772 kept it out): "Kitsumkalum Lake, including
+    tributaries" (DFO Region 6) binds the Kitsumkalum River (gnis:3942) above the lake, the river's side channels
+    entering the lake with it, as a book lake row's walk does."""
     import gzip
     import json
     from pipeline.tests import under_test
@@ -207,7 +222,7 @@ def test_kitsumkalum_lake_takes_no_piece_of_the_kitsumkalum_river(request):
     with gzip.open(run, "rt", encoding="utf-8") as f:
         lake = next(set(r["sections"]) for r in map(json.loads, f)
                     if r["location_id"] == "6:kitsumkalum-lake:including-tributaries")
-    assert lake and not lake & river, sorted(lake & river)
+    assert lake and lake & river
 
 
 # ---------------------------------------------------------------- T784: the words come from the place, not a hand-built rule
@@ -233,6 +248,6 @@ def test_a_dfo_place_whose_own_words_name_the_through_river_takes_it(powell):
     assert rules[0]["extent_text"] == "including the Powell River above the lake"
     b, _ = build_reach(entry, rules[0], reg, g)
     assert {"R:up", "RT"} <= set(b.sections)
-    entry, rules = _dfo_place("including tributaries")                    # words that do not name it: stays out
+    entry, rules = _dfo_place("including tributaries")                    # T1177: in too, by the one logic
     b, _ = build_reach(entry, rules[0], reg, g)
-    assert set(b.sections) == {"lake:L", "C"}
+    assert {"R:up", "RT"} <= set(b.sections)

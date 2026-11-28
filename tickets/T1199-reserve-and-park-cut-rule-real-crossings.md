@@ -1,10 +1,10 @@
 # T1199 — Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside
 
-Status: OPEN — ruled by the owner; HELD for the loop-removal trial (T1242), his answer of 2026-11-27; owner: see ## Owner
+Status: OPEN — ruled by the owner; the opens list answered 2026-11-27 ("Merge with the list; close both edge stretches (Recommended)"); lands in the 0.10.0 re-cut.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — held for the loop-removal trial (T1242, owner 2026-11-27); owner: see ## Owner | — | held: the T1242 trial report, then the rule's list and the trial in one look; the rule is built on fix/T1199-area-cut-rule (not merged) |
+| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — in the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | the PR into the 0.10.0 re-cut; that build's area-cut gate proves the two accepted calls |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim. On the cut rule: "we need to figure out a way that everything
 get simplified a lot.... like the skeena river er example is crazy... we want to maybe do braid simplification here
@@ -49,7 +49,25 @@ per rule; the owner has seen the opens list.
 Depends: the cut rule lands before T1240's folds can be checked. Severity: medium-high (answers change on named
 rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the data and release chat.
 
+## Build notes (lane E, 2026-11-26)
+- Built as `clean_cut.decide_area`; side builds pass the area-cut gate (no piece under 100 m made by an area cut).
+- A graze (an inside run under 5 m) is dropped BEFORE the band joins anything: a line beside the edge stays outside.
+  Gate G5 refuses a member run with no 5 m inside run, unless the run lies wholly inside (`RUN_WHOLLY_INSIDE_M`:
+  FWA's 1.5-3.8 m lines between lakes in a park). G6 stops the build on an open line hugging the edge for over 100 m
+  with 2+ grazes (a boundary river drawn wiggling on the edge). The pre-check finds two, both opened by the graze fix:
+  the Beaverfoot in Yoho (123 m within the band, 2 grazes up to 0.3 m) and a Klanawa ER creek (103 m, 2 grazes up to
+  3.3 m). Owner 2026-11-27: "Merge with the list; close both edge stretches (Recommended)"; then, for the Klanawa creek shown its picture: "Stop at 370 m". ACCEPTED `closed` in
+  `waters/area_edge_calls.json`: Beaverfoot 11,976.2-12,099.2 m (123.0 m); Klanawa 318.3-370.0 m (51.7 m, as today; 370.0-421.6 m
+  stays open). Pre-check G1-G6 0, no stale row; against live: opens 12.50 km in 36 stretches, closes 14.74 km in 272.
+- Strathcona's rule binds 9.7 m more (Megin River ER): the floor grew the reserve's 9.7 m mouth piece to 100 m, merged
+  with park water; the park's overlap membership now holds the whole piece.
+- Coast: moving the closure cuts after the coast cut hid four sea ends (a channel leaving the lowest piece 5-9 km up:
+  Schmidt, Lost Shoe, Camper, Clanninick). Fixed in cce1cd50a (`shore.leaves_at_mouth`): the four rows are back
+  byte-identical, and 488 more lines are now recorded "not cut: the mouth is the coast crossing"; coast cuts and
+  tidal water unchanged; records only (no consumer reads row counts).
+- Follow-up: two constants are both `STUB_M` (`coast.STUB_M` 25 m, `tolerances.STUB_M` 100 m); rename one later.
+
 ## Owner
 
-- [ ] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him.
+- [x] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him. Answered 2026-11-27: "Merge with the list; close both edge stretches (Recommended)"; the Klanawa creek, after its picture: "Stop at 370 m".
   - 2026-11-27: the lane's list (26 stretches, 12.43 km open, plus 252 m on 10 lines that only graze an area; 254 stretches, 14.74 km close; figures may move up to 0.25 km) was put to him. His answer, verbatim: "Hold for the loop-removal trial". Reading: the rule and its list wait for the T1242 trial; he sees both in one look.

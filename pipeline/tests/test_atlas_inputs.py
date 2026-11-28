@@ -91,6 +91,15 @@ def test_a_skipped_or_unrecorded_input_is_behind(tmp_path, gpkg):
     assert "records no digest" in got[1]
 
 
+def test_an_atlas_recorded_before_an_input_was_listed_says_so(tmp_path, gpkg):
+    """(T1229) An atlas recorded before an input was listed (`regulations.book_name_links`, T1242's
+    `waters.loop_exemptions`) is behind on it, saying why: never a crash, never "changed"."""
+    now = I.digests(_src(gpkg))
+    got = I.behind(_atlas(tmp_path, {k: v for k, v in now.items() if k not in I.LISTED_AFTER}), now)
+    assert got == [f"{I.curated_path(key).name} ({key}): the atlas was recorded before this input was listed "
+                   f"({I.LISTED_AFTER[key]}) — rebuild: {I.REBUILD}" for key in I.LISTED_AFTER]
+
+
 def test_build_paths_follow_the_build_flags(gpkg):
     import argparse
     a = argparse.Namespace(gpkg=str(gpkg), coast_gpkg="/x/coast.gpkg", no_splits=True, splits=None,
@@ -188,8 +197,12 @@ def test_the_record_moves_only_the_meta_file(tmp_path):
 
 #: modules under pipeline/atlas that are not the build: promote reads the corpus to check the rules' boundary ids
 NOT_THE_BUILD = ("promote.py",)
-#: modules the atlas build imports from outside pipeline/atlas to read a curated file
-INDIRECT = ("pipeline/tools/slough_calls.py", "pipeline/gauges/matches.py", "pipeline/gauges/review.py")
+#: modules the atlas build imports from outside pipeline/atlas to read a curated file. (T1229) `pipeline/atlas/reach/` is
+#: the reach stage, skipped above; the atlas imports `covered` (its `DEFAULT_OVERRIDES`, `pinned_by_override`), `extent`,
+#: `models` and the package from it, and only `covered` names a curated key. `test_stage_content_keys.py` scans every
+#: module the atlas really imports.
+INDIRECT = ("pipeline/tools/slough_calls.py", "pipeline/gauges/matches.py", "pipeline/gauges/review.py",
+            "pipeline/atlas/reach/covered.py")
 
 
 def test_every_curated_key_the_atlas_build_names_is_an_input_or_a_listed_non_input():

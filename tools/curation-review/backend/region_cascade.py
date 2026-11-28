@@ -458,7 +458,10 @@ if __name__ == "__main__":
     import sys
     if "--basins" in sys.argv:
         from pipeline.atlas.splits import pfma_drainage as P
-        b = P.basin_areas(areas=range(1, 200))
+        from pipeline.common.curated import CURATED
+        # T1246: the city creeks' own mouths, as the atlas build gives them (the same added-streams file it merges)
+        streams = json.loads(CURATED.waters.added_streams.read_text(encoding="utf-8"))["streams"]
+        b = P.basin_areas(areas=range(1, 200), city_mouths=P.city_tidal_mouths(streams))
         BASINS.parent.mkdir(parents=True, exist_ok=True)
         BASINS.write_text(json.dumps(b))
         print(f"{len(b):,} basins -> {BASINS}")

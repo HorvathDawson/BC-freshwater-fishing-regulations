@@ -169,7 +169,7 @@ def guide_how_to_read() -> dict:
                       "and `runs`: where each runs, between which cuts); its "
                       "`outside_bc` count; `part_of` for a lake part; `steelhead` (the "
                       "parts' roll-up), `steelhead_source` (why it is known: "
-                      "regulations and/or the curated list) and `steelhead_rows`; and `tidal` on the one tidal water — see "
+                      "regulations, the curated list and/or a Pacific stream) and `steelhead_rows`; and `tidal` on the one tidal water — see "
                       "`field_dictionary.water`",
             "splits": "every cut a run can end at, by id: its name, and where it stands "
                       "(water and km from the mouth) — only the lake edges something names "
@@ -991,7 +991,7 @@ def guide_placement(d: dict) -> dict:
         "waters_with_tidal_sections": sum(1 for w in d["waters"].values() if w.get("tidal")),
         "steelhead": "A water's `steelhead` (and each part's) says how sure we are that steelhead "
                      "are present: " + STEELHEAD_TEXT + " A water's `steelhead_source` says why it is "
-                     "known (\"regulations\", \"curated list\", or both) and `steelhead_rows` "
+                     "known (\"regulations\", \"curated list\", \"Pacific stream\", or several) and `steelhead_rows` "
                      "which steelhead rows bind it. IN THE BUNDLE the same fact is "
                      "`section_steelhead.code` (a view): 1 = \"known\", 2 = \"possible\", no row "
                      "= absent; `steelhead_water` (a view) is the book's steelhead streams.",

@@ -13,17 +13,21 @@
  "streams": [
   {"blk": 900000001, "gnis_id": 990001, "name": "Fixture River", "wsc": "", "order": 3, "magnitude": 4,
    "vertices": [[-1000, 0], [45000, 0]], "z": [0, 400],
-   "breaks": [6000, 11000, 16000, 19000, 25000, 26000, 27000, 31000, 33000, 37000],
+   "breaks": [3000, 5000, 6000, 11000, 16000, 19000, 25000, 26000, 27000, 31000, 33000, 37000],
    "waterbodies": [{"wbk": 800000001, "from": 16000, "to": 19000, "edge_type": 1050},
                    {"wbk": 800000006, "from": 25000, "to": 27000, "edge_type": 1050}]},
   {"blk": 900000005, "gnis_id": 990001, "name": "Fixture River", "wsc": "", "order": 3, "magnitude": 4,
    "vertices": [[32000, 0], [34000, 500], [36000, 0]], "z": [285, 320], "breaks": [], "side": "LEFT"},
+  {"blk": 900000007, "gnis_id": 990001, "name": "Fixture River", "wsc": "", "order": 3, "magnitude": 4,
+   "vertices": [[2000, 0], [3000, -60], [4000, 0]], "z": [26, 43], "breaks": [], "side": "RIGHT"},
   {"blk": 900000002, "gnis_id": 990002, "name": "Mock Creek", "wsc": "222222", "order": 2, "magnitude": 2,
    "vertices": [[10000, 0], [10000, 8000]], "z": [60, 300], "breaks": [4000]},
   {"blk": 900000003, "gnis_id": null, "name": null, "wsc": "222222-500000", "order": 1, "magnitude": 1,
    "vertices": [[10000, 4000], [13000, 4000]], "z": [150, 250], "breaks": []},
   {"blk": 900000004, "gnis_id": 990004, "name": "Stub Creek", "wsc": "666666", "order": 1, "magnitude": 1,
-   "vertices": [[30000, 0], [30000, -6000]], "z": [250, 500], "breaks": []}
+   "vertices": [[30000, 0], [30000, -6000]], "z": [250, 500], "breaks": []},
+  {"blk": 900000006, "gnis_id": 990006, "name": "Northward Creek", "wsc": "", "wsc_root": "200-990006", "order": 1,
+   "magnitude": 1, "vertices": [[38000, 12000], [38000, 14500]], "z": [700, 900], "breaks": []}
  ],
  "waterbodies": [
   {"wbk": 800000001, "layer": "lakes", "gnis_id": 990101, "name": "Fixture Lake", "wsc": "", "box": [15000, -800, 18000, 800]},

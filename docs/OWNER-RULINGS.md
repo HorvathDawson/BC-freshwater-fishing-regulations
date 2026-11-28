@@ -210,6 +210,12 @@ upstream of x is not included. lakes include all. and tribuatries stack so that 
 conflict (for example multiple quotas on same species upstream is the one that takes over) if that makes sense". Read as: the walk climbs through every lake; lakes
 include all inflows; a stream "from x to y, incl. tributaries" does not include itself above x; tributary rules stack and on a conflict about the same item the MOST UPSTREAM row wins.
 A walk change: needs a reach rerun and a rule-bindings diff (T1177 item 10).
+- **Merge order, the walk and the gear wording (2026-11-27 ~10:45):** "Wording fix first, then the walk, both in 0.10.0 (Recommended)" (T1249 first, then PR #365, T1177).
+- **A lake's printed exception stops the rows of the lakes below it (2026-11-27 ~10:45, Kinbasket and Buttle):** "wait so you mean kibasket lake will stop other tributaries from below the lake from walking up as well as not havign its own walk up columbia? thatr seems like a fair assumption and add to gotcha" (RULINGS T19, GOTCHAS item 6).
+- **Kootenay Lake's exception (2026-11-27 ~11:00, with the map):** "the does not include exception really intends to means upstream of lake (all upstream)": all of the Kootenay above the lake stays out, as built (RULINGS T19).
+- **Whiteswan's feeders above the lake (2026-11-27 ~11:00):** "Include them: No Fishing all year (Recommended)" (RULINGS T19, E26).
+- **Upper Arrow climbs to Kinbasket (2026-11-27):** "it should climb all the way to kinbasket lake i think?"; confirmed: "yes it doesnt matter anyways because lake revelstoke has same regs for its tributaries but yes this is what we do" (RULINGS T19).
+- **DFO places walk like the book (2026-11-27):** "Yes, in 0.10.0" (built on branch `fix/T1177-dfo-one-logic`; RULINGS T19).
 
 ### OPEN, not ruled
 - **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
@@ -242,7 +248,7 @@ His words, verbatim. Answers given in the planning chat and relayed verbatim to 
 ### Reserve and park cut rule (T1199, T1240-T1242)
 - **Edge water along a reserve or park:** "Closed, like a boundary river (Recommended)".
 - **A stream beside an area that never crosses:** "Never inside (Recommended)". With his design words: "also if a stream never enters a eco area at all then it will never get cut and will not get considered inside. it must cross at least once or be very close. ... we dont want tiny artifacts left because of the 25m or whatever distance rule."
-- **Timing:** "In the 0.10.0 re-cut (Recommended)". The cut rule built is T1199 (real crossings, 50 m band, no piece under 100 m).
+- **Timing:** "In the 0.10.0 re-cut (Recommended)". The cut rule built is T1199 (real crossings, 50 m band, no piece under 100 m). **The opens list and the two edge stretches G6 named (2026-11-27):** "Merge with the list; close both edge stretches (Recommended)": T1199 merges into the 0.10.0 re-cut, the Beaverfoot River along Yoho (123 m) is closed as edge water; for the creek along the Klanawa River Ecological Reserve, shown its picture: "Stop at 370 m" (closed to 370.0 m as today, its last 51.6 m open as today) (`waters/area_edge_calls.json`). Both came after his night answer "Hold for the loop-removal trial" (Return batch 4).
 - **The water option:** "D: simplify the water itself"; late folds: "Hold the re-cut for all of them"; loop removal: "Run the loop-removal trial first, then I decide" (T1242). Snehumption's fold: "i need to see on map for how to handle it" (T1240).
 
 ### Tributary and place picks of the one-offs batch (data chat)
@@ -260,6 +266,7 @@ His words, verbatim. Answers given in the planning chat and relayed verbatim to 
 - **Lake zone cuts (T1180):** "Every line or bay mouth, both pieces at least 0.5 km²: 11 cuts (Recommended)"; approximate edges: "Keep them as approximate marks until located". The card map and search: NOT approved: "more design please just this changes a lot so i want to make it more clear because it effects streams too..." (round 3 designs the card's map for lakes and streams as whole options).
 - **Lake zones, his latest words (T1180):** "in terms of the lake zones and cuts etc that is a big change and i dont think we should implement it yet we want to really prepare how it is going to happen first so weshould go through the rest of the prep I mention and we really want to nail down a few proposal of how it qworks with the current workflow and menus. with the card reg condition map items and the actual map." Plain reading: no build of lake zone cuts until he picks a whole proposal; the design lane prepares 2-4 whole proposals covering the card, the regulations view, the conditions map items and the map.
 - **The water option D:** "Run the loop-removal trial first, then I decide" (T1242); the parts C and D share are built now.
+- **Braid loops (T1242, 2026-11-27):** "i think i changed my mind for now we should just save info here and only remvoe the loops with no stream connecting it (if it isnt something like the stave spawning channels or following our other rules for when they cant be removed...) but we will leave loops that have a stream connecting for now. it is too much to figure out right now". Reading: loops no creek flows into go in the 0.10.0 map build, any size, unless named or kept by structure (E31). Loops with a creek: left for after 0.10.0 (T1260, the planning chat's ticket). The Goat River side channel: "it stays by 150m rule ...".
 - **While he is away:** "Collect everything; nothing that opens water or changes a look merges without me (Recommended)".
 - **The two T1177 branches (one-offs PR #330, spring closures PR #339):** "Yes, merge both (Recommended)".
 - **Away rule from now on** (replaces the line above): "Yes, approved items merge (Recommended)": anything he already picked or answered merges after its full check and a second agent's review; only NEW openings, new looks and open questions wait for him.
@@ -357,6 +364,31 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   Reading: Turner Creek becomes its own water (T1246). The data chat then found the cause is Noons Creek's watershed
   code on the city line, not an alias; how to fix it (Turner only, or with Tunnel and Capitol creeks, now or in the
   hardening release) is a new question for him; no data change until he answers.
+- **Steelhead water (2026-11-27, option E sheet):** "Pacific streams now, barriers in 0.11.0 (Recommended)". Every stream of
+  Regions 1, 2, 3, 5, 6 draining to the Pacific is steelhead water in 0.10.0 (RULINGS S14, T1250); barriers are T1257.
+  Buckley Creek: "Release: the row's cap holds (Recommended)" (S15). The Columbia and the Skagit: "Hold both but make
+  sure it will be compatible with a larger barrier list" (the barrier list, S14). And: "Also if rainbows over 50cm are
+  ever referred to it always implies the rule is on steelhead too" (S12, measured before it is built: a follow-up).
+  On the over-50 sheet (S12a): "the rows specific water rules always beat regional for specific quotas like that?"
+  (Kitimat's 2 hatchery steelhead stand); "it is 1 trout over 50cm 2 if one is a steelhead (rainbow)" (Regions 1-2,
+  Q16); Muchalat's "no wild rainbow trout over 50 cm" "is the same as regiuonal no wild steelhead". His full words: S12a.
+  Kitimat's hatchery steelhead against Region 6's winter release: "(b) Leave as today" (released Nov 1-Jun 30). The
+  Regions 1-2 box as built: "Yes, as built (Recommended)". The over-50 follow-ups are answered; nothing built beyond S15.
+  The three under-closure rows S15 meets (2026-11-27, `under_closure_calls.json`), each answered "Yes, mark it checked
+  (Recommended)": "Clearwater River (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30
+  closed; Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked by you?" "Mahood
+  River below Goodwin Falls (Region 3). What changes for the angler: NOTHING. Before and after: Jan 1-Jun 30 closed
+  (the row's own closure); Aug 1 steelhead released, rainbow keep 2 (none over 35 cm). OK to mark this row as checked
+  by you?" "Buckley Creek (Region 6). ONE change, the one you ruled today: Aug 1, hatchery steelhead: keep 1 ->
+  RELEASE (the row's "none over 50 cm" holds). Unchanged: May 15-Jun 15 steelhead closed; wild steelhead released;
+  rainbow keep 1. OK to mark this row as checked by you?"
+- **Turner, Tunnel and Capitol creeks (T1246):** "All three now, in the re-cut". Built: each its own water with a
+  code of its own; the build refuses a city line on an FWA code.
+- **Their salmon Area (T1246):** "(a) Fix it properly now (Recommended)". Built: a city creek that drains to the sea
+  takes the DFO Area its own mouth lies in; 25 more city creeks (21.98 km) come under Area 28's salmon closure.
+- **Turner Creek's tidal limit (T1246):** "tidal limit is rail bridge again I think. like noons". Built: the lowest
+  126 m, below the Ioco Spur crossing, is tidal (OSM shows no bridge there: it may be a culvert).
+- **Tunnel Creek's Seymour leave-out row (T1246):** "(a) Remove the row too (Recommended)". Removed.
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".

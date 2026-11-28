@@ -86,7 +86,7 @@ def _river_row(steelhead: bool):
 
 def _steelhead(pond=UNNAMED, reg=REG, steelhead=True) -> dict:
     """{section: (steelhead, kind, rules apply, anadromous)} — every presence row of the run."""
-    got = build_reaches([_province(), _river_row(steelhead)], reg, _graph(pond))
+    got = build_reaches([_province(), _river_row(steelhead)], reg, _graph(pond), steelhead_barriers=())
     return {r["section_id"]: (r["steelhead"], r["kind"], r["rules"], r["anadromous"]) for r in got.steelhead}
 
 
@@ -104,7 +104,16 @@ def test_the_flag_off_leaves_the_pond_a_lake(monkeypatch):
 
 
 def test_a_pond_on_a_river_with_no_steelhead_row_is_absent():
-    """No steelhead row: the river's pieces are only "possible" (the base binds streams) and the pond nothing."""
+    """No steelhead row: the pond carries nothing. The river's pieces (the Fraser's basin, 100) are known as a Pacific
+    stream since RULINGS S14 (T1250) — no row of theirs makes it so, so the pond is no row's widening."""
+    assert _steelhead(steelhead=False) == {"M:0": ("known", "stream", True, True),
+                                           "M:1200": ("known", "stream", True, True)}
+
+
+def test_without_s14_a_pond_on_a_river_with_no_steelhead_row_is_absent(monkeypatch):
+    """The same with `PACIFIC_STREAMS_ARE_STEELHEAD_WATER` off: the river's pieces are only "possible" (the base binds
+    streams) and the pond nothing."""
+    monkeypatch.setattr(SH, "PACIFIC_STREAMS_ARE_STEELHEAD_WATER", False)
     assert _steelhead(steelhead=False) == {"M:0": ("possible", "stream", True, False),
                                            "M:1200": ("possible", "stream", True, False)}
 
@@ -125,5 +134,5 @@ def test_one_function_decides_it():
 
 
 def test_the_report_counts_the_pond():
-    got = build_reaches([_province(), _river_row(True)], REG, _graph(UNNAMED))
+    got = build_reaches([_province(), _river_row(True)], REG, _graph(UNNAMED), steelhead_barriers=())
     assert (got.report.steelhead["anadromous"], got.report.steelhead["known_lakes"]) == (3, 1)
