@@ -259,17 +259,21 @@ def test_the_reach_binding_change_reports_withheld_and_unaccepted(monkeypatch):
 
 def test_a_save_time_binding_takes_the_runs_limits(monkeypatch):
     """(T779 item 4) `dfo_salmon.resolve_all` binds a place with `regional=False` and the run's tidal water out unless
-    `keep_tidal` names it; the save-time bindings take the same (`dfo.as_the_run_binds`)."""
+    `keep_tidal` names it; the save-time bindings take the same (`dfo.as_the_run_binds`). (T1177) And the lake rows'
+    printed exceptions (`stops`, the run's `ReachResult.stops`), read off the atlas as the tidal water is: stubbed here
+    as `reuse._tidal` is."""
     import sys
     sys.path.insert(0, "tools/curation-review/backend")
     import dfo
     import pipeline.atlas.reach.dfo_salmon as DS
     reuse = dfo.reuse
     monkeypatch.setattr(reuse, "_tidal", lambda: {"t1": "water:x"})
+    monkeypatch.setattr(reuse, "_lake_stops", lambda: (("wbk:1", "stop"),))
     monkeypatch.setattr(DS, "load_tidal_calls", lambda path=None: {"6:river:keep": "the owner's reason"})
     monkeypatch.setattr(dfo, "_locations", lambda: {})
-    assert dfo.as_the_run_binds("6:river:a") == {"regional": False, "tidal": {"t1": "water:x"}}
-    assert dfo.as_the_run_binds("6:river:keep") == {"regional": False, "tidal": None}
+    STOPS = (("wbk:1", "stop"),)
+    assert dfo.as_the_run_binds("6:river:a") == {"regional": False, "tidal": {"t1": "water:x"}, "stops": STOPS}
+    assert dfo.as_the_run_binds("6:river:keep") == {"regional": False, "tidal": None, "stops": STOPS}
     # a VARIANT with no extent of its own binds through its primary, and `keep_tidal` naming the primary keeps it too
     # (`resolve_all`: `loc` or `target`); a variant with its own extent, or an unconfirmed one, is its own target
     var = {"duplicate_of": "6:river:keep", "binding": {"extents": []}}
@@ -290,4 +294,4 @@ def test_a_save_time_binding_takes_the_runs_limits(monkeypatch):
     monkeypatch.setattr(dfo, "channels_in", lambda *a: [])
     monkeypatch.setattr(reuse, "_sections_geojson", lambda ids, kind: [])
     dfo._bind({"entry_id": "6:river:keep"}, {"rule_id": "r", "extents": [1]}, 10)
-    assert seen == [{"regional": False, "tidal": None}]
+    assert seen == [{"regional": False, "tidal": None, "stops": STOPS}]

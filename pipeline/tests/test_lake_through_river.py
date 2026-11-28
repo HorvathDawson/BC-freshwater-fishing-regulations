@@ -126,14 +126,14 @@ def _dfo_rule(**kw):
             "includes_tributaries": True, JOINING_WATER_STAYS_OUT_KEY: True, **kw}
 
 
-def test_a_dfo_lake_places_through_river_stays_out(powell):
+def test_a_dfo_lake_places_through_river_is_its_tributary_as_the_books_is(powell):
+    """T1177 (owner 2026-11-26: "unless you have exact dfo words saying what they mean by tributaries we should have a
+    single tributary logic"; DFO prints none): a DFO lake place walks as a book row does — T743 kept it out."""
     g, reg = powell
     b, d = build_reach(DFO_ROW, _dfo_rule(), reg, g)          # owned None: how `reach.dfo_salmon` resolves a place
-    got = set(b.sections)
-    assert got == {"lake:L", "C"}, "the lake and its own inflows; never the river above it and its basin"
+    assert set(b.sections) == {"lake:L", "C", "R:up", "RT"}
     assert [x.payload for x in d if x.kind == "through_river"] == [
-        {"lake": "lake:L", "inlet": "R:up", "water": "Powell River", "own_row": [], "negated": False, "joined": 0,
-         "stays_out": True}]
+        {"lake": "lake:L", "inlet": "R:up", "water": "Powell River", "own_row": [], "negated": False, "joined": 2}]
 
 
 def test_a_dfo_lake_place_whose_words_name_the_river_takes_it(powell):
@@ -148,12 +148,14 @@ def test_a_lake_row_without_the_dfo_key_is_unchanged(powell):
     assert {"R:up", "RT"} <= got
 
 
-def test_dfo_through_river_mutation_pin(powell, monkeypatch):
+def test_dfo_one_logic_mutation_pin(powell, monkeypatch):
+    """False = T743: a DFO place's through-river stays out unless its words name it."""
     from pipeline.atlas.reach import build as B
-    monkeypatch.setattr(B, "DFO_THROUGH_RIVER_STAYS_OUT", False)
+    monkeypatch.setattr(B, "ONE_TRIBUTARY_LOGIC_FOR_DFO_PLACES", False)
     g, reg = powell
-    b, _ = build_reach(DFO_ROW, _dfo_rule(), reg, g)
-    assert {"R:up", "RT"} <= set(b.sections), "False = every DFO through-river goes with the lake, as before"
+    b, d = build_reach(DFO_ROW, _dfo_rule(), reg, g)
+    assert set(b.sections) == {"lake:L", "C"}
+    assert [x.payload.get("stays_out") for x in d if x.kind == "through_river"] == [True]
 
 
 # ---------------------------------------------------------------- T772: the through-river's side channels stay out too
@@ -203,9 +205,10 @@ def test_t772_mutation_pin(braided, monkeypatch):
 
 @pytest.mark.needs_reach_run
 @pytest.mark.needs_atlas
-def test_kitsumkalum_lake_takes_no_piece_of_the_kitsumkalum_river(request):
-    """On the built run (T772): "Kitsumkalum Lake, including tributaries" (DFO Region 6) binds no piece of the
-    Kitsumkalum River (gnis:3942) — not its main line above the lake (T743) and not its 16 side channels (14.6 km)."""
+def test_kitsumkalum_lake_takes_the_kitsumkalum_river_above_it(request):
+    """On the built run (T1177, one tributary logic; T743 and T772 kept it out): "Kitsumkalum Lake, including
+    tributaries" (DFO Region 6) binds the Kitsumkalum River (gnis:3942) above the lake, the river's side channels
+    entering the lake with it, as a book lake row's walk does."""
     import gzip
     import json
     from pipeline.tests import under_test
@@ -219,7 +222,7 @@ def test_kitsumkalum_lake_takes_no_piece_of_the_kitsumkalum_river(request):
     with gzip.open(run, "rt", encoding="utf-8") as f:
         lake = next(set(r["sections"]) for r in map(json.loads, f)
                     if r["location_id"] == "6:kitsumkalum-lake:including-tributaries")
-    assert lake and not lake & river, sorted(lake & river)
+    assert lake and lake & river
 
 
 # ---------------------------------------------------------------- T784: the words come from the place, not a hand-built rule
@@ -245,6 +248,6 @@ def test_a_dfo_place_whose_own_words_name_the_through_river_takes_it(powell):
     assert rules[0]["extent_text"] == "including the Powell River above the lake"
     b, _ = build_reach(entry, rules[0], reg, g)
     assert {"R:up", "RT"} <= set(b.sections)
-    entry, rules = _dfo_place("including tributaries")                    # words that do not name it: stays out
+    entry, rules = _dfo_place("including tributaries")                    # T1177: in too, by the one logic
     b, _ = build_reach(entry, rules[0], reg, g)
-    assert set(b.sections) == {"lake:L", "C"}
+    assert {"R:up", "RT"} <= set(b.sections)
