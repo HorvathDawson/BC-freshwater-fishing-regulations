@@ -26,6 +26,7 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `unmapped_waters.json` | authored | hand (worklist for added lakes) | `check_curated --waters` only |
 | `unplaced_piece_calls.json` | authored | the owner (`accepted`); Claude adds `proposed` rows, read by nothing | reach run (`build.unplaced_gate`, T632: any other unplaced piece stops it) |
 | `area_edge_calls.json` | authored | the owner (`accepted`: `closed` / `open`); Claude adds `proposed` rows, read by nothing | atlas (closure cutter; area-cut gate G6 stops on an uncalled stretch or a stale row, T1199) |
+| `loop_exemptions.json` | authored | the owner (a row per water kept BY NAME, dated) | atlas (the creek-less loop pass, on by default; a listed blue line the atlas lacks stops the build, T1242) |
 
 Hand-edited files are checked by `python -m pipeline.tools.audit.check_curated --waters` (the build's first step). Read as `CURATED.waters.<file stem>`.
 A new file needs: the file (its field is a `FilePath`: it must exist); a `Waters` field in `pipeline/common/curated.py`, `<stem>: Annotated[FilePath, At("waters/<file>")]` + its note (never config.yaml);

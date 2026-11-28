@@ -110,3 +110,17 @@ def test_a_place_name_holding_a_review_word_passes(waters, tmp_path, label):
     _edit(waters.tidal_limits, lambda d: _first_tidal_label(d, label))
     err, _, _ = C.check_waters(waters, registry=tmp_path / "no-registry.json")
     assert not any("review words" in e for e in err), err
+
+
+def test_the_loop_exemptions_are_checked(waters, tmp_path):
+    """(T1242) `waters/loop_exemptions.json`: the real file passes; an unknown key (one bad hand edit) fails, named."""
+    src = under_test.curated().waters.loop_exemptions
+    waters.loop_exemptions = tmp_path / src.name
+    shutil.copyfile(src, waters.loop_exemptions)
+    err, _w, _n = C.check_waters(waters)
+    assert not [e for e in err if "loop_exemptions" in e]
+    doc = json.loads(waters.loop_exemptions.read_text())
+    doc["rows"][0]["note"] = "a stray key"
+    waters.loop_exemptions.write_text(json.dumps(doc))
+    err, _w, _n = C.check_waters(waters)
+    assert any("loop_exemptions" in e and "unknown key 'note'" in e for e in err)

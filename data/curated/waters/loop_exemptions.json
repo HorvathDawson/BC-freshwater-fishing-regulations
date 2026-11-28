@@ -1,0 +1,90 @@
+{
+ "_about": "T1242 (owner 2026-11-27): the loops the map build never removes BY NAME. Loop removal runs in the atlas before any rule applies; a loop is not kept because a rule, park, reserve or licence happens to land on it. Kept only: the waters listed here (a book row or DFO place names them, or the owner keeps them), loops that touch a lake, and loops a gauge, tidal limit, curated cut or owner call names (worked out in the build). A listed blue line the atlas no longer has stops the build. Considered and NOT listed (stretches of a main river, not channels): Fraser at Lillooet's tailrace channel, Babine 'Rainbow Alley', Kitimat west half, the John Hart channel below Ladore Dam. Add a row to keep a loop; delete one to let it go. Each row: water, blks (blue-line keys), why, id, words (the book's or DFO's printed text, whole; the owner's words for his rows), date, and optionally reading (the parsed row); the build and check_curated refuse an unknown key.",
+ "format": 1,
+ "rows": [
+  {
+   "water": "Ruskin Spawning Channel",
+   "blks": [
+    "355993381",
+    "355993382",
+    "355993383",
+    "355993384"
+   ],
+   "why": "a DFO place names it (DFO's printed text in `words`)",
+   "id": "DFO/2:stave-river:the-ruskin-spawning-channel-on-the",
+   "words": "Stave River: the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing",
+   "date": "2026-11-27"
+  },
+  {
+   "water": "Herrling Island Side Channel, Jeperson Side Channel, Seabird Island North Side Channel",
+   "blks": [
+    "355991777",
+    "355991778",
+    "355991779",
+    "355991780",
+    "355992187",
+    "355992188",
+    "355992191",
+    "355992198",
+    "355992200",
+    "355992201",
+    "355992202",
+    "355994562",
+    "355994563",
+    "355994564",
+    "355994568",
+    "355994571",
+    "355994572"
+   ],
+   "why": "a book row names it",
+   "id": "r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4/fraser_river_upstream_of_mission.r4",
+   "words": "No Fishing in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31",
+   "date": "2026-11-27"
+  },
+  {
+   "water": "Ruskin Spawning Channel",
+   "blks": [
+    "355993381",
+    "355993382",
+    "355993383",
+    "355993384"
+   ],
+   "why": "a book row names it",
+   "id": "r2:stave_river@2-8/stave_river.r1",
+   "words": "No Fishing in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing",
+   "date": "2026-11-27"
+  },
+  {
+   "water": "Northrop Spawning Channel",
+   "blks": [
+    "-2300000000"
+   ],
+   "why": "a book row names it",
+   "id": "r2:stave_river@2-8/stave_river.r2",
+   "words": "No Fishing in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries containg the fishway",
+   "date": "2026-11-27"
+  },
+  {
+   "water": "Caribou Creek, Caribou Creek slough",
+   "blks": [
+    "356563426"
+   ],
+   "why": "a book row's reading names it: the slough is in the row's extent (`reading`, the parsed row; the book's words in `words`)",
+   "id": "r4:caribou_creek@4-15/caribou_creek.r1",
+   "words": "No Fishing from Rodd Creek to Hwy 6 bridge, June 15-Oct 31",
+   "date": "2026-11-27",
+   "reading": "No fishing, Jun 15-Oct 31 — between the Rodd Creek confluence and Hwy 6 bridge; Caribou Creek slough"
+  },
+  {
+   "water": "Goat River side channel on Lower Kootenay 1B reserve land",
+   "blks": [
+    "356367778",
+    "356367780"
+   ],
+   "why": "the owner keeps it: 5.8 km of this 7.3 km side channel is on reserve land (a land note, not a closure); a creek flows into it, so loops with a creek staying keeps it too",
+   "id": "owner:goat-river",
+   "words": "it stays by 150m rule ...",
+   "date": "2026-11-27"
+  }
+ ]
+}

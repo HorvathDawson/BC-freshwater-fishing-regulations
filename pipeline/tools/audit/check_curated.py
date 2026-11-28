@@ -330,6 +330,13 @@ def check_waters(waters=None, registry: Path | None = None) -> tuple[list[str], 
             from pipeline.atlas.splits.area_edge_calls import problems as _aec_problems
             err += _aec_problems(aec)
 
+    # loop_exemptions (T1242): the braid loops the map build keeps by name; the build stops on the same problems
+    if getattr(w, "loop_exemptions", None) is not None:
+        le = load("loop_exemptions")
+        if le is not None:
+            from pipeline.atlas.graph.prune import exemption_problems
+            err += exemption_problems(le)
+
     # area_closures: {areas: [{id, cut, tile_layer, layer | file …}]}
     ac = load("area_closures")
     if ac is not None:

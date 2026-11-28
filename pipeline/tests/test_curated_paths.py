@@ -805,6 +805,7 @@ FROZEN_NAMES = {
     "curated.waters.unmapped_waters": "waters/unmapped_waters.json",
     "curated.waters.unplaced_piece_calls": "waters/unplaced_piece_calls.json",
     "curated.waters.area_edge_calls": "waters/area_edge_calls.json",
+    "curated.waters.loop_exemptions": "waters/loop_exemptions.json",
     "curated.regulations.synopsis": "regulations/synopsis",
     "curated.regulations.book_name_links": "regulations/book_name_links.json",
     "curated.regulations.reference": "regulations/reference",
