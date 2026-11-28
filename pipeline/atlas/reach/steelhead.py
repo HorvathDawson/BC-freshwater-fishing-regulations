@@ -618,7 +618,8 @@ class Presence:
                 elif got:
                     pacific.add(s)
                 else:
-                    outside.setdefault(self.wsc(s).split("-")[0], []).append(s)
+                    from pipeline.common.utils import wsc as W
+                    outside.setdefault(W.root(str(self.wsc(s)).strip()), []).append(s)
             if outside:
                 raise ValueError(
                     "steelhead: streams of a basin that is neither Pacific (`steelhead.PACIFIC_BASINS`) nor held out "

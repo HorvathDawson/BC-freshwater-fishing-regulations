@@ -406,7 +406,10 @@ REACH_FILES = {
     "word_reads": "regulations.word_reads",
     # (T1229) a confirmed closed area's new end binds once it has LANDED as a cut in the curated cuts file
     # (`dfo_salmon.landed_resolver` -> `review.proposals.landed_cut`, which reads the file itself)
-    "cuts": "waters.cuts"}
+    "cuts": "waters.cuts",
+    # (T1250) the steelhead barrier list holds water out of the Pacific streams (RULINGS S14): a row added, moved or
+    # removed changes the presence set, so editing the list must rerun the reach step
+    "steelhead_barriers": "waters.steelhead_barriers"}
 
 #: (T1229) CURATED FILES A STAGE READS WHOSE CONTENT NEEDS NO PART OF ITS KEY: {stage: {leaf: why}}. The guard
 #: (`test_stage_content_keys.py`) fails on a curated leaf a stage reads that is in none of its content parts
