@@ -1,10 +1,10 @@
 # T725 — iOS: memory table and cold start re-measured on 0.7.9 (IOS-8)
 
-Status: IN REVIEW — measured on 0.7.9 (68bf25229); lane L6: the memory-warning trim proven on the simulator (83653e704: the warning now reaches the app, `[trim]` 14 databases, 263 → 257 MB); owner: see ## Owner (the oldest supported iPhone)
+Status: DONE — 68bf25229, 83653e704. Measured on 0.7.9; lane L6: the memory-warning trim proven on the simulator (the warning now reaches the app, `[trim]` 14 databases, 263 → 257 MB); the oldest iPhone: iOS 16.4+ kept (owner 2026-11-27)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | IN REVIEW (lane L6: the memory-warning trim proven on the simulator, 263 → 257 MB); owner: see ## Owner | 68bf25229, 83653e704 | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-8 in docs/agents/START-HERE-ios.md |
+| T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | DONE (trim proven on the simulator; iOS 16.4+ kept, owner 2026-11-27) | 68bf25229, 83653e704 | — |
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-8 in
@@ -43,4 +43,4 @@ Depends: T718. Size: S-M. Owner: yes (decision 2: minimum iOS). Default: what Ex
 
 ## Owner
 
-- [ ] 2026-11-14 — The oldest iPhone / iPad the app supports: today's build needs iOS 16.4+, iPhone only. Keep, or widen? Default: keep.
+- [x] 2026-11-14 — The oldest iPhone / iPad the app supports: today's build needs iOS 16.4+, iPhone only. Keep, or widen? Default: keep. → "lets see if older phones work at all with emulation"; then, after the scoping (the floor is Expo SDK 58's 16.4, which covers iPhone 8 / X and newer; only the iOS 26.5 simulator is installed; night notes `owner-questions/T725/`): "Keep iOS 16.4+, close it (Recommended)" (2026-11-27)

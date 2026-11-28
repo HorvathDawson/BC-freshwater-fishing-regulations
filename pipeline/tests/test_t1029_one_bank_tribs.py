@@ -138,3 +138,32 @@ def test_an_atlas_without_the_bank_fields_is_refused_not_read_as_undetermined(mo
     require_bank_fields(_graph(NODES, EDGES))       # the stamped graph passes
     # a place with no tributaries never asks (an old atlas still binds every place that has none)
     assert one_bank_tributaries({"stem:0"}, {"stem:0"}, bare, "west") == ({"stem:0"}, {})
+
+
+def test_a_tributary_kept_with_no_side_read_stays_closed_and_is_warned_on(monkeypatch):
+    """(owner 2026-11-27, T1029: "keep it closed (for trib rules i assume) but one thing to note we should add a thing that
+    warns us if this is ever a thing") a tributary whose side cannot be read stays IN the place (closed with the bank) and
+    the warning names its place and sections; where every side is read, nothing is warned and the binding is the same."""
+    from pipeline.atlas.reach.dfo_salmon import ONE_BANK_UNREAD_WARNING, one_bank_counts, one_bank_unread_lines
+    rows, diags = _resolve(monkeypatch, _graph(NODES, EDGES), "on west bank between signs at Kitimat hatchery outfall")
+    fired = one_bank_unread_lines(one_bank_counts(diags))
+    assert fired == [f"{ONE_BANK_UNREAD_WARNING} 6:kit:bank: 2 tributary section(s) KEPT with no side read, so they stay "
+                     "in the place under its rule (owner 2026-11-27: \"keep it closed\"): c:0, d:0 — look at each "
+                     "on the map (FWA's side NONE / UNKNOWN, or the creek reaches the stretch on both banks) and write "
+                     "what you find in a ticket"]
+    kept = next(r for r in rows if r["location_id"] == "6:kit:bank")["sections"]
+    assert {"c:0", "d:0"} <= set(kept)                                       # kept closed, as ruled
+    # every side read (FWA says RIGHT for c; the stretch piece d joins has its drawn answer): no warning, same binding
+    read = {**NODES, "c:0": (S, "RIGHT", ""), "stem:900": (S, "", "R-")}
+    rows, diags = _resolve(monkeypatch, _graph(read, EDGES), "on west bank between signs at Kitimat hatchery outfall")
+    tally = one_bank_counts(diags)
+    assert one_bank_unread_lines(tally) == [] and tally["places"] == 1 and tally[TRIB_SIDE_UNDETERMINED] == 0
+    assert next(r for r in rows if r["location_id"] == "6:kit:bank")["sections"] == kept
+    # a run with no one-bank place at all: nothing to warn on
+    assert one_bank_unread_lines(one_bank_counts([])) == []
+    # W46: a tally without its per-place key, or not a mapping, is never read as none
+    with pytest.raises(KeyError):
+        one_bank_unread_lines({"places": 1, "kept": 12})
+    for bad in (None, [], "x"):
+        with pytest.raises(TypeError):
+            one_bank_unread_lines(bad)

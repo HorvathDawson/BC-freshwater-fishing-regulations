@@ -4,7 +4,7 @@ Status: OPEN — 0.10.1
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1137 | Two pipeline scanners fail a push from the main checkout on a stray untracked file | OPEN — 0.10.1 | | 0.10.0 chat 2026-11-25; owner says whether the file is his |
+| T1137 | Two pipeline scanners fail a push from the main checkout on a stray untracked file | OPEN — 0.10.1 | | the scanners read tracked files only, with a test (the stray files are answered and deleted) |
 
 Source: the 0.10.0 chat, 2026-11-25 14:50. Related: T1021 (the hard-coded-path gate), T1127 (the same fault in the
 store scripts: a tool reads whatever is in the folder).
@@ -22,4 +22,4 @@ Severity: low. Model: Sonnet. Size: S. Owner: yes (one answer on the file).
 
 ## Owner
 
-- [ ] 2026-11-25 — `data/generated/owner1028/one.py` sits untracked in the main checkout and makes two scanners fail pushes from there: is it yours and still needed? No chat deletes it.
+- [x] 2026-11-25 — `data/generated/owner1028/one.py` sits untracked in the main checkout and makes two scanners fail pushes from there: is it yours and still needed? No chat deletes it. → "Not mine, delete it" (2026-11-25 17:39). Two more there (`rows_ab.py`, `two.py`): "(a) Delete both (Recommended)" (2026-11-27); deleted from the main checkout 2026-11-27, copies kept in the planning chat's night notes.

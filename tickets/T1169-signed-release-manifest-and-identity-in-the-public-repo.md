@@ -1,10 +1,10 @@
 # T1169 — Security review 2026-11-25: sign the release manifest, checksum the web database engine, scope the storage keys, and the owner's identity in the repo
 
-Status: OPEN — key scoping in the speed release (with T1160); signing in the next app build; the identity items are the owner's picks
+Status: OPEN — key scoping in the speed release (with T1160); signing in the next app build; the token's admin scopes go with the agents' own login (T1160); identity left as it is (owner 2026-11-27)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1169 | Security review 2026-11-25: sign the release manifest, checksum the web database engine, scope the storage keys, and the owner's identity in the repo | OPEN — key scoping in the speed release (with T1160); signing in the next app build; the identity items are the owner's picks | — | T1160 scopes the R2 tokens; a build lane: Ed25519-signed manifest verified by the app, the sql.js wasm hash check; owner picks on name / email exposure; M |
+| T1169 | Security review 2026-11-25: sign the release manifest, checksum the web database engine, scope the storage keys, and the owner's identity in the repo | OPEN — key scoping (with T1160); signing in the next app build; identity left as it is | — | T1160 scopes the R2 tokens and drops the admin scopes; a build lane: Ed25519-signed manifest verified by the app, the sql.js wasm hash check; the OSM client name; M |
 
 Source: the read-only security review of the public repo, 2026-11-25 night (the planning chat holds the full
 notes; they are not in the public archive). Done the same night: 7 Google API keys found in the public git
@@ -44,5 +44,5 @@ Model: Opus. Size: M. Owner: the key, the picks.
 ## Owner
 
 - [x] 2026-11-25 — The 7 Google API keys in public history → "these have all been revoked"; the alerts → "you can close them" (closed #1-#7 as revoked, 2026-11-25)
-- [ ] 2026-11-25 — Picks (defaults first): your name and email in new commits: stop adding them from now (a project identity) / rewrite history / leave; LICENSE name: keep / "the authors"; the shared token's admin scopes: drop now / with T1160; sign the release manifest in the next app build: yes / no; the staging worker's address with your name in it: move to a project subdomain / leave.
+- [x] 2026-11-25 — Picks (defaults first): your name and email in new commits: stop adding them from now (a project identity) / rewrite history / leave; LICENSE name: keep / "the authors"; the shared token's admin scopes: drop now / with T1160; sign the release manifest in the next app build: yes / no; the staging worker's address with your name in it: move to a project subdomain / leave. → name in commits: see below; admin scopes: "With the agents' own login"; signing: "Yes, next app build"; LICENSE name and the staging address: "Yes, leave both" (2026-11-27)
 - [x] 2026-11-26 — Your name and the project identity → "is it reall yan issue?" (2026-11-25 23:27; answered: a privacy preference, not a security issue) → "Leave it; only fix the OpenStreetMap client name (Recommended)" (2026-11-26 00:45)

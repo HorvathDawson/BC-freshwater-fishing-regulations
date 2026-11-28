@@ -1,6 +1,6 @@
 # T1247 — A braid loop that leaves and rejoins the same graph piece can never be pruned
 
-Status: OPEN — its creek-less loops go with T1242's pass in 0.10.0 (E31: 4,523 of the 4,549 removed are same-piece); the route fix itself waits for T1260; owner: see ## Owner
+Status: OPEN — its creek-less loops go with T1242's pass in 0.10.0 (E31: 4,523 of the 4,549 removed are same-piece); the route fix itself waits for T1260
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -40,4 +40,4 @@ Severity: low. Model: Opus. Size: S, plus an atlas cycle. Built by the data and 
 
 ## Owner
 
-- [ ] 2026-11-27 — Decide with the T1242 trial: fix the same-piece prune bug (760 loops, 239 km, 692 waters) in the release that takes the loop removal, or separately, or not. Not answered: he has not spoken to T1247. Covered in effect by his T1242 ruling (E31: "only remvoe the loops with no stream connecting it"): the creek-less pass removes these loops in 0.10.0.
+- [x] 2026-11-27 — Decide with the T1242 trial: fix the same-piece prune bug (760 loops, 239 km, 692 waters) in the release that takes the loop removal, or separately, or not. Not answered: he has not spoken to T1247. Covered in effect by his T1242 ruling (E31: "only remvoe the loops with no stream connecting it"): the creek-less pass removes these loops in 0.10.0. → covered by E31: "only remvoe the loops with no stream connecting it ..." (2026-11-27); #383 merged; the route fix goes with T1260.

@@ -1,10 +1,10 @@
 # T201 — bathymetry: feed the prepared Depth mode and draw contours
 
-Status: OPEN — START SOON (owner 2026-11-26): next after the re-cut work; the gate is the lake-matching checks. Was: next after closed testing, second after T200.
+Status: OPEN — the vector depth maps are wanted IN 0.10.0 (owner 2026-11-28, below); the gate is the lake-matching checks (T1188, his look). Was: start soon, next after the re-cut work (2026-11-26); before that, next after closed testing.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T201 | bathymetry: feed the prepared Depth mode, depth charts in the Lake tab; NEXT AFTER CLOSED TESTING, second (plan: docs/research/bathymetry.md; reuse bathymetry/propose.py, PDFs first, vector contours later) | OPEN — start soon (owner 2026-11-26); gate: the lake-matching checks | — | owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the … (detail: ticket file) |
+| T201 | bathymetry: feed the prepared Depth mode, depth charts in the Lake tab; NEXT AFTER CLOSED TESTING, second (plan: docs/research/bathymetry.md; reuse bathymetry/propose.py, PDFs first, vector contours later) | OPEN — vector depth maps in 0.10.0 (owner 2026-11-28); gate: the lake-matching checks (T1188) | — | the vector depth lines on the map for the lakes whose placing he passed; which lakes is to ask; where the permission is written; the depth v1 pick |
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet"; T158 (tiles carry no contour layer — a follow-up of its own).
@@ -63,12 +63,18 @@ yet becausde it will involve a lot of checks on the matching. update the ticket 
   (3) a chart on the wrong lake (Stake, fitted to an unnamed lake) searched against nearby lakes by shape; (4) his
   eye-check per placing. A read-only refit trial on the 83 poor and 117 loose placings is running (his "Start it now").
 
+## 2026-11-28: the vector depth maps in 0.10.0
+Owner, 2026-11-28 01:05 MST, verbatim: "what is current state what is everything left before 0.10 now (we want the vector maps in for it".
+Reading (the planning chat's): the Province's vector depth lines are drawn on the map in 0.10.0 for the lakes whose placing he
+has passed (T1188's review page); which lakes (the `high` class only, or `high` plus those he marks Right) is not yet asked.
+
 ## Owner
 
 - [ ] 2026-11-25 — Picks (defaults first): depth v1 = the PDF card plus a tint / add max and mean depth (needs the licence) / contours; the look: chart card plus tint.
 - [x] 2026-11-26 — The licence for the Province's vector lake maps, and when → "we have the license permission for this all vector lake maps. so that is not an issue. ... update the ticket and set it to start soon." (2026-11-26; full words above)
 - [ ] 2026-11-26 — Where the permission for the vector lake maps is written, so the credits page can cite it. You said "I will find it later" (2026-11-26).
 - [x] 2026-11-26 — A refit trial of the poor and loose placings → "Start it now" (2026-11-26)
+- [ ] 2026-11-28 — The vector depth lines in 0.10.0: which lakes get them, the `high` class only or `high` plus every lake you mark Right on the review page (T1188)? Not yet asked; nothing ships without your look at each placing.
 
 ## 2026-11-26: the fitter work is T1188
 The owner's reorientation idea and "no stretch except small ones" are T1188 (wider rigid search, two-lake fit, flagged small stretches); T201 keeps the order, the licence and the ship decision.

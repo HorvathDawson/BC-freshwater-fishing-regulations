@@ -62,7 +62,7 @@ export const README_LONG = {
 /** TEMPORARY: open tickets over BUDGETS.ticket today, each held at its size on 2026-11-25 so it can only shrink. The ticket
  *  cut (T1081) takes them off this list as it shortens them; an entry that is gone or under the cap fails ("take it off"). */
 export const TICKET_OVER = {
-  "T1029-one-bank-stripe.md": 399,
+  "T1029-one-bank-stripe.md": 396,
   "T1041-faster-ci-feedback.md": 324,
   "T1053-walk-stops-at-head-lake.md": 306,
   "T1072-store-screenshots-and-marketing-content.md": 165,

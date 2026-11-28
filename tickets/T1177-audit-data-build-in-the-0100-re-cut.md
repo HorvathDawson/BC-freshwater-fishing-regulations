@@ -1,10 +1,10 @@
 # T1177 — Audit data build, inside the 0.10.0 re-cut: the rulings P5-P11 and O1-O17
 
-Status: OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner
+Status: OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); every owner ask answered (DFO one logic merged in #380)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1177 | Audit data build, inside the 0.10.0 re-cut: the rulings P5-P11 and O1-O17 | OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | a build lane (Opus): apply the rulings below with an answers diff per change; the re-cut waits for it; one ask is open |
+| T1177 | Audit data build, inside the 0.10.0 re-cut: the rulings P5-P11 and O1-O17 | OPEN — inside the 0.10.0 re-cut (owner 2026-11-26) | — | a build lane (Opus): apply the rulings below with an answers diff per change; the re-cut waits for it |
 
 Source: the owner's audit rulings of 2026-11-26, verbatim in `docs/OWNER-RULINGS.md` ("Audit rulings, batch 2"); the
 planning chat's notes `AUDIT-REVIEW-for-the-owner` (the items), `T1106-T1088-T1084-case-lists`. Timing, his pick: "Inside
@@ -92,6 +92,6 @@ the lists before the re-cut ships. Severity: medium (several are "A": an angler 
 
 ## Owner
 
-- [ ] 2026-11-27 — DFO places reach their tributaries like the book's rows (branch `fix/T1177-dfo-one-logic-2`): accept the salmon list? OPENS chinook 1 a day Sep 1-Nov 30 above Jacobs Lake (North Alouette and tributaries; 15.0 km: Jacobs Creek 3.8, Mayfly Creek 2.7, Gwendoline Creek 2.3, 11 unnamed creeks 6.2); CLOSES coho Oct 1-31 on 63 unnamed creeks above Kitsault Lake (35.8 km); adds DFO's "No natural bait allowed" line on 3,481 km (Morice and Lakelse lakes' creeks). Options: all / without the opening / not in 0.10.0. Default: not merged until he answers.
+- [x] 2026-11-27 — DFO places reach their tributaries like the book's rows (branch `fix/T1177-dfo-one-logic-2`): accept the salmon list? OPENS chinook 1 a day Sep 1-Nov 30 above Jacobs Lake (North Alouette and tributaries; 15.0 km: Jacobs Creek 3.8, Mayfly Creek 2.7, Gwendoline Creek 2.3, 11 unnamed creeks 6.2); CLOSES coho Oct 1-31 on 63 unnamed creeks above Kitsault Lake (35.8 km); adds DFO's "No natural bait allowed" line on 3,481 km (Morice and Lakelse lakes' creeks). Options: all / without the opening / not in 0.10.0. Default: not merged until he answers. → "this is just making the tribuatry walk go pasts lakes now like we ruled for the normal walk? if it is matching tributary walk to the normal game fish rules then yes."; head lakes: "Leave lakes as they are" (2026-11-27). The data chat confirmed it is the shared walk; #380 merged 2026-11-28.
 - [x] 2026-11-27 — Hatzic Lake and Slough: should the creeks that reach Hatzic Lake through the slough above it take the lake row's "No Fishing for Sturgeon" (87.7 km), and should the slough's own 5.2 km above the lake take it too? Answered 2026-11-27: "(a) Yes, close the 87.7 km (Recommended)" (as built; the slough's own piece stays as today; RULINGS T19).
-- [ ] 2026-11-26 — The Oxbows label follows the general label rule: look at it in the final label table before #312 merges ("Follow the rule, show me in the final table (Recommended)"). Default: the rule's words.
+- [x] 2026-11-26 — The Oxbows label follows the general label rule: look at it in the final label table before #312 merges ("Follow the rule, show me in the final table (Recommended)"). Default: the rule's words. → after the final table: "Merge; names only (Recommended)" (2026-11-26); #312 merged 2026-11-27.
