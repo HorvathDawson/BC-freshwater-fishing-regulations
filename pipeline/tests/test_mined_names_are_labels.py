@@ -45,3 +45,4 @@ def test_a_feature_not_in_the_atlas_is_reported_not_applied():
     rep: dict = {}
     out = add_mined_names({}, _graph(), [_entry("99", "Gone Creek")], rep)
     assert out == {} and rep["absent"] == 1
+    assert rep["absent_named"] == [{"blks": ["99"], "names": ["Gone Creek"]}], "named, never only counted"

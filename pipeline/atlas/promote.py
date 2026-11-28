@@ -48,7 +48,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import CURATED, GENERATED
 from pipeline.common.section_handles import FILENAME as HANDLES
 
 
@@ -244,9 +244,14 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
             log(f"promote: {len(absorbed)} item id(s) curated files name were ABSORBED into another item (name the "
                 f"survivor; AGENTS 55):\n  " + "\n  ".join(absorbed))
     unplaced = unplaced_cuts(candidate, log, made_another_way=no_marker is not None)
+    marked = marked_loops(candidate, log)
     if dry_run:
         return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity,
-                "moved": moved, "dead": dead, "absorbed": absorbed, "unplaced": unplaced, "dry_run": True}
+                "moved": moved, "dead": dead, "absorbed": absorbed, "unplaced": unplaced, "marked_loops": marked,
+                "dry_run": True}
+    if marked:
+        raise SystemExit(f"promote: refused — the candidate removed {len(marked)} braid loop line(s) the owner's review "
+                         "marks name (listed above). Keep the loop (a row in waters/loop_exemptions.json) or ask him")
     if unplaced and not accept_unplaced:
         raise SystemExit(f"promote: refused — {len(unplaced)} authored cut(s) the candidate could not place (listed above): "
                          "fix the cut or its resolver and rebuild, or promote with --accept-unplaced-cuts after reading it")
@@ -287,6 +292,24 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
         raise
     log(f"  {candidate.name} -> {target.name}")
     return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity, "moved": moved}
+
+
+def marked_loops(candidate: Path, log=print, marks: Path | None = None) -> list[str]:
+    """(T1242 review) The creek-less braid loops the candidate removed (`small_loops.json`) whose blue line the owner's
+    review marks name. Marks are no keep by design (E31 keeps by name and structure) and no build reads them (T266), so
+    the check stands here, before a candidate goes live: READ ONLY, the store is never written. No store (a review copy
+    with no marks), or no loop record (`--keep-small-loops`): nothing to check, said in one line."""
+    import json as _json
+    from pipeline.atlas.graph.prune import marked_removed_lines
+    rec, store = Path(candidate) / "small_loops.json", Path(marks) if marks else Path(CURATED.review.marks)
+    if not rec.is_file() or not store.is_file():
+        log(f"promote: braid loops vs the review marks not checked ({'no ' + rec.name if not rec.is_file() else 'no marks store'})")
+        return []
+    removed = {b for lp in (_json.loads(rec.read_text(encoding="utf-8")).get("removed") or []) for b in lp["blks"]}
+    hit = marked_removed_lines(removed, store.read_text(encoding="utf-8"))
+    if hit:
+        log(f"promote: {len(hit)} removed braid loop line(s) a review mark names:\n  " + "\n  ".join(hit))
+    return hit
 
 
 def unplaced_cuts(candidate: Path, log=print, *, made_another_way: bool = False) -> list[str]:
