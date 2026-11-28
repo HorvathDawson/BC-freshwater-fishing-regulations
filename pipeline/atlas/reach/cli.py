@@ -163,14 +163,14 @@ def main() -> int:
         print(f"  dfo tidal    {sum(1 for d in dfo_diags if d['kind'] == 'tidal'):,} place(s) lost {cut:,} tidal "
               "section(s) (T632)")
         # (T1029, review #112) the one-bank tributary walk's tally: in report.json, and every tributary kept with no side
-        # read named loudly (keeping it is a PROPOSAL until the owner rules; T1084 lists FWA's UNKNOWN streams)
+        # read WARNED on (owner 2026-11-27: kept closed, and warned; the release's checks list it again; T1084 lists
+        # FWA's UNKNOWN streams)
         ob = dfo_salmon.one_bank_counts(dfo_diags)
         print(f"  dfo one-bank {ob['places']:,} place(s) with tributaries: {ob['kept']:,} kept, "
               f"{ob[dfo_salmon.TRIB_OTHER_BANK]:,} on the other bank, {ob[dfo_salmon.TRIB_SIDE_UNDETERMINED]:,} "
               "with no side read")
-        for lid, secs in ob["undetermined_by_place"].items():
-            print(f"!!   dfo {lid}  {len(secs)} tributary section(s) KEPT with no side read (a proposal, T1029): "
-                  f"{', '.join(secs[:12])}{' …' if len(secs) > 12 else ''}")
+        for line in dfo_salmon.one_bank_unread_lines(ob):
+            print(f"!!   {line}")
         rp = Path(args.out) / "report.json"
         rep = json.loads(rp.read_text(encoding="utf-8"))
         rep["dfo_one_bank"] = ob

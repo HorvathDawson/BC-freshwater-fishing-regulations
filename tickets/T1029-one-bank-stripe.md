@@ -1,10 +1,10 @@
 # T1029 — One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest)
 
-Status: IN PROGRESS — draft PR #112, independent review done (output correct; 1 HIGH + 3 MED + LOW); its fix round is built (fb32ed0b9, 9c561e10a, 60ed7424e, 94ba4543c; the owner's layer pick A: 39eb40e28). Built: look B from z13 on the Salmon map (`bk`) and the book's west half on the Standard map (Q6, `bs` → `bb`, from the salmon head alone); the 12 creeks closed, computed from the extent by FWA's side. Gates: atlas parity IDENTICAL, reach "no binding changed", bundle: exactly the 12 creeks differ, salmon head 101,518 B gz (gate 110,000); after the CRS fix the side atlas re-stamped: Kitimat "R-" → "RL", its 12 creeks unchanged. Owner: layering answered "A: cues above the stripe" (built, 39eb40e28); open: an undetermined-side creek kept (as built, a proposal) or dropped. Left: Q4 (designed), the device walk, the 0.9.1 data release (its atlas rebuild re-stamps the banks) and an app build.
+Status: IN PROGRESS — draft PR #112, independent review done (output correct; 1 HIGH + 3 MED + LOW); its fix round is built (fb32ed0b9, 9c561e10a, 60ed7424e, 94ba4543c; the owner's layer pick A: 39eb40e28). Built: look B from z13 on the Salmon map (`bk`) and the book's west half on the Standard map (Q6, `bs` → `bb`, from the salmon head alone); the 12 creeks closed, computed from the extent by FWA's side. Gates: atlas parity IDENTICAL, reach "no binding changed", bundle: exactly the 12 creeks differ, salmon head 101,518 B gz (gate 110,000); after the CRS fix the side atlas re-stamped: Kitimat "R-" → "RL", its 12 creeks unchanged. Owner: layering answered "A: cues above the stripe" (built, 39eb40e28); the undetermined-side creek answered 2026-11-27 "keep it closed" + a warning (built: the reach run and the release checks warn on each, `feat/T1029-one-bank-creek-warning`). Left: Q4 (designed), the device walk, the 0.9.1 data release (its atlas rebuild re-stamps the banks) and an app build.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | IN PROGRESS — draft PR #112 (look B from z13; creeks closed by FWA side, computed from extents; Q6 the book's half on Standard, from the salmon head); review done, fix round built (CRS of the bank stamp, W46 refusal, tests); owner's layer pick A built; 1 owner question, Q4 (designed), device walk, 0.10.0 data release left | T754 | T754 (owner 2026-11-15 / 2026-11-22 / 2026-11-24) |
+| T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | IN PROGRESS — draft PR #112 (look B from z13; creeks closed by FWA side, computed from extents; Q6 the book's half on Standard, from the salmon head); review done, fix round built (CRS of the bank stamp, W46 refusal, tests); owner's picks built (layers A; undetermined creek kept closed + warned); Q4 (designed), device walk, 0.10.0 data release left | T754 | T754 (owner 2026-11-15 / 2026-11-22 / 2026-11-24) |
 
 Source: T754 (owner approved option B 2026-11-15 round 4; question 2 answered 2026-11-22 23:45, "Other bank: the water's
 other rules"). T754 built the words and the verdict (5953ef057, eeb19b4f3): a placed one-bank place stands beside the water's other
@@ -309,16 +309,10 @@ one bank side" for a future place — so it waits for 1–2.
   change; the creeks' closure arrives with the full data release, not shown). Old app + new data: the 0.9.0 parser checks
   only `p[lid].side` and never reads `bk`.
 
-## Proposed RULINGS E28 amendment (for the PR; not in RULINGS.md until accepted)
-"(Owner 2026-11-24, T1029: 'No stripe on creeks and only tributaries on the one bank side get included'; on the
-Kitimat's 12 creeks: 'i think closed we need a clean way to have this calculated from extents so it fits into structure
-nicely'.) A one-bank place whose words take tributaries takes only the tributaries that JOIN ITS STRETCH ON THAT BANK —
-FWA's own LEFT_RIGHT_TRIBUTARY at the root, against the stretch's drawn banks — and those take its rule across their whole
-width, with no stripe and no bank caveat; the stretch itself stays beside the water's other places. A tributary whose
-side cannot be read stays and is reported (`tributary_side_undetermined`); one on the other bank leaves the place
-(`tributary_other_bank`)." (Review #112: "stays" is a PROPOSAL until the owner answers the question below.)
+## RULINGS E28 amendment: in RULINGS.md E28 since 2026-11-28 (the owner's 2026-11-24 and 2026-11-27 words)
 
-Proposed AGENTS rule 49 amendment (with E28): after "…not placed, it is an ordinary undrawn place, never widened." add
+Proposed AGENTS rule 49 amendment, STILL PROPOSED and NOT APPLIED (E28 landed 2026-11-28 without it; AGENTS.md
+unchanged): after "…not placed, it is an ordinary undrawn place, never widened." add
 "Its TRIBUTARIES (a place whose words take them) are not beside: the ones joining its stretch on its bank ride their
 chains' `l` like any place, across their whole width, with no `bk` and no caveat (T1029, owner 2026-11-24)."
 
@@ -366,9 +360,12 @@ Output correct (the 12 creeks verified independently; nothing else moves). Findi
   for all one-bank places (was once per place; the book's half rules still read them once more: 2 passes, was 3).
 
 ### Owner questions from the review (for the coordinator to ask)
-1. A tributary of a one-bank place whose side cannot be read (FWA says NONE / UNKNOWN for it, T1084, or it reaches the
-   stretch on both banks): keep it in the place (closed with the bank, as built), or leave it out (it answers by its other
-   places)? Today there is none; the reach run prints any it meets. His rule names only "tributaries on the one bank side".
+1. ANSWERED (owner 2026-11-27 ~23:55 MST, verbatim): "keep it closed (for trib rules i assume) but one thing to note we
+   should add a thing that warns us if this is ever a thing". The ask: a tributary whose side cannot be read (FWA NONE /
+   UNKNOWN, or joining on both banks), kept (closed) or left out? Reading (planning chat): stays closed as built, plus a
+   build WARNING when one first appears. Built: `dfo_salmon.one_bank_unread_lines`, printed by the reach run and listed
+   by the release checks (`release.one_bank_unread`; summary, `one_bank_unread.txt`, ledger; never a stop). No binding
+   moves; today's reach run (2026-11-25): 1 place, 12 kept, 0 unread, so it is silent.
 2. ANSWERED (owner 2026-11-25, shown `review-cues-ab-{light,dark}.png`, multiple choice, verbatim): "A: cues above the
    stripe". Built (39eb40e28): the closed cue (T377) and the issue stripe (T759) draw after the four bank layers, so a
    fully closed river reads closed across both halves without its colour; the gear edge (a wider line UNDER the stream)
@@ -382,7 +379,7 @@ Output correct (the 12 creeks verified independently; nothing else moves). Findi
 ## Left
 Q4 polygon reaches: designed, not built (above). The device walk (above). The 0.9.1 data release carries `bk`, `bs` and
 the 12 creeks' closure, from an atlas the fixed stamp re-stamps (above: what it must show); an app build carries the
-drawing. Owner question 1 above (open).
+drawing. Owner question 1 above: answered 2026-11-27 (kept closed, warned; built).
 
 ## Q4 — LEFT (coordinator 2026-11-24: do not build now; build when the first case appears)
 Owner's answer: "Along the bank edge". The measured rule (`v2-q4-bank-edge-*`, Kildala 1846283): the polygon's OUTER
@@ -395,5 +392,5 @@ appears — then build it.
 
 ## Owner
 
-- [ ] 2026-11-25 — A creek of a one-bank place whose side cannot be read: keep it closed (as built, a proposal) or leave it out?
+- [x] 2026-11-25 — A creek of a one-bank place whose side cannot be read: keep it closed (as built, a proposal) or leave it out? → "keep it closed (for trib rules i assume) but one thing to note we should add a thing that warns us if this is ever a thing" (2026-11-27)
 - [x] 2026-11-25 — One-bank stretch hid the line's own cues → "A: cues above the stripe" (2026-11-25).
