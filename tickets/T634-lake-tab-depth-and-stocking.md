@@ -13,7 +13,7 @@ Source: the depth and stocking audit (T608 D, page https://claude.ai/artifact/7D
   (The audit page had marked the placed contours and stocking "Access Only": re-read each record's licence field, correct
   the page, and show the owner any record that does not say OGL before building on it.)
 - Fetch the 684 vector depth files (about 200 MB) to this Mac, outside git; build and test the reader and the placing. Nothing published yet.
-- Lake information lives in a fourth "Lake" tab.
+- Lake information lives in a fourth "Lake" tab. SUPERSEDED 2026-11-27 by T1189's card tab Info (Runs, Stocked, Depth), on his "Yes this structure except ..." (2026-11-27).
 - Scan-only lakes: the PDF only. Placing a scan over the map is a deferred future task.
 - The PDFs are too big: compress to the smallest that keeps the smallest printed depth numbers readable; report the size saved.
 - Chart matching A7 (name column only): use the name variants already curated. A name never picks a lake on its own: the lake
@@ -80,7 +80,7 @@ ticked against the PDFs; FIDQ alias lists split on commas only (some use ";").
    the feeds worker or by hand (no GitHub cron), first_time lakes to the owner.
 5. **Bundle + lakes/1** (M): writers for the waiting `chart`, `stock_water`, `stock_code` tables; max/mean depth from
    the 25 contour lakes and the chart statistics.
-6. **Lake tab in the app** (item 6, L): PDF viewer for scan-only lakes, stocking history, depth facts.
+6. **Lake tab in the app** (item 6, L; now the Info tab of T1189): PDF viewer for scan-only lakes, stocking history, depth facts.
 7. **Placed vector depths on the map** (L, optional, after 6): owner ticks the 415 strict+loose placings beside the
    PDFs and the 110 unstated units, then a tile layer of placed contours; the 83 poor + 12 failed stay PDF-only.
 

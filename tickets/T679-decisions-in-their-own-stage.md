@@ -1,6 +1,6 @@
 # T679 — Each decision in its own stage (everything but tidal)
 
-Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); D1 ponds, D3 nearer row, D4 word-read guard, D5 DFO confluence cuts and gauge placement #4 built in 9b0d6f4ae (+ f7f4fcfee), promoted with `full_t678b` (a5fe40636) and released in r-0a9930fb8826; the 11 other-line gauge cuts decided (RULINGS P49, T682); plan steps 1–3 done (#9 e1f1a268c, #2 8bc6eadbe, #4 b3a3938de); #14 done (9b0d6f4ae); lane L7 2026-11-20: #10 ece8f7a29, #11 7774bcbab, #12 rulings a493cf12d (+ 59e9589cc), #13 61f2bd774, step-10 code 5339c18ef (#1 and #6 behind switches, #15) and 94842bada (#18 dead code), all proved no output change; owner: see ## Owner; left (Claude): wave 4 flips #1/#6 with the atlas rebuild and diffs, #18's continuation / places / part point, and L8's steps 5 (#8, #16, #17)
+Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); D1 ponds, D3 nearer row, D4 word-read guard, D5 DFO confluence cuts and gauge placement #4 built in 9b0d6f4ae (+ f7f4fcfee), promoted with `full_t678b` (a5fe40636) and released in r-0a9930fb8826; the 11 other-line gauge cuts decided (RULINGS P49, T682); plan steps 1–3 done (#9 e1f1a268c, #2 8bc6eadbe, #4 b3a3938de); #14 done (9b0d6f4ae); lane L7 2026-11-20: #10 ece8f7a29, #11 7774bcbab, #12 rulings a493cf12d (+ 59e9589cc), #13 61f2bd774, step-10 code 5339c18ef (#1 and #6 behind switches, #15) and 94842bada (#18 dead code), all proved no output change; #12 derive from data in the 0.10.0 re-cut (owner 2026-11-27); left (Claude): wave 4 flips #1/#6 with the atlas rebuild and diffs, #18's continuation / places / part point, and L8's steps 5 (#8, #16, #17)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -60,7 +60,7 @@ Findings still open (from the audit table: # | What | Where | Runs in | Belongs 
   3 dp vs bundle 4 dp), one "where is it" point per part (`part_geo.mid_sid` vs `release/part_line.py`).
 - #12 LEFT: `UNDRAWN_PART_TRIBUTARIES` / `EXCEPTED_RIVERS_CREEKS_CLOSED` need the bundle to carry a rule's own tributary
   scope (it drops `includes_tributaries: false`) and `tributary_excludes` (kept out on purpose, `bundle/rules/row.py:84`)
-  — the owner question below; default: lists stay in code.
+  — the owner, 2026-11-27: derive from data, in the 0.10.0 re-cut (## Owner).
 - Touches tidal (for T678, not planned here): the reach applies outside and not-fishing first, then tidal
   (`reach/build.py:455-462`); `bundle/access.py` measures against tile geometry, which drops tidal pieces.
 
@@ -81,4 +81,4 @@ owner 2026-11-11 "look for other things like that too"; D1–D6 + gauge placemen
 
 ## Owner
 
-- [ ] 2026-11-20 — Should the bundle carry each rule's own tributary scope and the designations' `tributary_excludes` (yes lets the export derive `UNDRAWN_PART_TRIBUTARIES` and `EXCEPTED_RIVERS_CREEKS_CLOSED` instead of two id lists in code; it changes the bundle and export output)? Default: leave the two lists in code.
+- [x] 2026-11-20 — Should the bundle carry each rule's own tributary scope and the designations' `tributary_excludes` (yes lets the export derive `UNDRAWN_PART_TRIBUTARIES` and `EXCEPTED_RIVERS_CREEKS_CLOSED` instead of two id lists in code; it changes the bundle and export output)? Default: leave the two lists in code. → "what lists? i generally would say to derive from data but i dont understand what must carry tributary scope implies"; after the explanation: "derive from data but in 0.10" (2026-11-27). Supersedes the 11-20 default (lists stay in code); on the 0.10.0 list (the re-cut chat).
