@@ -54,7 +54,7 @@ SIMPLE_BELOW = 0.10
 AMBIGUOUS = ("rigid_ambiguous", "two_lake_ambiguous", "other_lake_ambiguous", "small_stretch_ambiguous",
              "orientation_ambiguous")
 #: why a placing needs the owner's look, in the order a contact sheet groups it (the first that applies)
-REASONS = ("neighbour_rival", "ambiguous", "takes_a_coded_lake", "other_lake", "two_lake", "mirror",
+REASONS = ("neighbour_rival", "ambiguous", "takes_a_coded_lake", "other_lake", "two_lake", "rigid_wider", "mirror",
            "simple_shape", "stretch_at_limit", "loose", "poor")
 SETTLE_ROUNDS = 6
 
@@ -138,7 +138,9 @@ def job(j):
             final_fit, members = got["after"]["fit"], refit._members(got["after"]["target"])
             placed = refit.apply(sheet, refit.pose_of(final_fit), o)
         target = unary_union([geoms_used[w] for w in members])
-        nb, nb_geom = refit.neighbour_check(sheet, o, float(final_fit["iou"]), target, members, near)
+        # the neighbours are fitted without a stretch: the gap is from the placing before its stretch
+        own = float(final_fit["iou"]) if got is None else refit.unstretched_iou(got)
+        nb, nb_geom = refit.neighbour_check(sheet, o, own, target, members, near)
         check["neighbour"] = nb
         check["shape"] = refit.self_similarity(sheet, o)
         check["lakes"] = {f"wbk:{w}": {"name": (info.get(w) or {}).get("name")} for w in members if w in lakes}
@@ -174,10 +176,11 @@ def final_lakes(r: dict) -> List[int]:
 
 
 def claims(rows: List[dict], coded_by: Dict[int, List[str]]):
-    """Is every wrong-lake find on a free lake? `coded_by`: wbk -> the zips whose code names it. Returns (refuse,
-    takes): refuse[row key] = {wbk: the other rows that end on it} (the find must be refused); takes[row key] =
-    {wbk: the zips it is coded for} (kept: those sheets moved off it; flagged for the owner). Two rows on one lake
-    are legitimate only when it is coded for both; a find is never coded for its own sheet."""
+    """Is every found lake free? A found lake: a wrong-lake find, or a neighbour pulled into a two-lake union (a
+    member not coded for the sheet). `coded_by`: wbk -> the zips whose code names it. Returns (refuse, takes):
+    refuse[row key] = {wbk: the other rows that end on it} (the find must be refused); takes[row key] = {wbk: the zips
+    it is coded for} (kept: those sheets moved off it; flagged for the owner). Two rows on one lake are legitimate
+    only when it is coded for both."""
     on: Dict[int, List[str]] = defaultdict(list)
     for r in rows:
         if r.get("state") == "fitted":
@@ -185,10 +188,13 @@ def claims(rows: List[dict], coded_by: Dict[int, List[str]]):
                 on[w].append(_key(r))
     refuse, takes = {}, {}
     for r in rows:
-        if r.get("state") != "fitted" or not r.get("refit", {}).get("steps", {}).get("other_lake", {}).get("adopted"):
+        st = r.get("refit", {}).get("steps", {}) if r.get("state") == "fitted" else {}
+        if not (st.get("other_lake", {}).get("adopted") or st.get("two_lake", {}).get("adopted")):
             continue
         k = _key(r)
         for w in final_lakes(r):
+            if r["zip"] in coded_by.get(w, ()):
+                continue                      # its own coded lake
             others = sorted(x for x in on[w] if x != k)
             coded = sorted(z for z in coded_by.get(w, ()) if z != r["zip"])
             if others:
@@ -241,7 +247,8 @@ def all_flags(r: dict) -> List[str]:
 
 def confidence(r: dict) -> Tuple[str, List[str]]:
     """(`high` | `high_stretched` | `review`, why). high: strict on its own coded lake, no stretch, no flag that it is
-    ambiguous, has a neighbour rival, is a wrong-lake or two-lake find, takes a coded lake or is mirrored, and a shore
+    ambiguous, has a neighbour rival, is a wrong-lake or two-lake find, was moved by the wider rigid search
+    (`rigid_wider`: the owner has not seen that placing), takes a coded lake or is mirrored, and a shore
     that is not simple (`SIMPLE_BELOW`) unless its lake is the only one of its size within the radius. high_stretched:
     the same with a stretch of 5 % or less, not at the limit. Everything else, the unplaced too: review."""
     if r.get("state") != "fitted":
@@ -256,8 +263,11 @@ def confidence(r: dict) -> Tuple[str, List[str]]:
         why.append("ambiguous")
     if "takes_a_coded_lake" in fl:
         why.append("takes_a_coded_lake")
-    if after["step"] in ("other_lake", "two_lake"):
-        why.append(after["step"])
+    for step in ("other_lake", "two_lake"):          # from the flags: a later stretch overwrites after["step"]
+        if step in fl:
+            why.append(step)
+    if "rigid_wider" in fl:                           # a placing the wider search changed: he has never seen it
+        why.append("rigid_wider")
     if after["fit"].get("mirror") or "mirror" in fl:
         why.append("mirror")
     ch = r.get("check") or {}
@@ -327,6 +337,8 @@ def summarise(rows: List[dict]) -> dict:
             lists["takes_a_coded_lake"].append(k)
         if st["other_lake"].get("taken_by"):
             lists["other_lake_refused_taken"].append(k)
+        if st["two_lake"].get("taken_by"):
+            lists["two_lake_refused_taken"].append(k)
     cx = sorted(r["check"]["shape"]["complexity"] for r in rows if r.get("check"))
     shape = {"simple_below": SIMPLE_BELOW, "placed": len(cx), "simple": sum(1 for v in cx if v < SIMPLE_BELOW),
              "min": cx[0] if cx else None, "median": cx[len(cx) // 2] if cx else None, "max": cx[-1] if cx else None}
