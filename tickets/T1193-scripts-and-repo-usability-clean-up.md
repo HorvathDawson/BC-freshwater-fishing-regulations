@@ -4,7 +4,7 @@ Status: OPEN — lane: the repo clean chat, after T1192 PR 1; the audit (`repo-u
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | ae94d6546, ed3931146, 2e3d25588, 51acf1842, 6cd6bbd29, 314fe0bcd, 3f2f80a51, 7642317e5 | PRs 1-3 merged (deletes, one ledger-hook script, #341 plain `pytest` = the no-data tier); index pages (#344), agent pages (PR C); PR 4: the root Makefile, one verb per task (in review, Claude) |
+| T1193 | Scripts and repo usability clean-up: one obvious way in for a human | OPEN | ae94d6546, ed3931146, 2e3d25588, 51acf1842, 6cd6bbd29, 314fe0bcd, 3f2f80a51, 7642317e5 | PRs 1-3 merged (deletes, ledger-hook script, #341 plain `pytest`); index pages (#344), agent pages (PR C); PR 4 Makefile and PRs 5-6 (dead generated files, `tickets/shots`) in review, Claude |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "same with scripts too and a few others that feel like they
 have way too many things that it would be hard for a human to use the repo themselves." and "also these scripts feel
@@ -39,6 +39,9 @@ explicit `-m` is untouched; both together is a usage error. Every caller that le
 `--with-data`: `scripts/test-full.sh`'s fast step, fast-fail's named-file steps, the release follows' whole files
 (`release_follows.pipeline_tests_cmd`), the re-cut's pins (`pins.mjs`), the annual-synopsis runbook. The pytest folder
 clean-up the owner mentioned is a later ticket. Task runner (owner, same day): "A Makefile (Recommended)". PR 4 (the root Makefile): `make` lists the verbs; pinned by `pipeline/tests/test_makefile.py`, run by fast-fail; `scripts/ci_paths.py` holds no `Makefile`: proposed after the merge-back.
+
+## PRs 5-6, owner-approved deletes (owner 2026-11-26)
+PR 5: five dead or frozen generated files deleted (0.24 MB: proposals index, t981 proposals, t678 drafts, the two frozen audits). Kept, for the owner to decide: `review/q154/sample.json` (1.4 MB; a closed domain's input is still read by the marks health view: its 80 marks would count as orphans), `review/tidal/pass2/entries.json` (3.3 MB; `tidal_pass2 propose` is a documented step that reads it), `review/name-variants/candidates.json` (9 MB; `test_review_shrink_guard` reads it), and the five re-makeable review inputs (they feed open review domains; a pull would delete them from his checkout). PR 6: `tickets/shots` deleted (24 MB); no other picture folder belongs to a closed ticket.
 
 Found, not fixed: `python -m pipeline.tools.audit.tidal_pass2 propose` run twice on one `entries.json` would double every
 `streams` list (`setdefault` + append, `tidal_pass2.py:1033`; read from code, not run): run `extract` before each `propose`.

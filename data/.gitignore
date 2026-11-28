@@ -41,15 +41,6 @@ generated/*
 # The shipped set (P08/P18): built, never committed; publish uploads it.
 release/
 
-# TWO EXCEPTIONS, and they are temporary. These predate their matchers being wired, so they
-# CANNOT currently be regenerated — and between them they hold 2,265 bathymetry identifiers
-# already resolved to lakes, 2,122 of them name-verified. Losing them would mean re-deriving
-# work nobody has the tooling to re-derive yet.
-#
-# When pipeline/bathymetry/generate/match.py and pipeline/stocking/generate/match.py land,
-# these become ordinary regenerable candidates and these two lines come out.
-!generated/bathymetry/audit.json
-!generated/stocking/identifier_audit.json
 # T322 (owner 2026-10-30): the slough review's GENERATED inputs (finder candidates + width-rule pre-marks), moved
 # here from handoff/; committed because the review app and the T322 apply step read them. The owner's own page verdicts
 # are curation and live in ../curated/waters/slough_page_calls.json.
