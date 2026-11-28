@@ -1,10 +1,10 @@
 # T1039 — The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model)
 
-Status: IN REVIEW — 9f8603f17 (ELF facts), 44af0d16f + 1b983b5ad (the app's chart on the page; the hook file came in the second), f181f241f (Get the app = the Spots tab's), 085ce5e6f + 145cf8542 (reviews of #73), 6a4ebf3ab (almanac); owner: see ## Owner. Shows on staging after the STAGING feeds worker deploy (ELF facts) and the 0.9.0 staging site build (the chart).
+Status: DONE — 9f8603f17 (ELF facts), 44af0d16f + 1b983b5ad (the app's chart on the page; the hook file came in the second), f181f241f (Get the app = the Spots tab's), 085ce5e6f + 145cf8542 (reviews of #73), 6a4ebf3ab (almanac); his look moved to T1194's shared gauge page (#354, ## Owner).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: see ## Owner; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f, 1b983b5ad, f181f241f, 085ce5e6f, 6a4ebf3ab, 145cf8542 | owner 2026-11-23; lane L25 |
+| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | DONE — his look moved to T1194's shared gauge page (#354) | 9f8603f17, 44af0d16f, 1b983b5ad, f181f241f, 085ce5e6f, 6a4ebf3ab, 145cf8542 | — |
 
 Source: owner 2026-11-23, verbatim: "the gauge website in 9.0.0 should also have the same chart as the website. right
 now it is only a lower resolution 7 day chart with no forecast?"
@@ -57,5 +57,5 @@ Depends: —. Size: M. Owner: answered (Q183: B + the ELF fix).
 
 ## Owner
 
-- [ ] 2026-11-23 — Look at the gauge page's app chart (`docs/app-integration/T1039-shots/after-page-chilliwack-*.png`, `after-page-two-forty-elf-*.png`, `after-almanac-*`, `after-get-app-*`) and say if it is right.
+- [x] 2026-11-23 — Look at the gauge page's app chart (`docs/app-integration/T1039-shots/after-page-chilliwack-*.png`, `after-page-two-forty-elf-*.png`, `after-almanac-*`, `after-get-app-*`) and say if it is right. → superseded by T1194 (#354): "one shared piece used by both website and app is a yes. ..."; Q16 "way better ..."; the foot: "Variant B" (2026-11-26). The look is T1194's.
 - [x] 2026-11-23 — Gauge page chart (Q183) → "App's chart, ~260 KB (Recommended)"; ELF → "Yes, fix in 0.9.0 (Recommended)" (2026-11-23). Also: "chart should use same buttons as spots too for now", "could add other almanac info too?" (built).

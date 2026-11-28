@@ -1,10 +1,10 @@
 # T1199 — Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside
 
-Status: OPEN — ruled by the owner; the opens list answered 2026-11-27 ("Merge with the list; close both edge stretches (Recommended)"); lands in the 0.10.0 re-cut.
+Status: OPEN — ruled by the owner; the opens list answered 2026-11-27 ("Merge with the list; close both edge stretches (Recommended)"); merged in #372 (2026-11-27); left: the deliver fix for parts named "inside" after the cut (owner 2026-11-28: one rule across the board, ## Owner), in the 0.10.0 re-cut.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — in the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | the PR into the 0.10.0 re-cut; that build's area-cut gate proves the two accepted calls |
+| T1199 | Reserve and park cut rule: cut at real crossings, a 50 m edge band, no piece under 100 m, a stream that never crosses is never inside | OPEN — merged (#372); in the 0.10.0 re-cut | — | the deliver fix (`fix/T1199-reviewed-inside-after-the-cut-rule`) with the across-the-board proof; the re-cut's area-cut gate proves the two accepted calls |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim. On the cut rule: "we need to figure out a way that everything
 get simplified a lot.... like the skeena river er example is crazy... we want to maybe do braid simplification here
@@ -65,9 +65,12 @@ rivers). Model: Opus. Size: M (about one lane-day plus the build). Built by the 
   Schmidt, Lost Shoe, Camper, Clanninick). Fixed in cce1cd50a (`shore.leaves_at_mouth`): the four rows are back
   byte-identical, and 488 more lines are now recorded "not cut: the mouth is the coast crossing"; coast cuts and
   tidal water unchanged; records only (no consumer reads row counts).
+- 2026-11-27 (lane L, after #372): a deliver of main stopped at the answers step: "reviewed inside parts no longer said inside" (the Gordon River in Pacific Rim, the Okanagan River Oxbows at Hayne's Lease). The 100 m floor grew their 47 m and 37 m inside pieces to 100 m (46 % and 36 % inside the polygons); the area items still hold them, but `side_channels.inside_rows` measured the shapes. Fixed: in a cut area the part's lines are measured by the cut (E30), shapes only for lakes and membership-only areas; `REVIEWED_INSIDE` unchanged. `test_t1199_inside_follows_the_cut.py`.
+- 2026-11-28 (lane L, review of the fix): only the clean-cut areas follow the cut, EXACTLY (all its lines held), both ways refused by name (RULINGS E35, his two sentences); a cut place with no water holds nothing; the Skeena's side channel by the reserve takes his yes ("Side channel inside Skeena River Eco Reserve", `REVIEWED_INSIDE`). Main-stem parts and whole waters: an open owner question (release audit). The Beaverfoot's "within Yoho" on two open stretches: his pick of 11-28, a second PR.
 - Follow-up: two constants are both `STUB_M` (`coast.STUB_M` 25 m, `tolerances.STUB_M` 100 m); rename one later.
 
 ## Owner
 
 - [x] 2026-11-26 — The list of what opens (about 13.4 km) and closes (about 15.4 km), with maps, shown before it merges. Nothing that opens water merges without him. Answered 2026-11-27: "Merge with the list; close both edge stretches (Recommended)"; the Klanawa creek, after its picture: "Stop at 370 m".
   - 2026-11-27: the lane's list (26 stretches, 12.43 km open, plus 252 m on 10 lines that only graze an area; 254 stretches, 14.74 km close; figures may move up to 0.25 km) was put to him. His answer, verbatim: "Hold for the loop-removal trial". Reading: the rule and its list wait for the T1242 trial; he sees both in one look.
+- [x] 2026-11-28 — Main's deliver refused after #372 (parts the review named "inside" no longer said so); the Skeena side channel at the Skeena River Eco Reserve to read "Side channel inside Skeena River Eco Reserve" → "yes but we need to make sure the rule is consistent across the board here not just a ranom special case" (2026-11-28). Left: before merge, one stated rule, a whole-release list of mismatches both ways, no per-part exception, a test.

@@ -194,6 +194,10 @@ def world(tmp_path: Path, monkeypatch):
         w["gauge_records_since"].append(since)
         return list(w["gauge_records"]), "gauge level records: " + ("; ".join(w["gauge_records"]) or "none moved")
     monkeypatch.setattr(R, "gauge_records", gauge_records)
+    # (T1029) the one-bank tributaries kept with no side read: read the reach run's report.json (pinned below)
+    w["one_bank"] = []
+    monkeypatch.setattr(R, "one_bank_unread", lambda: (
+        list(w["one_bank"]), "one-bank tributaries with no side read: " + ("; ".join(w["one_bank"]) or "none")))
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
     monkeypatch.setattr(R, "manifest_problems", lambda rid: list(w.get("manifest_problems", [])))
@@ -325,6 +329,71 @@ def test_a_moved_gauge_level_record_is_its_own_line_and_never_stops_the_release(
     assert rec["checks"]["gauge_records"] == [line]
     assert line in (R.HOME / "checks" / NEW / "gauge_records.txt").read_text()
     assert world["gauge_records_since"] == ["c0ffee"]                     # the live release's commit
+
+
+def test_a_one_bank_tributary_with_no_side_read_is_warned_and_never_stops_the_release(world, capsys):
+    """(T1029, owner 2026-11-27: "keep it closed ... but ... we should add a thing that warns us if this is ever a thing")
+    each one-bank place keeping a tributary with no side read is its own WARNING line in the checks, in the stage's
+    summary, written beside the checks and kept on the ledger; the release still ships."""
+    from pipeline.atlas.reach.dfo_salmon import ONE_BANK_UNREAD_WARNING
+    line = f"{ONE_BANK_UNREAD_WARNING} 6:kit:bank: 2 tributary section(s) KEPT with no side read …: c:0, d:0"
+    world["one_bank"] = [line]
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert line in out and "WARNING: 1 one-bank place(s) keep a tributary with no side read (T1029, see above)" in out
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["one_bank_unread"] == [line]
+    assert line in (R.HOME / "checks" / NEW / "one_bank_unread.txt").read_text()
+
+
+def test_no_one_bank_warning_when_every_side_is_read(world, capsys):
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert "one-bank place(s) keep a tributary" not in out and "one-bank tributaries NOT counted" not in out
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["one_bank_unread"] == []
+
+
+def test_one_bank_unread_reads_the_reach_runs_tally(tmp_path, monkeypatch):
+    """The real `one_bank_unread` over the candidate's reach report.json `dfo_one_bank`: a place holding a tributary with
+    no side read fires one WARNING line naming it; today's shape (1 place, 12 kept, none unread) fires none; a report
+    with no tally (unreadable, or from before T1029) is said and recorded, never read as none."""
+    from pipeline.atlas.reach.dfo_salmon import ONE_BANK_UNREAD_WARNING
+    monkeypatch.setattr(R, "reach_dir", lambda: tmp_path)
+    rep = tmp_path / "report.json"
+
+    def tally(und: dict) -> None:
+        rep.write_text(json.dumps({"digest": "d", "dfo_one_bank": {
+            "places": 1, "kept": 12, "tributary_other_bank": 0,
+            "tributary_side_undetermined": sum(len(v) for v in und.values()), "undetermined_by_place": und}}))
+    tally({"6:kitimat-river:on-west-bank": ["360639090:0", "360639090:1519"]})
+    lines, txt = R.one_bank_unread()
+    assert len(lines) == 1 and lines[0].startswith(f"{ONE_BANK_UNREAD_WARNING} 6:kitimat-river:on-west-bank: 2 ")
+    assert "360639090:0, 360639090:1519" in lines[0] and "1 place(s) WARNED, kept in the place under its rule" in txt
+    tally({})
+    assert R.one_bank_unread() == ([], "one-bank tributaries with no side read (T1029): none (1 place(s) with "
+                                       "tributaries, 12 kept, 0 on the other bank)")
+    rep.write_text(json.dumps({"digest": "d"}))                           # a reach run from before T1029
+    lines, txt = R.one_bank_unread()
+    assert lines[0].startswith(R.ONE_BANK_UNCOUNTED) and "KeyError" in lines[0] and lines[0] in txt
+    # a tally that lacks a key, or is not a mapping, is "could not be counted", never none (W46)
+    rep.write_text(json.dumps({"digest": "d", "dfo_one_bank": {"places": 1, "kept": 12, "tributary_other_bank": 0}}))
+    lines, _ = R.one_bank_unread()
+    assert lines[0].startswith(R.ONE_BANK_UNCOUNTED) and "KeyError: 'undetermined_by_place'" in lines[0]
+    rep.write_text(json.dumps({"digest": "d", "dfo_one_bank": {"undetermined_by_place": {}}}))      # no counts
+    lines, _ = R.one_bank_unread()
+    assert lines[0].startswith(R.ONE_BANK_UNCOUNTED) and "KeyError: 'places'" in lines[0]
+    for bad in (None, [], {"places": 1, "kept": 0, "tributary_other_bank": 0, "undetermined_by_place": ["x:0"]}):
+        rep.write_text(json.dumps({"digest": "d", "dfo_one_bank": bad}))
+        lines, _ = R.one_bank_unread()
+        assert len(lines) == 1 and lines[0].startswith(R.ONE_BANK_UNCOUNTED), bad
+    rep.unlink()
+    lines, _ = R.one_bank_unread()
+    assert lines[0].startswith(R.ONE_BANK_UNCOUNTED) and "FileNotFoundError" in lines[0]
+
+
+def test_an_uncounted_one_bank_tally_ships_said_in_the_stage_summary(world, capsys):
+    world["one_bank"] = [f"{R.ONE_BANK_UNCOUNTED} reaches/full/report.json gives no `dfo_one_bank` tally (KeyError)"]
+    assert _staging() == 0
+    assert "one-bank tributaries NOT counted (see above)" in capsys.readouterr().out
 
 
 def test_gauge_records_reads_the_datum_file_at_the_live_commit(monkeypatch):

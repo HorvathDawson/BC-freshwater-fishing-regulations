@@ -55,6 +55,14 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    area stops the build there, an unreviewed membership-only one is listed and the name takes its next rung). The Old
    Kootenay River Channel's side part, 99.4 % inside the Creston Valley Wildlife Management Area (whose two rules and
    permit are all that tell it from its main line).
+   (T1199, RULINGS E30; owner 2026-11-26: "be intelligent about the split then where the river is cut will define the
+   section that falls inside the area when cut happens it gets inside area") IN A CLEAN-CUT AREA THE CUT SAYS IT (a
+   national park, an ecological reserve, the Chilkoot: `cut_mode` "clean"): a line section is inside when the cut puts it there (the registry's area item holds it,
+   `cut_area_members`), never by its shape's share — E30's 100 m floor grows a short inside piece outward (the Gordon
+   River's 47 m in Pacific Rim to 100 m, 46 % of it inside the polygon), and the piece is the area's water all the
+   same. Polygon sections (the cut never cuts a lake), `first_last` areas (restricted land: a whole piece is in it when
+   any of it is) and membership-only areas are measured on their shapes as above.
+   A part whose shapes and cut disagree across `INSIDE_SHARE` is logged ("INSIDE BY THE CUT"), never silent.
 3. (PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is fixed
    in hardening") A PART OF ADDED LINES WITH ITS OWN NAME (`part_own_name`): every section an added-stream line (a
    negative blk in `section_measure`), all one added stream's name (the atlas graph's name tuple for it,
@@ -352,7 +360,8 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
 
 def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, *, log=print,
           problems: Optional[List[str]] = None, added: Optional[Dict[int, str]] = None,
-          unnamed: Optional[Dict[str, object]] = None, marks: Optional[Dict[int, list]] = None) -> None:
+          unnamed: Optional[Dict[str, object]] = None, marks: Optional[Dict[int, list]] = None,
+          held: Optional[Dict[str, frozenset]] = None, follow: Optional[frozenset] = None) -> None:
     """Fill the join measures `spans.compute` could not walk to, and write `part_inside` (the module's two rules).
     A channel the join rule cannot say is left without one and logged ("no join"; `problems` collects them too): only
     a part whose name needs that distance stops the build (`answers.display.builders._names`). First the order every
@@ -365,6 +374,8 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
         raise SideChannelError("side_channels.write: the added streams' own names are not given (`added_stream_names`)")
     if marks is None:
         raise SideChannelError("side_channels.write: the stems' junction measures are not given (`stem_marks`)")
+    if held is None or follow is None:
+        raise SideChannelError("side_channels.write: the sections each cut area holds are not given (`cut_area_members`)")
     check_stem_order(db, geo, marks, log=log)
     item = {o: (i, n, k) for o, i, n, k in db.execute("SELECT ord, item_id, name, kind FROM item")}
     secs: Dict[int, List[int]] = defaultdict(list)
@@ -493,7 +504,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
     named = own_name_rows(db, added)
     db.executemany("INSERT INTO part_own_name (ord, part_ix, name, label) VALUES (?,?,?,?)", named)
     cov.filled("part_own_name", len(named))
-    rows = inside_rows(db, geo, build_dir, span, log=log)
+    rows = inside_rows(db, geo, build_dir, span, held, follow, log=log)
     db.executemany("INSERT INTO part_inside (ord, part_ix, area, share, how, cut) VALUES (?,?,?,?,?,?)", rows)
     cov.filled("part_inside", len(rows))
 
@@ -557,15 +568,52 @@ def own_name_rows(db: sqlite3.Connection, names: Dict[int, str]) -> List[tuple]:
     return out
 
 
+def cut_area_members(registry_items: Sequence[dict], handle_by_id, build_dir: Path, area_defs: Sequence[dict], *,
+                     log=print) -> Tuple[Dict[str, frozenset], frozenset]:
+    """(T1199, E30) `(held, follow)`: `held` {area id: the section handles its registry area item holds} for every cut
+    area that is a place (`area_catalog.gpkg`'s `area_id`, `cut` = 1, not `NOT_A_PLACE`); `follow` the ids of those the
+    CLEAN cutter cuts (`area_splits.cut_mode` "clean": national parks, ecological reserves, the Chilkoot — the T1199
+    rule's inside intervals), whose parts are measured by the cut. A `first_last` area (`membership: both_sides`,
+    restricted land) puts a WHOLE piece in itself when any real length lies in its polygon: measured on the shapes as
+    before (`inside_rows` logs where the two disagree). The registry makes an area item only where water lies in the
+    area: a cut place with none holds nothing, named and counted in the log. An area section with no handle stops."""
+    import pyogrio
+    from pipeline.atlas.splits.area_splits import cut_mode
+    cat = Path(build_dir) / "area_catalog.gpkg"
+    if not cat.exists():
+        raise SideChannelError(f"cut_area_members: {cat} not found — an atlas build writes it")
+    df = pyogrio.read_dataframe(cat, layer="areas", read_geometry=False)
+    want = {a: (n, k) for a, n, k, c in zip(df["area_id"], df["name"], df["kind"], df["cut"])
+            if bool(c) and k not in NOT_A_PLACE}
+    clean_kinds = {ad.get("kind", ad["id"]) for ad in area_defs if cut_mode(ad) == "clean"}
+    follow = frozenset(a for a, (_n, k) in want.items() if k in clean_kinds)
+    held: Dict[str, frozenset] = {a: frozenset() for a in want}
+    for it in registry_items:
+        if it.get("id") in want:
+            missing = [s for s in it.get("section_ids") or () if s not in handle_by_id]
+            if missing:
+                raise SideChannelError(f"cut_area_members: {it['id']}: {len(missing)} section(s) not in the handle table "
+                                       f"({missing[:5]})")
+            held[it["id"]] = frozenset(handle_by_id[s] for s in it.get("section_ids") or ())
+    none = sorted(a for a in want if not held[a])
+    log(f"     side channel areas: {len(want)} cut places, {len(follow)} cut clean (measured by the cut); {len(none)} "
+        f"hold no water (no registry item): {'; '.join(f'{want[a][0]} ({want[a][1]})' for a in none)}")
+    return held, follow
+
+
 def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
-                span: Dict[int, tuple], *, log=print) -> List[tuple]:
+                span: Dict[int, tuple], held: Dict[str, frozenset], follow: frozenset, *, log=print) -> List[tuple]:
     """(ord, part_ix, the area's catalogue name, the lines' share, "inside" | "at", 1 if the atlas cuts at the area else
     0) for every stream part with no main stem lying at least `INSIDE_SHARE` in one area ("inside"), or its lines so
     while a polygon section of it straddles the area's edge ("at") — every section measured (a section with no shape:
     neither). The areas, reviewed or not (T1172): every cut area that is a place (not `NOT_A_PLACE`), and every
     membership-only one of the `MEMBERSHIP_PLACES` kinds. ONE AREA: a part in two cut areas, or in no cut area and two
     membership-only ones, has no row (logged); a part in one cut area is said by it, whatever membership-only areas
-    hold it too (the atlas's own line before an area it does not cut at)."""
+    hold it too (the atlas's own line before an area it does not cut at). (T1199, E35) A CLEAN-cut area (`follow`)
+    says it EXACTLY by the cut: inside when the area's item holds ALL its lines (`held`, `cut_area_members`), never by
+    shape; a part the cut puts only partly in such an area, or one it puts there without the area as its row, stops
+    the build by name. Every other area by shape. Where the cut and the shapes fall on different sides of
+    `INSIDE_SHARE` it is logged, in either kind of area."""
     import pyogrio
     from shapely.ops import unary_union
     kind = dict(db.execute("SELECT ord, kind FROM item"))
@@ -585,20 +633,52 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
         raise SideChannelError(f"part_inside: {cat} not found — an atlas build writes it")
     df = pyogrio.read_dataframe(cat, layer="areas")
     # (name, shape, cut) of every place: a cut area not a line; a membership-only area of a named-place kind
-    areas = [(n, g, bool(c)) for n, k, c, g in zip(df["name"], df["kind"], df["cut"], df.geometry)
+    areas = [(n, g, bool(c), a) for n, k, c, g, a in zip(df["name"], df["kind"], df["cut"], df.geometry, df["area_id"])
              if g is not None and ((bool(c) and k not in NOT_A_PLACE) or (not c and k in MEMBERSHIP_PLACES))]
+    unheld = sorted({a for _n, _g, c, a in areas if c and a not in held})
+    if unheld:
+        raise SideChannelError(f"part_inside: {len(unheld)} cut area(s) with no held sections given: {unheld[:5]}")
+    if not follow <= set(held):
+        raise SideChannelError(f"part_inside: clean-cut area(s) not among the held: {sorted(follow - set(held))[:5]}")
+    # (T1199) the cut areas that hold a section, by section: a part the cut puts in an area is measured against it even
+    # where its shapes miss the polygon's box
+    held_by: Dict[int, List[int]] = defaultdict(list)
+    for i, (_n, _g, c, a) in enumerate(areas):
+        if c:
+            for s in held[a]:
+                held_by[s].append(i)
     from shapely.strtree import STRtree
-    tree = STRtree([g for _, g, _c in areas])
+    tree = STRtree([g for _, g, _c, _a in areas])
     out = []
+    disagree: List[str] = []
     for (o, p), ss in sorted(want.items()):
         shapes = [geo[s] for s in ss]
         whole = unary_union(shapes)
         hits = []
-        for i in sorted(tree.query(whole)):
-            name, poly, cut = areas[int(i)]
-            lines = [g for g in shapes if g.geom_type in ("LineString", "MultiLineString")]
+        clean_holds: set = set()                 # the clean-cut areas whose cut puts any of this part's lines in them
+        cand = {int(i) for i in tree.query(whole)} | {i for s in ss for i in held_by.get(s, ())}
+        for i in sorted(cand):
+            name, poly, cut, aid = areas[i]
+            lines = [(s, g) for s, g in zip(ss, shapes) if g.geom_type in ("LineString", "MultiLineString")]
             polys = [g for g in shapes if g.geom_type in ("Polygon", "MultiPolygon")]
-            share_l = (sum(g.intersection(poly).length for g in lines) / sum(g.length for g in lines)) if lines else 1.0
+            total = sum(g.length for _s, g in lines)
+            by_shape = (sum(g.intersection(poly).length for _s, g in lines) / total) if lines else 1.0
+            share_l = by_shape
+            if cut and lines:
+                by_item = sum(g.length for s, g in lines if s in held[aid]) / total
+                if aid in follow:
+                    # (T1199, E35) exactly: inside when the cut puts ALL of its lines in the area, else not inside;
+                    # a part the cut puts partly in it carries the area's rule on some sections only: refused below
+                    share_l = 1.0 if by_item >= 1.0 - 1e-9 else 0.0
+                    if by_item > 0:
+                        clean_holds.add(name)
+                        if share_l < 1.0:
+                            disagree.append(f"{iid_of[o]} part {p}: the cut puts {by_item:.1%} of its lines in "
+                                            f"{name!r}, not all of them")
+                if (by_item >= INSIDE_SHARE) != (by_shape >= INSIDE_SHARE):
+                    log(f"     side channel INSIDE BY THE CUT: {iid_of[o]} part {p} {name!r}: the cut holds "
+                        f"{by_item:.1%} of its lines, their shapes lie {by_shape:.1%} in it — "
+                        + ("measured by the cut (E35)" if aid in follow else "a first_last area: measured by its shapes"))
             share_a = (sum(g.intersection(poly).area for g in polys) / sum(g.area for g in polys)) if polys else 1.0
             if share_l < INSIDE_SHARE:
                 continue
@@ -626,4 +706,13 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
             out.append((o, p, name, share, how, cut))
         elif len(pick) > 1:
             log(f"     side channel INSIDE two areas: {iid_of[o]} part {p} in {sorted(h[1] for h in pick)}: no row")
+        said = pick[0][1] if len(pick) == 1 else None
+        if clean_holds and said not in clean_holds:
+            disagree.append(f"{iid_of[o]} part {p}: carries the rule of {sorted(clean_holds)} (the cut puts it there) "
+                            f"but is named {('by ' + repr(said)) if said else 'by no area'}")
+    if disagree:
+        # (T1199, E35) a side-channel part at a clean-cut park or reserve is named with the area exactly when it carries
+        # the area's rule: never silent drift between the name and the rule
+        raise SideChannelError(f"part_inside: {len(disagree)} part(s) whose name would disagree with their area's rule "
+                               f"(E35): " + "; ".join(sorted(disagree)[:10]))
     return out

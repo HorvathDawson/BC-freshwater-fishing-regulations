@@ -1122,6 +1122,33 @@ def gauge_records(since: str | None) -> tuple[list[str], str]:
     return lines, head + "".join(f"\n  {x}" for x in lines)
 
 
+#: (T1029) the one line a release records when the candidate's reach run gives no one-bank tally (said, never a stop)
+ONE_BANK_UNCOUNTED = "could not be counted:"
+
+
+def one_bank_unread() -> tuple[list[str], str]:
+    """(T1029, owner 2026-11-27: "keep it closed (for trib rules i assume) but one thing to note we should add a thing that
+    warns us if this is ever a thing") A ONE-BANK PLACE'S TRIBUTARY KEPT WITH NO SIDE READ, warned on at the release
+    check: the candidate's reach run's report.json `dfo_one_bank` (`reach.dfo_salmon.one_bank_counts`), one WARNING line
+    per place that holds one (`dfo_salmon.one_bank_unread_lines`). The tributary stays in the place under its rule:
+    listed, never a stop. A run with no whole tally (a report.json that cannot be read, one from before T1029, a tally
+    that is not a mapping or lacks a key) is SHOWN and RECORDED as the one line "could not be counted: <reason>" (W46:
+    said, not read as none). (lines, text)"""
+    from pipeline.atlas.reach import dfo_salmon as D
+    rp = reach_dir() / "report.json"
+    try:
+        ob = json.loads(rp.read_text(encoding="utf-8"))["dfo_one_bank"]
+        lines = D.one_bank_unread_lines(ob)
+        none = (f"none ({ob['places']} place(s) with tributaries, {ob['kept']} kept, "
+                f"{ob[D.TRIB_OTHER_BANK]} on the other bank)")
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:
+        line = f"{ONE_BANK_UNCOUNTED} {rp} gives no whole `dfo_one_bank` tally ({type(e).__name__}: {e})"
+        return [line], f"one-bank tributaries with no side read (T1029): {line}"
+    head = ("one-bank tributaries with no side read (T1029): "
+            + (f"{len(lines)} place(s) WARNED, kept in the place under its rule" if lines else none))
+    return lines, head + "".join(f"\n  {x}" for x in lines)
+
+
 def attribute_diff(js: Path, since: str | None) -> tuple[bool, list[str], list[str]]:
     """(T993 item 8) is every change of the binding diff `js` explained by a curated row changed in the commits since
     `since` (the commit LATEST was built from; `pipeline.release_attribute`)? (all explained, explained, not explained).
@@ -1834,15 +1861,23 @@ def stage_checks(ctx: Ctx) -> str:
     recs, txt = gauge_records(((ctx.led.get("releases") or {}).get(ctx.live or "") or {}).get("commit"))
     (out_dir / "gauge_records.txt").write_text(txt + "\n", encoding="utf-8")
     print(txt)
+    # (T1029, owner 2026-11-27) a one-bank place's tributary kept with no side read: WARNED, its own line per place, never
+    # a stop (the tributary stays in the place under its rule)
+    banks, txt = one_bank_unread()
+    (out_dir / "one_bank_unread.txt").write_text(txt + "\n", encoding="utf-8")
+    print(txt)
     r["checks"] = {"manifest": "ok", "app_gate": "ok", "classified": "ok", "min_app_version": ctx.min_app,
                    "binding_diff": done["status"], "gone_ids": n_gone, "counts": counts, "gauge_records": recs,
-                   "at": now()}
+                   "one_bank_unread": banks, "at": now()}
     r["fingerprint"] = fingerprint(rid)
     save_ledger(ctx.led)
     return (f"manifest ok, app gate ok (min app {ctx.min_app or 'manifest stamp'}), bindings {done['status']}, "
             f"{n_gone} item id(s) gone with no alias, "
             + ("gauge level records NOT compared (see above)" if recs and recs[0].startswith(GAUGE_UNCOMPARED)
-               else f"{len(recs)} gauge level record(s) moved"))
+               else f"{len(recs)} gauge level record(s) moved")
+            + ("; one-bank tributaries NOT counted (see above)" if banks and banks[0].startswith(ONE_BANK_UNCOUNTED)
+               else f"; WARNING: {len(banks)} one-bank place(s) keep a tributary with no side read (T1029, see above)"
+               if banks else ""))
 
 
 def stage_inseason(ctx: Ctx, rid: str, r: dict) -> str:

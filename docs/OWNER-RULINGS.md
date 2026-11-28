@@ -140,7 +140,7 @@ hand, the planning chat audits; Little Qualicum River and Lizard Lake are droppe
 See the principle above (one tributary logic). Build: T1177.
 
 ### T1084: creeks with no bank in the data
-"Record the method, build nothing (Recommended)". The 98 %-accurate geometry method is kept for the day a case appears.
+"Record the method, build nothing (Recommended)". The 98 %-accurate geometry method is kept for the day a case appears. A one-bank place's creek whose side cannot be read (T1029, 2026-11-27): "keep it closed (for trib rules i assume) but one thing to note we should add a thing that warns us if this is ever a thing".
 
 ### Side-channel labels
 "all of them now. also we need to make sure th ui still says if it is in an area in the subtitle in the app so a user
@@ -248,8 +248,9 @@ His words, verbatim. Answers given in the planning chat and relayed verbatim to 
 ### Reserve and park cut rule (T1199, T1240-T1242)
 - **Edge water along a reserve or park:** "Closed, like a boundary river (Recommended)".
 - **A stream beside an area that never crosses:** "Never inside (Recommended)". With his design words: "also if a stream never enters a eco area at all then it will never get cut and will not get considered inside. it must cross at least once or be very close. ... we dont want tiny artifacts left because of the 25m or whatever distance rule."
-- **Timing:** "In the 0.10.0 re-cut (Recommended)". The cut rule built is T1199 (real crossings, 50 m band, no piece under 100 m). **The opens list and the two edge stretches G6 named (2026-11-27):** "Merge with the list; close both edge stretches (Recommended)": T1199 merges into the 0.10.0 re-cut, the Beaverfoot River along Yoho (123 m) is closed as edge water; for the creek along the Klanawa River Ecological Reserve, shown its picture: "Stop at 370 m" (closed to 370.0 m as today, its last 51.6 m open as today) (`waters/area_edge_calls.json`). Both came after his night answer "Hold for the loop-removal trial" (Return batch 4).
+- **Timing:** "In the 0.10.0 re-cut (Recommended)". The cut rule built is T1199 (real crossings, 50 m band, no piece under 100 m). **The opens list and the two edge stretches G6 named (2026-11-27):** "Merge with the list; close both edge stretches (Recommended)": T1199 merges into the 0.10.0 re-cut, the Beaverfoot River along Yoho (123 m) is closed as edge water; for the creek along the Klanawa River Ecological Reserve, shown its picture: "Stop at 370 m" (closed to 370.0 m as today, its last 51.6 m open as today) (`waters/area_edge_calls.json`). Both came after his night answer "Hold for the loop-removal trial" (Return batch 4). On the parts named "inside" after the cut (the Skeena side channel at the Skeena River Eco Reserve, 2026-11-28): "yes but we need to make sure the rule is consistent across the board here not just a ranom special case".
 - **The water option:** "D: simplify the water itself"; late folds: "Hold the re-cut for all of them"; loop removal: "Run the loop-removal trial first, then I decide" (T1242). Snehumption's fold: "i need to see on map for how to handle it" (T1240).
+- **Side channels named inside a reserve (T1199, E35):** 2026-11-27 on the Skeena's side channel: "how can skeena river inside skeena river eco reseve be 72% inside. we cut on eco reserves so it should be 1005 always for eco reserves"; 2026-11-28, shown its picture: "yes but we need to make sure the rule is consistent across the board here not just a ranom special case". Built for parts of side channels only at cut parks and reserves; main-stem parts and whole waters (named by their ends) are an open question to him.
 
 ### Tributary and place picks of the one-offs batch (data chat)
 - **Healy Lake outlet:** "Yes, open the 5.05 km above the lake (Recommended)".
@@ -296,8 +297,7 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
 - **The while-away rule:** "Yes, approved items merge (Recommended)" (recorded above).
 - **PR #312 (Eco Reserve words):** "Merge; names only (Recommended)". Reading: merged as built; the map area labels,
   the notes, the rules' sentences and the book lines keep the full official name (T1245's owner line). #312 is merged.
-- **The two T1177 branches:** (recorded above).
-- **Blue Lead Creek below the falls:** (recorded above).
+- **The two T1177 branches; Blue Lead Creek below the falls:** (both recorded above).
 
 ### Return batch 2 (the map look)
 - **Phone controls (Q19):** "do tiday with the attribution moved to botton corner now". Reading (the planning chat's
@@ -335,7 +335,7 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
   creek regs for safety". Reading: he likes the chip layout of sheet P3-5; the status-pill version (b) was not chosen;
   the Cottonwood River example, the salmon stretch tag and the Noons Creek tag were not clear to him (the planning
   chat owes him an explanation). Noons Creek: the FWA stream and the city stream of the same name in the same area
-  BOTH get the Noons Creek regulations, for safety.
+  BOTH get the Noons Creek regulations, for safety. Settled 2026-11-27, with a plain sheet of the three: "Yes, settled (Recommended)" (layout as P3-5; the three tags are not built; T1191).
 - **Which land counts (Q5):** "all no access in that layer. also we seperatiely want a tag for tags that is like
   indegenous except \"crosses private land\" as another tag". Reading: all closed land in the layer keeps "No public
   access" (no filtering); NEW, a separate tag "Crosses private land", like the Indigenous one.
@@ -363,7 +363,7 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
 - **Turner Creek (after the map; a separate creek filed under Noons Creek):** "Make it its own water (Recommended)".
   Reading: Turner Creek becomes its own water (T1246). The data chat then found the cause is Noons Creek's watershed
   code on the city line, not an alias; how to fix it (Turner only, or with Tunnel and Capitol creeks, now or in the
-  hardening release) is a new question for him; no data change until he answers.
+  hardening release) is a new question for him; no data change until he answers. Should Turner take the Noons row "No Fishing upstream of railway bridge"? "No, leave Turner as today (Recommended)" (2026-11-27, T1191).
 - **Steelhead water (2026-11-27, option E sheet):** "Pacific streams now, barriers in 0.11.0 (Recommended)". Every stream of
   Regions 1, 2, 3, 5, 6 draining to the Pacific is steelhead water in 0.10.0 (RULINGS S14, T1250); barriers are T1257.
   Buckley Creek: "Release: the row's cap holds (Recommended)" (S15). The Columbia and the Skagit: "Hold both but make
@@ -389,6 +389,7 @@ his words (verbatim, his spelling); "Reading:" is the planning chat's plain read
 - **Turner Creek's tidal limit (T1246):** "tidal limit is rail bridge again I think. like noons". Built: the lowest
   126 m, below the Ioco Spur crossing, is tidal (OSM shows no bridge there: it may be a culvert).
 - **Tunnel Creek's Seymour leave-out row (T1246):** "(a) Remove the row too (Recommended)". Removed.
+- **MacMillan Creek's channel to Diana Lake (360244113:889, 2026-11-27/28):** "not into skeena ..."; "so we jsut decided that macmillan doesnt get skeena riles so this is mute ..."; "i thought we went over this??". It is not Skeena water and does not take the Skeena River's own row; built after 0.10.0 with the outflow guard (T1164 item 2; words in full: OWNER-UNFILED).
 
 ## Known, not new (the audit's finds he had already ruled on)
 - A lake divided into closure areas is deferred (his lake splits); the lake page already says "Open, except some parts".

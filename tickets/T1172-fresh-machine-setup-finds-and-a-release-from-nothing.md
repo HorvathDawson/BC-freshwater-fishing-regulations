@@ -1,10 +1,10 @@
 # T1172 — A fresh machine: the setup finds, and a release made from nothing
 
-Status: OPEN — BLOCKS the 0.10.0 re-cut: current main cannot build a release on real data (gnis:2123); the owner asked for a step back first
+Status: OPEN — no longer blocks the 0.10.0 re-cut: the gnis:2123 fix merged in #312 (2026-11-27) and all six step-back picks are answered (## Owner); left: Work items 2-4
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1172 | A fresh machine: the setup finds, and a release made from nothing | OPEN — blocks the 0.10.0 re-cut; step back first (owner 2026-11-26) | — | owner: the step-back design's picks; then the gnis:2123 fix, a release from nothing in the clean clone, the bc.pmtiles pin and the setup-page leftovers |
+| T1172 | A fresh machine: the setup finds, and a release made from nothing | OPEN — does not block the re-cut (#312 merged; six picks answered) | — | a release from nothing on current main in the clean clone, the bc.pmtiles pin (find 1) and the setup-page leftovers |
 
 Source: the fresh-clone proof of T1120 (repo-move chat, night of 2026-11-25, clean clone
 `~/dev/personal/canifishthis-fresh`) and its rerun on current main by the planning chat, 2026-11-26. The planning
@@ -135,5 +135,6 @@ date. Severity: HIGH (blocks the re-cut). Model: Opus. Size: M.
 
 ## Owner
 
-- [ ] 2026-11-26 — The step-back design's six picks (recommended first): unblock the re-cut by the first-vertex mouth only / plus area names now / hold for the Creston cut; Old Kootenay's main line 3.7 m outside the WMA: outside (two parts) / in it; the naming ladder: yes / keep today's; membership-only places in names: parks, WMAs, ERs, national parks / cut areas only; channels of a unit-line river follow it / keep their side; geometry: a side-atlas trial after the binding fixes / the look only / none. Default: nothing is built before you pick.
+- [x] 2026-11-26 — The step-back design's six picks (recommended first): unblock the re-cut by the first-vertex mouth only / plus area names now / hold for the Creston cut; Old Kootenay's main line 3.7 m outside the WMA: outside (two parts) / in it; the naming ladder: yes / keep today's; membership-only places in names: parks, WMAs, ERs, national parks / cut areas only; channels of a unit-line river follow it / keep their side; geometry: a side-atlas trial after the binding fixes / the look only / none. Default: nothing is built before you pick.
+  → (1) "Yes, but name it by the area" (2026-11-26); #312: "Merge; names only (Recommended)" (2026-11-26; merged 2026-11-27). (2) two parts, by "Shorter: '... inside Creston Valley WMA'" and "Never inside (Recommended)" (2026-11-26). (3) superseded by T1191: "option 3 shoulds good ..." and "options one except if it is the only section it doesnt need a locator at all" (2026-11-26/27). (4) "Wholly inside any area, plus 'partly in' when the area's rule binds (Recommended)"; Thelwood: "yes name it but this is something we need to fix generally." (2026-11-26). (5) "campbell river is correct it straddles so is included in mu 1-10 and 1-6 so is in closure" (2026-11-25); the 14 side parts: "Fold by the rule, in the re-cut (Recommended)" (2026-11-27, T1240). (6) superseded by T1242: "D: simplify the water itself", then "Run the loop-removal trial first, then I decide" (2026-11-26); loops build 1 merged in #383.
 - [x] 2026-11-26 — The stale candidate r-71d09ad82e81 → "can go later" (2026-11-26; delete it at the re-cut)

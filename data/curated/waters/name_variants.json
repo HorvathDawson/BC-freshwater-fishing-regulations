@@ -34060,6 +34060,14 @@
     "name": "KITWANGA L.",
     "source": "bathymetry",
     "note": ""
+   },
+   {
+    "name": "Kitwanga Lake",
+    "source": "bathymetry",
+    "note": "T1188: the name printed on provincial bathymetric chart 00177201 (title block \"KITWANGA L.\"; lake code 00809KISP), which is placed on this lake. The owner marked the placing Right on his depth-chart review, 2026-11-27, and ruled that a chart name differing from the lake's is a name variant of that lake. Not a display name: the gazetted name stays the label.",
+    "source_ref": "https://a100.gov.bc.ca/pub/fidq/downloadBathymetricMap.do?filename=00177201.pdf",
+    "reviewed_by": "owner",
+    "reviewed_at": "2026-11-27"
    }
   ]
  },
@@ -36445,6 +36453,14 @@
     "name": "ZIPPERMOUTH LAKE",
     "source": "bathymetry",
     "note": ""
+   },
+   {
+    "name": "Walkin Lake",
+    "source": "bathymetry",
+    "note": "T1188: the name printed on provincial bathymetric chart 00168601 (title block \"WALKIN LAKE\"; lake code 01476LCHL), which is placed on this lake. The owner marked the placing Right on his depth-chart review, 2026-11-27, and ruled that a chart name differing from the lake's is a name variant of that lake. Not a display name: the gazetted name stays the label.",
+    "source_ref": "https://a100.gov.bc.ca/pub/fidq/downloadBathymetricMap.do?filename=00168601.pdf",
+    "reviewed_by": "owner",
+    "reviewed_at": "2026-11-27"
    }
   ]
  },
@@ -52703,6 +52719,14 @@
     "name": "SNOW LAKE",
     "source": "stocking",
     "note": ""
+   },
+   {
+    "name": "Snow Lake",
+    "source": "bathymetry",
+    "note": "T1188: the name printed on provincial bathymetric chart 00158801 (title block \"SNOW LAKE *\"; lake code 00805PINE), which is placed on this lake. The owner marked the placing Right on his depth-chart review, 2026-11-27, and ruled that a chart name differing from the lake's is a name variant of that lake. Not a display name: the gazetted name stays the label.",
+    "source_ref": "https://a100.gov.bc.ca/pub/fidq/downloadBathymetricMap.do?filename=00158801.pdf",
+    "reviewed_by": "owner",
+    "reviewed_at": "2026-11-27"
    }
   ]
  },
@@ -52732,6 +52756,14 @@
     "name": "SIMPSON LAKE",
     "source": "stocking",
     "note": ""
+   },
+   {
+    "name": "Grizzly Lake",
+    "source": "bathymetry",
+    "note": "T1188: the name printed on provincial bathymetric chart 00153501 (title block \"GRIZZLY LAKE *\"; lake code 00511PINE), which is placed on this lake. The owner marked the placing Right on his depth-chart review, 2026-11-27, and ruled that a chart name differing from the lake's is a name variant of that lake. Not a display name: the gazetted name stays the label.",
+    "source_ref": "https://a100.gov.bc.ca/pub/fidq/downloadBathymetricMap.do?filename=00153501.pdf",
+    "reviewed_by": "owner",
+    "reviewed_at": "2026-11-27"
    }
   ]
  },
