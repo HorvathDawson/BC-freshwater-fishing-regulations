@@ -62,18 +62,19 @@ def test_the_review_app_serves_entry_b_and_says_when_it_is_not_placed(tmp_path, 
     import json
     import sys
     from pathlib import Path
-    from pipeline.tests.conftest import curated_root
+    from pipeline.tests.conftest import curated_root, generated_root
     # a curated tree this test builds, with a review that has nothing in it: "not placed" is proven with no confirmed
     # closed area on file, never on the live `closed_areas.json` (which the owner's accepts fill: Thompson, 2026-11-15)
     curated_root(monkeypatch, tmp_path / "curated")
+    generated_root(monkeypatch, tmp_path / "generated")      # T1192: the derived files are this test's, in a whole copy
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     sys.modules.pop("dfo", None)
     import dfo as BD
     sys.modules.pop("dfo", None)
-    f = tmp_path / "closures.json"
+    f = BD._closures_path()
+    f.parent.mkdir(parents=True, exist_ok=True)
     f.write_text(json.dumps({"entries": K.derive(_stored())}))
-    monkeypatch.setenv("CURATION_DFO_CLOSURES", str(f))
-    monkeypatch.setenv("CURATION_DFO_CLOSED_GEOMETRY", str(tmp_path / "none.json"))
+    assert not BD._closed_geometry_path().exists()           # no geometry on file yet
     got = BD.closure_view(LIVE)
     assert got["id"] == LIVE + "#closed" and got["proposed"] is False and got["rule"]["verbatim"] == "No fishing, year-round"
     assert [(a["name"], a["state"], a["ends"], a["metres"]) for a in got["areas"]] == [
@@ -88,11 +89,10 @@ def test_the_review_app_serves_entry_b_and_says_when_it_is_not_placed(tmp_path, 
         "Pinkut Creek", "not live", "unplaced", "6:babine-lake#" + kept["key"])
     morrison = next(a for a in live["areas"] if a["name"] == "Morrison Creek")
     pinkut_key = next(a["key"] for a in BD.closure_view("6:babine-lake:babine-lake-excluding-tributaries~2")["areas"] if a["name"] == "Pinkut Creek")
-    g = tmp_path / "geo.json"
+    g = BD._closed_geometry_path()
     rec = lambda key, name: {"key": key, "water_id": "6:babine-lake", "name": name, "item": name, "kind": "circle",    # noqa: E731
                              "on_item": "wbk:329026676", "centre": [-126.3, 55.1], "radius_m": 400}
     g.write_text(json.dumps({"pieces": [rec(morrison["key"], "Morrison Creek"), rec(pinkut_key, "Pinkut Creek")]}))
-    monkeypatch.setenv("CURATION_DFO_CLOSED_GEOMETRY", str(g))
     old = {a["name"]: a for a in BD.closure_view("6:babine-lake:babine-lake-excluding-tributaries~2")["areas"]}
     assert old["Morrison Creek"]["state"] == "placed" and len(old["Morrison Creek"]["ring"]) == 73
     # DFO's live page dropped Pinkut Creek: NOT LIVE (never bound), yet its circle is served — flagged `live: false` — so

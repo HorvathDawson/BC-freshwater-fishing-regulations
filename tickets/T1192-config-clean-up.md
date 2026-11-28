@@ -1,10 +1,10 @@
 # T1192 — config.yaml clean-up: paths only, the file list in the schema (Option A)
 
-Status: IN PROGRESS — lane: the repo clean chat; PRs 1-5 and 7 merged; PR 8 and PR 9 (PR 7's review follow-ups) up.
+Status: IN PROGRESS — lane: the repo clean chat; PRs 1-5 and 7-9 merged; PR 6 up (#367, under review).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 6, the review tool's ~25 per-file CURATION_* path overrides become one whole-tree override; PR 8 (plain field notes) and PR 9 (PR 7's review follow-ups) up; rule 36 reworded (docs PR) |
+| T1192 | config.yaml clean-up: paths only, the file list in the schema (Option A) | IN PROGRESS — the repo clean chat | — | left (Claude): PR 6's merge (#367: one whole-tree GENERATED_ROOT, the per-file CURATION_* paths refused); then only the owner lines and the open [ ] finds |
 
 Source: the owner, 2026-11-26 (planning chat), verbatim: "the config.yaml i feel has a lot of stuff in it that is noit
 needed too? like there is a lot of bloat because of the way stuff is formatted could we audit this and maybe use it as
@@ -62,7 +62,11 @@ a way to spin off more restructuring of ourr data etc? we want everything to be 
 5. Per-leaf C lines. PR 5 (merged): a read records its key + root per access (`curated._Tree`); a whole node taken
    (`model_dump`, iteration) records the node. [ ] Import-time constants (`gauges.matches.MATCH_FILE`) key every deliver
    step on `gauges.matches`. [ ] A `test_stage_content_keys`-style pin: each curated / generated read is in its stage key.
-6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused.
+6. Review app: one whole-tree generated override; the per-file `CURATION_*` paths refused. PR 6 (#367): `GENERATED_ROOT`
+   moves every `GENERATED` path, honoured only by the review backend and tests; 19 per-file overrides refused; kept:
+   the served vintage (5) and 3 output paths. [ ] A side `CURATION_BUILD` should require `_REACH_DIR` and `_BUNDLE` too.
+   [ ] Found, not fixed (a missing input reads as nothing): backend `dfo.py` 123-166, 1067, 1078, `preverify.py` 43-47,
+   `awaiting_water.py` 31-35; `regs/review/tidal.py` 400, `proposals.py` 1781.
 7. Option A: the file list moves into the schema; config.yaml about 12 lines. PR 7 (merged, #358): config.yaml
    = `roots:`, `source.fwa_gpkg`, `atlas_build` (was `generated.atlas.default_build`); every other name is an `At` on its
    field, added to the parsed file by `curated.read_config` (the loaders' and `config_now`'s one source; a name stated in
@@ -86,3 +90,5 @@ Depends: none. Size: M. Owner: two small calls (below). Model: Opus.
 - [x] 2026-11-27 — AGENTS rule 36 said "All paths come from config.yaml"; since #358 only the roots, the FWA gpkg name
   and `atlas_build` do (every other name: `pipeline/common/curated.py`) → "Reword as proposed (Recommended)"
   (2026-11-27); the rule now names `pipeline.common.curated`.
+- [ ] 2026-11-27 — The review tool's tunables (backups kept 500 / 60 days / 120 s burst, debounces): a `review_app:`
+  block in config.yaml, or code constants (the table in tools/curation-review/API.md)? Default: kept as code constants.

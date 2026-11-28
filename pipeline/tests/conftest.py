@@ -108,6 +108,19 @@ def curated_root(mp: pytest.MonkeyPatch, dst: Path, *, fresh_review: bool = True
     return root
 
 
+def generated_root(mp: pytest.MonkeyPatch, dst: Path, *names: str) -> Path:
+    """T1192: THE generated sandbox, the twin of `curated_root`: `curated.make_generated_root(dst, names)` (the named
+    parts of this process's generated tree, none = empty) and `GENERATED_ROOT` pointed at it through `mp`, so every
+    generated path the process reads is the copy, never a mix. A test writes its own inputs at the reader's own path
+    (`tidal.path()`), asked AFTER this call. Returns the root."""
+    from pipeline.common import curated as C
+    from pipeline.common.curated import GENERATED_ROOT_ENV, make_generated_root
+    mp.setattr(C, "_GENERATED_ROOT_ALLOWED", True)          # the opt-in (`allow_generated_root`), undone with `mp`
+    root = make_generated_root(dst, names)
+    mp.setenv(GENERATED_ROOT_ENV, str(root))
+    return root
+
+
 def no_served_build(mp: pytest.MonkeyPatch, dst: Path) -> Path:
     """(T777) THE REVIEW APP WITH NO ATLAS TO SERVE, as CI runs it: `CURATION_BUILD` named to a folder under `dst` that
     does not exist, set through `mp` BEFORE the backend is imported (`reuse._BUILD` is read at import). A no-data test

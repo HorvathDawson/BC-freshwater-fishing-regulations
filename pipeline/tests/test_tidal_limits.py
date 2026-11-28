@@ -61,9 +61,10 @@ CANDS.append({**_cand(NELSON, "Nelson Creek", 37595, 38.2, [-122.876534, 49.2294
 
 @pytest.fixture()
 def src(tmp_path, monkeypatch) -> P.Sources:
-    cands = tmp_path / "tidal-candidates.json"
-    cands.write_text(json.dumps({"candidates": CANDS}))
-    monkeypatch.setenv("CURATION_TIDAL_CANDIDATES", str(cands))
+    from pipeline.tests.conftest import generated_root
+    generated_root(monkeypatch, tmp_path / "generated")  # T1192: this test's inputs, in a whole generated copy
+    T.path().parent.mkdir(parents=True)
+    T.path().write_text(json.dumps({"candidates": CANDS}))
     (tmp_path / "cat").mkdir()
     (tmp_path / "dfo").mkdir()
     sp = tmp_path / "curated" / "splits.json"

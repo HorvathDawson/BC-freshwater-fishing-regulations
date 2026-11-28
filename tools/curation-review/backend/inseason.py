@@ -1,7 +1,7 @@
 """T230: THE IN-SEASON TAB — the provincial in-season feed's rows and WHERE each applies.
 
 The feed is the T225 worker's `inseason-feed/1` (`GENERATED.inseason / "feed" / "index.json"`, or
-`CURATION_INSEASON_FEED`); the matches are `data/curated/inseason/notice_waters.json` (`CURATED.inseason.notice_waters`)
+moved only with the whole tree by `GENERATED_ROOT`); the matches are `data/curated/inseason/notice_waters.json` (`CURATED.inseason.notice_waters`)
 and (T679 #11) their GENERATED resolution (`matches.resolved_path()`: ranges, ends, stamps, never committed), read and
 edited only through `pipeline.regs.inseason.matches`.
 
@@ -19,7 +19,6 @@ INFORMATIONAL ONLY: a match puts a banner on the water in the app; it is never a
 from __future__ import annotations
 
 import json
-import os
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -36,8 +35,7 @@ class Refused(ValueError):
 
 
 def feed_path() -> Path:
-    env = os.environ.get("CURATION_INSEASON_FEED")
-    return Path(env) if env else Path(GENERATED.inseason) / "feed" / "index.json"
+    return Path(GENERATED.inseason) / "feed" / "index.json"
 
 
 def matches_path() -> Path:

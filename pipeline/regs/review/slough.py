@@ -18,7 +18,6 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
-import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
@@ -26,8 +25,6 @@ from typing import Optional
 from pipeline.common.curated import CURATED, GENERATED
 
 ROOT = Path(__file__).resolve().parents[3]
-AUTOMARK = GENERATED.sloughs / "slough-automark.json"
-FINDER = GENERATED.sloughs / "candidates_v2.json.gz"
 #: the retired review page's database, read once (2026-10-28): the owner's free-text notes live only here
 PAGE_MARKS = CURATED.waters.slough_page_calls          # T331: declared in config.yaml; never env-overridable
 #: the width rule's cut (the slough-automark report, cut in T1081): at or under this the owner called it stream 96% of the time
@@ -40,8 +37,8 @@ GROUP_WORDS = {"premark": "pre-marked stream (confirm)", "owner list": "your lis
 
 
 def _paths() -> tuple[Path, Path]:
-    return (Path(os.environ.get("CURATION_SLOUGH_AUTOMARK") or AUTOMARK),
-            Path(os.environ.get("CURATION_SLOUGH_FINDER") or FINDER))
+    """The finder's output (pre-marks, candidates), per call (moved only with the whole tree by `GENERATED_ROOT`)."""
+    return (Path(GENERATED.sloughs / "slough-automark.json"), Path(GENERATED.sloughs / "candidates_v2.json.gz"))
 
 
 def _mtime(p: Path) -> float:

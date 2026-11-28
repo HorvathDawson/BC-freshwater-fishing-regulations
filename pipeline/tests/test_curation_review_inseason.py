@@ -66,7 +66,6 @@ def env(request, tmp_path_factory):
     (tmp / "matches.json").write_text(json.dumps(MATCHES))
     (tmp / "resolved.json").write_text(json.dumps(RESOLVED))
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_INSEASON_FEED", str(tmp / "feed.json"))
     # T331: a curated path is never env-overridable — the test points the one reader at a temp copy
     from pipeline.regs.inseason import matches as _M
     mp.setattr(_M, "default_path", lambda: tmp / "matches.json")
@@ -79,6 +78,9 @@ def env(request, tmp_path_factory):
     for mod in _MODS:
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
+    import inseason                                           # noqa: E402
+    # T1192: the reader's own accessor at this test's file (it serves the live atlas, which no whole generated copy can hold)
+    mp.setattr(inseason, "feed_path", lambda: tmp / "feed.json")
     from fastapi.testclient import TestClient
     curated = _stamps(load_repo().base)
     yield {"client": TestClient(app_mod.app), "dir": tmp}
@@ -194,7 +196,7 @@ def test_5_the_preview_and_the_picker_read_only(env):
 
 
 def test_6_no_feed_says_so(env, monkeypatch):
-    monkeypatch.setenv("CURATION_INSEASON_FEED", str(env["dir"] / "absent.json"))
+    monkeypatch.setattr(sys.modules["inseason"], "feed_path", lambda: env["dir"] / "absent.json")
     q = _q(env)
     assert q["available"] is False and "no in-season feed" in q["message"]
     assert _post(env, id=OPEN, extents=[{"op": "whole", "item_id": COWICHAN}]).status_code == 400

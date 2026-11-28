@@ -1802,14 +1802,10 @@ def clear_marks(body: dict) -> dict:
 # to apply" list, and Claude's `apply_proposals` lands each one (binding check, side rebuild where
 # a cut changes, one commit each).
 
-#: where the proposals were written; `CURATION_PROPOSALS_DIR` points it at a copy (tests)
-PROPOSALS_DIR = (Path(os.environ["CURATION_PROPOSALS_DIR"])
-                 if os.environ.get("CURATION_PROPOSALS_DIR") else None)
-
-
 def _proposals_dir() -> Path:
+    """Where the proposals were written (`proposals.out_dir()`, moved only with the whole tree by `GENERATED_ROOT`)."""
     from pipeline.regs.review import proposals as P
-    return PROPOSALS_DIR or P.OUT_DIR
+    return P.out_dir()
 
 
 def entry_answer_context(entry_id: str) -> dict | None:

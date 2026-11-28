@@ -27,7 +27,7 @@ import pytest
 from pipeline.tests import under_test
 
 from pipeline.common.curated import CURATED
-from pipeline.tests.conftest import curated_root, no_served_build
+from pipeline.tests.conftest import curated_root, generated_root, no_served_build
 from pipeline.regs.review import apply_proposals as A
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
@@ -392,11 +392,13 @@ _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo
 def test_the_app_refuses_a_proposal_decision(src, tmp_path, monkeypatch):
     props = P.build(owner_marks(), src)
     out = tmp_path / "proposals"
-    P.write(props, out, src, marks_path=tmp_path / "marks.jsonl")
+    P.write(props, out, src, marks_path=tmp_path / "marks.jsonl")     # (its side dirs are repo-relative: written first)
+    generated_root(monkeypatch, tmp_path / "generated")  # T1192: this test's proposals, in a whole generated copy
+    P.out_dir().parent.mkdir(parents=True)
+    out.replace(P.out_dir())
     no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
     store = Path(CURATED.review.marks)
-    monkeypatch.setenv("CURATION_PROPOSALS_DIR", str(out))
     monkeypatch.setenv("CURATION_BACKUP_DIR", str(tmp_path / "backups"))
     monkeypatch.syspath_prepend(str(BACKEND))
     for mod in _MODS:

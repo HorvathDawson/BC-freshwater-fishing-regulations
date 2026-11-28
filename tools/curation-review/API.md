@@ -21,6 +21,22 @@ commands the screen PRINTS for the human; it runs none).
 entries; a split is checked BY PROXY on the map of each entry whose rules name it
 (`GET /api/entries/{id}/splits`), and a wrong one is a "Place: wrong" mark on such an entry.
 
+**Environment: every variable the tool reads** (T1192). A data path moves only with its WHOLE tree: `CURATED_ROOT` /
+`GENERATED_ROOT`, copies made by `pipeline.common.curated.make_root` / `make_generated_root` (tests, a rehearsal on a
+copy). The per-file overrides they replaced are refused when set (`curated.RETIRED_ENV`, `RETIRED_GENERATED_ENV`).
+
+| variable | kind | default | set by |
+|---|---|---|---|
+| `CURATION_BUILD`, `_REACH_DIR`, `_BUNDLE`, `_RELEASE_ROOT`, `_TILES` | path: the served vintage (`vintage.Target`) | `GENERATED.build()`, its reach run, `GENERATED.bundle`, `GENERATED.tiles`, `ROOTS.release` | side builds (`proposals.side_commands`, `apply_proposals`), `regs.review.gate` / `parity`, tests |
+| `CURATION_BACKUP_DIR`, `_REFUSED_LOG`, `_WRITE_THROUGH_LOG` | path: where it writes its own backups and logs | under `GENERATED` | tests (conftest: every app's refused log) |
+| `CURATION_BACKUP_KEEP` / `_BACKUP_DAYS` / `_BACKUP_BURST_S` | tunable: snapshots kept, days, burst seconds | 500 / 60 / 120 | nobody |
+| `CURATION_WRITE_THROUGH_DEBOUNCE`, `CURATION_SYNC_DEBOUNCE` | tunable: seconds of quiet before an apply / a sync | 1.5 / 2 | tests |
+| `CURATION_WRITE_THROUGH` | switch: 1 on, 0 off | on over the live marks store only | tests |
+| `CURATION_SYNC_INPUTS`, `CURATION_SYNC_CMD` | switch, and its command | off; `deploy/staging/sync-inputs.sh` | `run.sh` (1), tests |
+| `CURATION_WARM` | switch: load the caches at startup | off | `run.sh` (1) |
+| `PORT`, `CURATION_VITE_PORT`, `CURATION_API`, `CURATION_READY_WAIT` | the ports, the API address, the start-up wait | 8787, 5173, `http://127.0.0.1:$PORT`, 180 s | `run.sh`, the browser test |
+| `CURATION_APP_URL`, `CURATION_REPORTS_URL`, `CURATION_REPORTS_TOKEN` | the app's link, the reports worker, its token | `http://127.0.0.1:39218/`, staging, `app/workers/feeds/.run-token` | tests |
+
 ---
 
 ## Queue
@@ -272,7 +288,7 @@ still to verify (`tiers.splits_to_verify`, the `split_to_verify` pre-check).
   `{run: digest | null, why}`.
   `evidence`: `{kind: row | passage | none | missing, printed, pdf_page, boxes, found, total, why,
   crop_url, page_url, row_image}` — a water row's box from `row_boxes.json`
-  (`CURATION_ROW_BOXES`; `missing` with the command when there is none), a zone passage found by
+  (`missing` with the command when there is none), a zone passage found by
   text on its printed page (`found` / `total` words). `coverage`: `{segments: [{text, kind: quoted |
   unquoted | gap}], unquoted_chars, missing: [record ids whose quote is not in the row]}`.
   `answer` / each zone rule's `answer`: `{url, item, part, sections, via}` — the app's start link
@@ -405,20 +421,19 @@ The source synopsis row-crop PNG (`data/generated/regs/extraction/row_images/`).
 
 ### Tidal mode (T212) — reads; accepting is a mark
 The proposed tidal boundaries (`data/generated/review/tidal/tidal-candidates.json`, from
-`python -m pipeline.tools.audit.tidal_candidates`; `CURATION_TIDAL_CANDIDATES` points at a copy).
+`python -m pipeline.tools.audit.tidal_candidates`).
 - `GET /api/tidal/queue?confidence=&verify=&enters=&words=&q=` — one row per candidate.
 - `GET /api/tidal/progress` — marked / total, by confidence, the file's coverage.
 - `GET /api/tidal/candidates/{id}` — the candidate (proposal, polygon crossing, sources), labelled map
   points, the mark in force.
 - `GET /api/tidal/candidates/{id}/edge` — the tidal polygon's edge within 4 km (the build gpkg's
-  `tidal_boundary` layer, read only; `CURATION_TIDAL_GPKG`).
+  `tidal_boundary` layer, read only).
 - Accepting: `POST /api/marks` with `scope: "tidal"`, `answers: {P: "y"}` and the cut as ONE `new_splits`
   entry (`anchor: "coord"`, snapped to the stream and stamped by the server). P n with the reviewer's
   own point is a wrong mark ("split misplaced"). Never a splits.json write (T185 builds the split).
 
 ### In-season mode (T230) — reads, and the one non-mark write
-The provincial in-season feed (T225 `inseason-feed/1`: `data/generated/inseason/feed/index.json`, or
-`CURATION_INSEASON_FEED`) and where each row applies, `data/curated/inseason/notice_waters.json`
+The provincial in-season feed (T225 `inseason-feed/1`: `data/generated/inseason/feed/index.json`) and where each row applies, `data/curated/inseason/notice_waters.json`
 (`CURATED.inseason.matches`, never env-overridable; read through `pipeline.regs.inseason.matches`). INFORMATIONAL ONLY: a match puts a
 banner on the water in the app, never changes an answer.
 - `GET /api/inseason/queue` → `{available, message, source, fetchedAt, rows, progress: {matched, auto, unmatched,

@@ -23,7 +23,6 @@ import difflib
 import hashlib
 import io
 import json
-import os
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -33,9 +32,8 @@ from pipeline.regs.parsing.catalogue import clean_verbatim
 
 import synopsis_pages
 
-#: the sidecar (`CURATION_ROW_BOXES` points it at a copy)
-ROW_BOXES_PATH = (Path(os.environ["CURATION_ROW_BOXES"]) if os.environ.get("CURATION_ROW_BOXES")
-                  else GENERATED.regs.extraction / "row_boxes.json")
+#: the sidecar (moved only with the whole generated tree, `GENERATED_ROOT`)
+ROW_BOXES_PATH = GENERATED.regs.extraction / "row_boxes.json"
 RAW_DATA_PATH = GENERATED.regs.extraction / "synopsis_raw_data.json"
 ROW_BOXES_COMMAND = "python -m pipeline.regs.extraction.row_boxes"
 ROW_BOXES_VERSION = 1

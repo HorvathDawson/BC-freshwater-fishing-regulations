@@ -98,6 +98,11 @@ class ProjectConfig:
             raise KeyError(f"config.yaml {'.'.join(keys)} is a curated path: read it as `CURATED"
                            f"{''.join('.' + k for k in keys[1:]) if keys[0] == 'curated' else '.base'}` "
                            f"(pipeline.common.curated): it honours CURATED_ROOT")
+        if keys[:1] == ("generated",) or keys[:2] == ("roots", "generated"):
+            # (T1192) the same door for the generated tree: `GENERATED` / `ROOTS.generated` honour `GENERATED_ROOT`
+            raise KeyError(f"config.yaml {'.'.join(keys)} is a generated path: read it as `GENERATED"
+                           f"{''.join('.' + k for k in keys[1:]) if keys[0] == 'generated' else ''}` or "
+                           f"`ROOTS.generated` (pipeline.common.curated): they honour GENERATED_ROOT")
         if found and isinstance(node, PurePath):
             return Path(node)
         raise KeyError(f"config.yaml has no path at {'.'.join(keys)}")

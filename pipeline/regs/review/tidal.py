@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -21,26 +20,16 @@ from typing import Optional
 
 from pipeline.common.curated import GENERATED
 
-#: the candidates file; `CURATION_TIDAL_CANDIDATES` points it at a copy (tests)
-DEFAULT_PATH = GENERATED.review / "tidal/tidal-candidates.json"
-
-
 def path() -> Path:
-    env = os.environ.get("CURATION_TIDAL_CANDIDATES")
-    return Path(env) if env else DEFAULT_PATH
-
-
-#: T212 PASS 2 (`pipeline.tools.audit.tidal_pass2`): what DFO's own area / closure / PFMA / freshwater
-#: descriptions imply, per stream — merged in as EVIDENCE only; `CURATION_TIDAL_PASS2` points it at a
-#: copy ("" = none). Read alongside the default candidates file only (a test's copy gets none).
-PASS2_PATH = GENERATED.review / "tidal/pass2/proposals.json"
+    """The candidates file, per call (moved only with the whole tree by `GENERATED_ROOT`)."""
+    return GENERATED.review / "tidal/tidal-candidates.json"
 
 
 def pass2_path() -> Optional[Path]:
-    env = os.environ.get("CURATION_TIDAL_PASS2")
-    if env is not None:
-        return Path(env) if env else None
-    return None if os.environ.get("CURATION_TIDAL_CANDIDATES") else PASS2_PATH
+    """T212 PASS 2 (`pipeline.tools.audit.tidal_pass2`): what DFO's own area / closure / PFMA / freshwater
+    descriptions imply, per stream — merged in as EVIDENCE only, from the same tree as the candidates (a
+    `GENERATED_ROOT` copy reads its own, and none when it holds none)."""
+    return GENERATED.review / "tidal/pass2/proposals.json"
 
 
 IMPLIES_WORDS = {"is": "names the boundary here", "confirms_mouth": "DFO confirms the mouth (tidal water at the mouth)", "at_or_above": "tidal at least to here (boundary at or above)",

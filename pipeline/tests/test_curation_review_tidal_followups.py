@@ -14,17 +14,18 @@ from pipeline.common.curated import CURATED
 from pipeline.regs.review import proposals as P
 from pipeline.regs.review import tidal as T
 from pipeline.tests import test_tidal_limits as TT
-from pipeline.tests.conftest import curated_root
+from pipeline.tests.conftest import curated_root, generated_root
 
 BACKEND = Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"
 
 
 @pytest.fixture()
 def app(tmp_path, monkeypatch):
-    cands = tmp_path / "tidal-candidates.json"
+    generated_root(monkeypatch, tmp_path / "generated")  # T1192: this test's inputs, in a whole generated copy
+    cands = T.path()
+    cands.parent.mkdir(parents=True)
     cands.write_text(json.dumps({"coverage": {}, "candidates": [{"enters": "ocean", "agreement": "-", **c}
                                                                 for c in TT.CANDS]}))
-    monkeypatch.setenv("CURATION_TIDAL_CANDIDATES", str(cands))
     curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
     marks = Path(CURATED.review.marks)
     T._load.cache_clear()

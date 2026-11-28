@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.tests import under_test
-from pipeline.tests.conftest import curated_root, no_served_build
+from pipeline.tests.conftest import curated_root, generated_root, no_served_build
 
 REPO = Path(__file__).resolve().parents[2]
 #: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
@@ -53,20 +53,21 @@ def _digest(d: Path) -> str:
 @pytest.fixture(scope="module")
 def env(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("slough")
-    (tmp / "automark.json").write_text(json.dumps({"rows": ROWS}))
-    with gzip.open(tmp / "finder.json.gz", "wt") as f:
+    mp = pytest.MonkeyPatch()
+    from pipeline.regs.review import slough as _S
+    generated_root(mp, tmp / "generated")  # T1192: this test's inputs, in a whole generated copy
+    automark, finder = _S._paths()
+    automark.parent.mkdir(parents=True)
+    automark.write_text(json.dumps({"rows": ROWS}))
+    with gzip.open(finder, "wt") as f:
         json.dump({"candidates": [{"id": r["id"], "outline": [[-120, 50], [-120.001, 50.001], [-120, 50]]}
                                   for r in ROWS]}, f)
     (tmp / "page.json").write_text(json.dumps({"verdicts": {
         "5": {"verdict": "stream", "note": "part of a slough nearby"},
         "6": {"verdict": None, "note": "similar this can be on a lake"},     # verdict cleared, note kept
         "3": {"verdict": "stream", "note": "complex:cx-3"}}}))                # the page's own tag, not a note
-    mp = pytest.MonkeyPatch()
     # T331: a curated path is never env-overridable — the test points the module's own constant at a temp copy
-    from pipeline.regs.review import slough as _S
     mp.setattr(_S, "PAGE_MARKS", tmp / "page.json")
-    mp.setenv("CURATION_SLOUGH_AUTOMARK", str(tmp / "automark.json"))
-    mp.setenv("CURATION_SLOUGH_FINDER", str(tmp / "finder.json.gz"))
     no_served_build(mp, tmp)  # (T777) the app serves no atlas, as on CI
     curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))

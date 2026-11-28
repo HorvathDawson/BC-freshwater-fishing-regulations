@@ -27,7 +27,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict
 
-import reuse
+from pipeline.common import curated as _curated
+
+#: (T1192) THE REVIEW TOOL MAY RUN ON A WHOLE GENERATED COPY (`GENERATED_ROOT`), the one process besides the tests that
+#: opts in. Only beside a whole curated copy: write-through and the input sync act on the curated tree, and from copied
+#: inputs they would write the owner's LIVE files (both are off under `CURATED_ROOT`).
+_curated.allow_generated_root()
+if _curated.generated_root() is not None and _curated.sandbox_root() is None:
+    raise RuntimeError(f"{_curated.GENERATED_ROOT_ENV} is set without {_curated.ROOT_ENV}: the tool would write the live "
+                       f"curated tree from copied generated inputs. Set {_curated.ROOT_ENV} to a whole curated copy "
+                       "too (curated.make_root), or unset both")
+
+import reuse                                                    # noqa: E402
 
 app = FastAPI(title="Curation Review")
 
@@ -138,7 +149,7 @@ def review_closed():
 #: curated final file follows the marks with no command and no lock. On only over the curated marks store (or
 #: `CURATION_WRITE_THROUGH=1`); a refused apply keeps the mark and says why on the item.
 import write_through as _wt                                     # noqa: E402
-WRITE_THROUGH = _wt.from_env(reuse.MARKS_PATH, reuse._ROOT)
+WRITE_THROUGH = _wt.from_env(reuse.MARKS_PATH)
 #: (T520, owner 2026-11-08: publish from the Mac only) a saved input `sync_inputs` stages — an in-season match, or a
 #: DFO places / wording file the write-through wrote — runs deploy/staging/sync-inputs.sh (`inputs_sync`)
 import inputs_sync as _is                                       # noqa: E402
@@ -436,14 +447,14 @@ class MarkPayload(BaseModel):
 #: miss — the terminal is not enough). One JSON line each: when, the item, the status, the reasons
 #: and the payload (so it can be retried). `CURATION_REFUSED_LOG` points it at a copy (tests).
 REFUSED_LOG: Path | None = None
-_REFUSED_DEFAULT = reuse._ROOT / "data" / "generated" / "review" / "refused-saves.jsonl"
 
 
 def refused_log() -> Path:
     """`REFUSED_LOG` when set, else `CURATION_REFUSED_LOG` read NOW (the tests point every app they
-    build at a temp file), else the repo's log."""
+    build at a temp file), else the log under the generated tree (`GENERATED_ROOT`'s copy when one is set)."""
+    from pipeline.common.curated import GENERATED
     env = os.environ.get("CURATION_REFUSED_LOG")
-    return REFUSED_LOG or (Path(env) if env else _REFUSED_DEFAULT)
+    return REFUSED_LOG or (Path(env) if env else Path(GENERATED.review) / "refused-saves.jsonl")
 
 
 def _log_refused(body: "MarkPayload | InSeasonMatchPayload", status: int, detail) -> None:

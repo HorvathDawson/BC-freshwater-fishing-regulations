@@ -553,13 +553,15 @@ def watched_dirs() -> list[Path]:
     """The live directories a deliver step writes when no flag moves it (step 1 measured, T667 slice 8): the bundle,
     the tiles and the released tile folders, the release root, the run-timing base, the synopsis cache, the deliver
     step cache, the gauge feeds, the DFO salmon feed and its page cache, the fetched map assets — and the curated
-    tree. A mini build must leave every one exactly as it found it (`build` refuses otherwise)."""
-    from pipeline.common.curated import GENERATED, ROOTS, SOURCE, load_repo
+    tree. A mini build must leave every one exactly as it found it (`build` refuses otherwise). The LIVE trees, whatever
+    a sandbox variable says (`load_generated`, `load_roots`, `load_repo`): a stray write is a write to the real files."""
+    from pipeline.common.curated import ROOTS, SOURCE, load_generated, load_repo, load_roots
     from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
-    return [Path(GENERATED.bundle), Path(GENERATED.tiles), Path(ROOTS.release), Path(GENERATED.runtiming),
-            Path(GENERATED.synopsis), Path(ROOTS.generated) / "deliver-cache", Path(GENERATED.gauges.feeds),
-            Path(GENERATED.regs.dfo_salmon),
-            Path(GENERATED.reaches), Path(SOURCE) / "map-assets", REPO_ROOT / DEFAULT_CACHE, Path(load_repo().base)]
+    gen = load_generated()
+    return [Path(gen.bundle), Path(gen.tiles), Path(ROOTS.release), Path(gen.runtiming),
+            Path(gen.synopsis), Path(load_roots().generated) / "deliver-cache", Path(gen.gauges.feeds),
+            Path(gen.regs.dfo_salmon),
+            Path(gen.reaches), Path(SOURCE) / "map-assets", REPO_ROOT / DEFAULT_CACHE, Path(load_repo().base)]
 
 
 def listing(dirs: list[Path]) -> dict[str, tuple]:

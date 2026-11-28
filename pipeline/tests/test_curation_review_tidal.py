@@ -45,13 +45,15 @@ def env(request, tmp_path_factory):
     (tmp / "tidal-candidates.json").write_text(json.dumps({"coverage": {"named_ocean_entering_total": 1},
                                                            "candidates": rows}))
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_TIDAL_CANDIDATES", str(tmp / "tidal-candidates.json"))
     curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
     for mod in ("app", "reuse", "dfo", "tidal", "writes", "review"):
         sys.modules.pop(mod, None)
     from pipeline.regs.review import tidal as T
+    # T1192: the reader's own accessor at this test's file (it serves the live atlas, which no whole generated copy can hold)
+    mp.setattr(T, "path", lambda: tmp / "tidal-candidates.json")
+    mp.setattr(T, "pass2_path", lambda: None)
     T._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient

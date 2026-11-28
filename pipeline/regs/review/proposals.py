@@ -56,8 +56,14 @@ from pipeline.common import split_ids as _ids
 from pipeline.common.curated import GENERATED
 
 REPO = Path(__file__).resolve().parents[3]
-#: where the proposals are written (index.json + <id>.patch) — handoff, never curated data
-OUT_DIR = GENERATED.review / "proposals"
+def out_dir() -> Path:
+    """Where the proposals are written (index.json + <id>.patch) — handoff, never curated data. Read per call, so a
+    process's `GENERATED_ROOT` copy is honoured whenever it was set (the review app's tests)."""
+    return GENERATED.review / "proposals"
+
+
+#: `out_dir()` when this module was imported: the CLI's default
+OUT_DIR = out_dir()
 INDEX = "index.json"
 #: the review app's backend: the in-memory binding path (`reuse.binding_change`) lives there
 BACKEND = REPO / "tools" / "curation-review" / "backend"
